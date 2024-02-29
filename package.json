@@ -1,0 +1,99 @@
+{
+  "name": "mediasfu-reactjs",
+  "version": "1.0.0",
+  "private": false,
+  "main": "dist/main.js",
+  "module": "dist/main.js",
+  "author": "MediaSFU",
+  "license": "AGPL-3.0-only",
+  "description": "MediaSFU Prebuilt ReactJS SDK",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MediaSFU-ReactJS"
+  },
+  "homepage": "https://github.com/MediaSFU-ReactJS",
+  "bugs": {
+    "url": "https://github.com/MediaSFU-ReactJS/issues",
+    "email": "info@mediasfu.com"
+  },
+  "files": [
+    "dist/"
+  ],
+  "keywords": [
+    "mediasfu",
+    "react",
+    "prebuilt",
+    "webRTC",
+    "video",
+    "audio",
+    "chat",
+    "media",
+    "sfu",
+    "MediaSFU",
+    "cloud recording",
+    "meeting",
+    "conference",
+    "web",
+    "sdk",
+    "reactjs",
+    "mediasoup"
+  ],
+  "dependencies": {
+    "@babel/polyfill": "^7.12.1",
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@fortawesome/fontawesome-svg-core": "^6.5.1",
+    "@fortawesome/free-brands-svg-icons": "^6.5.1",
+    "@fortawesome/free-solid-svg-icons": "^6.5.1",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@mui/icons-material": "^5.15.9",
+    "@mui/material": "^5.15.9",
+    "@yudiel/react-qr-scanner": "^1.2.10",
+    "bootstrap": "^5.3.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "universal-cookie": "^7.1.0",
+    "web-vitals": "^2.1.4"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.9",
+    "@babel/preset-env": "^7.23.9",
+    "@babel/preset-react": "^7.23.3",
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "babel-loader": "^9.1.3",
+    "react-scripts": "5.0.1",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "buildnpm": "rm -rf dist && webpack --mode production"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

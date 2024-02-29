@@ -1236,8 +1236,7 @@ These troubleshooting steps should help users address common issues and optimize
 
 <div style="text-align: center;">
 
-<video src="https://mediasfu.com/videos/MediaSFU_Features.mp4" controls="controls" style="max-width: 730px;">
-</video>
+https://github.com/MediaSFU/MediaSFU-ReactJS/assets/157974639/a6396722-5b2f-4e93-a5b3-dd53ffd20eb7
 
 </div>
 

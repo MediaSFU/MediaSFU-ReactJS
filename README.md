@@ -1236,9 +1236,7 @@ These troubleshooting steps should help users address common issues and optimize
 
 <div style="text-align: center;">
 
-<video width="640" height="360" controls>
-  <source src="https://mediasfu.com/videos/MediaSFU_Features.mp4" type="video/mp4">
-  Your browser does not support the video tag.
+<video src="https://mediasfu.com/videos/MediaSFU_Features.mp4" controls="controls" style="max-width: 730px;">
 </video>
 
 </div>

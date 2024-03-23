@@ -1,11 +1,11 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": false,
   "main": "dist/main.js",
   "module": "dist/main.js",
   "author": "MediaSFU",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "description": "MediaSFU Prebuilt ReactJS SDK",
   "repository": {
     "type": "git",

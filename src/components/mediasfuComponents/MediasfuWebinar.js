@@ -1520,6 +1520,10 @@ function MediasfuWebinar({PrejoinPage=WelcomePage, credentials={}, useLocalUIMod
     const recordingNameTags = useRef(true); // Whether to include name tags in recording
     const [recordingBackgroundColor, setRecordingBackgroundColor] = useState('#83c0e9'); // Background color for recording
     const [recordingNameTagsColor, setRecordingNameTagsColor] = useState('#ffffff'); // Name tag color for recording
+    const recordingAddText = useRef(false); // Whether to add text to recording
+    const recordingCustomText = useRef('Add Text'); // Custom text for recording
+    const recordingCustomTextPosition = useRef('top'); // Custom text position for recording
+    const [recordingCustomTextColor, setRecordingCustomTextColor] = useState('#ffffff'); // Custom text color for recording
     const recordingOrientationVideo = useRef('landscape'); // Orientation for video recording
     const clearedToResume = useRef(true); // True if cleared to resume recording
     const clearedToRecord = useRef(true); // True if cleared to record
@@ -1562,6 +1566,26 @@ function MediasfuWebinar({PrejoinPage=WelcomePage, credentials={}, useLocalUIMod
 
     const updateRecordingAddHLS = (value) => {
         recordingAddHLS.current = value;
+        clearedToRecord.current = false;
+    };
+
+    const updateRecordingAddText = (value) => {
+        recordingAddText.current = value;
+        clearedToRecord.current = false;
+    };
+
+    const updateRecordingCustomText = (value) => {
+        recordingCustomText.current = value;
+        clearedToRecord.current = false;
+    };
+
+    const updateRecordingCustomTextPosition = (value) => {
+        recordingCustomTextPosition.current = value;
+        clearedToRecord.current = false;
+    };
+
+    const updateRecordingCustomTextColor = (value) => {
+        setRecordingCustomTextColor(value);
         clearedToRecord.current = false;
     };
 
@@ -2078,6 +2102,10 @@ function MediasfuWebinar({PrejoinPage=WelcomePage, credentials={}, useLocalUIMod
             recordingVideoOptimized: recordingVideoOptimized.current,
             recordingDisplayType: recordingDisplayType.current,
             recordingAddHLS: recordingAddHLS.current,
+            recordingAddText: recordingAddText.current,
+            recordingCustomText: recordingCustomText.current,
+            recordingCustomTextPosition: recordingCustomTextPosition.current,
+            recordingCustomTextColor: recordingCustomTextColor,
             recordingNameTags: recordingNameTags.current,
             recordingBackgroundColor: recordingBackgroundColor,
             recordingNameTagsColor: recordingNameTagsColor,
@@ -2376,6 +2404,10 @@ function MediasfuWebinar({PrejoinPage=WelcomePage, credentials={}, useLocalUIMod
             updateRecordingVideoOptimized,
             updateRecordingDisplayType,
             updateRecordingAddHLS,
+            updateRecordingAddText,
+            updateRecordingCustomText,
+            updateRecordingCustomTextPosition,
+            updateRecordingCustomTextColor,
             updateRecordingNameTags,
             updateRecordingBackgroundColor,
             updateRecordingNameTagsColor,

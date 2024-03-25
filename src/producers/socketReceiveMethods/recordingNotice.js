@@ -22,6 +22,10 @@
  * @param {string} params.recordingBackgroundColor - Background color for recording.
  * @param {string} params.recordingNameTagsColor - Name tags color for recording.
  * @param {string} params.recordingOrientationVideo - Video orientation for recording.
+ * @param {string} params.recordingAddText - Indicates if text should be added during recording.
+ * @param {string} params.recordingCustomText - Custom text for recording.
+ * @param {string} params.recordingCustomTextPosition - Custom text position for recording.
+ * @param {string} params.recordingCustomTextColor - Custom text color for recording.
  * @param {number} params.pauseRecordCount - Count of pauses during recording.
  * @param {number} params.recordElapsedTime - Elapsed time during recording.
  * @param {boolean} params.recordStarted - Indicates if recording has started.
@@ -47,6 +51,10 @@
  * @param {function} params.updateRecordingBackgroundColor - Function to update recording background color.
  * @param {function} params.updateRecordingNameTagsColor - Function to update recording name tags color.
  * @param {function} params.updateRecordingOrientationVideo - Function to update recording video orientation.
+ * @param {function} params.updateRecordingAddText - Function to update recording text status.
+ * @param {function} params.updateRecordingCustomText - Function to update recording custom text.
+ * @param {function} params.updateRecordingCustomTextPosition - Function to update recording custom text position.
+ * @param {function} params.updateRecordingCustomTextColor - Function to update recording custom text color.
  * @param {function} params.updatePauseRecordCount - Function to update pause record count.
  * @param {function} params.updateRecordElapsedTime - Function to update recorded elapsed time.
  * @param {function} params.updateRecordStarted - Function to update recording started status.
@@ -61,185 +69,202 @@
  * @throws {Error} Throws an error if there is an issue handling recording state and status.
  */
 export const RecordingNotice = async ({ state, userRecordingParam, pauseCount, timeDone, parameters }) => {
-  // Function to handle recording state and status
-  // Update relevant parameters and indicators based on provided logic
-
-  let {
-      islevel,
-      eventType,
-      userRecordingParams,
-      recordingMediaOptions,
-      recordingAudioOptions,
-      recordingVideoOptions,
-      recordingVideoType,
-      recordingVideoOptimized,
-      recordingDisplayType,
-      recordingAddHLS,
-      recordingNameTags,
-      recordingBackgroundColor,
-      recordingNameTagsColor,
-      recordingOrientationVideo,
-      pauseRecordCount,
-      recordElapsedTime,
-      recordStarted,
-      recordPaused,
-      canLaunchRecord,
-      stopLaunchRecord,
-      recordStopped,
-      isTimerRunning,
-      canPauseResume,
-      recordStartTime,
-      recordingStateIndicator,
-      // Add other state update functions as needed
-      updateRecordingProgressTime,
-      updateShowRecordButtons,
-      updateUserRecordingParams,
-      updateRecordingStateIndicatorMember,
-      updateRecordingMediaOptions,
-      updateRecordingAudioOptions,
-      updateRecordingVideoOptions,
-      updateRecordingVideoType,
-      updateRecordingVideoOptimized,
-      updateRecordingDisplayType,
-      updateRecordingAddHLS,
-      updateRecordingNameTags,
-      updateRecordingBackgroundColor,
-      updateRecordingNameTagsColor,
-      updateRecordingOrientationVideo,
-      updatePauseRecordCount,
-      updateRecordElapsedTime,
-      updateRecordStarted,
-      updateRecordPaused,
-      updateCanLaunchRecord,
-      updateStopLaunchRecord,
-      updateRecordStopped,
-      updateIsTimerRunning,
-      updateCanPauseResume,
-      updateRecordStartTime,
-      updateRecordingStateIndicator,
-      updateRecordState,
-  } = parameters;
-
-  try {
-      // Update recording state and status based on user level
-      if (islevel !== '2') {
-          // If not host, update recording state indicator
-          if (state === 'pause') {
-              updateRecordStarted(true);
-              updateRecordPaused(true);
+    // Function to handle recording state and status
+    // Update relevant parameters and indicators based on provided logic
+  
+    let {
+        islevel,
+        eventType,
+        userRecordingParams,
+        recordingMediaOptions,
+        recordingAudioOptions,
+        recordingVideoOptions,
+        recordingVideoType,
+        recordingVideoOptimized,
+        recordingDisplayType,
+        recordingAddHLS,
+        recordingNameTags,
+        recordingBackgroundColor,
+        recordingNameTagsColor,
+        recordingOrientationVideo,
+        recordingAddText,
+        recordingCustomText,
+        recordingCustomTextPosition,
+        recordingCustomTextColor,
+        pauseRecordCount,
+        recordElapsedTime,
+        recordStarted,
+        recordPaused,
+        canLaunchRecord,
+        stopLaunchRecord,
+        recordStopped,
+        isTimerRunning,
+        canPauseResume,
+        recordStartTime,
+        recordingStateIndicator,
+        // Add other state update functions as needed
+        updateRecordingProgressTime,
+        updateShowRecordButtons,
+        updateUserRecordingParams,
+        updateRecordingStateIndicatorMember,
+        updateRecordingMediaOptions,
+        updateRecordingAudioOptions,
+        updateRecordingVideoOptions,
+        updateRecordingVideoType,
+        updateRecordingVideoOptimized,
+        updateRecordingDisplayType,
+        updateRecordingAddHLS,
+        updateRecordingNameTags,
+        updateRecordingBackgroundColor,
+        updateRecordingNameTagsColor,
+        updateRecordingOrientationVideo,
+        updateRecordingAddText,
+        updateRecordingCustomText,
+        updateRecordingCustomTextPosition,
+        updateRecordingCustomTextColor,
+        updatePauseRecordCount,
+        updateRecordElapsedTime,
+        updateRecordStarted,
+        updateRecordPaused,
+        updateCanLaunchRecord,
+        updateStopLaunchRecord,
+        updateRecordStopped,
+        updateIsTimerRunning,
+        updateCanPauseResume,
+        updateRecordStartTime,
+        updateRecordingStateIndicator,
+        updateRecordState,
+    } = parameters;
+  
+    try {
+        // Update recording state and status based on user level
+        if (islevel !== '2') {
+            // If not host, update recording state indicator
+            if (state === 'pause') {
+                updateRecordStarted(true);
+                updateRecordPaused(true);
+                updateRecordState('yellow')
+            } else if (state === 'stop') {
+                updateRecordStarted(true);
+                updateRecordStopped(true);
+                updateRecordState('green')
+            }else{
+                updateRecordState('red')
+                updateRecordStarted(true);
+                updateRecordPaused(false);
+            }
+        } else {
+            // If host, update recording state indicator and additional functionalities
+            // Applicable for the host returning to the event room after leaving (leaving pauses the recording)
+            if (state === 'pause') {
               updateRecordState('yellow')
-          } else if (state === 'stop') {
-              updateRecordStarted(true);
-              updateRecordStopped(true);
-              updateRecordState('green')
-          }else{
+                if (userRecordingParam) {
+                    userRecordingParams = userRecordingParam;
+                    // Add logic to update recording state indicator for the host
+                    // updateRecordingStateIndicatorMember(state);
+  
+                    // Update recording parameters for the host
+                    recordingMediaOptions = userRecordingParams.mainSpecs.mediaOptions;
+                    recordingAudioOptions = userRecordingParams.mainSpecs.audioOptions;
+                    recordingVideoOptions = userRecordingParams.mainSpecs.videoOptions;
+                    recordingVideoType = userRecordingParams.mainSpecs.videoType;
+                    recordingVideoOptimized = userRecordingParams.mainSpecs.videoOptimized;
+                    recordingDisplayType = userRecordingParams.mainSpecs.recordingDisplayType;
+                    recordingAddHLS = userRecordingParams.mainSpecs.addHLS;
+                    recordingNameTags = userRecordingParams.dispSpecs.nameTags;
+                    recordingBackgroundColor = userRecordingParams.dispSpecs.backgroundColor;
+                    recordingNameTagsColor = userRecordingParams.dispSpecs.nameTagsColor;
+                    recordingOrientationVideo = userRecordingParams.dispSpecs.orientationVideo;
+                    recordingAddText = userRecordingParams.textSpecs.addText
+                    recordingCustomText = userRecordingParams.textSpecs.customText
+                    recordingCustomTextPosition = userRecordingParams.textSpecs.customTextPosition
+                    recordingCustomTextColor = userRecordingParams.textSpecs.customTextColor
+  
+                    // Update user recording parameters
+                    updateUserRecordingParams(userRecordingParams);
+                    updateRecordingMediaOptions(recordingMediaOptions);
+                    updateRecordingAudioOptions(recordingAudioOptions);
+                    updateRecordingVideoOptions(recordingVideoOptions);
+                    updateRecordingVideoType(recordingVideoType);
+                    updateRecordingVideoOptimized(recordingVideoOptimized);
+                    updateRecordingDisplayType(recordingDisplayType);
+                    updateRecordingAddHLS(recordingAddHLS);
+                    updateRecordingNameTags(recordingNameTags);
+                    updateRecordingBackgroundColor(recordingBackgroundColor);
+                    updateRecordingNameTagsColor(recordingNameTagsColor);
+                    updateRecordingOrientationVideo(recordingOrientationVideo);
+                    updateRecordingAddText(recordingAddText);
+                    updateRecordingCustomText(recordingCustomText);
+                    updateRecordingCustomTextPosition(recordingCustomTextPosition);
+                    updateRecordingCustomTextColor(recordingCustomTextColor);
+  
+                    // Update pause record count
+                    pauseRecordCount = pauseCount;
+                    updatePauseRecordCount(pauseRecordCount);
+  
+                    // Update record elapsed time
+                    recordElapsedTime = timeDone;
+                    updateRecordElapsedTime(recordElapsedTime);
+  
+                    // Update recording status
+                    recordStarted = true;
+                    recordPaused = true;
+                    canLaunchRecord = false;
+                    recordStopped = false;
+  
+                    updateRecordStarted(recordStarted);
+                    updateRecordPaused(recordPaused);
+                    updateCanLaunchRecord(canLaunchRecord);
+                    updateRecordStopped(recordStopped);
+                    updateShowRecordButtons(true);
+  
+                    // Update timer and pause/resume status
+                    isTimerRunning = false;
+                    canPauseResume = true;
+  
+                    updateIsTimerRunning(isTimerRunning);
+                    updateCanPauseResume(canPauseResume);
+  
+                    // Format and update recording progress time
+                    recordElapsedTime = Math.floor(recordElapsedTime / 1000);
+                    recordStartTime = Math.floor(Date.now() / 1000) - recordElapsedTime;
+                    updateRecordElapsedTime(recordElapsedTime);
+                    updateRecordStartTime(recordStartTime);
+  
+                    function padNumber(number) {
+                        return number.toString().padStart(2, '0');
+                    }
+  
+                    const hours = Math.floor(recordElapsedTime / 3600);
+                    const minutes = Math.floor((recordElapsedTime % 3600) / 60);
+                    const seconds = recordElapsedTime % 60;
+                    const formattedTime = padNumber(hours) + ':' + padNumber(minutes) + ':' + padNumber(seconds);
+  
+                    updateRecordingProgressTime(formattedTime);
+                }
+            } else if (state === 'stop') {
+                // If recording has stopped, update recording state indicator and stop attempt to resume recording
+                recordStarted = true;
+                recordStopped = true;
+                canLaunchRecord = false;
+                stopLaunchRecord = true;
+       
+                updateRecordStarted(recordStarted);
+                updateRecordStopped(recordStopped);
+                updateCanLaunchRecord(canLaunchRecord);
+                updateStopLaunchRecord(stopLaunchRecord);
+                updateShowRecordButtons(false);
+  
+                updateRecordState('green')
+            }else{
               updateRecordState('red')
               updateRecordStarted(true);
               updateRecordPaused(false);
-          }
-      } else {
-          // If host, update recording state indicator and additional functionalities
-          // Applicable for the host returning to the event room after leaving (leaving pauses the recording)
-          if (state === 'pause') {
-            updateRecordState('yellow')
-              if (userRecordingParam) {
-                  userRecordingParams = userRecordingParam;
-                  // Add logic to update recording state indicator for the host
-                  // updateRecordingStateIndicatorMember(state);
-
-                  // Update recording parameters for the host
-                  recordingMediaOptions = userRecordingParams.mainSpecs.mediaOptions;
-                  recordingAudioOptions = userRecordingParams.mainSpecs.audioOptions;
-                  recordingVideoOptions = userRecordingParams.mainSpecs.videoOptions;
-                  recordingVideoType = userRecordingParams.mainSpecs.videoType;
-                  recordingVideoOptimized = userRecordingParams.mainSpecs.videoOptimized;
-                  recordingDisplayType = userRecordingParams.mainSpecs.recordingDisplayType;
-                  recordingAddHLS = userRecordingParams.mainSpecs.addHLS;
-                  recordingNameTags = userRecordingParams.dispSpecs.nameTags;
-                  recordingBackgroundColor = userRecordingParams.dispSpecs.backgroundColor;
-                  recordingNameTagsColor = userRecordingParams.dispSpecs.nameTagsColor;
-                  recordingOrientationVideo = userRecordingParams.dispSpecs.orientationVideo;
-
-                  // Update user recording parameters
-                  updateUserRecordingParams(userRecordingParams);
-                  updateRecordingMediaOptions(recordingMediaOptions);
-                  updateRecordingAudioOptions(recordingAudioOptions);
-                  updateRecordingVideoOptions(recordingVideoOptions);
-                  updateRecordingVideoType(recordingVideoType);
-                  updateRecordingVideoOptimized(recordingVideoOptimized);
-                  updateRecordingDisplayType(recordingDisplayType);
-                  updateRecordingAddHLS(recordingAddHLS);
-                  updateRecordingNameTags(recordingNameTags);
-                  updateRecordingBackgroundColor(recordingBackgroundColor);
-                  updateRecordingNameTagsColor(recordingNameTagsColor);
-                  updateRecordingOrientationVideo(recordingOrientationVideo);
-
-                  // Update pause record count
-                  pauseRecordCount = pauseCount;
-                  updatePauseRecordCount(pauseRecordCount);
-
-                  // Update record elapsed time
-                  recordElapsedTime = timeDone;
-                  updateRecordElapsedTime(recordElapsedTime);
-
-                  // Update recording status
-                  recordStarted = true;
-                  recordPaused = true;
-                  canLaunchRecord = false;
-                  recordStopped = false;
-
-                  updateRecordStarted(recordStarted);
-                  updateRecordPaused(recordPaused);
-                  updateCanLaunchRecord(canLaunchRecord);
-                  updateRecordStopped(recordStopped);
-                  updateShowRecordButtons(true);
-
-                  // Update timer and pause/resume status
-                  isTimerRunning = false;
-                  canPauseResume = true;
-
-                  updateIsTimerRunning(isTimerRunning);
-                  updateCanPauseResume(canPauseResume);
-
-                  // Format and update recording progress time
-                  recordElapsedTime = Math.floor(recordElapsedTime / 1000);
-                  recordStartTime = Math.floor(Date.now() / 1000) - recordElapsedTime;
-                  updateRecordElapsedTime(recordElapsedTime);
-                  updateRecordStartTime(recordStartTime);
-
-                  function padNumber(number) {
-                      return number.toString().padStart(2, '0');
-                  }
-
-                  const hours = Math.floor(recordElapsedTime / 3600);
-                  const minutes = Math.floor((recordElapsedTime % 3600) / 60);
-                  const seconds = recordElapsedTime % 60;
-                  const formattedTime = padNumber(hours) + ':' + padNumber(minutes) + ':' + padNumber(seconds);
-
-                  updateRecordingProgressTime(formattedTime);
-              }
-          } else if (state === 'stop') {
-              // If recording has stopped, update recording state indicator and stop attempt to resume recording
-              recordStarted = true;
-              recordStopped = true;
-              canLaunchRecord = false;
-              stopLaunchRecord = true;
-     
-              updateRecordStarted(recordStarted);
-              updateRecordStopped(recordStopped);
-              updateCanLaunchRecord(canLaunchRecord);
-              updateStopLaunchRecord(stopLaunchRecord);
-              updateShowRecordButtons(false);
-
-              updateRecordState('green')
-          }else{
-            updateRecordState('red')
-            updateRecordStarted(true);
-            updateRecordPaused(false);
-          }
-      }
-  } catch (error) {
-      console.log("Error in recordingNotice: ", error);
-    //   throw new Error("Failed to handle recording state and status.");
-  }
-};
+            }
+        }
+    } catch (error) {
+        console.log("Error in recordingNotice: ", error);
+      //   throw new Error("Failed to handle recording state and status.");
+    }
+  };
+  

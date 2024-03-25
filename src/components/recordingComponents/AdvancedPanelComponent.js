@@ -8,30 +8,46 @@
  * @param {string} props.parameters.recordingNameTagsColor - The selected recording name tags color.
  * @param {string} props.parameters.recordingOrientationVideo - The selected recording video orientation.
  * @param {boolean} props.parameters.recordingNameTags - The selected recording name tags option.
+ * @param {Function} props.parameters.recordingAddText - The selected recording add text option.
+ * @param {string} props.parameters.recordingCustomText - The selected recording custom text.
+ * @param {string} props.parameters.recordingCustomTextPosition - The selected recording custom text position.
+ * @param {string} props.parameters.recordingCustomTextColor - The selected recording custom text color.
  * @param {Function} props.parameters.updateRecordingVideoType - Callback to update the recording video type.
  * @param {Function} props.parameters.updateRecordingDisplayType - Callback to update the recording display type.
  * @param {Function} props.parameters.updateRecordingBackgroundColor - Callback to update the recording background color.
  * @param {Function} props.parameters.updateRecordingNameTagsColor - Callback to update the recording name tags color.
  * @param {Function} props.parameters.updateRecordingOrientationVideo - Callback to update the recording video orientation.
  * @param {Function} props.parameters.updateRecordingNameTags - Callback to update the recording name tags option.
+ * @param {Function} props.parameters.updateRecordingAddText - Callback to update the recording add text option.
+ * @param {Function} props.parameters.updateRecordingCustomText - Callback to update the recording custom text.
+ * @param {Function} props.parameters.updateRecordingCustomTextPosition - Callback to update the recording custom text position.
+ * @param {Function} props.parameters.updateRecordingCustomTextColor - Callback to update the recording custom text color.
  * @returns {React.Component} - The AdvancedPanelComponent.
  */
 import React, { useEffect, useState } from 'react';
 
 const AdvancedPanelComponent = ({ parameters }) => {
-  const {
+  let {
     recordingVideoType,
     recordingDisplayType,
     recordingBackgroundColor,
     recordingNameTagsColor,
     recordingOrientationVideo,
     recordingNameTags,
+    recordingAddText,
+    recordingCustomText,
+    recordingCustomTextPosition,
+    recordingCustomTextColor,
     updateRecordingVideoType,
     updateRecordingDisplayType,
     updateRecordingBackgroundColor,
     updateRecordingNameTagsColor,
     updateRecordingOrientationVideo,
     updateRecordingNameTags,
+    updateRecordingAddText,
+    updateRecordingCustomText,
+    updateRecordingCustomTextPosition,
+    updateRecordingCustomTextColor,
     eventType
   } = parameters;
 
@@ -49,6 +65,37 @@ const AdvancedPanelComponent = ({ parameters }) => {
   // State for selected color type (background color or name tags color)
   const [selectedColorType, setSelectedColorType] = useState('');
 
+  //recording text 
+  const [recordingText, setRecordingText] = useState(recordingAddText);
+  const [customText, setCustomText] = useState(recordingCustomText);
+  const [recordingPosition, setRecordingPosition] = useState(recordingCustomTextPosition);
+
+  function validateTextInput(input) {
+    // Regular expression to match alphanumeric characters and spaces, with a maximum length of 40 characters
+    const regex = /^[a-zA-Z0-9\s]{1,40}$/;
+
+    // Test the input against the regular expression
+    return regex.test(input);
+  }
+
+    // Handle text change
+  const handleTextChange = (value) => {
+    setRecordingText(value == 'true' || value == true);
+    updateRecordingAddText(value);
+  };
+
+  // Handle text input change
+  const onChangeTextHandler = (text) => {
+    if (text && text.length > 0) {
+      if (!validateTextInput(text)) {
+        return;
+      }
+    }
+
+    updateRecordingCustomText(text);
+    setCustomText(text);
+  };
+
   useEffect(() => {
     setSelectedOrientationVideo(recordingOrientationVideo);
   }, [recordingOrientationVideo]);
@@ -59,6 +106,8 @@ const onSelectColor = ({ hex }) => {
   try {
     if (showBackgroundColorModal) {
       setSelectedColorType('backgroundColor');
+    } else if ('customTextColor') {
+      setSelectedColorType('customTextColor');
     } else if (showNameTagsColorModal) {
       setSelectedColorType('nameTagsColor');
     }
@@ -75,6 +124,8 @@ const handleColorChange = (selectedColor,color) => {
   try {
     if (selectedColor === 'backgroundColor') {
       updateRecordingBackgroundColor(color);
+    } else if (selectedColor === 'customTextColor') {
+      updateRecordingCustomTextColor(color);
     } else if (selectedColor === 'nameTagsColor') {
       updateRecordingNameTagsColor(color);
     }
@@ -120,6 +171,53 @@ const handleColorChange = (selectedColor,color) => {
         <input type="color" value={recordingBackgroundColor} onChange={(e) => handleColorChange('backgroundColor',e.target.value)} /> <span style={{marginLeft:'10px', fontWeight: 'bold'}}>Click to select color</span> 
       </div>
       <hr />
+
+      {/* Add Text */}
+      <div>
+        <label style={{marginRight:'10px', fontWeight: 'bold'}} >Add Text:</label>
+        <select value={recordingText} onChange={(e) => handleTextChange(e.target.value)}>
+          <option value={true}>True</option>
+          <option value={false}>False</option>
+        </select>
+      </div>
+      <hr />
+
+      {/* Custom Text */}
+      {recordingText && (
+        <div>
+          <label style={{marginRight:'10px', fontWeight: 'bold'}} >Custom Text:</label>
+          <input type="text" value={customText} onChange={(e) => onChangeTextHandler(e.target.value)} />
+          <hr />  
+        </div>
+      )}
+      
+
+      {/* Custom Text Position */}
+      {recordingText && (
+        <div>
+          <label style={{marginRight:'10px', fontWeight: 'bold'}} >Custom Text Position:</label>
+          <select value={recordingPosition} onChange={(e) => {updateRecordingCustomTextPosition(e.target.value); setRecordingPosition(e.target.value);}}>
+            <option value="top">Top</option>
+            <option value="middle">Middle</option>
+            <option value="bottom">Bottom</option>
+          </select>
+          <hr />
+        </div>
+      )}
+     
+
+      {/* Custom Text Color */}
+      {recordingText && (
+        <div>
+          <label style={{marginRight:'10px', fontWeight: 'bold'}} >Custom Text Color:</label>
+          <div style={{ backgroundColor: recordingCustomTextColor, padding: '5px', marginBottom: '10px' }}>
+            {recordingCustomTextColor}
+          </div>
+          <input type="color" value={recordingCustomTextColor} onChange={(e) => handleColorChange('customTextColor',e.target.value)} /> <span style={{marginLeft:'10px', fontWeight: 'bold'}}>Click to select color</span>
+          <hr />
+        </div>
+      )}
+    
 
       {/* Add name tags or not */}
       <div>

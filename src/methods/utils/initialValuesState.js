@@ -1,8 +1,8 @@
 export const initialValuesState = {
 
     // The following are the initial values 
-
-
+  
+  
     roomName: "",
     member: '',
     adminPasscode: '',
@@ -24,7 +24,7 @@ export const initialValuesState = {
     filteredParticipants: [],
     participantsCounter: 0,
     participantsFilter: '',
-
+  
     consume_sockets: [],
     rtpCapabilities: {},
     roomRecvIPs: [],
@@ -59,7 +59,7 @@ export const initialValuesState = {
     recordingPreferredOrientation: 'landscape',
     recordingSupportForOtherOrientation: false,
     recordingMultiFormatsSupport: false,
-
+  
     firstAll: false,
     updateMainWindow: false,
     first_round: false,
@@ -133,7 +133,7 @@ export const initialValuesState = {
     audioPaused: false,
     mainScreenPerson: null,
     adminOnMainScreen: false,
-
+  
     updateDateState: null,
     lastUpdate: null,
     nForReadjustRecord: 0,
@@ -173,7 +173,7 @@ export const initialValuesState = {
     audioInputs: [],
     meetingProgressTime: '00:00:00',
     meetingElapsedTime: 0,
-
+  
     transportCreated: false,
     transportCreatedVideo: false,
     transportCreatedAudio: false,
@@ -186,7 +186,7 @@ export const initialValuesState = {
     audioProducer: null,
     consumerTransports: [],
     consumingTransports: [],
-
+  
     recordingMediaOptions: 'video',
     recordingAudioOptions: 'all',
     recordingVideoOptions: 'all',
@@ -194,6 +194,10 @@ export const initialValuesState = {
     recordingVideoOptimized: false,
     recordingDisplayType: 'media',
     recordingAddHLS: true,
+    recordingAddText:false,
+    recordingCustomText: 'add custom text',
+    recordingCustomTextPosition: 'top',
+    recordingCustomTextColor : '#ffffff',
     recordingNameTags: true,
     recordingBackgroundColor: '#83c0e9',
     recordingNameTagsColor: '#ffffff',
@@ -205,10 +209,10 @@ export const initialValuesState = {
     recordingProgressTime: '00:00:00',
     audioSwitching: false,
     videoSwitching: false,
-
+  
     videoAlreadyOn: false,
     audioAlreadyOn: false,
-
+  
     canLaunchRecord : true,
     stopLaunchRecord : false,
     canRecord:false,
@@ -221,6 +225,7 @@ export const initialValuesState = {
     canPauseResume: false,
     pauseLimit: 0,
     pauseRecordCount: 0,
-
-}
-
+  
+  }
+  
+  

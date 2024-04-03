@@ -29,13 +29,15 @@
  */
 export const respondToWaiting = async ({ parameters }) => {
   // Function implementation for responding to a waiting participant
-  const { participantId, participantName, updateWaitingList, waitingList, type, roomName, socket } = parameters;
+  let { participantId, participantName, updateWaitingList, waitingList, type, roomName, socket } = parameters;
 
   // Filter out the participant from the waiting list
   let newWaitingList = waitingList.filter((item) => item.name !== participantName);
 
   // Update the waiting list
   updateWaitingList(newWaitingList);
+
+  type = (type == 'true' || type == true) ? 'true' : 'false';
 
   // Emit an event to allow or deny the participant based on the response type
   await socket.emit('allowUserIn', { participantId, participantName, type, roomName });

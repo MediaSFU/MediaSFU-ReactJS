@@ -33,6 +33,7 @@ const WaitingRoomModal = ({
   waitingRoomList,
   updateWaitingList,
   roomName,
+  socket,
   onWaitingRoomItemPress = respondToWaiting,
   position = 'topRight',
   backgroundColor = '#83c0e9', 
@@ -119,12 +120,30 @@ const WaitingRoomModal = ({
               <div key={index} className="waiting-item" style={{ marginTop: 5, flexDirection: 'row', flex:1 }}>
                 <div className="col7">{participant.name}</div>
                 <div className="col2">
-                  <button onClick={() => onWaitingRoomItemPress(participant, true)}>
+                  <button onClick={() => onWaitingRoomItemPress({parameters:{
+                          participantId:participant.id,
+                          participantName:participant.name,
+                          waiting:participant,
+                          updateWaitingList,
+                          waitingList:waitingRoomList,
+                          roomName,
+                          type:false, //rejected
+                          socket:socket,
+                        }})}>
                     <FontAwesomeIcon icon={faCheck} size="lg" color="green" />
                   </button>
                 </div>
                 <div className="col2">
-                  <button onClick={() => onWaitingRoomItemPress(participant, false)}>
+                  <button onClick={() => onWaitingRoomItemPress({parameters:{
+                          participantId:participant.id,
+                          participantName:participant.name,
+                          waiting:participant,
+                          updateWaitingList,
+                          waitingList:waitingRoomList,
+                          roomName,
+                          type:false, //rejected
+                          socket:socket,
+                        }})}>
                     <FontAwesomeIcon icon={faTimes} size="lg" color="red" />
                   </button>
                 </div>

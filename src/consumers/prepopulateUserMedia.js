@@ -33,14 +33,14 @@ import {RTCView} from '../methods/utils/webrtc/webrtc'
  * @param {MediaStream} options.localStream - The local screen sharing media stream.
  * @param {MediaStream} options.remoteScreenStream - The remote screen sharing media stream.
  * @param {MediaStream} options.localStreamVideo - The local video media stream.
- * @param {number} options.mainGridHeightWidth - The height and width of the main grid.
+ * @param {number} options.mainHeightWidth - The height and width of the main grid.
  * @param {boolean} options.isWideScreen - Indicates whether the screen is wide.
  * @param {boolean} options.isSmallScreen - Indicates whether the screen is small.
  * @param {Function} options.updateForceFullDisplay - Function to update the forceFullDisplay status.
  * @param {Function} options.updateMainScreenPerson - Function to update the person on the main screen.
  * @param {Function} options.updateMainScreenFilled - Function to update the filled status of the main screen.
  * @param {Function} options.updateAdminOnMainScreen - Function to update the admin on the main screen.
- * @param {Function} options.updateMainGridHeightWidth - Function to update the height and width of the main grid.
+ * @param {Function} options.updateMainHeightWidth - Function to update the height and width of the main grid.
  * @param {Function} options.updateScreenForceFullDisplay - Function to update the forceFullDisplay status for the screen.
  * @param {Function} options.updateUpdateMainWindow - Function to update the updateMainWindow status.
  * @param {Function} options.updateMainGridStream - Function to update the main grid with new components.
@@ -80,7 +80,7 @@ export async function prepopulateUserMedia({ name, parameters }) {
       localStreamScreen,
       remoteScreenStream,
       localStreamVideo,
-      mainGridHeightWidth,
+      mainHeightWidth,
       isWideScreen,
       isSmallScreen,
       localUIMode,
@@ -88,7 +88,7 @@ export async function prepopulateUserMedia({ name, parameters }) {
       updateMainScreenPerson,
       updateMainScreenFilled,
       updateAdminOnMainScreen,
-      updateMainGridHeightWidth,
+      updateMainHeightWidth,
       updateScreenForceFullDisplay,
       updateUpdateMainWindow,
       updateMainGridStream,
@@ -109,13 +109,13 @@ export async function prepopulateUserMedia({ name, parameters }) {
       // Handle main grid visibility based on the event type
       if (eventType === 'conference') {
         if (shared || shareScreenStarted) {
-          if (mainGridHeightWidth === 0) {
+          if (mainHeightWidth === 0) {
             // Add the main grid if not present
-            updateMainGridHeightWidth(84);
+            updateMainHeightWidth(84);
           }
         } else {
           // Remove the main grid if not shared or started
-          updateMainGridHeightWidth(0);
+          updateMainHeightWidth(0);
         }
       }
 

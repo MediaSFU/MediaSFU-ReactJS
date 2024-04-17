@@ -1,6 +1,6 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "private": false,
   "main": "dist/main.js",
   "module": "dist/main.js",

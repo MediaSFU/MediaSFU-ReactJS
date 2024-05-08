@@ -210,7 +210,8 @@ function MediasfuBroadcast({ PrejoinPage=WelcomePage, credentials={}, useLocalUI
         }
     };
 
-
+    registerGlobals(); // Register globals
+    
     //Room Details
     const roomName = useRef(""); // Room name
     const member = useRef(useSeed && seedData?.member ? seedData?.member : ''); // Member name

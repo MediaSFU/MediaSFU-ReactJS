@@ -1,6 +1,6 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "private": false,
   "main": "dist/main.js",
   "module": "dist/main.js",
@@ -9,11 +9,11 @@
   "description": "MediaSFU Prebuilt ReactJS SDK",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MediaSFU-ReactJS"
+    "url": "https://github.com/MediaSFU/MediaSFU-ReactJS"
   },
-  "homepage": "https://github.com/MediaSFU-ReactJS",
+  "homepage": "https://github.com/MediaSFU/MediaSFU-ReactJS",
   "bugs": {
-    "url": "https://github.com/MediaSFU-ReactJS/issues",
+    "url": "https://github.com/MediaSFU/MediaSFU-ReactJS/issues",
     "email": "info@mediasfu.com"
   },
   "files": [

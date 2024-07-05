@@ -17,7 +17,7 @@
  * @param {string} options.parameters.userDefaultVideoInputDevice - The user's default video input device.
  * @param {object} options.parameters.params - Additional parameters related to the video stream.
  * @param {object} options.parameters.videoParamse - Additional parameters related to the video stream.
- * @param {object} options.parameters.HostLabel - The label for the host.
+ * @param {object} options.parameters.hostLabel - The label for the host.
  * @param {string} options.parameters.islevel - The user level.
  * @param {function} options.parameters.updateMainWindow - Function to update the main window state.
  * @param {boolean} options.parameters.lock_screen - Indicates if the screen is locked.
@@ -46,6 +46,7 @@
  * @param {function} options.parameters.connectSendTransportVideo - Function to connect the video send transport.
  * @param {function} options.parameters.showAlert - Function to show an alert.
  * @param {function} options.parameters.reorderStreams - Function to reorder streams.
+ * 
  */
 
 export const streamSuccessVideo = async ({ stream, parameters }) => {
@@ -69,7 +70,7 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       userDefaultVideoInputDevice,
       params,
       videoParamse,
-      HostLabel,
+      hostLabel,
       islevel,
       member,
       updateMainWindow,
@@ -82,6 +83,10 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       currentFacingMode,
       device,
       rtpCapabilities,
+      keepBackground,
+      appliedBackground,
+      videoProducer,
+      autoClickBackground,
 
 
       //update functions
@@ -98,6 +103,11 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       updateUpdateMainWindow,
       updateParticipants,
       updateVideoParams,
+      updateKeepBackground,
+      updateAppliedBackground,
+      updateIsBackgroundModalVisible,
+      updateVideoProducer,
+      updateAutoClickBackground,
 
 
       //mediasoup functions
@@ -105,6 +115,7 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       connectSendTransportVideo,
       showAlert,
       reorderStreams,
+      sleep,
 
 
     } = parameters;
@@ -172,107 +183,123 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       //create transport if not created else connect transport
       videoParams = await { track: localStream.getVideoTracks()[0], ...videoParamse, codecs };
       await updateVideoParams(videoParams)
+      
+      if (keepBackground && appliedBackground) {
+        videoAlreadyOn = true;
+        updateVideoAlreadyOn(videoAlreadyOn)
+        
+        await updateAutoClickBackground(true)
+        await updateIsBackgroundModalVisible(true)
+        await sleep(500);
+        await updateIsBackgroundModalVisible(false)
+        await updateAutoClickBackground(false)
+      } else {
+        if (!transportCreated) {
+
+          try {
+            await createSendTransport({
+              parameters: {
+                ...parameters,
+                videoParams: videoParams
+              },
+              option: 'video'
+            });
+          } catch (error) {
+
+          }
+
+        } else {
+
+          try {
+            await videoProducer.close();
+            await sleep(500);
+          } catch (error) {
+          }
+          await connectSendTransportVideo({
+            parameters: parameters,
+            videoParams: videoParams
+          });
+
+        }
+      }
+
+      } catch (error) {
+
+        if (showAlert) {
+          showAlert({
+            message: error.message,
+            type: 'danger',
+            duration: 3000
+          })
+        }
+
+      }
 
 
-      if (!transportCreated) {
+
+      //update the videoAlreadyOn state
+      videoAlreadyOn = true;
+      updateVideoAlreadyOn(videoAlreadyOn)
+
+      //if user requested to share video, update the videoAction state
+      if (videoAction == true) {
+        videoAction = false;
+        updateVideoAction(videoAction)
+      }
+
+      // update the display screen if host
+      if (islevel == '2') {
+        updateMainWindow = true;
+        updateUpdateMainWindow(updateMainWindow)
+      }
+
+      //update the participants array to reflect the change
+      await participants.forEach((participant) => {
+        if (participant.socketId == socket.id && participant.name == member) {
+          participant.videoOn = true;
+        }
+      });
+      updateParticipants(participants)
+
+      //update the transport created state
+      transportCreatedVideo = true;
+      updateTransportCreatedVideo(transportCreatedVideo)
+
+      //reupdate the screen display
+      if (lock_screen) {
 
         try {
-          await createSendTransport({
-            parameters: {
-              ...parameters,
-              videoParams: videoParams
-            },
-            option: 'video'
-          });
+          await reorderStreams({ add: true, screenChanged: true, parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn } })
+        } catch (error) {
+
+        }
+      } else {
+
+        try {
+          await reorderStreams({ add: false, screenChanged: true, parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn } })
         } catch (error) {
 
         }
 
-      } else {
-        await connectSendTransportVideo({
-          parameters: parameters,
-          videoParams: videoParams
-        });
-
       }
+
 
     } catch (error) {
-
-      if (showAlert) {
-        showAlert({
-          message: error.message,
-          type: 'danger',
-          duration: 3000
-        })
-      }
-
-    }
-
-
-
-    //update the videoAlreadyOn state
-    videoAlreadyOn = true;
-    updateVideoAlreadyOn(videoAlreadyOn)
-
-    //if user requested to share video, update the videoAction state
-    if (videoAction == true) {
-      videoAction = false;
-      updateVideoAction(videoAction)
-    }
-
-    // update the display screen if host
-    if (islevel == '2') {
-      updateMainWindow = true;
-      updateUpdateMainWindow(updateMainWindow)
-    }
-
-    //update the participants array to reflect the change
-    await participants.forEach((participant) => {
-      if (participant.socketId == socket.id && participant.name == member) {
-        participant.videoOn = true;
-      }
-    });
-    updateParticipants(participants)
-
-    //update the transport created state
-    transportCreatedVideo = true;
-    updateTransportCreatedVideo(transportCreatedVideo)
-
-    //reupdate the screen display
-    if (lock_screen) {
-
       try {
-        await reorderStreams({ add: true, screenChanged: true, parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn } })
+        let { showAlert } = parameters
+
+        if (showAlert) {
+          showAlert({
+            message: error.message,
+            type: 'danger',
+            duration: 3000
+          })
+        }
       } catch (error) {
 
       }
-    } else {
-
-      try {
-        await reorderStreams({ add: false, screenChanged: true, parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn } })
-      } catch (error) {
-
-      }
-
     }
 
 
-  } catch (error) {
-    try {
-      let { showAlert } = parameters
 
-      if (showAlert) {
-        showAlert({
-          message: error.message,
-          type: 'danger',
-          duration: 3000
-        })
-      }
-    } catch (error) {
-
-    }
   }
-
-
-
-}

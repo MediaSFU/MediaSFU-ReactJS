@@ -19,7 +19,7 @@ export const streamSuccessAudioSwitch = async ({ stream, parameters }) => {
         audioParamse,
         defAudioID,
         userDefaultAudioInputDevice,
-        HostLabel,
+        hostLabel,
         updateMainWindow,
         videoAlreadyOn,
         islevel,
@@ -126,7 +126,7 @@ export const streamSuccessAudioSwitch = async ({ stream, parameters }) => {
             // Set updateMainWindow to true, prepopulate user media, and set updateMainWindow back to false
             updateMainWindow = true;
             updateUpdateMainWindow(updateMainWindow);
-            await prepopulateUserMedia({ name: HostLabel, parameters });
+            await prepopulateUserMedia({ name: hostLabel, parameters });
             updateMainWindow = false;
             updateUpdateMainWindow(updateMainWindow);
         }

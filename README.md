@@ -29,6 +29,7 @@ MediaSFU offers a cutting-edge streaming experience that empowers users to custo
 
 ## Table of Contents
 
+- [Features](#features)
 - [Getting Started](#getting-started)
 - [Basic Usage Guide](#basic-usage-guide)
 - [Intermediate Usage Guide](#intermediate-usage-guide)
@@ -36,6 +37,21 @@ MediaSFU offers a cutting-edge streaming experience that empowers users to custo
 - [API Reference](#api-reference)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
+
+# Features <a name="features"></a>
+
+MediaSFU's React SDK comes with a host of powerful features out of the box:
+
+1. **Screen Sharing with Annotation Support**: Share your screen with participants and annotate in real-time for enhanced presentations and collaborations.
+2. **Collaborative Whiteboards**: Create and share whiteboards for real-time collaborative drawing and brainstorming sessions.
+3. **Breakout Rooms**: Create multiple sub-meetings within a single session to enhance collaboration and focus.
+4. **Pagination**: Efficiently handle large participant lists with seamless pagination.
+5. **Polls**: Conduct real-time polls to gather instant feedback from participants.
+6. **Media Access Requests Management**: Manage media access requests with ease to ensure smooth operations.
+7. **Video Effects**: Apply various video effects, including virtual backgrounds, to enhance the visual experience.
+8. **Chat (Direct & Group)**: Facilitate communication with direct and group chat options.
+9. **Cloud Recording (track-based)**: Customize recordings with track-based options, including watermarks, name tags, background colors, and more.
+10. **Managed Events**: Manage events with features to handle abandoned and inactive participants, as well as enforce time and capacity limits.
 
 # Getting Started <a name="getting-started"></a>
 
@@ -76,6 +92,10 @@ MediaSFU provides prebuilt event rooms for various purposes. These rooms are ren
 3. **MediasfuWebinar**: Specifically designed for hosting webinars.
 4. **MediasfuConference**: Ideal for hosting conferences.
 5. **MediasfuChat**: A room tailored for interactive chat sessions.
+
+Users can easily pick an interface and render it in their app.
+
+If no API credentials are provided, a default home page will be displayed where users can scan or manually enter the event details.
 
 To use these prebuilt event rooms, simply import them into your application:
 
@@ -121,19 +141,19 @@ export default App;
 
 ### Preview of Welcome Page
 
-<img src="https://mediasfu.com/images/prejoin.png" alt="Preview of Welcome Page" title="Welcome Page" style="max-height: 600px;">
+<img src="https://mediasfu.com/images/prejoin.png" alt="Preview of Welcome Page" title="Welcome Page" style="max-height: 500px;">
 
 <!-- Add a blank line for spacing -->
 &nbsp;
 
-<img src="https://mediasfu.com/images/prejoin1.png" alt="Preview of Event Token Details" title="Token Page" style="max-height: 600px;">
+<img src="https://mediasfu.com/images/prejoin1.png" alt="Preview of Event Token Details" title="Token Page" style="max-height: 500px;">
 
 <!-- Add a blank line for spacing -->
 &nbsp;
 
 ### Preview of Prejoin Page
 
-<img src="https://mediasfu.com/images/prejoin3.png" alt="Preview of Prejoin Page" title="Prejoin Page" style="max-height: 600px;">
+<img src="https://mediasfu.com/images/prejoin3.png" alt="Preview of Prejoin Page" title="Prejoin Page" style="max-height: 500px;">
 
 </div>
 
@@ -653,7 +673,11 @@ These components collectively contribute to the overall user interface, facilita
 | ShareEventModal | Modal for sharing the event with others. |
 | WelcomePage | Welcome page modal for the event. |
 | PreJoinPage | Prejoin page modal for the event. |
-                         
+| PollModal | Modal for conducting polls or surveys during the event. |
+| BreakoutRoomsModal | Modal for managing breakout rooms during the event. |
+| ConfigureWhiteboardModal | Modal for configuring whiteboard settings during the event. |                      
+| BackgroundModal | Modal for managing background settings during the event. |
+| ScreenboardModal | Modal for managing screen share annotations during the event. |
 
 #### Modal Interactions
 
@@ -681,6 +705,8 @@ These components facilitate media display and control functionalities:
 2. **FlexibleGrid**: Renders flexible grid layouts for media display.
 3. **FlexibleVideo**: Displays videos in a flexible manner within the grid.
 4. **AudioGrid**: Renders audio components within the grid layout.
+5. **Whiteboard**: Manages whiteboard functionalities for collaborative drawing.
+6. **Screenboard**: Controls screen share annotations and interactions.
 
 These components enable seamless media presentation and interaction within the event environment, providing users with a rich and immersive experience.
 
@@ -1072,19 +1098,19 @@ You can customize these configurations according to your requirements, adding, r
 <div style="text-align: center;">
   Preview of Broadcast Page
 
-<img src="https://mediasfu.com/images/broadcast.png" alt="Preview of Welcome Page" title="Welcome Page" style="max-height: 600px;">
+<img src="https://mediasfu.com/images/broadcast.png" alt="Preview of Welcome Page" title="Welcome Page" style="max-height: 500px;">
 
 <!-- Add a blank line for spacing -->
 &nbsp;
   
   Preview of Conference Page
 
-<img src="https://mediasfu.com/images/conference1.png" alt="Preview of Prejoin Page" title="Prejoin Page" style="max-height: 600px;">
+<img src="https://mediasfu.com/images/conference1.png" alt="Preview of Prejoin Page" title="Prejoin Page" style="max-height: 500px;">
 
 
 ### Preview of Conference Page's Mini Grids
 
-<img src="https://mediasfu.com/images/conference2.png" alt="Preview of Prejoin Page" title="Prejoin Page" style="max-height: 600px;">
+<img src="https://mediasfu.com/images/conference2.png" alt="Preview of Prejoin Page" title="Prejoin Page" style="max-height: 500px;">
 
 </div>
 
@@ -1169,10 +1195,15 @@ Here's a tabulated list of advanced control functions along with brief explanati
 | `formatNumber`                   | Formats a number (for broadcast viewers).                                                              |
 | `connectIps`                     | Connects IPs (connect to consuming servers)
 | `startMeetingProgressTimer`      | Starts the meeting progress timer.       |
-| `updateRecording`                | Updates the recording status. |
-| `stopRecording`                  | Stops the recording process. 
-
-
+| `stopRecording`                  | Stops the recording process. |
+| `pollUpdated`                    | Handles updated poll data. |
+| `handleVotePoll`                 | Handles voting in a poll. |
+| `handleCreatePoll`               | Handles creating a poll. |
+| `handleEndPoll`                  | Handles ending a poll. |
+| `breakoutRoomUpdated`           | Handles updated breakout room data. |
+| `captureCanvasStream`            | Captures a canvas stream. |
+| `resumePauseAudioStreams`        | Resumes or pauses audio streams. |
+|`processConsumerTransportsAudio`  | Processes consumer transports for audio. |
 
 ### Room Socket Events
 
@@ -1211,6 +1242,10 @@ In the context of a room's real-time communication, various events occur, such a
 | `allMembers`                  | Triggered when information about all members is received.                                                 |
 | `allMembersRest`              | Triggered when information about all members is received (rest of the members).                           |
 | `disconnect`                  | Triggered when a disconnect event occurs.                                                                |
+| `pollUpdated`                 | Triggered when a poll is updated.                                                                        |
+| `breakoutRoomUpdated`         | Triggered when a breakout room is updated.      
+| `whiteboardUpdated`            | Handles updated whiteboard data. 
+| `whiteboardAction`              | Handles whiteboard actions. |                                                       |
 
 #### Sample Usage:
 
@@ -1241,6 +1276,8 @@ These functions enable seamless interaction with the server and ensure that the 
 For detailed information on the API methods and usage, please refer to the [MediaSFU API Documentation](https://mediasfu.com/developers).
 
 If you need further assistance or have any questions, feel free to ask!
+
+For sample codes and practical implementations, visit the [MediaSFU Sandbox](https://www.mediasfu.com/sandbox).
 
 # Troubleshooting <a name="troubleshooting"></a>
 

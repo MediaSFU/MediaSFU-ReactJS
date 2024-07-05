@@ -57,6 +57,9 @@ export const modifyDisplaySettings = async({ parameters }) => {
       updateFirstAll,
       updateUpdateMainWindow,
 
+      breakOutRoomStarted,
+      breakOutRoomEnded,
+
       //mediasfu functions
       onScreenChanges,
   } = parameters;
@@ -123,7 +126,14 @@ export const modifyDisplaySettings = async({ parameters }) => {
   // Close the modal or perform additional actions
   updateIsDisplaySettingsModalVisible(false);
   if (prevMeetingDisplayType !== meetingDisplayType || prevForceFullDisplay !== forceFullDisplay) {
-      if (meetingDisplayType !== 'all') {
+    if (breakOutRoomStarted && !breakOutRoomEnded && meetingDisplayType != 'all') {
+        showAlert({ message: 'Breakout room is active. Display type can only be all.', type: 'danger' });
+        meetingDisplayType = prevMeetingDisplayType
+        updateMeetingDisplayType(meetingDisplayType);
+        return
+      }   
+    
+    if (meetingDisplayType !== 'all') {
           updateFirstAll(true);
       } else {
           updateFirstAll(false);

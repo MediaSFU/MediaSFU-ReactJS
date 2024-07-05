@@ -16,6 +16,7 @@ export async function switchUserAudio({ audioPreference, parameters }) {
         hasAudioPermission,
         updatePrevAudioInputDevice,
         updateUserDefaultAudioInputDevice,
+        updateAudioPreference,
 
         //media functions
         streamSuccessAudioSwitch,

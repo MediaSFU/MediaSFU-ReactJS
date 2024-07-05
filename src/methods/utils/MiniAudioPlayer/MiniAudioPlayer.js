@@ -39,6 +39,11 @@ const MiniAudioPlayer = ({
         updateParticipantAudioDecibels,
         paginatedStreams,
         currentUserPage,
+
+        breakOutRoomStarted,
+        breakOutRoomEnded,
+        limitedBreakRoom,
+        
     } = updatedParams;
 
     const audioContext = useRef(new (window.AudioContext || window.webkitAudioContext)());
@@ -59,7 +64,7 @@ const MiniAudioPlayer = ({
 
             const intervalId = setInterval(() => {
                 analyser.getByteTimeDomainData(dataArray);
-                const averageLoudness = Array.from(dataArray).reduce((sum, value) => sum + value, 0) / bufferLength;
+                let averageLoudness = Array.from(dataArray).reduce((sum, value) => sum + value, 0) / bufferLength;
 
                 let updatedParams = getUpdatedAllParams();
                 let {
@@ -77,7 +82,18 @@ const MiniAudioPlayer = ({
                     currentUserPage,
                 } = updatedParams;
 
-                const participant = participants.find(obj => obj.audioID === remoteProducerId);
+                let participant = participants.find(obj => obj.audioID === remoteProducerId);
+
+                let audioActiveInRoom = true;
+                if (participant) {
+                  if (breakOutRoomStarted && !breakOutRoomEnded) {
+                    //participant name must be in limitedBreakRoom
+                    if (!limitedBreakRoom.map(obj => obj.name).includes(participant.name)) {
+                      audioActiveInRoom = false;
+                      averageLoudness = 127;
+                    }
+                  }
+                }
 
                 if (meetingDisplayType != 'video') {
                     autoWaveCheck.current = true;
@@ -116,7 +132,7 @@ const MiniAudioPlayer = ({
                         autoWaveCheck.current = true
                     }
 
-                    if (participant.videoID || autoWaveCheck.current) {
+                    if (participant.videoID || autoWaveCheck.current || audioActiveInRoom) {
                         setShowWaveModal(false)
 
                         if (averageLoudness > 127.5) {

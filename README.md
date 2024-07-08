@@ -61,9 +61,19 @@ This section will guide users through the initial setup and installation of the 
 
 Instructions on how to install the module using npm.
 
-```bash
-npm install mediasfu-reactjs
-```
+1. Add the package to your project
+
+    ```bash
+    npm install mediasfu-reactjs
+    ```
+
+2. **Obtain an API key from MediaSFU.** You can get your API key by signing up or logging into your account at [mediasfu.com](https://www.mediasfu.com/).
+
+    <div style="background-color:#f0f0f0; padding: 10px; border-radius: 5px;">
+      <h4 style="color:#d9534f;">Important:</h4>
+      <p style="font-size: 1.2em;">You must obtain an API key from <a href="https://www.mediasfu.com/">mediasfu.com</a> to use this package.</p>
+    </div>
+
 
 # Basic Usage Guide <a name="basic-usage-guide"></a>
 

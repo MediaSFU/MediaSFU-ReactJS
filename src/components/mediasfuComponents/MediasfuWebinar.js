@@ -449,7 +449,17 @@ function MediasfuWebinar({PrejoinPage=WelcomePage, credentials={}, useLocalUIMod
     }
 
     const updateEventType = (value) => {
+        const prev = eventType.current;
         eventType.current = value;
+        if (prev != value && value != '') {
+            //update the display type
+            try {
+                onScreenChanges({ changed: true, parameters: { ...getAllParams(), ...mediaSFUFunctions() } });
+            } catch (error) {
+                
+            }
+           
+        }
     }
 
     const updateRecordingAudioPausesLimit = (value) => {

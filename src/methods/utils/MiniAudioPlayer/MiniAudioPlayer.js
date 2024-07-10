@@ -132,7 +132,7 @@ const MiniAudioPlayer = ({
                         autoWaveCheck.current = true
                     }
 
-                    if (participant.videoID || autoWaveCheck.current || audioActiveInRoom) {
+                    if (participant.videoID || autoWaveCheck.current || (breakOutRoomStarted && !breakOutRoomEnded && audioActiveInRoom)) {
                         setShowWaveModal(false)
 
                         if (averageLoudness > 127.5) {

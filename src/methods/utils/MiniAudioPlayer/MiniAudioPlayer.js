@@ -58,14 +58,16 @@ const MiniAudioPlayer = ({
             analyser.fftSize = 32;
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
-
+      
             const source = audioContext.current.createMediaStreamSource(stream);
             source.connect(analyser);
-
+      
+            let consLow = false;
+      
             const intervalId = setInterval(() => {
                 analyser.getByteTimeDomainData(dataArray);
                 let averageLoudness = Array.from(dataArray).reduce((sum, value) => sum + value, 0) / bufferLength;
-
+      
                 let updatedParams = getUpdatedAllParams();
                 let {
                     meetingDisplayType,
@@ -81,9 +83,9 @@ const MiniAudioPlayer = ({
                     paginatedStreams,
                     currentUserPage,
                 } = updatedParams;
-
+      
                 let participant = participants.find(obj => obj.audioID === remoteProducerId);
-
+      
                 let audioActiveInRoom = true;
                 if (participant) {
                   if (breakOutRoomStarted && !breakOutRoomEnded) {
@@ -94,90 +96,95 @@ const MiniAudioPlayer = ({
                     }
                   }
                 }
-
+      
                 if (meetingDisplayType != 'video') {
                     autoWaveCheck.current = true;
                 }
                 if (shared || shareScreenStarted) {
                     autoWaveCheck.current = false;
                 }
-
+      
                 if (participant) {
-
+      
                     if (!participant.muted) {
                         setIsMuted(false)
                     } else {
                         setIsMuted(true)
                     }
-
+      
                     updateParticipantAudioDecibels({
                         name: participant.name,
                         averageLoudness: averageLoudness,
                         parameters: updatedParams
                     })
-
+      
                     const inPage = paginatedStreams[currentUserPage].findIndex(obj => obj.name == participant.name)
-
+      
                     if (!dispActiveNames.includes(participant.name) && inPage == -1) {
                         autoWaveCheck.current = false
                         if (!adminNameStream) {
                             adminNameStream = participants.find(obj => obj.islevel == '2').name
                         }
-
+      
                         if (participant.name == adminNameStream) {
                             autoWaveCheck.current = true
                         }
-
+      
                     } else {
                         autoWaveCheck.current = true
                     }
-
+      
                     if (participant.videoID || autoWaveCheck.current || (breakOutRoomStarted && !breakOutRoomEnded && audioActiveInRoom)) {
                         setShowWaveModal(false)
-
+      
                         if (averageLoudness > 127.5) {
-
+      
                             if (!activeSounds.includes(participant.name)) {
                                 activeSounds.push(participant.name);
+                                consLow = false;
+      
+                                if ((shareScreenStarted || shared) && !participant.videoID) {
+                                } else {
+                                    reUpdateInter({
+                                        name: participant.name,
+                                        add: true,
+                                        average: averageLoudness,
+                                        parameters: updatedParams
+                                    })
+      
+                                }
                             }
-
-                            if ((shareScreenStarted || shared) && !participant.videoID) {
-                            } else {
-                                reUpdateInter({
-                                    name: participant.name,
-                                    add: true,
-                                    average: averageLoudness,
-                                    parameters: updatedParams
-                                })
-
-                            }
-
+      
                         } else {
-
-                            if (activeSounds.includes(participant.name)) {
+      
+                            if (activeSounds.includes(participant.name) && consLow) {
                                 activeSounds.splice(activeSounds.indexOf(participant.name), 1);
-                            }
-                            if ((shareScreenStarted || shared) && !participant.videoID) {
+      
+                                if ((shareScreenStarted || shared) && !participant.videoID) {
+                                } else {
+                                    reUpdateInter({
+                                        name: participant.name,
+                                        average: averageLoudness,
+                                        parameters: updatedParams
+                                    })
+      
+                                }
                             } else {
-                                reUpdateInter({
-                                    name: participant.name,
-                                    average: averageLoudness,
-                                    parameters: updatedParams
-                                })
-
+                                consLow = true;
                             }
+                   
                         }
-
+      
                     } else {
-
+      
                         if (averageLoudness > 127.5) {
-
+      
                             if (!autoWave) {
                                 setShowWaveModal(false)
                             } else {
                                 setShowWaveModal(true)
                             }
-
+      
                             if (!activeSounds.includes(participant.name)) {
                                 activeSounds.push(participant.name);
                             }
@@ -189,7 +196,7 @@ const MiniAudioPlayer = ({
                                     average: averageLoudness,
                                     parameters: updatedParams
                                 })
-
+      
                             }
                         } else {
                             setShowWaveModal(false)
@@ -203,27 +210,27 @@ const MiniAudioPlayer = ({
                                     average: averageLoudness,
                                     parameters: updatedParams
                                 })
-
+      
                             }
                         }
-
+      
                     }
-
+      
                     updateActiveSounds(activeSounds)
-
+      
                 } else {
-
-
+      
+      
                     setShowWaveModal(false)
                     setIsMuted(true)
-
+      
                 }
-
-            }, 1000);
-
+      
+            }, 2000);
+      
             return () => clearInterval(intervalId);
         }
-    }, [stream]);
+      }, [stream]);
 
     const renderMiniAudioComponent = () => {
         if (MiniAudioComponent) {

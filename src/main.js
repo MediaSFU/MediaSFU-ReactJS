@@ -224,5 +224,7 @@ export {
     captureCanvasStream, resumePauseAudioStreams, processConsumerTransportsAudio,
     pollUpdated, handleCreatePoll, handleVotePoll, handleEndPoll, breakoutRoomUpdated,
 
+    launchPoll, launchBackground, launchBreakoutRooms, launchConfigureWhiteboard,
+
     PollModal, BackgroundModal, BreakoutRoomsModal, ConfigureWhiteboardModal, Whiteboard, Screenboard, ScreenboardModal,
 };

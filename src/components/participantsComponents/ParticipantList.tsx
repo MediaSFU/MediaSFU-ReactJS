@@ -1,26 +1,47 @@
-import React from 'react';
-import ParticipantListItem from './ParticipantListItem';
+import React from "react";
+import ParticipantListItem from "./ParticipantListItem";
+import { Participant, MuteParticipantsType, MessageParticipantsType, RemoveParticipantsType, CoHostResponsibility, ShowAlert } from "../../@types/types";
+import { Socket } from "socket.io-client";
 
-/**
- * ParticipantList - A React component to display a list of participants.
- * @param {Object} props - The props passed to the ParticipantList.
- * @param {Array} props.participants - An array of participant objects to be displayed.
- * @param {boolean} props.isBroadcast - Flag indicating whether the list is for a broadcast.
- * @param {function} props.onMuteParticipants - Callback function to mute participants.
- * @param {function} props.onMessageParticipants - Callback function to message participants.
- * @param {function} props.onRemoveParticipants - Callback function to remove participants.
- * @param {function} props.formatBroadcastViews - Callback function to format broadcast views.
- * @param {Object} props.parameters - Additional parameters for the participant list.
- * @returns {React.Component} - The ParticipantList.
- */
-const ParticipantList = ({
+// Define the props for the component
+export interface ParticipantListOptions {
+  participants: Participant[];
+  isBroadcast: boolean;
+  onMuteParticipants: MuteParticipantsType;
+  onMessageParticipants: MessageParticipantsType;
+  onRemoveParticipants: RemoveParticipantsType;
+  socket: Socket;
+  coHostResponsibility: CoHostResponsibility[];
+  member: string;
+  islevel: string;
+  showAlert?: ShowAlert;
+  coHost: string;
+  roomName: string;
+  updateIsMessagesModalVisible: (isVisible: boolean) => void;
+  updateDirectMessageDetails: (participant: Participant | null) => void;
+  updateStartDirectMessage: (start: boolean) => void;
+  updateParticipants: (participants: Participant[]) => void;
+}
+
+export type ParticipantListType = (options: ParticipantListOptions) => JSX.Element;
+
+const ParticipantList: React.FC<ParticipantListOptions> = ({
   participants,
   isBroadcast,
   onMuteParticipants,
   onMessageParticipants,
   onRemoveParticipants,
-  formatBroadcastViews,
-  parameters,
+  socket,
+  coHostResponsibility,
+  member,
+  islevel,
+  showAlert,
+  coHost,
+  roomName,
+  updateIsMessagesModalVisible,
+  updateDirectMessageDetails,
+  updateStartDirectMessage,
+  updateParticipants,
 }) => {
   return (
     <div>
@@ -32,8 +53,19 @@ const ParticipantList = ({
             onMuteParticipants={onMuteParticipants}
             onMessageParticipants={onMessageParticipants}
             onRemoveParticipants={onRemoveParticipants}
-            formatBroadcastViews={formatBroadcastViews}
-            parameters={parameters}
+            socket={socket}
+            coHostResponsibility={coHostResponsibility}
+            member={member}
+            islevel={islevel}
+            showAlert={showAlert}
+            coHost={coHost}
+            roomName={roomName}
+            updateIsMessagesModalVisible={updateIsMessagesModalVisible}
+            updateDirectMessageDetails={updateDirectMessageDetails}
+            updateStartDirectMessage={updateStartDirectMessage}
+            participants={participants}
+            updateParticipants={updateParticipants}
+
           />
           {index < participants.length - 1 && <hr className="separator" />}
         </React.Fragment>

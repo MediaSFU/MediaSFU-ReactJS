@@ -1,20 +1,48 @@
 
-/**
- * AlertComponent - A React JS component for displaying alerts in a modal.
- * @param {Object} props - The props passed to the AlertComponent.
- * @param {boolean} props.visible - Flag indicating whether the alert is visible.
- * @param {string} props.message - The message to be displayed in the alert.
- * @param {string} props.type - The type of alert ('success' or 'error').
- * @param {number} props.duration - The duration (in milliseconds) for which the alert is visible (default is 4000).
- * @param {function} props.onHide - Callback function called when the alert is hidden.
- * @param {string} props.textColor - The text color of the alert message.
- * @returns {React.Component} - The AlertComponent.
- */
-
 import React, { useEffect, useState } from 'react';
 
-const AlertComponent = ({ visible, message, type, duration = 4000, onHide, textColor }) => {
-  const [alertType, setAlertType] = useState(type || 'success');
+export interface AlertComponentOptions {
+  visible: boolean;
+  message: string;
+  type: 'success' | 'danger'; // Optional prop with 'success' or 'danger' as default values
+  duration?: number; // Optional with default value
+  onHide?: () => void; // Optional callback function
+  textColor?: string; // Optional text color
+}
+
+export type AlertComponentType = (options: AlertComponentOptions) => JSX.Element;
+
+/**
+ * AlertComponent is a React functional component that displays an alert message.
+ * 
+ * @component
+ * @param {Object} props - The properties object.
+ * @param {boolean} props.visible - Determines if the alert is visible.
+ * @param {string} props.message - The message to display in the alert.
+ * @param {'success' | 'danger'} [props.type='success'] - The type of alert, which determines the background color.
+ * @param {number} [props.duration=4000] - The duration in milliseconds for which the alert is visible.
+ * @param {function} [props.onHide] - Callback function to be called when the alert is hidden.
+ * @param {string} [props.textColor='black'] - The color of the alert text.
+ * 
+ * @example
+ * <AlertComponent
+ *   visible={true}
+ *   message="This is a success alert!"
+ *   type="success"
+ *   duration={3000}
+ *   onHide={() => console.log('Alert hidden')}
+ *   textColor="white"
+ * />
+ */
+const AlertComponent: React.FC<AlertComponentOptions> = ({
+  visible,
+  message,
+  type = 'success',
+  duration = 4000,
+  onHide,
+  textColor = 'black',
+}) => {
+  const [alertType, setAlertType] = useState<'success' | 'danger'>(type);
 
   useEffect(() => {
     if (type) {
@@ -23,11 +51,11 @@ const AlertComponent = ({ visible, message, type, duration = 4000, onHide, textC
   }, [type]);
 
   useEffect(() => {
-    let timer;
+    let timer: NodeJS.Timeout;
 
     if (visible) {
       timer = setTimeout(() => {
-        onHide && onHide();
+        onHide!();
       }, duration);
     }
 
@@ -35,13 +63,19 @@ const AlertComponent = ({ visible, message, type, duration = 4000, onHide, textC
   }, [visible, duration, onHide]);
 
   const handlePress = () => {
-    onHide && onHide();
+    onHide!();
   };
 
   return (
     <div style={{ display: visible ? 'block' : 'none' }}>
       <div className="centeredView" onClick={handlePress} style={styles.centeredView}>
-        <div className="modalView" style={{ ...styles.modalView, backgroundColor: alertType === 'success' ? 'green' : 'red' }}>
+        <div
+          className="modalView"
+          style={{
+            ...styles.modalView,
+            backgroundColor: alertType === 'success' ? 'green' : 'red',
+          }}
+        >
           <p className="modalText" style={{ ...styles.modalText, color: textColor }}>{message}</p>
         </div>
       </div>
@@ -54,7 +88,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    position: 'fixed',
+    position: 'fixed' as const, // TypeScript requires explicit typing for CSS position
     top: 0,
     left: 0,
     width: '100%',
@@ -76,4 +110,3 @@ const styles = {
 };
 
 export default AlertComponent;
-

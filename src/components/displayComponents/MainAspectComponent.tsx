@@ -1,22 +1,41 @@
 
+import React, { useState, useEffect } from "react";
+
+export interface MainAspectComponentOptions {
+  backgroundColor?: string;
+  children: React.ReactNode;
+  showControls?: boolean;
+  containerWidthFraction?: number;
+  containerHeightFraction?: number;
+  defaultFraction?: number;
+  updateIsWideScreen: (isWide: boolean) => void;
+  updateIsMediumScreen: (isMedium: boolean) => void;
+  updateIsSmallScreen: (isSmall: boolean) => void;
+}
+
+export type MainAspectComponentType = (
+  options: MainAspectComponentOptions
+) => JSX.Element;
+
 /**
- * MainAspectComponent is a component that displays a scrollable area with specific aspect ratio.
+ * MainAspectComponent is a React functional component that adjusts its dimensions
+ * based on the window size and specified fractions. It also updates screen size
+ * states (wide, medium, small) based on the container's width.
  *
- * @param {Object} props - Component properties.
- * @param {string} props.backgroundColor - Background color of the aspect container.
- * @param {ReactNode} props.children - Content to be displayed inside the scrollable area.
- * @param {boolean} props.showControls - Determines whether controls are shown or not.
- * @param {number} props.containerWidthFraction - Fraction of the window width for the aspect container.
- * @param {number} props.containerHeightFraction - Fraction of the window height for the aspect container.
- * @param {number} props.defaultFraction - Default fraction for height calculation if showControls is true.
+ * @param {string} backgroundColor - The background color of the component. Defaults to "transparent".
+ * @param {React.ReactNode} children - The child elements to be rendered inside the component.
+ * @param {boolean} showControls - Flag to determine if controls are shown, affecting the height calculation. Defaults to true.
+ * @param {number} containerWidthFraction - Fraction of the window width to be used for the container's width. Defaults to 1.
+ * @param {number} containerHeightFraction - Fraction of the window height to be used for the container's height. Defaults to 1.
+ * @param {number} defaultFraction - Default fraction to adjust the height when controls are shown. Defaults to 0.94.
+ * @param {Function} updateIsWideScreen - Callback function to update the wide screen state.
+ * @param {Function} updateIsMediumScreen - Callback function to update the medium screen state.
+ * @param {Function} updateIsSmallScreen - Callback function to update the small screen state.
  *
- * @returns {JSX.Element} - Main aspect component.
+ * @returns {JSX.Element} The rendered component with adjusted dimensions and background color.
  */
-
-import React, { useState, useEffect } from 'react';
-
-const MainAspectComponent = ({
-  backgroundColor,
+const MainAspectComponent: React.FC<MainAspectComponentOptions> = ({
+  backgroundColor = "transparent",
   children,
   showControls = true,
   containerWidthFraction = 1,
@@ -28,9 +47,9 @@ const MainAspectComponent = ({
 }) => {
   const [aspectStyles, setAspectStyles] = useState({
     height: showControls
-      ? containerHeightFraction * window.innerHeight * defaultFraction
-      : containerHeightFraction * window.innerHeight,
-    width: containerWidthFraction * window.innerWidth,
+      ? Math.floor(containerHeightFraction * window.innerHeight * defaultFraction)
+      : Math.floor(containerHeightFraction * window.innerHeight),
+    width: Math.floor(containerWidthFraction * window.innerWidth),
   });
 
   useEffect(() => {
@@ -38,11 +57,18 @@ const MainAspectComponent = ({
       const windowHeight = window.innerHeight;
       const windowWidth = window.innerWidth;
 
-      const parentWidth = containerWidthFraction * windowWidth;
+      const parentWidth = Math.floor(containerWidthFraction * windowWidth);
+      const parentHeight = showControls
+        ? Math.floor(containerHeightFraction * windowHeight * defaultFraction)
+        : Math.floor(containerHeightFraction * windowHeight);
 
-      const isWideScreen = parentWidth > 768;
-      const isMediumScreen = parentWidth > 576 && parentWidth <= 768;
-      const isSmallScreen = parentWidth <= 576;
+      let isWideScreen = parentWidth >= 768;
+      const isMediumScreen = parentWidth >= 576 && parentWidth < 768;
+      const isSmallScreen = parentWidth < 576;
+
+      if (!isWideScreen && parentWidth > 1.5 * parentHeight) {
+        isWideScreen = true;
+      }
 
       updateIsWideScreen(isWideScreen);
       updateIsMediumScreen(isMediumScreen);
@@ -50,30 +76,43 @@ const MainAspectComponent = ({
 
       setAspectStyles({
         height: showControls
-          ? containerHeightFraction * windowHeight * defaultFraction
-          : containerHeightFraction * windowHeight,
-        width: containerWidthFraction * windowWidth,
+          ? Math.floor(containerHeightFraction * windowHeight * defaultFraction)
+          : Math.floor(containerHeightFraction * windowHeight),
+        width: Math.floor(containerWidthFraction * windowWidth),
       });
     };
 
     // Initial setup
     updateAspectStyles();
 
-    // Listen for resize events
-    window.addEventListener('resize', updateAspectStyles);
-    window.addEventListener('orientationchange', updateAspectStyles);
+    // Listen for resize and orientation change events
+    window.addEventListener("resize", updateAspectStyles);
+    window.addEventListener("orientationchange", updateAspectStyles);
 
     return () => {
-      // Remove event listener for dimension changes (window resize)
-      window.removeEventListener('resize', updateAspectStyles);
-      window.removeEventListener('orientationchange', updateAspectStyles);
-    }
-
-
-  }, [showControls, containerHeightFraction, containerWidthFraction, defaultFraction]);
+      // Remove event listeners
+      window.removeEventListener("resize", updateAspectStyles);
+      window.removeEventListener("orientationchange", updateAspectStyles);
+    };
+  }, [
+    showControls,
+    containerHeightFraction,
+    containerWidthFraction,
+    defaultFraction,
+    updateIsWideScreen,
+    updateIsMediumScreen,
+    updateIsSmallScreen,
+  ]);
 
   return (
-    <div style={{ backgroundColor, height: aspectStyles.height, width: aspectStyles.width, overflow: 'hidden' }}>
+    <div
+      style={{
+        backgroundColor,
+        height: aspectStyles.height,
+        width: aspectStyles.width,
+        overflow: "hidden",
+      }}
+    >
       {children}
     </div>
   );

@@ -1,21 +1,35 @@
+import React from "react";
+import MeetingProgressTimer from "./MeetingProgressTimer";
+
+export interface OtherGridComponentOptions {
+  backgroundColor: string;
+  children: React.ReactNode;
+  width: number;
+  height: number;
+  showAspect?: boolean;
+  timeBackgroundColor?: string;
+  showTimer: boolean;
+  meetingProgressTime: string;
+}
+
+export type OtherGridComponentType = React.FC<OtherGridComponentOptions>;
+
 /**
- * OtherGridComponent - A component for displaying another type of grid with optional timer and meeting progress.
- * @param {Object} props - The props passed to the OtherGridComponent.
- * @param {string} props.backgroundColor - Background color of the grid.
- * @param {React.ReactNode} props.children - The content to be rendered inside the grid.
- * @param {number} props.width - Width of the grid.
- * @param {number} props.height - Height of the grid.
- * @param {boolean} props.showAspect - Flag indicating whether to show the grid.
- * @param {string} props.timeBackgroundColor - Background color for the meeting progress timer.
- * @param {boolean} props.showTimer - Flag indicating whether to show the meeting progress timer.
- * @param {number} props.meetingProgressTime - Meeting progress time for the timer.
- * @returns {React.Component} - The OtherGridComponent.
+ * A React functional component that displays a grid with optional timer and children components.
+ *
+ * @component
+ * @param {Object} props - The properties object.
+ * @param {string} props.backgroundColor - The background color of the grid.
+ * @param {React.ReactNode} props.children - The child components to be rendered inside the grid.
+ * @param {string | number} props.width - The width of the grid.
+ * @param {string | number} props.height - The height of the grid.
+ * @param {boolean} [props.showAspect=true] - Flag to determine if the grid should be displayed.
+ * @param {string} props.timeBackgroundColor - The background color of the timer.
+ * @param {boolean} props.showTimer - Flag to determine if the timer should be displayed.
+ * @param {string} props.meetingProgressTime - The time to display on the timer.
+ * @returns {JSX.Element} The rendered grid component.
  */
-
-import React from 'react';
-import MeetingProgressTimer from './MeetingProgressTimer';
-
-const OtherGridComponent = ({
+const OtherGridComponent: React.FC<OtherGridComponentOptions> = ({
   backgroundColor,
   children,
   width,
@@ -23,7 +37,7 @@ const OtherGridComponent = ({
   showAspect = true,
   timeBackgroundColor,
   showTimer,
-  meetingProgressTime
+  meetingProgressTime,
 }) => {
   return (
     <div
@@ -31,19 +45,23 @@ const OtherGridComponent = ({
         backgroundColor,
         width,
         height,
-        display: showAspect ? 'block' : 'none',
-        overflow: 'hidden',
-        borderStyle: 'solid',
-        borderColor: 'black',
+        display: showAspect ? "block" : "none",
+        overflow: "hidden",
+        borderStyle: "solid",
+        borderColor: "black",
         borderWidth: 2,
         borderRadius: 0,
         margin: 0,
-        padding: 0
+        padding: 0,
       }}
     >
       {/* Render the meeting progress timer */}
       {showTimer && (
-        <MeetingProgressTimer meetingProgressTime={meetingProgressTime} initialBackgroundColor={timeBackgroundColor} showTimer={showTimer} />
+        <MeetingProgressTimer
+          meetingProgressTime={meetingProgressTime}
+          initialBackgroundColor={timeBackgroundColor}
+          showTimer={showTimer}
+        />
       )}
       {/* Render the children */}
       {children}
@@ -52,6 +70,3 @@ const OtherGridComponent = ({
 };
 
 export default OtherGridComponent;
-
-
-

@@ -1,26 +1,36 @@
 import React from 'react';
 
-/**
- * AudioGrid - A React JS component for rendering an audio grid with customizable components.
- * @param {Object} props - The props passed to the AudioGrid component.
- * @param {Array} props.componentsToRender - An array of React components to be rendered in the audio grid.
- * @returns {React.Component} - The AudioGrid component.
- */
+export interface AudioGridOptions {
+  componentsToRender: React.ReactNode[]; // Array of React components or elements
+}
 
-const AudioGrid = ({ componentsToRender }) => {
+export type AudioGridType = (options: AudioGridOptions) => React.ReactNode;
+
+/**
+ * AudioGrid component
+ * 
+ * This component is responsible for rendering a grid of audio components.
+ * 
+ * @component
+ * @param {AudioGridOptions} props - The properties for the AudioGrid component.
+ * @param {React.ReactNode[]} props.componentsToRender - An array of React components to be rendered in the grid.
+ * 
+ * @returns {JSX.Element} The rendered grid of audio components.
+ */
+const AudioGrid: React.FC<AudioGridOptions> = ({ componentsToRender }) => {
   /**
    * renderGrid - Renders componentsToRender array into a grid.
-   * @returns {Array} - An array of React components rendered in the grid.
+   * @returns {React.ReactNode[]} - An array of React components rendered in the grid.
    */
-  const renderGrid = () => {
+  const renderGrid = (): React.ReactNode[] => {
     return componentsToRender.map((component, index) => (
-      <div style={{ zIndex: 9 }} key={index}>{component}</div>
+      <div style={{ zIndex: 9 }} key={index}>
+        {component}
+      </div>
     ));
   };
 
-  return (
-    <div style={{ zIndex: 9 }}>{renderGrid()}</div>
-  );
+  return <div style={{ zIndex: 9 }}>{renderGrid()}</div>;
 };
 
 export default AudioGrid;

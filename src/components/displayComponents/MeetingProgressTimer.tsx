@@ -1,32 +1,52 @@
+import React from 'react';
+
+export interface MeetingProgressTimerOptions {
+  meetingProgressTime: string;
+  initialBackgroundColor?: string;
+  position?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
+  textStyle?: React.CSSProperties;
+  showTimer?: boolean;
+}
+
+export type MeetingProgressTimerType = (options: MeetingProgressTimerOptions) => JSX.Element;
+
 /**
- * MeetingProgressTimer component displays a timer with customizable background color
- * and position on the screen. It can be used to show the elapsed time of a meeting,
- * with different background colors indicating different states (e.g., recording, paused).
+ * MeetingProgressTimer component displays a timer indicating the progress of a meeting.
  *
- * @component
- * @param {Object} props - The component props.
- * @param {number} props.meetingProgressTime - The elapsed time of the meeting in seconds.
+ * @param {MeetingProgressTimerOptions} props - The properties for the MeetingProgressTimer component.
+ * @param {string} props.meetingProgressTime - The current progress time of the meeting to be displayed.
  * @param {string} [props.initialBackgroundColor='green'] - The initial background color of the timer.
- * @param {string} [props.position='topLeft'] - The position on the screen where the timer should be displayed.
- * Possible values are 'topLeft', 'topRight', 'bottomLeft', 'bottomRight'.
- * @param {Object} [props.textStyle] - Additional styles for the timer text.
- * @param {boolean} [props.showTimer=true] - Flag indicating whether to show the timer.
- * @returns {JSX.Element} - The rendered component.
+ * @param {string} [props.position='topLeft'] - The position of the timer on the screen.
+ * @param {React.CSSProperties} [props.textStyle={}] - Additional styles to apply to the timer text.
+ * @param {boolean} [props.showTimer=true] - Flag to determine whether the timer should be displayed.
+ *
+ * @returns {JSX.Element} The rendered MeetingProgressTimer component.
  */
-
-import React, { useState, useEffect } from 'react';
-
-const MeetingProgressTimer = ({ meetingProgressTime, initialBackgroundColor = 'green', position = 'topLeft', textStyle, showTimer = true }) => {
+const MeetingProgressTimer: React.FC<MeetingProgressTimerOptions> = ({
+  meetingProgressTime,
+  initialBackgroundColor = 'green',
+  position = 'topLeft',
+  textStyle = {},
+  showTimer = true,
+}) => {
   return (
     <div style={{ ...styles.badgeContainer, ...positions[position] }}>
-      <div style={{ ...styles.progressTimer, backgroundColor: initialBackgroundColor, display: showTimer ? 'block' : 'none' }}>
-        <span style={{ ...styles.progressTimerText, ...textStyle }}>{meetingProgressTime}</span>
+      <div
+        style={{
+          ...styles.progressTimer,
+          backgroundColor: initialBackgroundColor,
+          display: showTimer ? 'block' : 'none',
+        }}
+      >
+        <span style={{ ...styles.progressTimerText, ...textStyle }}>
+          {meetingProgressTime}
+        </span>
       </div>
     </div>
   );
 };
 
-const positions = {
+const positions: Record<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight', React.CSSProperties> = {
   topLeft: { position: 'absolute', top: 0, left: 0 },
   topRight: { position: 'absolute', top: 0, right: 0 },
   bottomLeft: { position: 'absolute', bottom: 0, left: 0 },
@@ -38,16 +58,16 @@ const styles = {
     padding: 5,
     position: 'relative',
     zIndex: 1000,
-  },
+  } as React.CSSProperties,
   progressTimer: {
     backgroundColor: 'green',
     padding: 5,
     borderRadius: 5,
     color: 'white',
-  },
+  } as React.CSSProperties,
   progressTimerText: {
     color: 'black',
-  },
+  } as React.CSSProperties,
 };
 
 export default MeetingProgressTimer;

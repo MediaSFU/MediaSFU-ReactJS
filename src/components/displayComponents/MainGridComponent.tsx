@@ -1,34 +1,46 @@
-/**
- * MainGridComponent - A React component for rendering a main grid container with children and an optional meeting progress timer.
- * @param {Object} props - The props passed to the MainGridComponent.
- * @param {ReactNode} props.children - The components to be rendered inside the main grid.
- * @param {string} props.backgroundColor - The background color of the main grid container.
- * @param {number} props.mainSize - The size of the main grid (width or height).
- * @param {number} props.height - The height of the main grid container.
- * @param {number} props.width - The width of the main grid container.
- * @param {boolean} props.showAspect - Flag indicating whether to show or hide the main grid based on the aspect ratio (default is true).
- * @param {string} props.timeBackgroundColor - The background color of the meeting progress timer.
- * @param {boolean} props.showTimer - Flag indicating whether to show the meeting progress timer.
- * @param {number} props.meetingProgressTime - The time duration for the meeting progress timer.
- * @returns {React.Component} - The MainGridComponent.
- */
-
 import React from 'react';
 import MeetingProgressTimer from './MeetingProgressTimer';
 
+export interface MainGridComponentOptions {
+  children: React.ReactNode;
+  backgroundColor: string;
+  mainSize: number;
+  height: number;
+  width: number;
+  showAspect?: boolean;
+  timeBackgroundColor?: string;
+  showTimer?: boolean;
+  meetingProgressTime: string;
+}
 
-const MainGridComponent = ({
+export type MainGridComponentType = (options: MainGridComponentOptions) => JSX.Element;
+
+/**
+ * MainGridComponent is a React functional component that renders a main grid container
+ * with optional children components and a meeting progress timer.
+ *
+ * @param {React.ReactNode} children - The child components to be rendered inside the main grid.
+ * @param {string} backgroundColor - The background color of the main grid container.
+ * @param {string | number} height - The height of the main grid container.
+ * @param {string | number} width - The width of the main grid container.
+ * @param {boolean} [showAspect=true] - Flag to determine if the aspect ratio should be shown.
+ * @param {string} [timeBackgroundColor='transparent'] - The background color of the timer.
+ * @param {boolean} showTimer - Flag to determine if the timer should be shown.
+ * @param {string} meetingProgressTime - The time to display on the timer.
+ *
+ * @returns {JSX.Element} The rendered main grid container with optional children and timer.
+ */
+const MainGridComponent: React.FC<MainGridComponentOptions> = ({
   children,
   backgroundColor,
-  mainSize,
   height,
   width,
-  showAspect = true,
-  timeBackgroundColor,
-  showTimer,
+  showAspect = true, // Default value for showAspect
+  timeBackgroundColor = 'transparent', // Default value for timeBackgroundColor
+  showTimer = true, // Default value for showTimer
   meetingProgressTime,
 }) => {
-  const maingridContainerStyle = {
+  const maingridContainerStyle: React.CSSProperties = {
     display: showAspect ? 'flex' : 'none',
     backgroundColor,
     height,
@@ -41,22 +53,13 @@ const MainGridComponent = ({
     borderWidth: 4,
   };
 
-  const cardStyle = {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 15,
-    elevation: 3,
-  };
-
-  const progressTimerStyle = {
-    width: 50,
-    height: 20,
-    backgroundColor: 'green',
-  };
-
   return (
     <div style={maingridContainerStyle}>
-      <MeetingProgressTimer meetingProgressTime={meetingProgressTime} initialBackgroundColor={timeBackgroundColor} showTimer={showTimer} />
+      <MeetingProgressTimer
+        meetingProgressTime={meetingProgressTime}
+        initialBackgroundColor={timeBackgroundColor}
+        showTimer={showTimer}
+      />
       {children}
     </div>
   );

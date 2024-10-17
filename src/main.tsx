@@ -29,6 +29,14 @@ import ShareEventModal from './components/miscComponents/ShareEventModal';
 import WelcomePage from './components/miscComponents/WelcomePage';
 import PreJoinPage from './components/miscComponents/PreJoinPage';
 
+import PollModal from './components/pollsComponents/PollModal';
+import BackgroundModal from './components/backgroundComponents/BackgroundModal';
+import BreakoutRoomsModal from './components/breakoutComponents/BreakoutRoomsModal';
+import ConfigureWhiteboardModal from './components/whiteboardComponents/ConfigureWhiteboardModal';
+import Whiteboard from './components/whiteboardComponents/Whiteboard';
+import Screenboard from './components/screenboardComponents/Screenboard';
+import ScreenboardModal from './components/screenboardComponents/ScreenboardModal';
+
 //pagination and display of media (samples)
 import Pagination from './components/displayComponents/Pagination';
 import FlexibleGrid from './components/displayComponents/FlexibleGrid';
@@ -49,6 +57,12 @@ import { launchRequests } from './methods/requestsMethods/launchRequests';
 import { launchParticipants } from './methods/participantsMethods/launchParticipants';
 import { launchMessages } from './methods/messageMethods/launchMessages';
 import { launchConfirmExit } from './methods/exitMethods/launchConfirmExit';
+
+import { launchPoll } from './methods/pollsMethods/launchPoll';
+import { launchBackground } from './methods/backgroundMethods/launchBackground';
+import { launchBreakoutRooms } from './methods/breakoutRoomsMethods/launchBreakoutRooms';
+import { launchConfigureWhiteboard } from './methods/whiteboardMethods/launchConfigureWhiteboard';
+
 
 // mediasfu functions -- examples
 import { connectSocket, disconnectSocket } from './sockets/SocketManager';
@@ -90,7 +104,7 @@ import { processConsumerTransports } from './consumers/processConsumerTransports
 import { resumePauseStreams } from './consumers/resumePauseStreams';
 import { readjust } from './consumers/readjust';
 import { checkGrid } from './consumers/checkGrid';
-import { GetEstimate } from './consumers/getEstimate';
+import { getEstimate } from './consumers/getEstimate';
 import { calculateRowsAndColumns } from './consumers/calculateRowsAndColumns';
 import { addVideosGrid } from './consumers/addVideosGrid';
 import { onScreenChanges } from './consumers/onScreenChanges';
@@ -119,6 +133,14 @@ import { receiveRoomMessages } from './consumers/receiveRoomMessages';
 import { formatNumber } from './methods/utils/formatNumber';
 import { connectIps } from './consumers/connectIps';
 
+import { pollUpdated } from './methods/pollsMethods/pollUpdated';
+import { handleCreatePoll } from './methods/pollsMethods/handleCreatePoll';
+import { handleVotePoll } from './methods/pollsMethods/handleVotePoll';
+import { handleEndPoll } from './methods/pollsMethods/handleEndPoll';
+
+import { breakoutRoomUpdated } from './methods/breakoutRoomsMethods/breakoutRoomUpdated';
+
+
 import { startMeetingProgressTimer } from './methods/utils/meetingTimer/startMeetingProgressTimer';
 import { updateRecording } from './methods/recordingMethods/updateRecording';
 import { stopRecording } from './methods/recordingMethods/stopRecording';
@@ -145,13 +167,18 @@ import { startRecords } from './producers/socketReceiveMethods/startRecords';
 import { reInitiateRecording } from './producers/socketReceiveMethods/reInitiateRecording';
 import { getDomains } from './producers/socketReceiveMethods/getDomains';
 import { updateConsumingDomains } from './producers/socketReceiveMethods/updateConsumingDomains';
-import { RecordingNotice } from './producers/socketReceiveMethods/recordingNotice';
+import { recordingNotice } from './producers/socketReceiveMethods/recordingNotice';
 import { timeLeftRecording } from './producers/socketReceiveMethods/timeLeftRecording';
 import { stoppedRecording } from './producers/socketReceiveMethods/stoppedRecording';
 import { hostRequestResponse } from './producers/socketReceiveMethods/hostRequestResponse';
 import { allMembers } from './producers/socketReceiveMethods/allMembers';
 import { allMembersRest } from './producers/socketReceiveMethods/allMembersRest';
 import { disconnect } from './producers/socketReceiveMethods/disconnect';
+
+import {captureCanvasStream} from './methods/whiteboardMethods/captureCanvasStream';
+import {resumePauseAudioStreams} from './consumers/resumePauseAudioStreams';
+import { processConsumerTransportsAudio } from './consumers/processConsumerTransportsAudio';
+
 
 //Prebuilt Event Rooms
 import MediasfuGeneric from './components/mediasfuComponents/MediasfuGeneric';
@@ -165,6 +192,7 @@ import { generateRandomParticipants } from './methods/utils/generateRandomPartic
 import { generateRandomMessages } from './methods/utils/generateRandomMessages';
 import { generateRandomRequestList } from './methods/utils/generateRandomRequestList';
 import { generateRandomWaitingRoomList } from './methods/utils/generateRandomWaitingRoomList';
+import { generateRandomPolls } from './methods/utils/generateRandomPolls';
 
 //Key UI Components
 import MeetingProgressTimer  from './components/displayComponents/MeetingProgressTimer';
@@ -175,6 +203,7 @@ import VideoCard from './components/displayComponents/VideoCard';
 import CardVideoDisplay from './components/displayComponents/CardVideoDisplay';
 import MiniCardAudio from './components/displayComponents/MiniCardAudio';
 import MiniAudioPlayer from './methods/utils/MiniAudioPlayer/MiniAudioPlayer';
+import { SoundPlayer } from './methods/utils/SoundPlayer';
 
 
 export { 
@@ -184,11 +213,19 @@ export {
     launchMenuModal, launchRecording, startRecording, confirmRecording, launchWaiting, launchCoHost, launchMediaSettings, launchDisplaySettings, launchSettings, launchRequests, launchParticipants, launchMessages, launchConfirmExit,
     connectSocket, disconnectSocket, joinRoomClient, updateRoomParametersClient, createDeviceClient,
     switchVideoAlt, clickVideo, clickAudio, clickScreenShare, streamSuccessVideo, streamSuccessAudio, streamSuccessScreen, streamSuccessAudioSwitch, checkPermission, producerClosed, newPipeProducer,
-    updateMiniCardsGrid, mixStreams, dispStreams, stopShareScreen, checkScreenShare, startShareScreen, requestScreenShare, reorderStreams, prepopulateUserMedia, getVideos, rePort, trigger, consumerResume, connectSendTransportAudio, connectSendTransportVideo, connectSendTransportScreen, processConsumerTransports, resumePauseStreams, readjust, checkGrid, GetEstimate, 
+    updateMiniCardsGrid, mixStreams, dispStreams, stopShareScreen, checkScreenShare, startShareScreen, requestScreenShare, reorderStreams, prepopulateUserMedia, getVideos, rePort, trigger, consumerResume, connectSendTransportAudio, connectSendTransportVideo, connectSendTransportScreen, processConsumerTransports, resumePauseStreams, readjust, checkGrid, getEstimate, 
     calculateRowsAndColumns, addVideosGrid, onScreenChanges, sleep, changeVids, compareActiveNames, compareScreenStates, createSendTransport, resumeSendTransportAudio, receiveAllPipedTransports, disconnectSendTransportVideo, disconnectSendTransportAudio, disconnectSendTransportScreen, connectSendTransport, getPipedProducersAlt, signalNewConsumerTransport, connectRecvTransport, reUpdateInter, updateParticipantAudioDecibels, closeAndResize, autoAdjust, switchUserVideoAlt, switchUserVideo, switchUserAudio, receiveRoomMessages, formatNumber, connectIps,
     startMeetingProgressTimer, updateRecording, stopRecording,
     
-    userWaiting, personJoined, allWaitingRoomMembers, roomRecordParams, banParticipant, updatedCoHost, participantRequested, screenProducerId, updateMediaSettings, producerMediaPaused, producerMediaResumed, producerMediaClosed, controlMediaHost, meetingEnded, disconnectUserSelf, receiveMessage, meetingTimeRemaining, meetingStillThere, startRecords, reInitiateRecording, getDomains, updateConsumingDomains, RecordingNotice, timeLeftRecording, stoppedRecording, hostRequestResponse, allMembers, allMembersRest, disconnect,
-    MediasfuGeneric, MediasfuBroadcast, MediasfuWebinar, MediasfuConference, MediasfuChat, generateRandomParticipants, generateRandomMessages, generateRandomRequestList, generateRandomWaitingRoomList,
+    userWaiting, personJoined, allWaitingRoomMembers, roomRecordParams, banParticipant, updatedCoHost, participantRequested, screenProducerId, updateMediaSettings, producerMediaPaused, producerMediaResumed, producerMediaClosed, controlMediaHost, meetingEnded, disconnectUserSelf, receiveMessage, meetingTimeRemaining, meetingStillThere, startRecords, reInitiateRecording, getDomains, updateConsumingDomains, recordingNotice, timeLeftRecording, stoppedRecording, hostRequestResponse, allMembers, allMembersRest, disconnect,
+    MediasfuGeneric, MediasfuBroadcast, MediasfuWebinar, MediasfuConference, MediasfuChat, generateRandomParticipants, generateRandomMessages, generateRandomRequestList, generateRandomWaitingRoomList, generateRandomPolls,
 
-    MeetingProgressTimer, MiniAudio, MiniCard, AudioCard, VideoCard, CardVideoDisplay, MiniCardAudio, MiniAudioPlayer};
+    MeetingProgressTimer, MiniAudio, MiniCard, AudioCard, VideoCard, CardVideoDisplay, MiniCardAudio, MiniAudioPlayer, SoundPlayer,
+
+    captureCanvasStream, resumePauseAudioStreams, processConsumerTransportsAudio,
+    pollUpdated, handleCreatePoll, handleVotePoll, handleEndPoll, breakoutRoomUpdated,
+
+    launchPoll, launchBackground, launchBreakoutRooms, launchConfigureWhiteboard,
+
+    PollModal, BackgroundModal, BreakoutRoomsModal, ConfigureWhiteboardModal, Whiteboard, Screenboard, ScreenboardModal
+};

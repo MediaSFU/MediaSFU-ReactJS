@@ -1,28 +1,35 @@
-/**
- * CardVideoDisplay - A React JS component for displaying video streams in a card layout.
- * @param {Object} props - The props passed to the CardVideoDisplay component.
- * @param {string} props.remoteProducerId - The ID of the remote producer.
- * @param {string} props.eventType - The type of event.
- * @param {boolean} props.forceFullDisplay - Flag to force full display.
- * @param {Object} props.videoStream - The video stream object.
- * @param {string} props.backgroundColor - The background color of the video container.
- * @param {boolean} props.doMirror - Flag to mirror the video display.
- * @returns {React.Component} - The CardVideoDisplay component.
- */
-
 import React, { useEffect, useRef } from 'react';
+import { EventType } from '../../@types/types';
 
-const CardVideoDisplay = ({
-  remoteProducerId,
-  eventType,
+export interface CardVideoDisplayOptions {
+  remoteProducerId: string;
+  eventType: EventType;
+  forceFullDisplay: boolean;
+  videoStream: MediaStream | null;
+  backgroundColor?: string;
+  doMirror?: boolean;
+}
+
+export type CardVideoDisplayType = (options: CardVideoDisplayOptions) => React.ReactNode;
+
+/**
+ * CardVideoDisplay - A React functional component that displays a video stream.
+ *
+ * @param {Object} props - The properties object.
+ * @param {boolean} props.forceFullDisplay - If true, the video will take up the full display area.
+ * @param {MediaStream} props.videoStream - The media stream to be displayed in the video element.
+ * @param {string} [props.backgroundColor='transparent'] - The background color of the video container.
+ * @param {boolean} [props.doMirror=false] - If true, the video will be mirrored horizontally.
+ *
+ * @returns {JSX.Element} - The rendered video display component.
+ */
+const CardVideoDisplay: React.FC<CardVideoDisplayOptions> = ({
   forceFullDisplay,
   videoStream,
   backgroundColor = 'transparent',
-  doMirror
-
+  doMirror = false
 }) => {
-
-  const videoRef = useRef(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (videoRef.current && videoStream) {
@@ -31,16 +38,17 @@ const CardVideoDisplay = ({
   }, [videoStream]);
 
   /**
-   * getReactPlayerStyle - Get styles for the ReactPlayer component.
-   * @returns {Object} - Styles for video element.
+   * getVideoStyle - Get styles for the video element.
+   * @returns {React.CSSProperties} - Styles for the video element.
    */
-   
-  const getVideoStyle = () => {
-    const baseStyles = {
+  const getVideoStyle = (): React.CSSProperties => {
+    const baseStyles: React.CSSProperties = {
       width: forceFullDisplay ? '100%' : 'auto',
       height: '100%',
       objectFit: forceFullDisplay ? 'cover' : 'contain',
-      backgroundColor: backgroundColor
+      backgroundColor: backgroundColor,
+      maxHeight: '100%',
+      maxWidth: '100%',
     };
 
     if (doMirror) {
@@ -50,10 +58,9 @@ const CardVideoDisplay = ({
     return baseStyles;
   };
 
-
   return (
     <div style={{ ...styles.videoContainer, backgroundColor }}>
-     <video ref={videoRef} autoPlay muted playsInline style={getVideoStyle()} />
+      <video ref={videoRef} autoPlay muted playsInline style={getVideoStyle()} />
     </div>
   );
 };
@@ -61,12 +68,12 @@ const CardVideoDisplay = ({
 const styles = {
   videoContainer: {
     display: 'flex',
-    justifyContent: 'center', 
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'black',
     width: '100%',
     height: '100%',
-  }
+  } as React.CSSProperties,
 };
 
 export default CardVideoDisplay;

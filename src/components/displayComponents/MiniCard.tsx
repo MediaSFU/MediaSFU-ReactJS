@@ -1,22 +1,40 @@
-
-
-/**
- * MiniCard - A React JS component for displaying a mini card with initials or an image.
- * @param {Object} props - The props passed to the MiniCard.
- * @param {string} props.initials - The initials to be displayed if no image source is provided.
- * @param {string} props.fontSize - The font size for the initials (default is 20).
- * @param {Object} props.customStyle - Custom styles to be applied to the MiniCard.
- * @param {string} props.imageSource - The URI of the image to be displayed in the card.
- * @param {boolean} props.roundedImage - Flag indicating whether to use a rounded image (default is false).
- * @param {Object} props.imageStyle - Custom styles to be applied to the image.
- * @returns {React.Component} - The MiniCard component.
- */
-
 import React from 'react';
 
-const MiniCard = ({ initials, fontSize, customStyle, imageSource, roundedImage = false, imageStyle }) => {
+export interface MiniCardOptions {
+  initials?: string;
+  fontSize?: number;
+  customStyle?: React.CSSProperties;
+  imageSource?: string;
+  roundedImage?: boolean;
+  imageStyle?: React.CSSProperties;
+}
+
+export type MiniCardType = (options: MiniCardOptions) => JSX.Element;
+
+/**
+ * MiniCard component displays a small card with either an image or initials.
+ * 
+ * @component
+ * @param {Object} props - The properties object.
+ * @param {string} props.initials - The initials to display if no image is provided.
+ * @param {number} [props.fontSize=14] - The font size for the initials.
+ * @param {React.CSSProperties} [props.customStyle] - Custom styles to apply to the card.
+ * @param {string} [props.imageSource] - The source URL of the image to display.
+ * @param {boolean} [props.roundedImage=true] - Whether the image should be displayed with rounded corners.
+ * @param {React.CSSProperties} [props.imageStyle] - Custom styles to apply to the image.
+ * 
+ * @returns {JSX.Element} The rendered MiniCard component.
+ */
+const MiniCard: React.FC<MiniCardOptions> = ({
+  initials,
+  fontSize = 14,
+  customStyle,
+  imageSource,
+  roundedImage = true,
+  imageStyle,
+}) => {
   // Define the style for the MiniCard
-  const cardStyle = {
+  const cardStyle: React.CSSProperties = {
     ...styles.miniCard,
     fontSize: fontSize || 14,
     ...customStyle,
@@ -26,17 +44,19 @@ const MiniCard = ({ initials, fontSize, customStyle, imageSource, roundedImage =
   return (
     <div style={cardStyle}>
       {imageSource ? (
-        <img
-          src={imageSource}
-          alt="Profile"
-          style={[
-            styles.backgroundImage,
-            roundedImage && styles.roundedImage,
-            imageStyle,
-          ]}
-        />
+        <div style={styles.imageContainer}>
+          <img
+            src={imageSource}
+            alt="Profile"
+            style={{
+              ...styles.backgroundImage,
+              ...(roundedImage && styles.roundedImage),
+              ...imageStyle,
+            }}
+          />
+        </div>
       ) : (
-        <div style={{ ...styles.initials, fontSize: fontSize || 14 }}>{initials}</div>
+        <div style={{ ...styles.initials, fontSize }}>{initials}</div>
       )}
     </div>
   );
@@ -51,26 +71,27 @@ const styles = {
     width: '100%',
     height: '100%',
     color: 'black',
-    fontFamily: 'Nunito', // Update with your desired font
+    fontFamily: 'Nunito', 
     overflow: 'hidden',
-    border: '2px solid black',
-  },
+  } as React.CSSProperties,
+  imageContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+  } as React.CSSProperties,
   backgroundImage: {
     width: '60%',
     height: '60%',
     objectFit: 'cover',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    top: '20%',
-    left: '20%',
-  },
+  } as React.CSSProperties,
   roundedImage: {
-    borderRadius: '20%', // Adjust the border radius as needed
-  },
+    borderRadius: '50%', 
+  } as React.CSSProperties,
   initials: {
-    textAlign: 'center', // Center the text horizontally
-  },
+    textAlign: 'center', 
+  } as React.CSSProperties,
 };
 
 export default MiniCard;

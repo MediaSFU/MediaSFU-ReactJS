@@ -1,51 +1,93 @@
+
+import React, { useState, useEffect } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMicrophone,
+  faMicrophoneSlash,
+  faVideo,
+  faVideoSlash,
+} from "@fortawesome/free-solid-svg-icons";
+import { controlMedia } from "../../consumers/controlMedia";
+import { getOverlayPosition } from "../../methods/utils/getOverlayPosition";
+import CardVideoDisplay from "./CardVideoDisplay";
+import { EventType } from '../../@types/types';
+
+export interface VideoCardParameters {
+  socket: Socket;
+  roomName: string;
+  coHostResponsibility: CoHostResponsibility[];
+  showAlert?: ShowAlert;
+  coHost: string;
+  participants: Participant[];
+  member: string;
+  islevel: string;
+  audioDecibels: AudioDecibels[];
+
+  // mediasfu functions
+  getUpdatedAllParams: () => VideoCardParameters;
+  [key: string]: any;
+}
+
+export interface VideoCardOptions {
+  customStyle?: React.CSSProperties;
+  name: string;
+  barColor?: string;
+  textColor?: string;
+  imageSource?: string;
+  roundedImage?: boolean;
+  imageStyle?: React.CSSProperties;
+  remoteProducerId: string;
+  eventType: EventType;
+  forceFullDisplay: boolean;
+  videoStream: MediaStream | null;
+  showControls?: boolean;
+  showInfo?: boolean;
+  videoInfoComponent?: React.ReactNode;
+  videoControlsComponent?: React.ReactNode;
+  controlsPosition?: "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
+  infoPosition?: "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
+  participant: Participant;
+  backgroundColor?: string;
+  audioDecibels?: AudioDecibels[];
+  doMirror?: boolean;
+  parameters: VideoCardParameters;
+}
+
+export type VideoCardType = (options: VideoCardOptions) => JSX.Element;  // Define the type for the function
+
 /**
- * VideoCard - A React JS component for displaying a video card with customizable controls, information, and waveform animations.
- * @param {Object} props - The props passed to the VideoCard component.
- * @param {Object} props.customStyle - Custom styles for the VideoCard component.
+ * VideoCard component displays a video stream with optional controls and information.
+ * It also includes an animated waveform based on audio decibels.
+ *
+ * @component
+ * @param {object} props - The properties object.
+ * @param {React.CSSProperties} [props.customStyle] - Custom styles for the card.
  * @param {string} props.name - The name of the participant.
- * @param {string} props.barColor - The color of the waveform bar.
- * @param {string} props.textColor - The color of the text.
- * @param {string} props.imageSource - The image source for the participant.
- * @param {boolean} props.roundedImage - Flag to determine if the image should be rounded.
- * @param {Object} props.imageStyle - Custom styles for the participant image.
+ * @param {string} [props.barColor="red"] - The color of the waveform bars.
+ * @param {string} [props.textColor="white"] - The color of the text.
  * @param {string} props.remoteProducerId - The ID of the remote producer.
  * @param {string} props.eventType - The type of event.
- * @param {boolean} props.forceFullDisplay - Flag to force full display.
- * @param {Object} props.videoStream - The video stream object.
- * @param {boolean} props.showControls - Flag to show or hide controls.
- * @param {boolean} props.showInfo - Flag to show or hide participant information.
- * @param {React.Component} props.videoInfoComponent - Custom component for participant information.
- * @param {React.Component} props.videoControlsComponent - Custom component for video controls.
- * @param {string} props.controlsPosition - The position of controls (topLeft, topRight, bottomLeft, bottomRight).
- * @param {string} props.infoPosition - The position of participant information (topLeft, topRight, bottomLeft, bottomRight).
- * @param {Object} props.participant - The participant object.
- * @param {React.Component} props.RTCView - The RTCView component for Web platform.
- * @param {string} props.backgroundColor - The background color of the VideoCard.
- * @param {Object} props.audioDecibels - The audio decibels object.
- * @param {boolean} props.doMirror - Flag to mirror the video display.
- * @param {Object} props.parameters - Additional parameters for the VideoCard.
- * @returns {React.Component} - The VideoCard component.
+ * @param {boolean} props.forceFullDisplay - Whether to force full display of the video.
+ * @param {MediaStream} props.videoStream - The video stream to display.
+ * @param {boolean} [props.showControls=true] - Whether to show video controls.
+ * @param {boolean} [props.showInfo=true] - Whether to show participant information.
+ * @param {React.ReactNode} [props.videoInfoComponent] - Custom component for video information.
+ * @param {React.ReactNode} [props.videoControlsComponent] - Custom component for video controls.
+ * @param {string} [props.controlsPosition="topLeft"] - Position of the controls overlay.
+ * @param {string} [props.infoPosition="topRight"] - Position of the information overlay.
+ * @param {object} props.participant - The participant object.
+ * @param {string} props.backgroundColor - Background color of the card.
+ * @param {Array} props.audioDecibels - Array of audio decibel levels.
+ * @param {boolean} props.doMirror - Whether to mirror the video.
+ * @param {object} props.parameters - Additional parameters for the component.
+ *
+ * @returns {JSX.Element} The rendered VideoCard component.
  */
-
-
-
-import React, { useState, useEffect } from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash } from '@fortawesome/free-solid-svg-icons'
-import { controlMedia } from '../../consumers/controlMedia';
-import { getOverlayPosition } from '../../methods/utils/getOverlayPosition';
-import CardVideoDisplay from './CardVideoDisplay';
-import AudioDecibelCheck from './AudioDecibelCheck';
-
-
-const VideoCard = ({
+const VideoCard: React.FC<VideoCardOptions> = ({
   customStyle,
   name,
-  barColor = 'red',
-  textColor = 'white',
-  imageSource,
-  roundedImage = false,
-  imageStyle,
+  barColor = "red",
+  textColor = "white",
   remoteProducerId,
   eventType,
   forceFullDisplay,
@@ -54,25 +96,30 @@ const VideoCard = ({
   showInfo = true,
   videoInfoComponent,
   videoControlsComponent,
-  controlsPosition = 'topLeft',
-  infoPosition = 'topRight',
+  controlsPosition = "topLeft",
+  infoPosition = "topRight",
   participant,
-  RTCView,
   backgroundColor,
   audioDecibels,
   doMirror,
   parameters,
 }) => {
-
-  const [waveformAnimations, setWaveformAnimations] = useState(Array.from({ length: 9 }, () => 0));
+  const [waveformAnimations, setWaveformAnimations] = useState<number[]>(
+    Array.from({ length: 9 }, () => 0)
+  );
+  const [showWaveform, setShowWaveform] = useState<boolean>(true);
 
   const animateWaveform = () => {
-    const animations = waveformAnimations.map((_, index) => setInterval(() => animateBar(index), getAnimationDuration(index) * 2));
-
+    const animations = waveformAnimations.map((_, index) =>
+      window.setInterval(
+        () => animateBar(index),
+        getAnimationDuration(index) * 2
+      )
+    );
     setWaveformAnimations(animations);
   };
 
-  const animateBar = (index) => {
+  const animateBar = (index: number) => {
     setWaveformAnimations((prevAnimations) => {
       const newAnimations = [...prevAnimations];
       newAnimations[index] = 1;
@@ -92,32 +139,29 @@ const VideoCard = ({
     setWaveformAnimations(Array.from({ length: 9 }, () => 0));
   };
 
-  const getAnimationDuration = (index) => {
+  const getAnimationDuration = (index: number): number => {
     const durations = [474, 433, 407, 458, 400, 427, 441, 419, 487];
     return durations[index] || 0;
   };
 
-  const [showWaveform, setShowWaveform] = useState(true);
-
   useEffect(() => {
-
-    //check every 1 second if the name i sin audioDecibels and over 127.5
     const interval = setInterval(() => {
+      const { getUpdatedAllParams } = parameters;
+      const updatedParams = getUpdatedAllParams();
+      const { audioDecibels, participants } = updatedParams;
 
-      let { getUpdatedAllParams } = parameters
-      parameters = getUpdatedAllParams()
+      const existingEntry =
+        audioDecibels &&
+        audioDecibels.find((entry: AudioDecibels) => entry.name === name);
+      const participantEntry =
+        participants && participants.find((p: Participant) => p.name === name);
 
-      let {
-        audioDecibels,
-        participants,
-      } = parameters;
-
-      const existingEntry = audioDecibels && audioDecibels.find(entry => entry.name === name);
-      participant = participants && participants.find(participant => participant.name === name);
-
-      // Check conditions and animate/reset the waveform accordingly.
-      if (existingEntry && existingEntry.averageLoudness > 127.5 && participant && !participant.muted) {
-
+      if (
+        existingEntry &&
+        existingEntry.averageLoudness > 127.5 &&
+        participantEntry &&
+        !participantEntry.muted
+      ) {
         animateWaveform();
       } else {
         resetWaveform();
@@ -125,66 +169,74 @@ const VideoCard = ({
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [audioDecibels]);
+  }, [audioDecibels, name, parameters]);
 
   useEffect(() => {
     if (participant?.muted) {
       setShowWaveform(false);
-    }
-    else {
+    } else {
       setShowWaveform(true);
     }
-  }
-    , [participant?.muted]);
+  }, [participant?.muted]);
 
-  /**
-   * toggleAudio - Toggle audio for the participant.
-   */
   const toggleAudio = async () => {
-    // Toggle audio logic based on participant's state
-    if (participant?.muted) {
-
-    } else {
-      // Participant is not muted, handle accordingly (mute, hide waveform, etc.)
-      let { getUpdatedAllParams } = parameters
-      parameters = getUpdatedAllParams()
-      await controlMedia({ participantId: participant.id, participantName: participant.name, type: 'audio', parameters: parameters });
+    if (!participant?.muted) {
+      const { getUpdatedAllParams } = parameters;
+      const updatedParams = getUpdatedAllParams();
+      await controlMedia({
+        participantId: participant.id || "",
+        participantName: participant.name,
+        type: "audio",
+        socket: updatedParams.socket,
+        roomName: updatedParams.roomName,
+        coHostResponsibility: updatedParams.coHostResponsibility,
+        showAlert: updatedParams.showAlert,
+        coHost: updatedParams.coHost,
+        participants: updatedParams.participants,
+        member: updatedParams.member,
+        islevel: updatedParams.islevel,
+      });
     }
   };
 
-  /**
-  * toggleVideo - Toggle video for the participant.
-  */
   const toggleVideo = async () => {
-    // Toggle video logic based on participant's state
     if (participant?.videoOn) {
-      // Participant's video is on, handle accordingly (turn off video, etc.)
-      let { getUpdatedAllParams } = parameters
-      parameters = getUpdatedAllParams()
-      await controlMedia({ participantId: participant.id, participantName: participant.name, type: 'video', parameters: parameters });
-    } else {
-      // Participant's video is off, handle accordingly (turn on video, etc.)
-      //   console.log('Turning on video');
+      const { getUpdatedAllParams } = parameters;
+      const updatedParams = getUpdatedAllParams();
+      await controlMedia({
+        participantId: participant.id || "",
+        participantName: participant.name,
+        type: "video",
+        socket: updatedParams.socket,
+        roomName: updatedParams.roomName,
+        coHostResponsibility: updatedParams.coHostResponsibility,
+        showAlert: updatedParams.showAlert,
+        coHost: updatedParams.coHost,
+        participants: updatedParams.participants,
+        member: updatedParams.member,
+        islevel: updatedParams.islevel,
+      });
     }
   };
 
-  /**
-   * renderControls - Render video controls based on conditions.
-   * @returns {React.Component} - Rendered video controls.
-   */
   const renderControls = () => {
-    if (!showControls) {
-      return null;
-    }
+    if (!showControls) return null;
 
     const ControlsComponent = videoControlsComponent || (
       <div style={styles.overlayControls}>
         <button style={styles.controlButton} onClick={toggleAudio}>
-          <FontAwesomeIcon icon={participant?.muted ? faMicrophoneSlash : faMicrophone} size={'sm'} color={participant?.muted ? "red" : "green"} />
+          <FontAwesomeIcon
+            icon={participant?.muted ? faMicrophoneSlash : faMicrophone}
+            size={"sm"}
+            color={participant?.muted ? "red" : "green"}
+          />
         </button>
-
         <button style={styles.controlButton} onClick={toggleVideo}>
-          <FontAwesomeIcon icon={participant?.videoOn ? faVideo : faVideoSlash} size={'sm'} color={participant?.videoOn ? "green" : "red"} />
+          <FontAwesomeIcon
+            icon={participant?.videoOn ? faVideo : faVideoSlash}
+            size={"sm"}
+            color={participant?.videoOn ? "green" : "red"}
+          />
         </button>
       </div>
     );
@@ -193,7 +245,7 @@ const VideoCard = ({
   };
 
   return (
-    <div style={{ ...styles.card, ...customStyle, backgroundColor: backgroundColor }}>
+    <div style={{ ...styles.card, ...customStyle, backgroundColor }}>
       <CardVideoDisplay
         remoteProducerId={remoteProducerId}
         eventType={eventType}
@@ -203,123 +255,141 @@ const VideoCard = ({
         doMirror={doMirror}
       />
 
-      {videoInfoComponent ? (
-        videoInfoComponent
-      ) : showInfo ? (
-        <div style={{ ...getOverlayPosition(infoPosition), ...(showControls ? styles.overlayWeb : styles.overlayWebAlt) }}>
-          <div style={styles.nameColumn}>
-            <span style={{ ...styles.nameText, color: textColor }}>{participant?.name}</span>
-          </div>
-          {showWaveform && (
-            <div style={{ ...styles.waveformWeb }}>
-              {waveformAnimations.map((animation, index) => (
-                <div
-                  key={index}
-                  style={{
-                    ...styles.bar,
-                    height: animation === 0 ? 1 : 16,
-                    backgroundColor: barColor,
-                  }}
-                />
-              ))}
+      {videoInfoComponent ||
+        (showInfo && (
+          <div
+            style={{
+              ...getOverlayPosition({ position: infoPosition }),
+              ...(showControls ? styles.overlayWeb : styles.overlayWebAlt),
+            }}
+          >
+            <div style={styles.nameColumn}>
+              <span style={{ ...styles.nameText, color: textColor }}>
+                {participant?.name}
+              </span>
             </div>
-          )}
-        </div>
-      ) : null}
+            {showWaveform && (
+              <div style={styles.waveformWeb}>
+                {waveformAnimations.map((animation, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      ...styles.bar,
+                      height: animation === 0 ? 1 : 16,
+                      backgroundColor: barColor,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
 
-      {videoControlsComponent ? (
-        videoControlsComponent
-      ) : showControls ? (
-        <div style={{ ...styles.overlayControls, ...getOverlayPosition(controlsPosition) }}>
-          {renderControls()}
-        </div>
-      ) : null}
+      {videoControlsComponent ||
+        (showControls && (
+          <div
+            style={{
+              ...styles.overlayControls,
+              ...getOverlayPosition({ position: controlsPosition }),
+            }}
+          >
+            {renderControls()}
+          </div>
+        ))}
     </div>
   );
 };
 
-const styles = {
+import { CSSProperties } from "react";
+import {
+  AudioDecibels,
+  CoHostResponsibility,
+  Participant,
+  ShowAlert,
+} from "../../@types/types";
+import { Socket } from "socket.io-client";
+
+const styles: { [key: string]: CSSProperties } = {
   card: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     margin: 0,
     padding: 0,
-    backgroundColor: '#2c678f',
-    border: '2px solid black',
-    position: 'relative',
+    backgroundColor: "#2c678f",
+    position: "relative",
   },
   overlayWeb: {
-    position: 'absolute',
-    minWidth: '40%',
-    minHeight: '5%',
-    maxHeight: '100%',
-    display: 'grid',
-    gridTemplateColumns: '4fr 2fr',
-    gridGap: '3px',
+    position: "absolute",
+    minWidth: "40%",
+    minHeight: "5%",
+    maxHeight: "100%",
+    display: "grid",
+    gridTemplateColumns: "4fr 2fr",
+    gridGap: "3px",
   },
   overlayWebAlt: {
-    position: 'absolute',
-    minWidth: '50%',
-    minHeight: '5%',
-    maxHeight: '100%',
-    display: 'grid',
-    gridTemplateColumns: '4fr',
-    gridGap: '0px',
+    position: "absolute",
+    minWidth: "50%",
+    minHeight: "5%",
+    maxHeight: "100%",
+    display: "grid",
+    gridTemplateColumns: "4fr",
+    gridGap: "0px",
     top: 0,
     right: 0,
   },
   overlayControls: {
-    display: 'flex',
-    flexDirection: 'row',
+    display: "flex",
+    flexDirection: "row",
     padding: 0,
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
   },
   controlButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-    padding: '2px 4px',
-    marginRight: '2px',
-    fontSize: 'medium',
-    border: 'none',
-    cursor: 'pointer',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.2)",
+    padding: "2px 4px",
+    marginRight: "2px",
+    fontSize: "medium",
+    border: "none",
+    cursor: "pointer",
   },
   nameColumn: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: '5px',
-    marginRight: '2px',
-    fontSize: 'small',
-    textAlign: 'center',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    padding: "5px",
+    marginRight: "2px",
+    fontSize: "small",
+    textAlign: "center",
   },
   nameText: {
-    fontSize: 'small',
-    fontWeight: 'bolder',
+    fontSize: "small",
+    fontWeight: "bolder",
   },
   waveformWeb: {
-    display: 'flex',
-    justifyContent: 'left',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    display: "flex",
+    justifyContent: "left",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
     padding: 0,
-    flexDirection: 'row',
+    flexDirection: "row",
   },
   waveformMobile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    padding: '5px',
-    marginLeft: '5px',
-    maxWidth: '25%',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
+    padding: "5px",
+    marginLeft: "5px",
+    maxWidth: "25%",
   },
   bar: {
     flex: 1,
     opacity: 0.35,
-    margin: '0 1px',
-    transition: 'height 0.5s ease',
+    margin: "0 1px",
+    transition: "height 0.5s ease",
   },
 };
 

@@ -1,35 +1,69 @@
-/**
- * CoHostModal - A modal component for managing co-host settings.
- * @param {Object} props - The properties passed to the CoHostModal component.
- * @param {boolean} props.isCoHostModalVisible - A boolean to control the visibility of the co-host modal.
- * @param {Function} props.onCoHostClose - A function to handle closing the co-host modal.
- * @param {Function} props.onModifyEventSettings - A function to modify co-host settings.
- * @param {string} props.currentCohost - The current co-host.
- * @param {Array} props.participants - The list of participants.
- * @param {Array} props.coHostResponsibility - The co-host responsibilities.
- * @param {Object} props.parameters - Additional parameters for co-host modal functionality.
- * @param {string} props.position - The position of the modal.
- * @param {string} props.backgroundColor - The background color of the modal.
- * @returns {JSX.Element} - The CoHostModal component JSX element.
- */
 
+ 
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTimes } from '@fortawesome/free-solid-svg-icons';
 import './CoHostModal.css'; // Import your custom CSS for styling
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { modifyCoHostSettings } from '../../methods/coHostMethods/modifyCoHostSettings';
+import { CoHostResponsibility, Participant, ModifyCoHostSettingsOptions, ShowAlert } from '../../@types/types';
+import { Socket } from 'socket.io-client';
+export interface CoHostModalOptions {
+  isCoHostModalVisible: boolean;
+  currentCohost?: string;
+  participants: Participant[];
+  coHostResponsibility: CoHostResponsibility[];
+  position?: string;
+  backgroundColor?: string;
+  roomName: string;
+  showAlert?: ShowAlert;
+  updateCoHostResponsibility: (coHostResponsibility: CoHostResponsibility[]) => void;
+  updateCoHost: (coHost: string) => void;
+  updateIsCoHostModalVisible: (isCoHostModalVisible: boolean) => void;
+  socket: Socket
+  onCoHostClose: () => void;
+  onModifyEventSettings?: (settings: ModifyCoHostSettingsOptions) => void;
+}
 
-const CoHostModal = ({
+export type CoHostModalType = (options: CoHostModalOptions) => JSX.Element;
+
+
+
+/**
+ * CoHostModal component allows managing co-host settings for an event.
+ * 
+ * @param {boolean} isCoHostModalVisible - Determines if the co-host modal is visible.
+ * @param {() => void} onCoHostClose - Function to close the co-host modal.
+ * @param {Function} [onModifyEventSettings=modifyCoHostSettings] - Function to modify event settings.
+ * @param {string} [currentCohost='No coHost'] - The current co-host.
+ * @param {Array} participants - List of participants.
+ * @param {Array} coHostResponsibility - List of co-host responsibilities.
+ * @param {string} [position='topRight'] - Position of the modal.
+ * @param {string} [backgroundColor='#83c0e9'] - Background color of the modal.
+ * @param {string} roomName - Name of the room.
+ * @param {boolean} showAlert - Flag to show alert.
+ * @param {Function} updateCoHostResponsibility - Function to update co-host responsibilities.
+ * @param {Function} updateCoHost - Function to update co-host.
+ * @param {Function} updateIsCoHostModalVisible - Function to update the visibility of the co-host modal.
+ * @param {Object} socket - Socket object for real-time communication.
+ * 
+ * @returns {JSX.Element} The CoHostModal component.
+ */
+const CoHostModal: React.FC<CoHostModalOptions> = ({
   isCoHostModalVisible,
   onCoHostClose,
   onModifyEventSettings = modifyCoHostSettings,
   currentCohost = 'No coHost',
   participants,
   coHostResponsibility,
-  parameters,
   position = 'topRight',
   backgroundColor = '#83c0e9',
+  roomName,
+  showAlert,
+  updateCoHostResponsibility,
+  updateCoHost,
+  updateIsCoHostModalVisible,
+  socket,
 }) => {
   const screenWidth = window.innerWidth;
   let modalWidth = 0.8 * screenWidth;
@@ -37,7 +71,7 @@ const CoHostModal = ({
     modalWidth = 400;
   }
 
-  const modalContainerStyle = {
+  const modalContainerStyle: React.CSSProperties = {
     position: 'fixed',
     top: 0,
     left: 0,
@@ -45,10 +79,10 @@ const CoHostModal = ({
     height: '100%',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     display: isCoHostModalVisible ? 'block' : 'none',
-    zIndex: 999
+    zIndex: 999,
   };
 
-  const modalContentStyle = {
+  const modalContentStyle: React.CSSProperties = {
     position: 'fixed',
     backgroundColor: backgroundColor,
     borderRadius: 10,
@@ -61,24 +95,22 @@ const CoHostModal = ({
     top: position.includes('top') ? 10 : 'auto',
     bottom: position.includes('bottom') ? 10 : 'auto',
     left: position.includes('Left') ? 10 : 'auto',
-    right: position.includes('Right') ? 10 : 'auto'
+    right: position.includes('Right') ? 10 : 'auto',
   };
 
-  const [selectedCohost, setSelectedCohost] = useState(currentCohost);
+  const [selectedCohost, setSelectedCohost] = useState<string>(currentCohost);
+  const [CoHostResponsibilityCopy, setCoHostResponsibilityCopy] = useState<CoHostResponsibility[]>([...coHostResponsibility]);
+  const [CoHostResponsibilityCopyAlt, setCoHostResponsibilityCopyAlt] = useState<CoHostResponsibility[]>([...coHostResponsibility]);
 
-  const [CoHostResponsibilityCopy, setCoHostResponsibilityCopy] = useState([...coHostResponsibility]);
-  const [CoHostResponsibilityCopyAlt, setCoHostResponsibilityCopyAlt] = useState([...coHostResponsibility]);
-  const initialResponsibilities = CoHostResponsibilityCopyAlt.reduce((acc, item) => {
-    let str = item.name;
-    const str2 = str.charAt(0).toUpperCase() + str.slice(1);
-    let keyed = `manage${str2}`;
+  const initialResponsibilities = CoHostResponsibilityCopyAlt.reduce<Record<string, boolean>>((acc, item) => {
+    const str2 = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+    const keyed = `manage${str2}`;
     acc[keyed] = item.value;
     acc[`dedicateTo${keyed}`] = item.dedicated;
     return acc;
   }, {});
 
-
-  const [responsibilities, setResponsibilities] = useState(initialResponsibilities);
+  const [responsibilities, setResponsibilities] = useState<Record<string, boolean>>(initialResponsibilities);
 
   const responsibilityItems = [
     { name: 'manageParticipants', label: 'Manage Participants' },
@@ -87,52 +119,45 @@ const CoHostModal = ({
     { name: 'manageChat', label: 'Manage Chat' },
   ];
 
+  // Filter out the current co-host from the list of participants and any participant with islevel '2'
+  const filteredParticipants = participants?.filter((participant) => participant.name !== currentCohost && participant.islevel !== '2');
 
-  //filter out the current cohost from the list of participants and any participant with islevel '2'
-  const filteredParticipants = participants && participants.filter((participant) => participant.name != currentCohost && participant.islevel != '2');
-
-
-  const handleToggleSwitch = (responsibility) => {
+  const handleToggleSwitch = (responsibility: string) => {
     setResponsibilities((prevResponsibilities) => ({
       ...prevResponsibilities,
       [responsibility]: !prevResponsibilities[responsibility],
-
     }));
 
-
-    //update the coHostResponsibilityCopy
+    // Update the coHostResponsibilityCopy
     if (responsibility.startsWith('dedicateTo')) {
       const responsibilityName = responsibility.replace('dedicateTomanage', '').toLowerCase();
-      const responsibilityDedicated = CoHostResponsibilityCopy.find((item) => item.name === responsibilityName).dedicated;
-      CoHostResponsibilityCopy.find((item) => item.name === responsibilityName).dedicated = !responsibilityDedicated;
+      const responsibilityDedicated = CoHostResponsibilityCopy.find((item) => item.name === responsibilityName)?.dedicated;
+      if (responsibilityDedicated !== undefined) {
+        CoHostResponsibilityCopy.find((item) => item.name === responsibilityName)!.dedicated = !responsibilityDedicated;
+      }
       setCoHostResponsibilityCopy([...CoHostResponsibilityCopy]);
     } else if (responsibility.startsWith('manage')) {
       const responsibilityName = responsibility.replace('manage', '').toLowerCase();
-      const responsibilityValue = CoHostResponsibilityCopy.find((item) => item.name === responsibilityName).value;
-      CoHostResponsibilityCopy.find((item) => item.name === responsibilityName).value = !responsibilityValue;
+      const responsibilityValue = CoHostResponsibilityCopy.find((item) => item.name === responsibilityName)?.value;
+      if (responsibilityValue !== undefined) {
+        CoHostResponsibilityCopy.find((item) => item.name === responsibilityName)!.value = !responsibilityValue;
+      }
       setCoHostResponsibilityCopy([...CoHostResponsibilityCopy]);
-
     }
-
-
   };
-
 
   useEffect(() => {
     const populateResponsibilities = () => {
-
       setCoHostResponsibilityCopyAlt([...coHostResponsibility]);
       setCoHostResponsibilityCopy([...coHostResponsibility]);
-      const responsibilities = CoHostResponsibilityCopyAlt.reduce((acc, item) => {
-        let str = item.name;
-        const str2 = str.charAt(0).toUpperCase() + str.slice(1);
-        let keyed = `manage${str2}`;
+      const responsibilities = CoHostResponsibilityCopyAlt.reduce<Record<string, boolean>>((acc, item) => {
+        const str2 = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+        const keyed = `manage${str2}`;
         acc[keyed] = item.value;
         acc[`dedicateTo${keyed}`] = item.dedicated;
         return acc;
       }, {});
       setResponsibilities(responsibilities);
-
     };
 
     if (isCoHostModalVisible) {
@@ -157,14 +182,12 @@ const CoHostModal = ({
           </div>
           <div className="form-group">
             <label className="font-weight-bold">Select New Co-host:</label>
-            <select
-              className="form-control"
-              value={selectedCohost}
-              onChange={(e) => setSelectedCohost(e.target.value)}
-            >
+            <select className="form-control" value={selectedCohost} onChange={(e) => setSelectedCohost(e.target.value)}>
               <option value="">Select a participant</option>
-              {filteredParticipants.map(participant => (
-                <option key={participant.name} value={participant.name}>{participant.name}</option>
+              {filteredParticipants.map((participant) => (
+                <option key={participant.name} value={participant.name}>
+                  {participant.name}
+                </option>
               ))}
             </select>
           </div>
@@ -182,7 +205,9 @@ const CoHostModal = ({
           {responsibilityItems &&
             responsibilityItems.map((item) => (
               <div className="row" key={item.name} style={{ marginBottom: 10 }}>
-                <div className="col-5" style={{ fontWeight: 'bold' }} >{item.label}</div>
+                <div className="col-5" style={{ fontWeight: 'bold' }}>
+                  {item.label}
+                </div>
                 <div className="col-3">
                   <input
                     type="checkbox"
@@ -202,18 +227,24 @@ const CoHostModal = ({
             ))}
         </div>
         <div className="modal-footer">
-          <button className="btn-apply-settings" onClick={() => onModifyEventSettings({
-            parameters: {
-              ...parameters,
-              selectedParticipant: selectedCohost,
-              coHost: currentCohost,
-              coHostResponsibility: CoHostResponsibilityCopy,
-              responsibilities
+          <button
+            className="btn-apply-settings"
+            onClick={() =>
+              onModifyEventSettings({
+                  roomName: roomName,
+                  showAlert: showAlert,
+                  selectedParticipant: selectedCohost,
+                  coHost: currentCohost,
+                  coHostResponsibility: CoHostResponsibilityCopy,
+                  updateCoHostResponsibility: updateCoHostResponsibility,
+                  updateCoHost: updateCoHost,
+                  updateIsCoHostModalVisible: updateIsCoHostModalVisible,
+                  socket: socket,
+              })
             }
-          }
-          )} // Pass the parameters to the function
-
-          > save </button>
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>

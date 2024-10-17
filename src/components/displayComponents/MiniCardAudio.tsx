@@ -1,54 +1,95 @@
+ 
+
+import React, { useState, useEffect } from "react";
+import { getOverlayPosition } from "../../methods/utils/getOverlayPosition";
+
+export interface MiniCardAudioOptions {
+  customStyle?: React.CSSProperties;
+  name: string;
+  showWaveform: boolean;
+  overlayPosition?: string;
+  barColor?: string;
+  textColor?: string;
+  imageSource?: string;
+  roundedImage?: boolean;
+  imageStyle?: React.CSSProperties;
+}
+
+export type MiniCardAudioType = (options: MiniCardAudioOptions) => JSX.Element;
+
 /**
- * MiniCardAudio - A React component for displaying a mini audio card with waveform animation.
- * @param {Object} props - The props passed to the MiniCardAudio.
- * @param {Object} props.customStyle - Custom styles for the MiniCardAudio.
- * @param {string} props.name - The name to be displayed on the card.
- * @param {boolean} props.showWaveform - Flag indicating whether to show the waveform animation.
- * @param {string} props.overlayPosition - Position of the overlay (e.g., 'bottomLeft', 'topRight').
- * @param {string} props.barColor - Color of the waveform bars.
- * @param {string} props.textColor - Color of the text on the card.
- * @param {string} props.imageSource - Image source for the card.
- * @param {boolean} props.roundedImage - Flag indicating whether to display a rounded image.
- * @param {Object} props.imageStyle - Custom styles for the image.
- * @returns {React.Component} - The MiniCardAudio component.
+ * MiniCardAudio component displays an audio card with optional waveform animation.
+ * 
+ * @component
+ * @param {MiniCardAudioOptions} props - The properties for the MiniCardAudio component.
+ * @param {React.CSSProperties} props.customStyle - Custom styles to apply to the card.
+ * @param {string} props.name - The name to display on the card.
+ * @param {boolean} props.showWaveform - Flag to show or hide the waveform animation.
+ * @param {string} props.overlayPosition - Position of the overlay on the card.
+ * @param {string} [props.barColor="white"] - Color of the waveform bars.
+ * @param {string} [props.textColor="white"] - Color of the text.
+ * @param {string} props.imageSource - Source URL for the background image.
+ * @param {boolean} [props.roundedImage=false] - Flag to apply rounded corners to the image.
+ * @param {React.CSSProperties} props.imageStyle - Custom styles to apply to the image.
+ * 
+ * @returns {JSX.Element} The rendered MiniCardAudio component.
+ * 
+ * @example
+ * <MiniCardAudio
+ *   customStyle={{ backgroundColor: 'black' }}
+ *   name="Sample Audio"
+ *   showWaveform={true}
+ *   overlayPosition="bottom"
+ *   barColor="blue"
+ *   textColor="yellow"
+ *   imageSource="path/to/image.jpg"
+ *   roundedImage={true}
+ *   imageStyle={{ borderRadius: '10px' }}
+ * />
  */
-
-
-import React, { useState, useEffect } from 'react';
-import { getOverlayPosition } from '../../methods/utils/getOverlayPosition';
-
-const MiniCardAudio = ({
+const MiniCardAudio: React.FC<MiniCardAudioOptions> = ({
   customStyle,
   name,
   showWaveform,
   overlayPosition,
-  barColor = 'white',
-  textColor = 'white',
+  barColor = "white",
+  textColor = "white",
   imageSource,
   roundedImage = false,
   imageStyle,
 }) => {
+  const [waveformAnimations, setWaveformAnimations] = useState<number[]>(
+    Array.from({ length: 9 }, () => 0)
+  );
 
-  const [waveformAnimations, setWaveformAnimations] = useState(Array.from({ length: 9 }, () => 0));
+  const animateWaveform = () => {
+    waveformAnimations.map((_, index) => {
+      const interval = setInterval(() => {
+        setWaveformAnimations((prev) => {
+          const newAnimations = [...prev];
+          newAnimations[index] = (newAnimations[index] + 1) % 2;
+          return newAnimations;
+        });
+      }, getAnimationDuration(index));
+      return interval;
+    });
+  };
+
+  const resetWaveform = () => {
+    setWaveformAnimations(waveformAnimations.map(() => 0));
+  };
+
   useEffect(() => {
     if (showWaveform) {
       animateWaveform();
     } else {
       resetWaveform();
     }
+    // Cleanup intervals when the component unmounts or showWaveform changes
+    return () => resetWaveform();
   }, [showWaveform]);
 
-  const animateWaveform = () => {
-    const animations = waveformAnimations.map((_, index) => setInterval(() => {
-      waveformAnimations[index] = (waveformAnimations[index] + 1) % 2;
-    }, getAnimationDuration(index)));
-  };
-
-  const resetWaveform = () => {
-    waveformAnimations.forEach((_, index) => (waveformAnimations[index] = 0));
-  };
-
-  const getAnimationDuration = (index) => {
+  const getAnimationDuration = (index: number): number => {
     const durations = [474, 433, 407, 458, 400, 427, 441, 419, 487];
     return durations[index] || 0;
   };
@@ -58,19 +99,28 @@ const MiniCardAudio = ({
       {imageSource && (
         <img
           src={imageSource}
-          style={[
-            styles.backgroundImage,
-            roundedImage && styles.roundedImage,
-            imageStyle,
-          ]}
+          style={{
+            ...styles.backgroundImage,
+            ...(roundedImage && styles.roundedImage),
+            ...imageStyle,
+          }}
           alt="Background"
         />
       )}
-      <div style={{ ...getOverlayPosition(overlayPosition), ...('web' === 'web' ? styles.overlayWeb : styles.overlayMobile) }}>
+      <div
+        style={{
+          ...getOverlayPosition({ position: overlayPosition! }),
+          ...styles.overlayWeb
+        }}
+      >
         <div style={styles.nameColumn}>
           <span style={{ ...styles.nameText, color: textColor }}>{name}</span>
         </div>
-        <div style={{ ...('web' === 'web' ? styles.waveformWeb : styles.waveformMobile) }}>
+        <div
+          style={{
+            ...styles.waveformWeb 
+          }}
+        >
           {waveformAnimations.map((animation, index) => (
             <div
               key={index}
@@ -89,76 +139,76 @@ const MiniCardAudio = ({
 
 const styles = {
   card: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
     margin: 0,
     padding: 0,
-    backgroundColor: '#2c678f',
-  },
+    backgroundColor: "#2c678f",
+  } as React.CSSProperties,
   overlayMobile: {
-    position: 'absolute',
-    width: 'auto',
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-  },
+    position: "absolute",
+    width: "auto",
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+  } as React.CSSProperties,
   overlayWeb: {
-    position: 'absolute',
-    minWidth: '50%',
-    minHeight: '5%',
-    maxHeight: '100%',
-    display: 'grid',
-    gridTemplateColumns: '4fr 2fr',
-    gridGap: '3px',
-  },
+    position: "absolute",
+    minWidth: "50%",
+    minHeight: "5%",
+    maxHeight: "100%",
+    display: "grid",
+    gridTemplateColumns: "4fr 2fr",
+    gridGap: "3px",
+  } as React.CSSProperties,
   nameColumn: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     paddingVertical: 5,
     paddingHorizontal: 10,
     marginEnd: 2,
     fontSize: 14,
-  },
+  } as React.CSSProperties,
   nameText: {
     fontSize: 14,
-    color: 'white',
-  },
+    color: "white",
+  } as React.CSSProperties,
   waveformWeb: {
-    display: 'flex',
-    justifyContent: 'left',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    display: "flex",
+    justifyContent: "left",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
     padding: 0,
-    flexDirection: 'row',
-  },
+    flexDirection: "row",
+  } as React.CSSProperties,
   waveformMobile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.05)",
     paddingVertical: 5,
     marginLeft: 5,
-    maxWidth: '25%',
-  },
+    maxWidth: "25%",
+  } as React.CSSProperties,
   bar: {
     flex: 1,
     opacity: 0.35,
     marginHorizontal: 1,
-  },
+  } as React.CSSProperties,
   backgroundImage: {
-    position: 'absolute',
+    position: "absolute",
     width: 80,
     height: 80,
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-40px, -40px)',
-  },
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-40px, -40px)",
+  } as React.CSSProperties,
   roundedImage: {
     borderRadius: 20, // Adjust the border radius as needed
-  },
+  } as React.CSSProperties,
 };
 
 export default MiniCardAudio;

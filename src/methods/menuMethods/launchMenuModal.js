@@ -6,8 +6,10 @@
  * @param {boolean} parameters.IsMenuModalVisible - The current visibility state of the menu modal.
  * @returns {void}
  */
-export const launchMenuModal = ({ updateIsMenuModalVisible, IsMenuModalVisible }) => {
-    
+export const launchMenuModal = ({
+  updateIsMenuModalVisible,
+  isMenuModalVisible,
+}) => {
   // Open or close the menu modal based on the current visibility state
-  updateIsMenuModalVisible(!IsMenuModalVisible);
+  updateIsMenuModalVisible(!isMenuModalVisible);
 };

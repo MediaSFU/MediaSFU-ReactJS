@@ -1,13 +1,23 @@
-/**
- * React component representing the display of an Event Passcode with an input field.
- * @component
- * @param {Object} props - The component props.
- * @param {string} props.meetingPasscode - The Event Passcode to be displayed in the input field.
- * @returns {React.ReactNode} - The rendered MeetingPasscodeComponent.
- */
-import React from 'react';
+import React from "react";
 
-const MeetingPasscodeComponent = ({ meetingPasscode = "" }) => {
+// Define the prop type using an interface
+export interface MeetingPasscodeComponentOptions {
+  meetingPasscode?: string;
+}
+
+export type MeetingPasscodeComponentType = (
+  options: MeetingPasscodeComponentOptions
+) => JSX.Element;
+
+/**
+ * A React functional component that displays a meeting passcode in a read-only input field.
+ *
+ * @component
+ * @param {MeetingPasscodeComponentOptions} props - The properties object.
+ * @param {string} [props.meetingPasscode=""] - The passcode for the meeting, defaulting to an empty string if not provided.
+ * @returns {JSX.Element} A JSX element containing a labeled input field with the meeting passcode.
+ */
+const MeetingPasscodeComponent: React.FC<MeetingPasscodeComponentOptions> = ({ meetingPasscode = "" }) => {
   return (
     <div style={styles.formGroup}>
       <label style={styles.label}>Event Passcode (Host):</label>
@@ -22,23 +32,22 @@ const MeetingPasscodeComponent = ({ meetingPasscode = "" }) => {
 
 const styles = {
   formGroup: {
-    marginTop: '10px',
-    maxWidth: '300px',
+    marginTop: "10px",
+    maxWidth: "300px",
   },
   label: {
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   disabledInput: {
-    borderWidth: '1px',
-    borderColor: 'gray',
-    padding: '10px',
-    marginTop: '5px',
-    backgroundColor: '#f0f0f0',
-    color: 'black',
-    width: '100%',
-    borderRadius: '5px',
+    borderWidth: "1px",
+    borderColor: "gray",
+    padding: "10px",
+    marginTop: "5px",
+    backgroundColor: "#f0f0f0",
+    color: "black",
+    width: "100%",
+    borderRadius: "5px",
   },
 };
 
 export default MeetingPasscodeComponent;
-

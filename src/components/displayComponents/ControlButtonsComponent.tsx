@@ -1,61 +1,105 @@
+import React from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import "./ControlButtonsComponent.css"; // Import CSS file for additional styling
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+
+export interface Button {
+  name?: string;
+  icon?: IconDefinition;
+  alternateIcon?: IconDefinition;
+  onPress?: () => void;
+  backgroundColor?: {
+    default?: string;
+    pressed?: string;
+  };
+  active?: boolean;
+  alternateIconComponent?: JSX.Element;
+  iconComponent?: JSX.Element;
+  customComponent?: JSX.Element;
+  color?: string;
+  activeColor?: string;
+  inActiveColor?: string;
+  disabled?: boolean;
+  show?: boolean;
+}
+
+export interface ControlButtonsComponentOptions {
+  buttons: Button[];
+  buttonColor?: string;
+  buttonBackgroundColor?: {
+    default?: string;
+    pressed?: string;
+  };
+  alignment?:
+    | "flex-start"
+    | "center"
+    | "flex-end"
+    | "space-between"
+    | "space-around"
+    | "space-evenly";
+  vertical?: boolean;
+  buttonsContainerStyle?: React.CSSProperties;
+  alternateIconComponent?: JSX.Element;
+}
+
+export type ControlButtonsComponentType = (
+  options: ControlButtonsComponentOptions
+) => JSX.Element;
 
 /**
- * Custom component for rendering a set of control buttons with icons and text.
- * @param {Object} props - Component properties.
- * @param {Array} props.buttons - An array of button objects, each containing properties like name, icon, onPress, etc.
- * @param {string} [props.buttonColor] - The color for button icons and text.
- * @param {Object} [props.buttonBackgroundColor] - The background color for buttons in default and pressed states.
- * @param {string} [props.alignment='flex-start'] - The alignment of the button container (flex-start, center, flex-end).
- * @param {boolean} [props.vertical=false] - If true, buttons will be arranged vertically.
- * @param {Object} [props.buttonsContainerStyle] - Additional styles for the container of buttons.
- * @param {JSX.Element} [props.alternateIconComponent] - An alternate icon component to render when a button is active.
- * @param {JSX.Element} [props.iconComponent] - An icon component to render when a button is not active.
- * @returns {JSX.Element} - The rendered component.
+ * ControlButtonsComponent is a React functional component that renders a set of control buttons.
+ *
+ * @param {ControlButtonsComponentOptions} props - The properties for the component.
+ * @param {Array<ButtonOptions>} props.buttons - An array of button options to render.
+ * @param {string} [props.buttonBackgroundColor] - The default background color for the buttons.
+ * @param {string} [props.alignment='flex-start'] - The alignment of the buttons within the container. Defaults to 'flex-start'.
+ * @param {boolean} [props.vertical=false] - Whether the buttons should be arranged vertically. Defaults to false.
+ * @param {React.CSSProperties} [props.buttonsContainerStyle] - Additional styles for the buttons container.
+ *
+ * @returns {JSX.Element} The rendered component.
  */
-
-import React from 'react';
-import { useState } from 'react'; // Import useState
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import './ControlButtonsComponent.css'; // Import CSS file for additional styling
-
-const ControlButtonsComponent = ({
+const ControlButtonsComponent: React.FC<ControlButtonsComponentOptions> = ({
   buttons,
-  buttonColor,
   buttonBackgroundColor,
-  alignment = 'flex-start', // Set default alignment to flex-start
+  alignment = "flex-start", // Set default alignment to flex-start
   vertical = false, // Set default vertical to false
   buttonsContainerStyle,
-  alternateIconComponent,
 }) => {
   /**
    * Get the alignment style for the button container.
-   * @returns {Object} - The alignment style object.
+   * @returns {React.CSSProperties} - The alignment style object.
    */
-  const getAlignmentStyle = () => {
-    if (alignment === 'center') {
-      return { justifyContent: 'center' };
-    } else if (alignment === 'flex-end') {
-      return { justifyContent: 'flex-end' };
-    } else if (alignment === 'space-between') {
-      return { justifyContent: 'space-between' };
-    } else if (alignment === 'space-around') {
-      return { justifyContent: 'space-around' };
-    } else if (alignment === 'space-evenly') {
-      return { justifyContent: 'space-evenly' };
+  const getAlignmentStyle = (): React.CSSProperties => {
+    if (alignment === "center") {
+      return { justifyContent: "center" };
+    } else if (alignment === "flex-end") {
+      return { justifyContent: "flex-end" };
+    } else if (alignment === "space-between") {
+      return { justifyContent: "space-between" };
+    } else if (alignment === "space-around") {
+      return { justifyContent: "space-around" };
+    } else if (alignment === "space-evenly") {
+      return { justifyContent: "space-evenly" };
     } else {
-      return { justifyContent: 'flex-start' }; // Default to flex-start
+      return { justifyContent: "flex-start" }; // Default to flex-start
     }
   };
 
   return (
-    <div className="container" style={{ ...getAlignmentStyle(), ...buttonsContainerStyle }}>
+    <div
+      className="container"
+      style={{ ...getAlignmentStyle(), ...buttonsContainerStyle }}
+    >
       {buttons.map((button, index) => (
         <button
           key={index}
           className="buttonContainer"
           style={{
-            backgroundColor: buttonBackgroundColor?.default || 'transparent',
-            ...vertical && { flexDirection: 'column' }, // Conditionally apply vertical style
+            backgroundColor: button.show
+            ? buttonBackgroundColor?.default || "transparent" 
+            : "transparent",
+            ...(vertical && { flexDirection: "column" }), // Conditionally apply vertical style
+            display: button.show ? "flex" : "none",
           }}
           disabled={button.disabled}
           onClick={button.onPress}
@@ -66,20 +110,29 @@ const ControlButtonsComponent = ({
                 button.alternateIconComponent ? (
                   button.alternateIconComponent
                 ) : (
-                  <FontAwesomeIcon icon={button.alternateIcon} size="lg" color={button.activeColor || 'transparent'} />
+                  <FontAwesomeIcon
+                    icon={button.alternateIcon!}
+                    size="lg"
+                    color={button.activeColor || "transparent"}
+                  />
                 )
+              ) : button.iconComponent ? (
+                button.iconComponent
               ) : (
-                button.iconComponent ? (
-                  button.iconComponent
-                ) : (
-                  <FontAwesomeIcon icon={button.icon} size="lg" color={button.inActiveColor || '#ffffff'} />
-                )
+                <FontAwesomeIcon
+                  icon={button.icon}
+                  size="lg"
+                  color={button.inActiveColor || "#ffffff"}
+                />
               )
             ) : (
               button.customComponent
             )}
             {button.name && (
-              <span className="buttonText" style={{ color: button.color || '#ffffff' }}>
+              <span
+                className="buttonText"
+                style={{ color: button.color || "#ffffff" }}
+              >
                 {button.name}
               </span>
             )}
@@ -91,4 +144,3 @@ const ControlButtonsComponent = ({
 };
 
 export default ControlButtonsComponent;
-

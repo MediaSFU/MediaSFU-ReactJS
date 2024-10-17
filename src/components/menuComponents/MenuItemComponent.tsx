@@ -1,16 +1,17 @@
-/**
- * React component representing a menu item.
- * @component
- * @param {Object} props - The component props.
- * @param {string} props.icon - The name of the FontAwesome icon to be displayed.
- * @param {string} props.name - The text to be displayed as the menu item name.
- * @param {Function} props.onPress - The callback function to be invoked when the menu item is pressed.
- * @returns {React.ReactNode} - The rendered MenuItemComponent.
- */
-import React from 'react';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'; // Import FontAwesomeIcon from @fortawesome/react-fontawesome
+import React, { CSSProperties } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; // Import FontAwesomeIcon from @fortawesome/react-fontawesome
+import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 
-const MenuItemComponent = ({ icon, name, onPress }) => {
+// Define the props interface
+export interface MenuItemComponentOptions {
+  icon?: IconDefinition;
+  name?: string;
+  onPress: () => void;
+}
+
+export type MenuItemComponentType = (options: MenuItemComponentOptions) => JSX.Element;
+
+const MenuItemComponent: React.FC<MenuItemComponentOptions> = ({ icon, name, onPress }) => {
   return (
     <button style={styles.listItem} onClick={onPress}>
       {icon && <FontAwesomeIcon icon={icon} style={styles.listIcon} />}
@@ -19,31 +20,30 @@ const MenuItemComponent = ({ icon, name, onPress }) => {
   );
 };
 
-const styles = {
+const styles: { [key: string]: CSSProperties } = {
   listItem: {
-    display: 'flex',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    border: 'none',
-    fontSize: '16px',
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "transparent",
+    border: "none",
+    fontSize: "16px",
     paddingLeft: 0,
     marginLeft: 0,
-    marginBottom: '10px',
-    cursor: 'pointer',
+    marginBottom: "10px",
+    cursor: "pointer",
   },
 
   listIcon: {
-    fontSize: '20px',
-    marginRight: '10px',
-    color: '#ffffff',
+    fontSize: "20px",
+    marginRight: "10px",
+    color: "#ffffff",
   },
 
   listText: {
-    color: '#ffffff',
-    fontSize: '16px',
+    color: "#ffffff",
+    fontSize: "16px",
   },
 };
 
 export default MenuItemComponent;
-

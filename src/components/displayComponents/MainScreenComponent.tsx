@@ -1,51 +1,82 @@
+
+import React, { useEffect } from "react";
+import { ComponentSizes } from "../../@types/types";
+
+export interface MainScreenComponentOptions {
+  children: React.ReactNode;
+  mainSize: number;
+  doStack: boolean;
+  containerWidthFraction?: number;
+  containerHeightFraction?: number;
+  updateComponentSizes: (sizes: ComponentSizes) => void;
+  defaultFraction?: number;
+  showControls: boolean;
+  componentSizes: ComponentSizes;
+}
+
+interface ResizableChildOptions {
+  mainSize: number;
+  isWideScreen: boolean;
+  style?: React.CSSProperties;
+}
+
+export type MainScreenComponentType = (
+  options: MainScreenComponentOptions
+) => JSX.Element;
+
 /**
- * MainScreenComponent - A React component for managing the layout of the main screen with resizable main and other components.
- * @param {Object} props - The props passed to the MainScreenComponent.
- * @param {React.Component} props.children - The child components to be rendered inside the main screen.
- * @param {number} props.mainSize - The percentage size of the main component in the main screen.
- * @param {boolean} props.doStack - Flag indicating whether to stack components horizontally (true) or vertically (false).
- * @param {number} props.containerWidthFraction - The fraction of the window width to be used as the container's width (default is 1).
- * @param {number} props.containerHeightFraction - The fraction of the window height to be used as the container's height (default is 1).
- * @param {Function} props.updateComponentSizes - Callback function to update component sizes.
- * @param {number} props.defaultFraction - The default fraction to be used for container height when stacking (default is 0.94).
- * @returns {React.Component} - The MainScreenComponent.
+ * MainScreenComponent is a React functional component that dynamically adjusts the layout
+ * and dimensions of its child components based on the provided props and the window size.
+ *
+ * @param {React.ReactNode} children - The child components to be rendered within the main screen.
+ * @param {number} mainSize - The size percentage of the main component when stacking is enabled.
+ * @param {boolean} doStack - A flag indicating whether the components should be stacked.
+ * @param {number} [containerWidthFraction=1] - The fraction of the window width to be used for the container.
+ * @param {number} [containerHeightFraction=1] - The fraction of the window height to be used for the container.
+ * @param {Function} updateComponentSizes - A callback function to update the sizes of the components.
+ * @param {number} [defaultFraction=0.94] - The default fraction to be applied to the container height when controls are shown.
+ * @param {boolean} showControls - A flag indicating whether controls are shown, affecting the container height.
+ * @param {Object} componentSizes - An object containing the current sizes of the components.
+ *
+ * @returns {JSX.Element} The rendered main screen component with its children.
  */
-
-import React, { useEffect } from 'react';
-
-
-const MainScreenComponent = ({ children, mainSize, doStack, containerWidthFraction = 1, containerHeightFraction = 1, updateComponentSizes, defaultFraction = 0.94, showControls }) => {
-  // Calculate parent width and height based on window dimensions and specified fractions
-  const marginTop = 0
-
+const MainScreenComponent: React.FC<MainScreenComponentOptions> = ({
+  children,
+  mainSize,
+  doStack,
+  containerWidthFraction = 1,
+  containerHeightFraction = 1,
+  updateComponentSizes,
+  defaultFraction = 0.94,
+  showControls,
+  componentSizes,
+}) => {
   const parentWidth = window.innerWidth * containerWidthFraction;
-  const parentHeight = showControls ? window.innerHeight * containerHeightFraction * defaultFraction : window.innerHeight * containerHeightFraction;
+  const parentHeight = showControls
+    ? window.innerHeight * containerHeightFraction * defaultFraction
+    : window.innerHeight * containerHeightFraction;
 
-  // Check if the screen is wide (width greater than 768)
-  const isWideScreen = parentWidth > 768;
+  let isWideScreen = parentWidth >= 768;
 
-  // Update component sizes when parent dimensions, main size, or stacking mode change
-  useEffect(() => {
-    const { mainHeight, otherHeight, mainWidth, otherWidth } = computeDimensions();
-    updateComponentSizes({ mainHeight, otherHeight, mainWidth, otherWidth });
-  }, [parentWidth, parentHeight, mainSize, doStack]);
+  if (!isWideScreen && parentWidth > 1.5 * parentHeight) {
+    isWideScreen = true;
+  }
 
-  // Calculate dimensions for main and other components based on stacking mode
   const computeDimensions = () => {
     if (doStack) {
       return isWideScreen
         ? {
-          mainHeight: parentHeight,
-          otherHeight: parentHeight,
-          mainWidth: (mainSize / 100) * parentWidth,
-          otherWidth: ((100 - mainSize) / 100) * parentWidth,
-        }
+            mainHeight: parentHeight,
+            otherHeight: parentHeight,
+            mainWidth: Math.floor((mainSize / 100) * parentWidth),
+            otherWidth: Math.floor(((100 - mainSize) / 100) * parentWidth),
+          }
         : {
-          mainHeight: (mainSize / 100) * parentHeight,
-          otherHeight: ((100 - mainSize) / 100) * parentHeight,
-          mainWidth: parentWidth,
-          otherWidth: parentWidth,
-        };
+            mainHeight: Math.floor((mainSize / 100) * parentHeight),
+            otherHeight: Math.floor(((100 - mainSize) / 100) * parentHeight),
+            mainWidth: parentWidth,
+            otherWidth: parentWidth,
+          };
     } else {
       return {
         mainHeight: parentHeight,
@@ -56,29 +87,52 @@ const MainScreenComponent = ({ children, mainSize, doStack, containerWidthFracti
     }
   };
 
-  // Get dimensions for the main and other components
-  const { mainHeight, otherHeight, mainWidth, otherWidth } = computeDimensions();
+  useEffect(() => {
+    const { mainHeight, otherHeight, mainWidth, otherWidth } =
+      computeDimensions();
+    updateComponentSizes({ mainHeight, otherHeight, mainWidth, otherWidth });
+  }, [parentWidth, parentHeight, mainSize, doStack]);
+
+  const { mainHeight, otherHeight, mainWidth, otherWidth } = componentSizes;
+
+  // Type guard to ensure child has the right props
+  const isResizableChild = (child: any): child is React.ReactElement<ResizableChildOptions> => {
+    return child && typeof child.props === 'object';
+  };
 
   return (
-    <div style={{ display: 'flex', flex: 1, flexDirection: isWideScreen ? 'row' : 'column', width: parentWidth, height: parentHeight, padding: 0, margin: 0 }}>
+    <div
+      style={{
+        display: "flex",
+        flex: 1,
+        flexDirection: isWideScreen ? "row" : "column",
+        width: parentWidth,
+        height: parentHeight,
+        padding: 0,
+        margin: 0,
+      }}
+    >
       {/* Render child components with updated dimensions */}
       {React.Children.map(children, (child, index) => {
-        const childStyle = doStack
-          ? {
-            height: index === 0 ? mainHeight : otherHeight,
-            width: index === 0 ? mainWidth : otherWidth,
-          }
-          : {
-            height: mainHeight,
-            width: mainWidth,
-          };
+        if (isResizableChild(child)) {
+          const childStyle = doStack
+            ? {
+                height: index === 0 ? mainHeight : otherHeight,
+                width: index === 0 ? mainWidth : otherWidth,
+              }
+            : {
+                height: mainHeight,
+                width: mainWidth,
+              };
 
-        return React.cloneElement(child, {
-          mainSize,
-          isWideScreen,
-          style: [childStyle, child.props.style],
-          key: index,
-        });
+          return React.cloneElement(child, {
+            mainSize,
+            isWideScreen,
+            style: { ...childStyle, ...child.props.style },
+            key: index,
+          });
+        }
+        return null;
       })}
     </div>
   );

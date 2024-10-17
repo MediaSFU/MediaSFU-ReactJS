@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "lib": ["dom", "dom.iterable", "ES2020"],
+    "allowJs": false, // Allows JavaScript files to be compiled
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true, // Enables strict type-checking options
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false, // Allow emitting files
+    "declarationDir": "./dist/types", // Output directory for declarations
+    "outDir": "./dist", // Output directory for compiled JS
+    "jsx": "react-jsx",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "baseUrl": "src",
+    "noImplicitAny": true, // Raise error on expressions and declarations with an implied 'any' type
+    "sourceMap": true, // Generate corrresponding .map file
+    "declarationMap": true, // Generate corresponding .d.ts.map file
+    "inlineSources": true, // Emit the source alongside the sourcemaps within a single file; requires --sourceMap to be set
+    "inlineSourceMap": false, // Emit a single file with source maps instead of having a separate file
+    "declaration": true, // Generate corresponding .d.ts file
+    "noUnusedLocals": false, // Report errors on unused locals
+    "noUnusedParameters": true, // Report errors on unused parameters
+    "incremental": true, // Enable incremental compilation by reading/writing information from prior compilations to a file on disk
+    "noFallthroughCasesInSwitch": true, // Report errors for fallthrough cases in switch statement
+    "paths": {
+      "@components/*": ["components/*"],
+      "@utils/*": ["utils/*"]
+    },
+    "types": ["react", "react-dom"],
+    "typeRoots": ["node_modules/@types", "src/@types"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "build", "dist"]
+}

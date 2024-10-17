@@ -77,11 +77,6 @@ export const confirmRecording = async({ parameters }) => {
     recordingAllParticipantsFullRoomSupport,
     meetingVideoOptimized,
     eventType,
-    breakOutRoomStarted,
-    breakOutRoomEnded,
-
-    
-
     updateRecordingDisplayType,
     updateRecordingVideoOptimized,
     updateRecordingVideoParticipantsFullRoomSupport,
@@ -116,9 +111,7 @@ export const confirmRecording = async({ parameters }) => {
   // recordingVideoParticipantsFullRoomSupport = minigrid and main video
   if (eventType !== 'broadcast') {
     if (!recordingVideoParticipantsFullRoomSupport && recordingVideoOptions === 'all' && mediaOptions === 'video') {
-      if (meetingDisplayType == 'all') {
-        if (breakOutRoomStarted && !breakOutRoomEnded) {
-        } else {
+      if (meetingDisplayType === 'all') {
         if (showAlert) {
           showAlert({
             message: 'You are not allowed to record videos of all participants; change the meeting display type to video or video optimized.',
@@ -127,7 +120,6 @@ export const confirmRecording = async({ parameters }) => {
           });
         }
         return;
-      }
       }
     }
 

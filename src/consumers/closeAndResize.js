@@ -20,7 +20,7 @@
  * @param {boolean} options.parameters.shared - Indicates if video is being shared.
  * @param {string} options.parameters.meetingDisplayType - Type of meeting display (video, media, all).
  * @param {boolean} options.parameters.defer_receive - Indicates if stream reception is deferred.
- * @param {string} options.parameters.hostLabel - Label for the host.
+ * @param {string} options.parameters.HostLabel - Label for the host.
  * @param {Function} options.parameters.updateMainWindow - Function to update the main window.
  * @param {Function} options.parameters.updateActiveNames - Function to update active participant names.
  * @param {Function} options.parameters.updateAllAudioStreams - Function to update all audio streams.
@@ -68,7 +68,7 @@ export async function closeAndResize({producerId, kind, parameters}) {
         eventType,
 
 
-        hostLabel,
+        HostLabel,
         shareEnded,
         updateMainWindow,
         updateActiveNames,
@@ -246,12 +246,12 @@ export async function closeAndResize({producerId, kind, parameters}) {
         defer_receive = true
         // check if the video is the one being displayed (i.e. (newLimitedStreamsIDs))
         if (newLimitedStreamsIDs.includes(producerId)) {
-          await prepopulateUserMedia({name: hostLabel,parameters})
+          await prepopulateUserMedia({name: HostLabel,parameters})
           await reorderStreams({add: false, screenChanged: true, parameters})
         }
 
       } else {
-        await prepopulateUserMedia({name: hostLabel,parameters})
+        await prepopulateUserMedia({name: HostLabel,parameters})
         await reorderStreams({add: false, screenChanged: true, parameters})
 
       }
@@ -288,7 +288,7 @@ export async function closeAndResize({producerId, kind, parameters}) {
       }
 
 
-      await prepopulateUserMedia({name: hostLabel,parameters})
+      await prepopulateUserMedia({name: HostLabel,parameters})
       await reorderStreams({add: false, screenChanged: true, parameters})
 
     }

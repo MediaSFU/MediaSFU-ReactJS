@@ -84,14 +84,6 @@ export async function prepopulateUserMedia({ name, parameters }) {
       isWideScreen,
       isSmallScreen,
       localUIMode,
-      whiteboardStarted,
-      whiteboardEnded,
-      breakOutRoomStarted,
-      breakOutRoomEnded,
-      virtualStream,
-      keepBackground,
-      annotateScreenStream,
-
       updateForceFullDisplay,
       updateMainScreenPerson,
       updateMainScreenFilled,
@@ -156,12 +148,6 @@ export async function prepopulateUserMedia({ name, parameters }) {
       } else {
         //someone else is sharing
         host = await participants.find((participant) => participant.ScreenID == screenId && participant.ScreenOn == true);
-        
-        if (whiteboardStarted && !whiteboardEnded) {
-          host = { name: 'WhiteboardActive', islevel: '2' };
-          hostStream = { producerId: 'WhiteboardActive' };
-        }
-
 
         if (host == null) {
           // remoteScreenStream
@@ -169,7 +155,7 @@ export async function prepopulateUserMedia({ name, parameters }) {
         }
 
         // check remoteScreenStream
-        if (host != null && !host.name.includes('WhiteboardActive')) {
+        if (host != null) {
           if (remoteScreenStream.length == 0) {
 
             hostStream = await allVideoStreams.find((stream) => stream.producerId == host.ScreenID);
@@ -210,15 +196,13 @@ export async function prepopulateUserMedia({ name, parameters }) {
       // Populate the main screen with the host video
       if (shareScreenStarted || shared) {
         forceFullDisplay = screenForceFullDisplay;
-        if (whiteboardStarted && !whiteboardEnded) {
-        } else {
         newComponent.push(
           <VideoCard
             key={host.ScreenID}
             videoStream={shared ? hostStream : hostStream.stream}
             remoteProducerId={host.ScreenID}
             eventType={eventType}
-            forceFullDisplay={annotateScreenStream && shared ? false : forceFullDisplay}
+            forceFullDisplay={forceFullDisplay}
             participant={host}
             RTCView={RTCView}
             backgroundColor="rgba(217, 227, 234, 0.99)"
@@ -229,7 +213,6 @@ export async function prepopulateUserMedia({ name, parameters }) {
             parameters={parameters}
           />
         );
-        }
 
         updateMainGridStream(newComponent);
 
@@ -251,7 +234,7 @@ export async function prepopulateUserMedia({ name, parameters }) {
           newComponent.push(
             <VideoCard
               key={host.videoID}
-              videoStream={keepBackground && virtualStream ? virtualStream : localStreamVideo}
+              videoStream={localStreamVideo}
               remoteProducerId={host.videoID}
               eventType={eventType}
               forceFullDisplay={forceFullDisplay}
@@ -349,8 +332,6 @@ export async function prepopulateUserMedia({ name, parameters }) {
         // Video is on
         if (shareScreenStarted || shared) {
           // Screen share is on
-          if (whiteboardStarted && !whiteboardEnded) {
-          } else {
           try {
             newComponent.push(
               <VideoCard
@@ -381,12 +362,11 @@ export async function prepopulateUserMedia({ name, parameters }) {
           } catch (error) {
             // Handle video card creation error
           }
-        }
         } else {
           // Screen share is off
           let streame;
           if (islevel === '2') {
-            host.stream = keepBackground && virtualStream ? virtualStream : localStreamVideo;
+            host.stream = localStreamVideo;
           } else {
             streame = oldAllStreams.find((streame) => streame.producerId === host.videoID);
             host.stream = streame && streame.stream;

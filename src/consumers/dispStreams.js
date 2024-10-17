@@ -12,7 +12,7 @@
  * @throws Throws an error if there is an issue during the display process.
  */
 
-export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false, forChatCard = null, forChatID = null,parameters,breakRoom = -1, inBreakRoom = false}) {
+export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false, forChatCard = null, forChatID = null,parameters}) {
 
     //function to display streams
 
@@ -30,7 +30,7 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
         meetingDisplayType,
         meetingVideoOptimized,
         currentUserPage,
-        hostLabel,
+        HostLabel,
         mainHeightWidth,
         prevMainHeightWidth,
         prevDoPaginate,
@@ -52,13 +52,6 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
         eventType,
         islevel,
         localStreamVideo,
-
-        breakOutRoomStarted,
-        breakOutRoomEnded,
-        keepBackground,
-        virtualStream,
-  
-
         
         
 
@@ -83,7 +76,6 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
         addVideosGrid,
         GetEstimate,
         checkGrid,
-        resumePauseAudioStreams,
  
     } = parameters;
     
@@ -311,11 +303,11 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
 
         if (!lock_screen && !shared) {
 
-          await prepopulateUserMedia({name: hostLabel,parameters})
+          await prepopulateUserMedia({name: HostLabel,parameters})
         } else {
           if (!first_round) {
 
-            await prepopulateUserMedia({name: hostLabel,parameters})
+            await prepopulateUserMedia({name: HostLabel,parameters})
           }
         }
       }
@@ -356,7 +348,7 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
             // get the stream from allvideostream with the same id as remoteProducerId
 
             if (islevel == '2') {
-              host.stream = await keepBackground && virtualStream ? virtualStream : await localStreamVideo;
+              host.stream = await localStreamVideo;
             } else {
               streame = await oldAllStreams.find((streame) => streame.producerId == remoteProducerId);
               // add streame to lStreams
@@ -422,21 +414,11 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
 
     if (doPaginate == true || (prevDoPaginate != doPaginate) || (shared || shareScreenStarted) || shareEnded) {
       let lStreams_alt = await lStreams_
-      await processConsumerTransports({consumerTransports, lStreams_: lStreams_alt,parameters});
+
+      await processConsumerTransports({consumerTransports, lStreams_: lStreams_alt,parameters})
 
       try {
-        if (breakOutRoomStarted && !breakOutRoomEnded) {
-          await resumePauseAudioStreams({inBreakRoom, breakRoom,parameters})
-        }
-
-      } catch (error) {
-        // console.log('Error in resumePauseAudioStreams:', error);
-      }
-
-      try {
-        if (!breakOutRoomStarted || (breakOutRoomStarted && breakOutRoomEnded)) {
-          await resumePauseStreams({parameters})
-        }
+        await resumePauseStreams({parameters})
 
       } catch (error) {
 
@@ -444,6 +426,7 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
 
       if (shareEnded) {
         shareEnded = false
+         updateShareEnded(shareEnded)
       }
     }
     
@@ -456,10 +439,10 @@ export async function dispStreams({lStreams, ind, auto = false, ChatSkip = false
 
     if (updateMainWindow) {
       if (!lock_screen && !shared) {
-        await prepopulateUserMedia({name: hostLabel,parameters})
+        await prepopulateUserMedia({name: HostLabel,parameters})
       } else {
         if (!first_round) {
-          await prepopulateUserMedia({name: hostLabel,parameters})
+          await prepopulateUserMedia({name: HostLabel,parameters})
         }
       }
     }

@@ -22,7 +22,7 @@
  *     shared: false, // Boolean indicating if screen is shared
  *     shareScreenStarted: false, // Boolean indicating if screen sharing has started
  *     updateMainWindow: false, // Boolean to update main window
- *     hostLabel: 'Host', // Label for the host
+ *     HostLabel: 'Host', // Label for the host
  *     updateParticipants: (participants) => {}, // Function to update participants
  *     updateActiveSounds: (activeSounds) => {}, // Function to update active sounds
  *     updateOldSoundIds: (oldSoundIds) => {}, // Function to update old sound IDs
@@ -55,7 +55,7 @@ export const producerMediaPaused = async ({ producerId, kind, name, parameters }
         shared,
         shareScreenStarted,
         updateMainWindow,
-        hostLabel,
+        HostLabel,
         islevel,
 
 
@@ -88,7 +88,7 @@ export const producerMediaPaused = async ({ producerId, kind, name, parameters }
                 if (!shared && !shareScreenStarted && islevel != '2') {
                    updateMainWindow = true;
                    updateUpdateMainWindow(updateMainWindow)
-                  await prepopulateUserMedia({name: hostLabel, parameters})
+                  await prepopulateUserMedia({name: HostLabel, parameters})
                   updateMainWindow = false;
                   updateUpdateMainWindow(updateMainWindow)
                 }

@@ -1,5 +1,5 @@
-import { recordPauseTimer } from './recordPauseTimer';
 
+import {recordPauseTimer} from './recordPauseTimer'
 /**
  * Initiates the stoppage recording process based on the provided parameters.
  * @function
@@ -25,89 +25,104 @@ import { recordPauseTimer } from './recordPauseTimer';
  * @param {Function} parameters.updateCanRecord - Function to update the canRecord state.
  * @param {Function} parameters.updateShowRecordButtons - Function to update the showRecordButtons state.
  * @param {Function} parameters.recordPauseTimer - Function to pause the recording timer.
- * @param {Function} parameters.captureCanvasStream - Function to capture the canvas stream.
- * @param {boolean} parameters.whiteboardStarted - Flag indicating if the whiteboard is active.
- * @param {boolean} parameters.whiteboardEnded - Flag indicating if the whiteboard session has ended.
- * @param {string} parameters.recordingMediaOptions - The media type for recording (audio, video, etc.).
  * @returns {void}
  */
 export const stopRecording = async ({ parameters }) => {
-  let {
-    roomName,
-    socket,
-    updateIsRecordingModalVisible,
-    IsRecordingModalVisible,
-    islevel,
-    showAlert,
-    startReport,
-    endReport,
-    recordStarted,
-    recordPaused,
-    recordResumed,
-    recordStopped,
-    updateRecordStarted,
-    updateRecordPaused,
-    updateRecordResumed,
-    updateRecordStopped,
-    updateRecordState,
-    updateStartReport,
-    updateEndReport,
-    updateCanRecord,
-    updateShowRecordButtons,
-  
-    whiteboardStarted,
-    whiteboardEnded,
-    recordingMediaOptions,
 
-    //mediasfu functions
-    captureCanvasStream,
-  } = parameters;
+    let {
+        roomName,
+        socket,
+        updateIsRecordingModalVisible,
+        IsRecordingModalVisible,
+        islevel,
+        showAlert,
+        startReport,
+        endReport,
 
-  let recAttempt;
 
-  if (recordStarted && !recordStopped) {
-    let stop = recordPauseTimer({ stop: true, parameters });
-    if (stop) {
-      let action = 'stopRecord';
+        recordStarted,
+        recordPaused,
+        recordResumed,
+        recordStopped,
+        updateRecordStarted,
+        updateRecordPaused,
+        updateRecordResumed,
+        updateRecordStopped,
+        updateRecordState,
+        updateStartReport,
+        updateEndReport,
+        updateCanRecord,
+        updateShowRecordButtons,
 
-      await new Promise((resolve) => {
-        socket.emit(action, { roomName }, ({ success, reason, recordState }) => {
-          if (success) {
-            startReport = false;
-            endReport = true;
-            recordPaused = false;
-            recordStopped = true;
-            recAttempt = true;
+        //mediasfu Functions
+        // recordPauseTimer,
+    } = parameters;
 
-            updateStartReport(startReport);
-            updateEndReport(endReport);
-            updateRecordPaused(recordPaused);
-            updateRecordStopped(recordStopped);
-            showAlert({ message: 'Recording Stopped', type: 'success' });
-            updateShowRecordButtons(false);
-          } else {
-            let reasonMessage = `Recording Stop Failed: ${reason}; the recording is currently ${recordState}`;
-            showAlert({ message: reasonMessage, type: 'danger' });
-            recAttempt = false;
-          }
+    let recAttempt;
 
-          resolve();
-        });
-      });
+    if (recordStarted && !recordStopped) {
+        let stop = recordPauseTimer({ stop: true, parameters });
+        let stopped = false;
+        if (stop) {
+            let action = 'stopRecord'
 
-      try {
-        if (recAttempt && whiteboardStarted && !whiteboardEnded) {
-          if (recordingMediaOptions === 'video') {
-            captureCanvasStream({ parameters, start: false });
-          }
+            await new Promise((resolve) => {
+
+                socket.emit('stopRecord', { roomName }, ({ success, reason, recordState }) => {
+          
+                  if (success) {
+          
+                    startReport = false;
+                    endReport = true;
+                    recordPaused = false;
+                    recordStopped = true;
+                    recAttempt = true
+
+                    updateStartReport(startReport);
+                    updateEndReport(endReport);
+                    updateRecordPaused(recordPaused);
+                    updateRecordStopped(recordStopped);
+
+                    if (showAlert) {
+                        showAlert({
+                            message: 'Recording Stopped',
+                            type: 'success',
+                            duration: 3000,
+                        });
+                    }
+
+                    updateShowRecordButtons(false);
+          
+                  } else {
+                    let reasonMessage = `Recording Stop Failed: ${reason}; the recording is currently ${recordState}`
+                    if (showAlert) {
+                        showAlert({
+                            message: reasonMessage,
+                            type: 'danger',
+                            duration: 3000,
+                        });
+                    }
+                  }
+          
+                  resolve()
+                });
+          
+          
+              });
+
+
+        } else {
+          return
         }
-      } catch (error) {
-        console.log('Error capturing canvas stream:', error);
-      }
-    } else {
-      return;
+
+    }else {
+        if (showAlert) {
+            showAlert({
+                message: 'Recording is not started yet or already stopped',
+                type: 'danger',
+                duration: 3000,
+            });
+        }
     }
-  } else {
-    showAlert({ message: 'Recording is not started yet or already stopped', type: 'danger' });
-  }
+    
 };

@@ -14,7 +14,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTimes,faSyncAlt,faCamera,faMicrophone, faPhotoFilm } from '@fortawesome/free-solid-svg-icons';
+import { faTimes,faSyncAlt,faCamera,faMicrophone } from '@fortawesome/free-solid-svg-icons';
 import { getModalPosition } from '../../methods/utils/getModalPosition';
 import { switchAudio } from '../../methods/streamMethods/switchAudio';
 import { switchVideo } from '../../methods/streamMethods/switchVideo';
@@ -30,7 +30,7 @@ const MediaSettingsModal = ({
   position = 'topRight',
   backgroundColor = '#83c0e9',
 }) => {
-  let { islevel, showAlert, coHost, member, userDefaultVideoInputDevice, videoInputs, audioInputs, userDefaultAudioInputDevice, isBackgroundModalVisible, updateIsBackgroundModalVisible } = parameters;
+  let { islevel, showAlert, coHost, member, userDefaultVideoInputDevice, videoInputs, audioInputs, userDefaultAudioInputDevice } = parameters;
 
   const [selectedVideoInput, setSelectedVideoInput] = useState(userDefaultVideoInputDevice);
   const [selectedAudioInput, setSelectedAudioInput] = useState(userDefaultAudioInputDevice);
@@ -100,9 +100,6 @@ const MediaSettingsModal = ({
     onMediaSettingsClose();
   };
 
-  const showVirtual = () => {
-    updateIsBackgroundModalVisible(!isBackgroundModalVisible);
-  };
   return (
     <div style={modalContainerStyle}>
       <div style={modalContentStyle}>
@@ -143,13 +140,6 @@ const MediaSettingsModal = ({
               <FontAwesomeIcon icon={faSyncAlt} /> Switch Camera
             </button>
           </div>
-          <hr />
-          <div className="form-group">
-            <button onClick={showVirtual} style={{backgroundColor: '#83c0e9', color: 'black', padding: 10, borderRadius: 5, border: 'none', cursor: 'pointer', width: '100%'}}>
-            <FontAwesomeIcon icon={faPhotoFilm} /> Virtual Background
-            </button>
-          </div>
-          
         </div>
       </div>
     </div>

@@ -5,10 +5,12 @@
  * @param {Function} options.updateIsConfigureWhiteboardModalVisible - Function to update the visibility state of the configurewhiteboard modal.
  * @param {boolean} options.isConfigureWhiteboardModalVisible - Current visibility state of the configurewhiteboard modal.
  */
-export const launchConfigureWhiteboard = ({ updateIsConfigureWhiteboardModalVisible, isConfigureWhiteboardModalVisible }) => {
-    /**
-     * Toggle the visibility of the configurewhiteboard modal.
-     */
-    updateIsConfigureWhiteboardModalVisible(!isConfigureWhiteboardModalVisible);
-  };
-  
+export const launchConfigureWhiteboard = ({
+  updateIsConfigureWhiteboardModalVisible,
+  isConfigureWhiteboardModalVisible,
+}) => {
+  /**
+   * Toggle the visibility of the configurewhiteboard modal.
+   */
+  updateIsConfigureWhiteboardModalVisible(!isConfigureWhiteboardModalVisible);
+};

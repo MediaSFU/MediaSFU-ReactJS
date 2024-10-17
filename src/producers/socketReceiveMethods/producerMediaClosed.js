@@ -32,7 +32,7 @@ export const producerMediaClosed = async ({ producerId, kind, parameters }) => {
     let {
         consumerTransports,
         updateConsumerTransports,
-        hostLabel,
+        HostLabel,
         shared,
         updateShared,
         updateShareScreenStarted,
@@ -78,7 +78,7 @@ export const producerMediaClosed = async ({ producerId, kind, parameters }) => {
             await updateScreenId('')
           }
           await updateShareEnded(true)
-          await prepopulateUserMedia({name: hostLabel,parameters})
+          await prepopulateUserMedia({name: HostLabel,parameters})
           await reorderStreams({add: false, screenChanged: true, parameters})
         }
     }

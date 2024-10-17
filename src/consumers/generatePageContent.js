@@ -6,7 +6,7 @@
  * @param {Object} options.parameters - The parameters object containing various utility functions and state.
  * @throws Throws an error if there is an issue during content generation.
  */
-export async function generatePageContent({ page, parameters, breakRoom = -1, inBreakRoom = false }) {
+export async function generatePageContent({ page, parameters }) {
   try {
     // Destructure parameters
     let {
@@ -33,7 +33,7 @@ export async function generatePageContent({ page, parameters, breakRoom = -1, in
     updateUpdateMainWindow(updateMainWindow);
 
     // Display streams for the specified page
-    await dispStreams({ lStreams: paginatedStreams[page], ind: page, parameters, breakRoom, inBreakRoom });
+    await dispStreams({ lStreams: paginatedStreams[page], ind: page, parameters });
 
   } catch (error) {
     // Handle errors during content generation

@@ -13,12 +13,12 @@ export async function reUpdateInter({ name, add, force = false, average = 127, p
   // function to periodically update the ui for active media streams
 
   let {
-    screenPageLimit, itemPageLimit, reorderInterval, fastReorderInterval, eventType,
+    screenPageLimit, itemPageLimit, reOrderInterval, fastReOrderInterval, eventType,
     participants, allVideoStreams, shared, shareScreenStarted, adminNameStream, screenShareNameStream,
     updateMainWindow,
     sortAudioLoudness,
-    lastReorderTime, newLimitedStreams, newLimitedStreamsIDs, oldSoundIds,
-    updateUpdateMainWindow, updateSortAudioLoudness, updateLastReorderTime,
+    lastReOrderTime, newLimitedStreams, newLimitedStreamsIDs, oldSoundIds,
+    updateUpdateMainWindow, updateSortAudioLoudness, updateLastReOrderTime,
     updateNewLimitedStreams, updateNewLimitedStreamsIDs, updateOldSoundIds,
 
     //mediasfu functions
@@ -41,8 +41,8 @@ export async function reUpdateInter({ name, add, force = false, average = 127, p
 
     if (add) {
       const currentTime = Date.now();
-      if (((currentTime - lastReorderTime >= reorderInterval) && (average > 128.5)) || (average > 130 && currentTime - lastReorderTime >= fastReorderInterval)) {
-        lastReorderTime = currentTime;
+      if (((currentTime - lastReOrderTime >= reOrderInterval) && (average > 128.5)) || (average > 130 && currentTime - lastReOrderTime >= fastReOrderInterval)) {
+        lastReOrderTime = currentTime;
         sortAudioLoudness = true;
         // updateMainWindow = true;
         if (eventType == 'conference') {
@@ -54,7 +54,7 @@ export async function reUpdateInter({ name, add, force = false, average = 127, p
 
         updateSortAudioLoudness(sortAudioLoudness);
         updateUpdateMainWindow(updateMainWindow);
-        updateLastReorderTime(lastReorderTime);
+        updateLastReOrderTime(lastReOrderTime);
 
         return
       }
@@ -91,9 +91,6 @@ export async function reUpdateInter({ name, add, force = false, average = 127, p
           for (let i = 0; i < oldSoundIds.length; i++) {
             if (newLimitedStreams.length > refLimit) {
               // remove stream from newLimitedStreams
-              if (newLimitedStreams.length < screenPageLimit) {
-                return
-              }
               if (oldSoundIds[i] != screenShareNameStream || oldSoundIds[i] != adminNameStream) {
                 newLimitedStreams = await newLimitedStreams.filter(stream => stream.producerId != oldSoundIds[i])
                 newLimitedStreamsIDs = await newLimitedStreamsIDs.filter(id => id != oldSoundIds[i])
@@ -114,20 +111,24 @@ export async function reUpdateInter({ name, add, force = false, average = 127, p
           if (!oldSoundIds.includes(name)) {
             oldSoundIds = await [...oldSoundIds, name]
           }
-          
-          await changeVids({screenChanged: true, parameters});
+          await changeVids({ parameters });
         }
       }
 
     } else {
 
+      let participant = await participants.find(participant => participant.name == name)
+
+      videoID = await participant.videoID;
+
+      if (videoID == null || videoID == "" || videoID == undefined) {
+        return
+      }
+
       if (!force) {
 
         try {
           // remove stream from newLimitedStreams
-          if (newLimitedStreams.length < screenPageLimit) {
-            return
-          }
           newLimitedStreams = await newLimitedStreams.filter(stream => stream.producerId != videoID)
           newLimitedStreamsIDs = await newLimitedStreamsIDs.filter(id => id != videoID)
           oldSoundIds = await oldSoundIds.filter(id => id != name)
@@ -139,8 +140,9 @@ export async function reUpdateInter({ name, add, force = false, average = 127, p
 
       } else {
         //check if the persons.muted == false
-        let participant = await participants.find(participant => participant.name == name)
         let mic = await participant.muted;
+      
+
         if (mic) {
 
           try {

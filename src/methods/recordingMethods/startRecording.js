@@ -32,131 +32,144 @@ import { recordResumeTimer } from "./recordResumeTimer";
  * @param {Function} parameters.updateEndReport - Function to update the end report state.
  * @param {Function} parameters.updateCanRecord - Function to update the canRecord state.
  * @param {Function} parameters.rePort - Function to handle the reporting during recording.
- * @param {Function} parameters.captureCanvasStream - Function to capture the canvas stream.
- * @param {boolean} parameters.whiteboardStarted - Flag indicating if the whiteboard is active.
- * @param {boolean} parameters.whiteboardEnded - Flag indicating if the whiteboard session has ended.
  * @returns {void}
  */
+
+
+
 export const startRecording = async ({ parameters }) => {
-  let {
-    roomName,
-    userRecordingParams,
-    socket,
-    updateIsRecordingModalVisible,
-    IsRecordingModalVisible,
-    islevel,
-    confirmedToRecord,
-    showAlert,
-    recordingMediaOptions,
-    videoAlreadyOn,
-    audioAlreadyOn,
-    clearedToRecord,
-    recordStarted,
-    recordPaused,
-    recordResumed,
-    recordStopped,
-    startReport,
-    endReport,
-    canRecord,
-    updateClearedToRecord,
-    updateRecordStarted,
-    updateRecordPaused,
-    updateRecordResumed,
-    updateRecordStopped,
-    updateRecordState,
-    updateStartReport,
-    updateEndReport,
-    updateCanRecord,
 
-    whiteboardStarted,
-    whiteboardEnded,
+    let {
+        roomName,
+        userRecordingParams,
+        socket,
+        updateIsRecordingModalVisible,
+        IsRecordingModalVisible,
+        islevel,
+        confirmedToRecord,
+        showAlert,
+        recordingMediaOptions,
+        videoAlreadyOn,
+        audioAlreadyOn,
+        clearedToRecord,
+        recordStarted,
+        recordPaused,
+        recordResumed,
+        recordStopped,
+        startReport,
+        endReport,
+        canRecord,
+        
 
-    //mediasfu functions
-    rePort,
-    captureCanvasStream,
-  } = parameters;
+        updateClearedToRecord,
+        updateRecordStarted,
+        updateRecordPaused,
+        updateRecordResumed,
+        updateRecordStopped,
+        updateRecordState,
+        updateStartReport,
+        updateEndReport,
+        updateCanRecord,
 
+        //mediasfu Functions
+        rePort,
+    
+    } = parameters;
 
-  // Check if recording is confirmed before starting
-  if (!confirmedToRecord) {
-    showAlert({ message: 'You must click confirm before you can start recording', type: 'danger' });
-    return;
-  }
-
-  // Check for recordingMediaOptions for video
-  if (recordingMediaOptions === 'video' && !videoAlreadyOn) {
-    showAlert({ message: 'You must turn on your video before you can start recording', type: 'danger' });
-    return;
-  }
-
-  // Check for recordingMediaOptions for audio
-  if (recordingMediaOptions === 'audio' && !audioAlreadyOn) {
-    showAlert({ message: 'You must turn on your audio before you can start recording', type: 'danger'})
-    return;
-  }
-
-  // Set clearedToRecord to true
-  updateClearedToRecord(true);
-
-  let action = 'startRecord';
-  if (recordStarted && recordPaused && !recordResumed && !recordStopped) {
-    action = 'resumeRecord';
-  } else {
-    action = 'startRecord';
-  }
-
-  let recAttempt;
-
-  await new Promise((resolve) => {
-    socket.emit(action, { roomName, userRecordingParams }, async ({ success, reason, recordState }) => {
-      if (success) {
-        recordStarted = true;
-        startReport = true;
-        endReport = false;
-        recordPaused = false;
-        recAttempt = true;
-
-        updateRecordStarted(recordStarted);
-        updateStartReport(startReport);
-        updateEndReport(endReport);
-        updateRecordPaused(recordPaused);
-
-        if (action === 'startRecord') {
-          await rePort({ parameters });
-          await recordStartTimer({ parameters });
-        } else {
-          recordResumed = true;
-          updateRecordResumed(recordResumed);
-          await rePort({ restart: true, parameters });
-          await recordResumeTimer({ parameters });
+    // Check if recording is confirmed before starting
+    if (!confirmedToRecord) {
+        if (showAlert) {
+            showAlert({
+                message: 'You must click confirm before you can start recording',
+                type: 'danger',
+                duration: 3000,
+            });
         }
-      } else {
-        showAlert({ message: `Recording could not start - ${reason}`, type: 'danger' });
-        canRecord = true;
-        startReport = false;
-        endReport = true;
-        recAttempt = false;
-
-        updateCanRecord(canRecord);
-        updateStartReport(startReport);
-        updateEndReport(endReport);
-      }
-
-      resolve();
-    });
-  });
-
-  // Capture canvas stream if recording is successful and whiteboard is active
-  try {
-    if (recAttempt && whiteboardStarted && !whiteboardEnded && recordingMediaOptions === 'video') {
-      captureCanvasStream({ parameters });
+        return;
     }
-  } catch (error) {
-    console.log('Error capturing canvas stream:', error);
-  }
 
-  // Set isRecordingModalVisible to false
-  updateIsRecordingModalVisible(false);
+    // Check for recordingMediaOptions for video
+    if (recordingMediaOptions === 'video' && !videoAlreadyOn) {
+        if (showAlert) {
+            showAlert({
+                message: 'You must turn on your video before you can start recording',
+                type: 'danger',
+                duration: 3000,
+            });
+        }
+        return;
+    }
 
-  return recAttempt;
+    // Check for recordingMediaOptions for audio
+    if (recordingMediaOptions === 'audio' && !audioAlreadyOn) {
+        if (showAlert) {
+            showAlert({
+                message: 'You must turn on your audio before you can start recording',
+                type: 'danger',
+                duration: 3000,
+            });
+        }
+        return;
+    }
+
+    // Set clearedToRecord to true
+    updateClearedToRecord(true);
+
+    let action = 'startRecord';
+    if (recordStarted && recordPaused && !recordResumed && !recordStopped) {
+        action = 'resumeRecord';
+    } else {
+        action = 'startRecord';
+    }
+
+    let recAttempt;
+
+    await new Promise((resolve) => {
+        socket.emit(action, { roomName, userRecordingParams }, async ({ success, reason, recordState }) => {
+
+            if (success) {
+                recordStarted = true;
+                startReport = true;
+                endReport = false;
+                recordPaused = false;
+                recAttempt = true;
+
+                updateRecordStarted(recordStarted);
+                updateStartReport(startReport);
+                updateEndReport(endReport);
+                updateRecordPaused(recordPaused);
+
+                if (action === 'startRecord') {
+                    
+                    await rePort({ parameters });
+                    await recordStartTimer({ parameters });
+                } else {
+                    recordResumed = await true;
+                    await rePort({ restart: true, parameters });
+                    await recordResumeTimer({ parameters });
+                }
+            } else {
+                if (showAlert) {
+                    showAlert({
+                        message: `Recording could not start - ${reason}`,
+                        type: 'danger',
+                        duration: 3000,
+                    });
+                }
+                canRecord = true;
+                startReport = false;
+                endReport = true;
+                recAttempt = false;
+
+                updateCanRecord(canRecord);
+                updateStartReport(startReport);
+                updateEndReport(endReport);
+            }
+
+            resolve();
+        });
+    });
+
+    // Set isRecordingModalVisible to false
+    updateIsRecordingModalVisible(false);
 };

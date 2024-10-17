@@ -18,7 +18,7 @@
  * @param {object} options.parameters.params - Additional parameters related to the audio stream.
  * @param {object} options.parameters.audioParamse - Additional parameters related to the audio stream.
  * @param {object} options.parameters.aParams - Additional parameters related to the audio stream.
- * @param {string} options.parameters.hostLabel - The label for the host.
+ * @param {string} options.parameters.HostLabel - The label for the host.
  * @param {string} options.parameters.islevel - The user level.
  * @param {function} options.parameters.updateMainWindow - Function to update the main window state.
  * @param {boolean} options.parameters.lock_screen - Indicates if the screen is locked.
@@ -58,7 +58,7 @@ export const streamSuccessAudio = async ({ stream, parameters }) => {
     params,
     audioParamse,
     aParams,
-    hostLabel,
+    HostLabel,
     islevel,
     member,
     updateMainWindow,
@@ -190,7 +190,7 @@ export const streamSuccessAudio = async ({ stream, parameters }) => {
     if (!lock_screen && !shared) {
       updateMainWindow = true;
       updateUpdateMainWindow(updateMainWindow)
-      await prepopulateUserMedia({ name: hostLabel, parameters })
+      await prepopulateUserMedia({ name: HostLabel, parameters })
       updateMainWindow = false;
       updateUpdateMainWindow(updateMainWindow)
     }

@@ -156,11 +156,6 @@ export default App;
 <!-- Add a blank line for spacing -->
 &nbsp;
 
-<img src="https://mediasfu.com/images/prejoin1.png" alt="Preview of Event Token Details" title="Token Page" style="max-height: 500px;">
-
-<!-- Add a blank line for spacing -->
-&nbsp;
-
 ### Preview of Prejoin Page
 
 <img src="https://mediasfu.com/images/prejoin3.png" alt="Preview of Prejoin Page" title="Prejoin Page" style="max-height: 500px;">
@@ -179,347 +174,442 @@ Alternatively, you can design your own welcome/prejoin page. The core function o
 MediaSFU passes relevant parameters to the custom welcome/prejoin page:
 
 ```javascript
-let { showAlert, updateIsLoadingModalVisible, onWeb, connectSocket, socket, updateSocket, updateValidated,
-     updateApiUserName, updateApiToken, updateLink, updateRoomName, updateMember, validated } = parameters;
+let { showAlert, updateIsLoadingModalVisible, connectSocket, updateSocket, updateValidated,
+     updateApiUserName, updateApiToken, updateLink, updateRoomName, updateMember } = parameters;
 ```
 
 Ensure that your custom page implements the following updates:
 
 ```javascript
-await updateSocket(socket);
-await updateApiUserName(apiUserName);
-await updateApiToken(apiToken);
-await updateLink(link);
-await updateRoomName(apiUserName);
-await updateMember(userName);
-await updateValidated(true);
+updateSocket(socket);
+updateApiUserName(apiUserName);
+updateApiToken(apiToken);
+updateLink(link);
+updateRoomName(apiUserName);
+updateMember(userName);
+updateValidated(true);
 ```
 
 See the following code for the PreJoinPage page logic:
 
 ```javascript
-import React, { useState } from 'react';
-import Cookies from 'universal-cookie';
+import React, { useState } from "react";
+import Cookies from "universal-cookie";
+import { ConnectSocketType, ShowAlert } from "../../@types/types";
+import { Socket } from "socket.io-client";
 
 const cookies = new Cookies();
 const MAX_ATTEMPTS = 10; // Maximum number of unsuccessful attempts before rate limiting
 const RATE_LIMIT_DURATION = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
-const apiKey = 'yourAPIKEY'
-const apiUserName = 'yourAPIUSERNAME'
+const apiKey = "yourAPIKEY";
+const apiUserName = "yourAPIUSERNAME";
 const user_credentials = { apiUserName, apiKey };
 
-async function joinRoomOnMediaSFU(payload, apiUserName, apiKey) {
-    try {
-      
-        //check if apiUserName and apiKey are valid
-        if (!apiUserName || !apiKey) {
-            return { data: null, success: false };
-        }
-
-        //check if generic apiUserName and apiKey are used
-        if (apiUserName === 'yourAPIUSERNAME' || apiKey === 'yourAPIKEY') {
-            return { data: null, success: false };
-        }
-
-        //apiKey must be 64 characters long
-        if (apiKey.length !== 64) {
-            return { data: null, success: false };
-        }
-
-        if (apiUserName.length < 6) {
-            return { data: null, success: false };
-        }
-
-        const response = await fetch('https://mediasfu.com/v1/rooms/', {
-
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + apiUserName + ':' + apiKey,
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        return { data, success: true };
-    } catch (error) {
-
-        return { data: null, success: false };
-    }
+// Type definitions for parameters and credentials
+export interface PreJoinPageParameters {
+  imgSrc?: string;
+  showAlert?: ShowAlert;
+  updateIsLoadingModalVisible: (visible: boolean) => void;
+  connectSocket: ConnectSocketType;
+  updateSocket: (socket: Socket) => void;
+  updateValidated: (validated: boolean) => void;
+  updateApiUserName: (userName: string) => void;
+  updateApiToken: (token: string) => void;
+  updateLink: (link: string) => void;
+  updateRoomName: (roomName: string) => void;
+  updateMember: (member: string) => void;
 }
 
-async function createRoomOnMediaSFU(payload, apiUserName, apiKey) {
-    try {
-
-        //check if apiUserName and apiKey are valid
-        if (!apiUserName || !apiKey) {
-            return { data: null, success: false };
-        }
-
-        //check if generic apiUserName and apiKey are used
-        if (apiUserName === 'yourAPIUSERNAME' || apiKey === 'yourAPIKEY') {
-            return { data: null, success: false };
-        }
-
-        //apiKey must be 64 characters long
-        if (apiKey.length !== 64) {
-            return { data: null, success: false };
-        }
-
-        if (apiUserName.length < 6) {
-            return { data: null, success: false };
-        }
-
-
-        const response = await fetch('https://mediasfu.com/v1/rooms/', {
-
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'Bearer ' + apiUserName + ':' + apiKey,
-            },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        return { data, success: true };
-    } catch (error) {
-
-        return { data: null, success: false };
-    }
+export interface Credentials {
+  apiUserName: string;
+  apiKey: string;
 }
 
-const PreJoinPage = ({ parameters, credentials = user_credentials }) => {
+export interface PreJoinPageOptions {
+  parameters: PreJoinPageParameters;
+  credentials?: Credentials;
+}
 
-    const [isCreateMode, setIsCreateMode] = useState(false);
-    const [name, setName] = useState('');
-    const [duration, setDuration] = useState('');
-    const [eventType, setEventType] = useState('');
-    const [capacity, setCapacity] = useState('');
-    const [eventID, setEventID] = useState('');
-    const [error, setError] = useState('');
+export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
 
-    let { showAlert, updateIsLoadingModalVisible, onWeb, connectSocket, socket, updateSocket, updateValidated,
-        updateApiUserName, updateApiToken, updateLink, updateRoomName, updateMember, validated } = parameters;
+export interface CreateJoinRoomResponse {
+  message: string;
+  roomName: string;
+  secureCode?: string;
+  publicURL: string;
+  link: string;
+  secret: string;
+  success: boolean;
+}
 
+export interface CreateJoinRoomError {
+  error: string;
+  success?: boolean;
+}
 
-    const checkLimitsAndMakeRequest = async ({ apiUserName, apiToken, link, apiKey = "", userName }) => {
-        const TIMEOUT_DURATION = 10000; // 10 seconds
+export type CreateJoinRoomType = (options: {
+  payload: any;
+  apiUserName: string;
+  apiKey: string;
+}) => Promise<{
+  data: CreateJoinRoomResponse | CreateJoinRoomError | null;
+  success: boolean;
+}>;
 
-        let unsuccessfulAttempts = parseInt(cookies.get('unsuccessfulAttempts')) || 0;
-        let lastRequestTimestamp = parseInt(cookies.get('lastRequestTimestamp')) || 0;
+export type CreateRoomOnMediaSFUType = (options: {
+  payload: any;
+  apiUserName: string;
+  apiKey: string;
+}) => Promise<{
+  data: CreateJoinRoomResponse | CreateJoinRoomError | null;
+  success: boolean;
+}>;
 
-        if (unsuccessfulAttempts >= MAX_ATTEMPTS) {
-            if (Date.now() - lastRequestTimestamp < RATE_LIMIT_DURATION) {
-                if (showAlert) {
-                    showAlert({
-                        message: 'Too many unsuccessful attempts. Please try again later.',
-                        type: 'danger',
-                        duration: 3000,
-                    });
-                }
-                cookies.set('lastRequestTimestamp', Date.now().toString());
-                return;
-            } else {
-                unsuccessfulAttempts = 0;
-                cookies.set('unsuccessfulAttempts', unsuccessfulAttempts.toString());
-                cookies.set('lastRequestTimestamp', Date.now().toString());
-            }
-        }
+export async function joinRoomOnMediaSFU({
+  payload,
+  apiUserName,
+  apiKey,
+}: {
+  payload: any;
+  apiUserName: string;
+  apiKey: string;
+}): Promise<{
+  data: CreateJoinRoomResponse | CreateJoinRoomError | null;
+  success: boolean;
+}> {
+  try {
+    if (
+      !apiUserName ||
+      !apiKey ||
+      apiUserName === "yourAPIUSERNAME" ||
+      apiKey === "yourAPIKEY" ||
+      apiKey.length !== 64 ||
+      apiUserName.length < 6
+    ) {
+      return { data: { error: "Invalid credentials" }, success: false };
+    }
 
-        try {
-            updateIsLoadingModalVisible(true);
+    const response = await fetch('https://mediasfu.com/v1/rooms/', 
+    {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiUserName}:${apiKey}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-            const socketPromise = connectSocket(apiUserName, apiKey, apiToken, link);
-            const timeoutPromise = new Promise((_, reject) =>
-                setTimeout(() => reject(new Error('Request timed out')), TIMEOUT_DURATION)
-            );
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-            const socket = await Promise.race([socketPromise, timeoutPromise]);
+    const data = await response.json();
+    return { data, success: true };
+  } catch (error) {
+    const errorMessage = (error as any).reason ? (error as any).reason : 'unknown error';
+    return {
+      data: { error: `Unable to join room, ${errorMessage}` },
+      success: false,
+    };
+  }
+}
 
-            if (socket && socket.id) {
-                unsuccessfulAttempts = 0;
-                cookies.set('unsuccessfulAttempts', unsuccessfulAttempts.toString());
-                cookies.set('lastRequestTimestamp', Date.now().toString());
-                await updateSocket(socket);
-                await updateApiUserName(apiUserName);
-                await updateApiToken(apiToken);
-                await updateLink(link);
-                await updateRoomName(apiUserName);
-                await updateMember(userName);
-                await updateValidated(true);
-            } else {
-                unsuccessfulAttempts += 1;
-                cookies.set('unsuccessfulAttempts', unsuccessfulAttempts.toString());
-                cookies.set('lastRequestTimestamp', Date.now().toString());
-                updateIsLoadingModalVisible(false);
+export async function createRoomOnMediaSFU({
+  payload,
+  apiUserName,
+  apiKey,
+}: {
+  payload: any;
+  apiUserName: string;
+  apiKey: string;
+}): Promise<{
+  data: CreateJoinRoomResponse | CreateJoinRoomError | null;
+  success: boolean;
+}> {
+  try {
+    if (
+      !apiUserName ||
+      !apiKey ||
+      apiUserName === "yourAPIUSERNAME" ||
+      apiKey === "yourAPIKEY" ||
+      apiKey.length !== 64 ||
+      apiUserName.length < 6
+    ) {
+      return { data: { error: "Invalid credentials" }, success: false };
+    }
+    
+    const response = await fetch('https://mediasfu.com/v1/rooms/', 
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiUserName}:${apiKey}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
 
-                if (unsuccessfulAttempts >= MAX_ATTEMPTS) {
-                    if (showAlert) {
-                        showAlert({
-                            message: 'Too many unsuccessful attempts. Please try again later.',
-                            type: 'danger',
-                            duration: 3000,
-                        });
-                    }
-                } else {
-                    if (showAlert) {
-                        showAlert({
-                            message: 'Invalid credentials.',
-                            type: 'danger',
-                            duration: 3000,
-                        });
-                    }
-                }
-            }
-        } catch (error) {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
 
-            if (showAlert) {
-                showAlert({
-                    message: 'Unable to connect. Check your credentials and try again.',
-                    type: 'danger',
-                    duration: 3000,
-                });
-            }
+    const data = await response.json();
+    return { data, success: true };
+  } catch (error) {
+    const errorMessage = (error as any).reason ? (error as any).reason : 'unknown error';
+    return {
+      data: { error: `Unable to create room, ${errorMessage}` },
+      success: false,
+    };
+  }
+}
 
-            unsuccessfulAttempts += 1;
-            cookies.set('unsuccessfulAttempts', unsuccessfulAttempts.toString());
-            cookies.set('lastRequestTimestamp', Date.now().toString());
-            updateIsLoadingModalVisible(false);
-        }
+/**
+ * PreJoinPage component allows users to either create a new room or join an existing one.
+ * 
+ * @component
+ * @param {PreJoinPageOptions} props - The properties for the PreJoinPage component.
+ * @param {Object} props.parameters - Various parameters required for the component.
+ * @param {Function} props.parameters.showAlert - Function to show alert messages.
+ * @param {Function} props.parameters.updateIsLoadingModalVisible - Function to update the loading modal visibility.
+ * @param {Function} props.parameters.connectSocket - Function to connect to the socket.
+ * @param {Function} props.parameters.updateSocket - Function to update the socket.
+ * @param {Function} props.parameters.updateValidated - Function to update the validation status.
+ * @param {Function} props.parameters.updateApiUserName - Function to update the API username.
+ * @param {Function} props.parameters.updateApiToken - Function to update the API token.
+ * @param {Function} props.parameters.updateLink - Function to update the link.
+ * @param {Function} props.parameters.updateRoomName - Function to update the room name.
+ * @param {Function} props.parameters.updateMember - Function to update the member.
+ * @param {string} [props.parameters.imgSrc] - The source URL for the logo image.
+ * @param {Object} [props.credentials=user_credentials] - The user credentials.
+ * 
+ * @returns {JSX.Element} The rendered PreJoinPage component.
+ * 
+ * @example
+ * <PreJoinPage
+ *   parameters={{
+ *     showAlert: showAlertFunction,
+ *     updateIsLoadingModalVisible: updateLoadingFunction,
+ *     connectSocket: connectSocketFunction,
+ *     updateSocket: updateSocketFunction,
+ *     updateValidated: updateValidatedFunction,
+ *     updateApiUserName: updateApiUserNameFunction,
+ *     updateApiToken: updateApiTokenFunction,
+ *     updateLink: updateLinkFunction,
+ *     updateRoomName: updateRoomNameFunction,
+ *     updateMember: updateMemberFunction,
+ *     imgSrc: "https://example.com/logo.png"
+ *   }}
+ *   credentials={{
+ *     apiUserName: "user123",
+ *     apiKey: "apikey123"
+ *   }}
+ * />
+ */
+const PreJoinPage: React.FC<PreJoinPageOptions> = ({
+  parameters,
+  credentials = user_credentials,
+}) => {
+  const [isCreateMode, setIsCreateMode] = useState<boolean>(false);
+  const [name, setName] = useState<string>("");
+  const [duration, setDuration] = useState<string>("");
+  const [eventType, setEventType] = useState<string>("");
+  const [capacity, setCapacity] = useState<string>("");
+  const [eventID, setEventID] = useState<string>("");
+  const [error, setError] = useState<string>("");
+
+  const {
+    showAlert,
+    updateIsLoadingModalVisible,
+    connectSocket,
+    updateSocket,
+    updateValidated,
+    updateApiUserName,
+    updateApiToken,
+    updateLink,
+    updateRoomName,
+    updateMember,
+  } = parameters;
+
+  const checkLimitsAndMakeRequest = async ({
+    apiUserName,
+    apiToken,
+    link,
+    apiKey = "",
+    userName,
+  }: {
+    apiUserName: string;
+    apiToken: string;
+    link: string;
+    apiKey?: string;
+    userName: string;
+  }) => {
+    const TIMEOUT_DURATION = 10000; // 10 seconds
+    let unsuccessfulAttempts =
+      parseInt(cookies.get("unsuccessfulAttempts")) || 0;
+    let lastRequestTimestamp =
+      parseInt(cookies.get("lastRequestTimestamp")) || 0;
+
+    if (
+      unsuccessfulAttempts >= MAX_ATTEMPTS &&
+      Date.now() - lastRequestTimestamp < RATE_LIMIT_DURATION
+    ) {
+      showAlert?.({
+        message: "Too many unsuccessful attempts. Please try again later.",
+        type: "danger",
+        duration: 3000,
+      });
+      return;
+    } else {
+      unsuccessfulAttempts = 0;
+      cookies.set("unsuccessfulAttempts", unsuccessfulAttempts.toString());
+      cookies.set("lastRequestTimestamp", Date.now().toString());
+    }
+
+    try {
+      updateIsLoadingModalVisible(true);
+      const socketPromise = await connectSocket({
+        apiUserName,
+        apiKey,
+        apiToken,
+        link,
+      });
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(
+          () => reject(new Error("Request timed out")),
+          TIMEOUT_DURATION
+        )
+      );
+
+      const socket = await Promise.race([socketPromise, timeoutPromise]);
+      if (socket && socket instanceof Socket && socket.id) {
+        unsuccessfulAttempts = 0;
+        cookies.set("unsuccessfulAttempts", unsuccessfulAttempts.toString());
+        cookies.set("lastRequestTimestamp", Date.now().toString());
+        updateSocket(socket);
+        updateApiUserName(apiUserName);
+        updateApiToken(apiToken);
+        updateLink(link);
+        updateRoomName(apiUserName);
+        updateMember(userName);
+        updateValidated(true);
+      } else {
+        unsuccessfulAttempts += 1;
+        cookies.set("unsuccessfulAttempts", unsuccessfulAttempts.toString());
+        updateIsLoadingModalVisible(false);
+        showAlert?.({
+          message: "Invalid credentials.",
+          type: "danger",
+          duration: 3000,
+        });
+      }
+    } catch {
+      showAlert?.({
+        message: "Unable to connect. Check your credentials and try again.",
+        type: "danger",
+        duration: 3000,
+      });
+      unsuccessfulAttempts += 1;
+      cookies.set("unsuccessfulAttempts", unsuccessfulAttempts.toString());
+      updateIsLoadingModalVisible(false);
+    }
+  };
+
+  const handleToggleMode = () => {
+    setIsCreateMode(!isCreateMode);
+    setError("");
+  };
+
+  const handleCreateRoom = async () => {
+    if (!name || !duration || !eventType || !capacity) {
+      setError("Please fill all the fields.");
+      return;
+    }
+
+    const payload = {
+      action: "create",
+      duration: parseInt(duration),
+      capacity: parseInt(capacity),
+      eventType,
+      userName: name,
     };
 
+    updateIsLoadingModalVisible(true);
 
-    const handleCreateRoom = async () => {
+    const response = await createRoomOnMediaSFU({
+      payload,
+      apiUserName: credentials.apiUserName,
+      apiKey: credentials.apiKey,
+    });
+    if (response.success && response.data && "roomName" in response.data) {
+      await checkLimitsAndMakeRequest({
+        apiUserName: response.data.roomName,
+        apiToken: response.data.secret,
+        link: response!.data.link,
+        userName: name,
+      });
+    } else {
+      updateIsLoadingModalVisible(false);
+      setError(
+        `Unable to create room. ${
+          response.data
+            ? "error" in response.data
+              ? response.data.error
+              : ""
+            : ""
+        }`
+      );
+    }
+  };
 
-        try {
+  const handleJoinRoom = async () => {
+    if (!name || !eventID) {
+      setError("Please fill all the fields.");
+      return;
+    }
 
-            setError('');
-
-            if (!name || !duration || !eventType || !capacity) {
-                setError('Please fill all the fields.');
-                return;
-            }
-
-            // Call API to create room
-            const payload = {
-                action: 'create',
-                duration: parseInt(duration),
-                capacity: parseInt(capacity),
-                eventType,
-                userName: name
-            };
-
-            updateIsLoadingModalVisible(true);
-
-            const response = await createRoomOnMediaSFU(payload, credentials?.apiUserName, credentials?.apiKey);
-
-            if (response.success) {
-                // Handle successful room creation
-                await checkLimitsAndMakeRequest({ apiUserName: response.data.roomName, apiToken: response.data.secret, link: response.data.link, userName: name });
-                setError('');
-            } else {
-                // Handle failed room creation
-                updateIsLoadingModalVisible(false);
-
-                if (showAlert) {
-                    showAlert({
-                        message: `Unable to create room. ${response.data ? response.data.message : ''}`,
-                        type: 'danger',
-                        duration: 3000,
-                    });
-                } else {
-                    setError(`Unable to create room. ${response.data ? response.data.message : ''}`);
-                }
-            }
-
-        } catch (error) {
-
-            updateIsLoadingModalVisible(false);
-
-            if (showAlert) {
-                showAlert({
-                    message: `Unable to connect. ${error.message}`,
-                    type: 'danger',
-                    duration: 3000,
-                });
-            } else {
-                setError(`Unable to connect.  ${error.message}`);
-            }
-
-        }
-
+    const payload = {
+      action: "join",
+      meetingID: eventID,
+      userName: name,
     };
 
-    const handleJoinRoom = async () => {
+    updateIsLoadingModalVisible(true);
 
-        try {
+    const response = await joinRoomOnMediaSFU({
+      payload,
+      apiUserName: credentials.apiUserName,
+      apiKey: credentials.apiKey,
+    });
+    if (response.success && response.data && "roomName" in response.data) {
+      await checkLimitsAndMakeRequest({
+        apiUserName: response.data.roomName,
+        apiToken: response.data.secret,
+        link: response.data.link,
+        userName: name,
+      });
+    } else {
+      updateIsLoadingModalVisible(false);
+      setError(
+        `Unable to join room. ${
+          response.data
+            ? "error" in response.data
+              ? response.data.error
+              : ""
+            : ""
+        }`
+      );
+    }
+  };
 
-            setError('');
+   return (
+    // your element
+   )
+};
 
-            if (!name || !eventID) {
-                setError('Please fill all the fields.');
-                return;
-            }
+export default PreJoinPage;
 
-            // Call API to join room
-            const payload = {
-                action: 'join',
-                meetingID: eventID,
-                userName: name
-            };
-
-            updateIsLoadingModalVisible(true);
-
-            const response = await joinRoomOnMediaSFU(payload, credentials?.apiUserName, credentials?.apiKey);
-
-            if (response.success) {
-                // Handle successful room join
-                await checkLimitsAndMakeRequest({ apiUserName: response.data.roomName, apiToken: response.data.secret, link: response.data.link, userName: name });
-                setError('');
-            } else {
-                // Handle failed room join
-                updateIsLoadingModalVisible(false);
-
-                if (showAlert) {
-                    showAlert({
-                        message: `Unable to connect to room. ${response.data ? response.data.message : ''}`,
-                        type: 'danger',
-                        duration: 3000,
-                    });
-                } else {
-                    setError(`Unable to connect to room. ${response.data ? response.data.message : ''}`);
-                }
-            }
-
-        } catch (error) {
-            updateIsLoadingModalVisible(false);
-
-            if (showAlert) {
-                showAlert({
-                    message: `Unable to connect. ${error.message}`,
-                    type: 'danger',
-                    duration: 3000,
-                });
-            } else {
-                setError(`Unable to connect.  ${error.message}`);
-            }
-
-        }
-
-
-
-    };
   ```
 
 
@@ -567,21 +657,88 @@ export default App;
 ### Example for Generic View
 
 ```javascript
-import { MediasfuGeneric, generateRandomParticipants, generateRandomMessages, generateRandomRequestList, generateRandomWaitingRoomList } from 'mediasfu-reactjs';
+// Import specific Mediasfu view components
+// Import the PreJoinPage component for the Pre-Join Page use case
+import { MediasfuGeneric,
+    MediasfuBroadcast, MediasfuChat, MediasfuWebinar, MediasfuConference, PreJoinPage
+ } from 'mediasfu-reactjs'
 
-function App() {
-  const useSeed = true;
+
+// Import methods for generating random participants, messages, requests, and waiting room lists if using seed data
+import { generateRandomParticipants, generateRandomMessages, generateRandomRequestList, generateRandomWaitingRoomList,
+} from 'mediasfu-reactjs';
+
+/**
+ * The main application component for MediaSFU.
+ *
+ * This component initializes the necessary credentials and configuration for the MediaSFU application,
+ * including options for using seed data for generating random participants and messages.
+ *
+ * @returns {JSX.Element} The rendered Mediasfu component with the specified props.
+ *
+ * @remarks
+ * - The `credentials` object contains the API username and API key for the Mediasfu account.
+ * - The `useSeed` flag determines whether to use seed data for generating random participants and messages.
+ * - The `eventType` variable indicates the type of UI display (e.g., 'broadcast', 'chat', 'webinar', 'conference').
+ * - If `useSeed` is true, random participants, messages, requests, and waiting lists are generated and assigned to `seedData`.
+ * - The `useLocalUIMode` flag is set to true if `useSeed` is true, preventing requests to the Mediasfu servers during UI development.
+ *
+ * @component
+ * @example
+ * // Example usage of the App component
+ * <App />
+ */
+
+const App = () => {
+  // Mediasfu account credentials
+  // Replace 'your_api_username' and 'your_api_key' with your actual credentials
+  const credentials = { apiUserName: 'your_api_username', apiKey: 'your_api_key' };
+
+  // Whether to use seed data for generating random participants and messages
+  // Set to true if you want to run the application in local UI mode with seed data
+  const useSeed = false;
   let seedData = {};
-  const eventType = 'webinar'; // 'broadcast', 'chat', 'webinar', 'conference'
 
+  // Event type ('broadcast', 'chat', 'webinar', 'conference')
+  // Set this to match the component you are using
+  let eventType = 'broadcast';
+
+  // If using seed data, generate random participants and messages
   if (useSeed) {
+    // Name of the member
     const memberName = 'Prince';
-    const hostName = 'Fred';
-    const participants_ = generateRandomParticipants(memberName, "", hostName, eventType==="broadcast" || eventType==="chat" ? true : false);
-    const messages_ = generateRandomMessages(participants_, memberName, "", hostName, eventType==="broadcast" || eventType==="chat" ? true : false);
-    const requests_ = generateRandomRequestList(participants_, memberName, "", 3);
-    const waitingList_ = generateRandomWaitingRoomList(participants_, memberName, "", 3);
 
+    // Name of the host
+    const hostName = 'Fred';
+
+    // Generate random participants
+    const participants_ = generateRandomParticipants({
+      member: memberName,
+      coHost: '',
+      host: hostName,
+      forChatBroadcast: eventType === 'broadcast' || eventType === 'chat',
+    });
+
+    // Generate random messages
+    const messages_ = generateRandomMessages({
+      participants: participants_,
+      member: memberName,
+      host: hostName,
+      forChatBroadcast: eventType === 'broadcast' || eventType === 'chat',
+    });
+
+    // Generate random requests
+    const requests_ = generateRandomRequestList({
+      participants: participants_,
+      hostName: memberName,
+      coHostName: '',
+      numberOfRequests: 3,
+    });
+
+    // Generate random waiting list
+    const waitingList_ = generateRandomWaitingRoomList();
+
+    // Assign generated data to seedData
     seedData = {
       participants: participants_,
       messages: messages_,
@@ -589,18 +746,80 @@ function App() {
       waitingList: waitingList_,
       member: memberName,
       host: hostName,
-      eventType: eventType
+      eventType: eventType,
     };
   }
 
-  const useLocalUIMode = useSeed ? true : false;
+  // Whether to use local UI mode; prevents making requests to the Mediasfu servers during UI development
+  const useLocalUIMode = useSeed;
 
-  return (
-    <MediasfuGeneric useLocalUIMode={useLocalUIMode} useSeed={useSeed} seedData={useSeed ? seedData : {}} />
-  );
-}
+  // Choose the Mediasfu component based on the event type
+  // Uncomment the component corresponding to your use case
+
+  // Simple Use Case (Welcome Page)
+  // Renders the default welcome page
+  // No additional inputs required
+  // return <MediasfuGeneric />;
+
+  // Use Case with Pre-Join Page (Credentials Required)
+  // Uses a pre-join page that requires users to enter credentials
+  // return <MediasfuGeneric PrejoinPage={PreJoinPage} credentials={credentials} />;
+
+  // Use Case with Local UI Mode (Seed Data Required)
+  // Runs the application in local UI mode using seed data
+  // return <MediasfuGeneric useLocalUIMode={true} useSeed={true} seedData={seedData} />;
+
+  // MediasfuBroadcast Component
+  // Uncomment to use the broadcast event type
+  // return (
+  //   <MediasfuBroadcast
+  //     credentials={credentials}
+  //     useLocalUIMode={useLocalUIMode}
+  //     useSeed={useSeed}
+  //     seedData={useSeed ? seedData : {}}
+  //   />
+  // );
+
+  // MediasfuChat Component
+  // Uncomment to use the chat event type
+  // return (
+  //   <MediasfuChat
+  //     credentials={credentials}
+  //     useLocalUIMode={useLocalUIMode}
+  //     useSeed={useSeed}
+  //     seedData={useSeed ? seedData : {}}
+  //   />
+  // );
+
+  // MediasfuWebinar Component
+  // Uncomment to use the webinar event type
+  // return (
+  //   <MediasfuWebinar
+  //     credentials={credentials}
+  //     useLocalUIMode={useLocalUIMode}
+  //     useSeed={useSeed}
+  //     seedData={useSeed ? seedData : {}}
+  //   />
+  // );
+
+  // MediasfuConference Component
+  // Uncomment to use the conference event type
+  // return (
+  //   <MediasfuConference
+  //     credentials={credentials}
+  //     useLocalUIMode={useLocalUIMode}
+  //     useSeed={useSeed}
+  //     seedData={useSeed ? seedData : {}}
+  //   />
+  // );
+
+  // Default to MediasfuGeneric without any props
+  // This will render the welcome page
+  return <MediasfuGeneric />;
+};
 
 export default App;
+
 ```
 
 In the provided examples, users can set `useLocalUIMode` to `true` during UI development to prevent unwanted connections to MediaSFU servers. Additionally, they can generate seed data for rendering UI components locally by using random data generators provided by the module.
@@ -731,6 +950,7 @@ These components enable seamless media presentation and interaction within the e
 | MiniCardAudio | Component for rendering a compact card view with audio content and controls. |
 | MiniAudioPlayer | Utility method for playing audio and rendering a mini audio modal when the user is not actively displayed on the page. |
 
+
 ---
 With the Intermediate Usage Guide, users can explore and leverage the core components and functionalities of the MediaSFU ReactJS module to enhance their event hosting and participation experiences.
 
@@ -742,9 +962,9 @@ import { PrejoinPage, MainContainerComponent, MainAspectComponent, MainScreenCom
 
 const BroadcastScreen = () => {
     // State variables and constants
-    const [validated, setValidated] = useState(false);
-    const eventType = useRef('broadcast');
-    const controlHeight = 0.1; // Height of control buttons as a fraction of screen height
+    const [validated, setValidated] = useState<boolean>(useLocalUIMode); // Validated state as boolean
+    const confirmedToRecord = useRef<boolean>(false); // True if the user has confirmed to record as boolean
+    const meetingDisplayType = useRef<string>("media"); // Meeting display type as string
 
     // Sample control button configurations
     const controlBroadcastButtons = [/* define your control buttons here */];
@@ -752,19 +972,23 @@ const BroadcastScreen = () => {
     const recordButtons = [/* define your record buttons here */];
 
     // Sample component sizes
-    const componentSizes = useRef({
+    const componentSizes = useRef<ComponentSizes>({
+        // Component sizes as ComponentSizes
         mainHeight: 0,
+        otherHeight: 0,
         mainWidth: 0,
-    });
+        otherWidth: 0,
+    }); // Component sizes
 
     // Sample function to update component sizes
-    const updateComponentSizes = () => {
-        // Update component sizes logic
+    const updateComponentSizes = (sizes: ComponentSizes) => {
+        componentSizes.current = sizes;
     };
 
+
     // Sample function to update validation state
-    const updateValidated = (isValidated) => {
-        setValidated(isValidated);
+    const updateValidated = (value: boolean) => {
+        setValidated(value);
     };
 
     // Sample credentials
@@ -774,78 +998,267 @@ const BroadcastScreen = () => {
     };
 
     // Sample socket
-    const socket = useRef(null);
-
-    // Sample function to connect socket
-    const connectSocket = () => {
-        // Connect socket logic
-    };
-
-    // Sample function to handle recording
-    const handleRecording = () => {
-        // Handle recording logic
-    };
+    const socket = useRef<Socket>({} as Socket); // Socket for the media server, type Socket 
 
     // Sample meeting progress time
-    const meetingProgressTime = 0; // Set to actual meeting progress time
+    const [meetingProgressTime, setMeetingProgressTime] =
+    useState<string>("00:00:00"); // Meeting progress time as string
 
     // Sample record state
-    const recordState = "rgba(255, 0, 0, 0.5)"; // Set to actual record state color
+    const [recordState, setRecordState] = useState<string>("green"); // Recording state with specific values
 
-    // Sample main grid stream
-    const mainGridStream = useRef([]);
+    // Sample main grid and other grid elements
+    const mainGridStream = useRef<JSX.Element[]>([]); // Array of main grid streams as JSX.Element[]
+    const [otherGridStreams, setOtherGridStreams] = useState<JSX.Element[][]>([
+        [],
+        [],
+    ]); // Other grid streams as 2D array of JSX.Element[]
+  
 
     // Sample audio only streams
-    const audioOnlyStreams = useRef([]);
+    const audioOnlyStreams = useRef<JSX.Element[]>([]); // Array of audio-only streams
 
     // Sample main height and width
-    const mainHeightWidth = 0; // Set to actual main height and width
+    const [mainHeightWidth, setMainHeightWidth] = useState<number>(100); // Main height and width as number
 
     // Render the PrejoinPage if not validated, otherwise render the main components
     return (
-        !validated ? (
+        <div
+        className="MediaSFU"
+        style={{
+            height: "100vh",
+            width: "100vw",
+            maxWidth: "100vw",
+            maxHeight: "100vh",
+            overflow: "hidden",
+        }}
+        >
+        {!validated ? (
             <PrejoinPage
-                parameters={{
-                    showAlert, isLoadingModalVisible, updateIsLoadingModalVisible, onWeb: true, eventType: eventType.current, connectSocket, socket: socket.current,
-                    updateSocket, updateValidated, updateApiUserName, updateApiToken, updateLink, updateRoomName, updateMember, validated
-                }}
-                credentials={credentials}
+            parameters={{
+                imgSrc,
+                showAlert,
+                updateIsLoadingModalVisible,
+                connectSocket,
+                updateSocket,
+                updateValidated,
+                updateApiUserName,
+                updateApiToken,
+                updateLink,
+                updateRoomName,
+                updateMember,
+            }}
+            credentials={credentials}
             />
         ) : (
             <MainContainerComponent>
-                <MainAspectComponent backgroundColor="rgba(217, 227, 234, 0.99)" defaultFraction={1 - controlHeight} updateIsWideScreen={updateIsWideScreen} updateIsMediumScreen={updateIsMediumScreen} updateIsSmallScreen={updateIsSmallScreen} showControls={eventType.current == 'webinar' || eventType.current == 'conference'}>
-                    <MainScreenComponent
-                        doStack={true}
-                        mainSize={mainHeightWidth}
-                        updateComponentSizes={updateComponentSizes}
-                        defaultFraction={1 - controlHeight}
-                        componentSizes={componentSizes.current}
-                        showControls={eventType.current == 'webinar' || eventType.current == 'conference'}
-                    >
-                        <MainGridComponent
-                            height={componentSizes.current.mainHeight}
-                            width={componentSizes.current.mainWidth}
-                            backgroundColor="rgba(217, 227, 234, 0.99)"
-                            mainSize={mainHeightWidth}
-                            defaultFraction={1 - controlHeight}
-                            showAspect={mainHeightWidth > 0 ? true : false}
-                            timeBackgroundColor={recordState}
-                            meetingProgressTime={meetingProgressTime}
-                        >
-                            <FlexibleVideo
-                                customWidth={componentSizes.current.mainWidth}
-                                customHeight={componentSizes.current.mainHeight}
-                                rows={1}
-                                columns={1}
-                                componentsToRender={mainGridStream.current ? mainGridStream.current : []}
-                                showAspect={mainGridStream.current.length > 0}
-                            />
-                            {/* Additional components */}
-                        </MainGridComponent>
-                    </MainScreenComponent>
-                </MainAspectComponent>
+            {/* Main aspect component containsa ll but the control buttons (as used for webinar and conference) */}
+            <MainAspectComponent
+                backgroundColor="rgba(217, 227, 234, 0.99)"
+                defaultFraction={1 - controlHeight}
+                updateIsWideScreen={updateIsWideScreen}
+                updateIsMediumScreen={updateIsMediumScreen}
+                updateIsSmallScreen={updateIsSmallScreen}
+                showControls={
+                eventType.current == "webinar" ||
+                eventType.current == "conference"
+                }
+            >
+                {/* MainScreenComponent contains the main grid view and the minor grid view */}
+                <MainScreenComponent
+                doStack={true}
+                mainSize={mainHeightWidth}
+                updateComponentSizes={updateComponentSizes}
+                defaultFraction={1 - controlHeight}
+                componentSizes={componentSizes.current}
+                showControls={
+                    eventType.current == "webinar" ||
+                    eventType.current == "conference"
+                }
+                >
+                {/* MainGridComponent shows the main grid view - not used at all in chat event type  and conference event type when screenshare is not active*/}
+                {/* MainGridComponent becomes the dominant grid view in broadcast and webinar event types */}
+                {/* MainGridComponent becomes the dominant grid view in conference event type when screenshare is active */}
+
+                <MainGridComponent
+                    height={componentSizes.current.mainHeight}
+                    width={componentSizes.current.mainWidth}
+                    backgroundColor="rgba(217, 227, 234, 0.99)"
+                    mainSize={mainHeightWidth}
+                    showAspect={mainHeightWidth > 0 ? true : false}
+                    timeBackgroundColor={recordState}
+                    meetingProgressTime={meetingProgressTime}
+                >
+                    <FlexibleVideo
+                    customWidth={componentSizes.current.mainWidth}
+                    customHeight={componentSizes.current.mainHeight}
+                    rows={1}
+                    columns={1}
+                    componentsToRender={
+                        mainGridStream.current ? mainGridStream.current : []
+                    }
+                    showAspect={
+                        mainGridStream.current.length > 0 &&
+                        !(whiteboardStarted.current && !whiteboardEnded.current)
+                    }
+                    />
+
+                    <ControlButtonsComponentTouch
+                    buttons={controlBroadcastButtons}
+                    position={"right"}
+                    location={"bottom"}
+                    direction={"vertical"}
+                    showAspect={eventType.current == "broadcast"}
+                    />
+
+                    {/* Button to launch recording modal */}
+                    <ControlButtonsComponentTouch
+                    buttons={recordButton}
+                    direction={"horizontal"}
+                    showAspect={
+                        eventType.current == "broadcast" &&
+                        !showRecordButtons &&
+                        islevel.current == "2"
+                    }
+                    location="bottom"
+                    position="middle"
+                    />
+
+                    {/* Buttons to control recording */}
+                    <ControlButtonsComponentTouch
+                    buttons={recordButtons}
+                    direction={"horizontal"}
+                    showAspect={
+                        eventType.current == "broadcast" &&
+                        showRecordButtons &&
+                        islevel.current == "2"
+                    }
+                    location="bottom"
+                    position="middle"
+                    />
+                    <AudioGrid
+                    componentsToRender={
+                        audioOnlyStreams.current ? audioOnlyStreams.current : []
+                    }
+                    />
+                </MainGridComponent>
+                </MainScreenComponent>
+            </MainAspectComponent>
             </MainContainerComponent>
-        )
+        )}
+
+        <ParticipantsModal
+            backgroundColor="rgba(217, 227, 234, 0.99)"
+            isParticipantsModalVisible={isParticipantsModalVisible}
+            onParticipantsClose={() => updateIsParticipantsModalVisible(false)}
+            participantsCounter={participantsCounter.current}
+            onParticipantsFilterChange={onParticipantsFilterChange}
+            parameters={{
+            updateParticipants: updateParticipants,
+            updateIsParticipantsModalVisible: updateIsParticipantsModalVisible,
+
+            updateDirectMessageDetails,
+            updateStartDirectMessage,
+            updateIsMessagesModalVisible,
+
+            showAlert: showAlert,
+
+            filteredParticipants: filteredParticipants.current,
+            participants: filteredParticipants.current,
+            roomName: roomName.current,
+            islevel: islevel.current,
+            member: member.current,
+            coHostResponsibility: coHostResponsibility.current,
+            coHost: coHost.current,
+            eventType: eventType.current,
+
+            startDirectMessage: startDirectMessage.current,
+            directMessageDetails: directMessageDetails.current,
+            socket: socket.current,
+
+            getUpdatedAllParams: getAllParams,
+            }}
+        />
+
+        <RecordingModal
+            backgroundColor="rgba(217, 227, 234, 0.99)"
+            isRecordingModalVisible={isRecordingModalVisible}
+            onClose={() => updateIsRecordingModalVisible(false)}
+            startRecording={startRecording}
+            confirmRecording={confirmRecording}
+            parameters={{
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+            }}
+        />
+
+        <MessagesModal
+            backgroundColor={
+            eventType.current == "webinar" || eventType.current == "conference"
+                ? "#f5f5f5"
+                : "rgba(255, 255, 255, 0.25)"
+            }
+            isMessagesModalVisible={isMessagesModalVisible}
+            onMessagesClose={() => updateIsMessagesModalVisible(false)}
+            messages={messages.current}
+            eventType={eventType.current}
+            member={member.current}
+            islevel={islevel.current}
+            coHostResponsibility={coHostResponsibility.current}
+            coHost={coHost.current}
+            startDirectMessage={startDirectMessage.current}
+            directMessageDetails={directMessageDetails.current}
+            updateStartDirectMessage={updateStartDirectMessage}
+            updateDirectMessageDetails={updateDirectMessageDetails}
+            showAlert={showAlert}
+            roomName={roomName.current}
+            socket={socket.current}
+            chatSetting={chatSetting.current}
+        />
+
+        <ConfirmExitModal
+            backgroundColor="rgba(181, 233, 229, 0.97)"
+            isConfirmExitModalVisible={isConfirmExitModalVisible}
+            onConfirmExitClose={() => updateIsConfirmExitModalVisible(false)}
+            member={member.current}
+            roomName={roomName.current}
+            socket={socket.current}
+            islevel={islevel.current}
+        />
+
+        <ConfirmHereModal
+            backgroundColor="rgba(181, 233, 229, 0.97)"
+            isConfirmHereModalVisible={isConfirmHereModalVisible}
+            onConfirmHereClose={() => updateIsConfirmHereModalVisible(false)}
+            member={member.current}
+            roomName={roomName.current}
+            socket={socket.current}
+        />
+
+        <ShareEventModal
+            isShareEventModalVisible={isShareEventModalVisible}
+            onShareEventClose={() => updateIsShareEventModalVisible(false)}
+            roomName={roomName.current}
+            islevel={islevel.current}
+            adminPasscode={adminPasscode.current}
+            eventType={eventType.current}
+        />
+
+        <AlertComponent
+            visible={alertVisible}
+            message={alertMessage}
+            type={alertType}
+            duration={alertDuration}
+            onHide={() => setAlertVisible(false)}
+            textColor={"#ffffff"}
+        />
+
+        <LoadingModal
+            isVisible={isLoadingModalVisible}
+            backgroundColor="rgba(217, 227, 234, 0.99)"
+            displayColor="black"
+        />
+        </div>
     );
 };
 
@@ -857,253 +1270,292 @@ This sample code demonstrates the import and usage of various components and fea
 Here's a sample usage of the control button components as used above:
 
 ```jsx
-   const recordButton = [
+    const recordButton = [
         {
-            icon: faRecordVinyl,
-            text: 'Record',
-            onPress: () => {
-                // Action for the Record button
-                launchRecording({
-                    parameters: {
-                        ...getAllParams(),
-
-                    }
-                });
-            },
-            activeColor: 'black',
-            inActiveColor: 'black',
-            show: true,
-        }
+        icon: faRecordVinyl,
+        text: "Record",
+        onPress: () => {
+            // Action for the Record button
+            launchRecording({
+            updateIsRecordingModalVisible: updateIsRecordingModalVisible,
+            isRecordingModalVisible: isRecordingModalVisible,
+            showAlert: showAlert,
+            stopLaunchRecord: stopLaunchRecord.current,
+            canLaunchRecord: canLaunchRecord.current,
+            recordingAudioSupport: recordingAudioSupport.current,
+            recordingVideoSupport: recordingVideoSupport.current,
+            updateCanRecord: updateCanRecord,
+            updateClearedToRecord: updateClearedToRecord,
+            recordStarted: recordStarted.current,
+            recordPaused: recordPaused.current,
+            localUIMode: localUIMode.current,
+            });
+        },
+        activeColor: "black",
+        inActiveColor: "black",
+        show: true,
+        },
     ];
     
-   const recordButtons = [
+     const recordButtons = [
         //recording state control and recording timer buttons
         //Replace or remove any of the buttons as you wish
 
         //Refer to ControlButtonsAltComponent.js for more details on how to add custom buttons
 
         {
-            icon: faPlayCircle,
-            active: recordPaused.current === false,
-            onPress: () => { updateRecording({ parameters: { ...getAllParams(), ...mediaSFUFunctions() } }); },
-            activeColor: 'black',
-            inActiveColor: 'black',
-            alternateIcon: faPauseCircle,
-            show: true,
+        icon: faPlayCircle,
+        active: recordPaused.current === false,
+        onPress: () => {
+            updateRecording({
+            parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+            });
+        },
+        activeColor: "black",
+        inActiveColor: "black",
+        alternateIcon: faPauseCircle,
+        show: true,
         },
         {
-            icon: faStopCircle,
-            active: false,
-            onPress: () => { stopRecording({ parameters: { ...getAllParams(), ...mediaSFUFunctions() } }); },
-            activeColor: 'green',
-            inActiveColor: 'black',
-            show: true,
+        icon: faStopCircle,
+        active: false,
+        onPress: () => {
+            stopRecording({
+            parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+            });
+        },
+        activeColor: "green",
+        inActiveColor: "black",
+        show: true,
         },
         {
-            customComponent: (
-                <div style={{ backgroundColor: 'transparent', borderWidth: 0, padding: 0, margin: 2 }}>
-                    <span style={{ backgroundColor: 'transparent', borderWidth: 0, padding: 0, margin: 0 }}>
-                        {recordingProgressTime}
-                    </span>
-                </div>
-            ),
-            show: true,
+        customComponent: (
+            <div
+            style={{
+                backgroundColor: "transparent",
+                borderWidth: 0,
+                padding: 0,
+                margin: 2,
+            }}
+            >
+            <span
+                style={{
+                backgroundColor: "transparent",
+                borderWidth: 0,
+                padding: 0,
+                margin: 0,
+                }}
+            >
+                {recordingProgressTime}
+            </span>
+            </div>
+        ),
+        show: true,
         },
         {
-            icon: faDotCircle,
-            active: false,
-            onPress: () => console.log('Status pressed'),
-            activeColor: 'black',
-            inActiveColor: recordPaused.current === false ? 'red' : 'yellow',
-            show: true,
+        icon: faDotCircle,
+        active: false,
+        onPress: () => console.log("Status pressed"),
+        activeColor: "black",
+        inActiveColor: recordPaused.current === false ? "red" : "yellow",
+        show: true,
         },
         {
-            icon: faCog,
-            active: false,
-            onPress: () => {
-                launchRecording({
-                    parameters: {
-                        ...getAllParams(),
-
-                    }
-                });
-            },
-            activeColor: 'green',
-            inActiveColor: 'black',
-            show: true,
+        icon: faCog,
+        active: false,
+        onPress: () => {
+            launchRecording({
+            updateIsRecordingModalVisible: updateIsRecordingModalVisible,
+            isRecordingModalVisible: isRecordingModalVisible,
+            showAlert: showAlert,
+            stopLaunchRecord: stopLaunchRecord.current,
+            canLaunchRecord: canLaunchRecord.current,
+            recordingAudioSupport: recordingAudioSupport.current,
+            recordingVideoSupport: recordingVideoSupport.current,
+            updateCanRecord: updateCanRecord,
+            updateClearedToRecord: updateClearedToRecord,
+            recordStarted: recordStarted.current,
+            recordPaused: recordPaused.current,
+            localUIMode: localUIMode.current,
+            });
+        },
+        activeColor: "green",
+        inActiveColor: "black",
+        show: true,
         },
     ];
 
-    const controlBroadcastButtons = [
+    const controlBroadcastButtons: ButtonTouch[] = [
         // control buttons for broadcast
         //Replace or remove any of the buttons as you wish
 
-        //Refer to ControlButtonsComponentTouch.js for more details on how to add custom buttons
+        //Refer to ControlButtonsComponentTouch for more details on how to add custom buttons
 
         {
-            icon: faUsers,
-            active: true,
-            alternateIcon: faUsers,
-            onPress: () => { launchParticipants({ updateIsParticipantsModalVisible: updateIsParticipantsModalVisible, IsParticipantsModalVisible: isParticipantsModalVisible }) },
-            activeColor: 'black',
-            inActiveColor: 'black',
-            show: islevel.current === '2',
+        icon: faUsers,
+        active: true,
+        alternateIcon: faUsers,
+        onPress: () => {
+            launchParticipants({
+            updateIsParticipantsModalVisible: updateIsParticipantsModalVisible,
+            isParticipantsModalVisible: isParticipantsModalVisible,
+            });
+        },
+        activeColor: "black",
+        inActiveColor: "black",
+        show: islevel.current === "2",
         },
         {
-            icon: faShareAlt,
-            active: true,
-            alternateIcon: faShareAlt,
-            onPress: () => updateIsShareEventModalVisible(!isShareEventModalVisible),
-            activeColor: 'black',
-            inActiveColor: 'black',
-            show: true,
+        icon: faShareAlt,
+        active: true,
+        alternateIcon: faShareAlt,
+        onPress: () => updateIsShareEventModalVisible(!isShareEventModalVisible),
+        activeColor: "black",
+        inActiveColor: "black",
+        show: true,
         },
         {
-            customComponent: (
-                <div style={{ position: 'relative' }}>
-                    {/* Your icon */}
-                    <FontAwesomeIcon icon={faComments} size={'lg'} color="black" />
-                    {/* Conditionally render a badge */}
-                    {showMessagesBadge && (
-                        <div
-                            style={{
-                                position: 'absolute',
-                                top: -2,
-                                right: -2,
-                                flexDirection: 'row',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
-                        >
-                            <div
-                                style={{
-                                    backgroundColor: 'red',
-                                    borderRadius: 12,
-                                    paddingHorizontal: 4,
-                                    paddingVertical: 4,
-                                }}
-                            >
-                                <span style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>
-                                </span>
-                            </div>
-                        </div>
-                    )}
+        customComponent: (
+            <div style={{ position: "relative" }}>
+            {/* Your icon */}
+            <FontAwesomeIcon icon={faComments} size={"lg"} color="black" />
+            {/* Conditionally render a badge */}
+            {showMessagesBadge && (
+                <div
+                style={{
+                    position: "absolute",
+                    top: -2,
+                    right: -2,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+                >
+                <div
+                    style={{
+                    backgroundColor: "red",
+                    borderRadius: 12,
+                    paddingLeft: 4,
+                    paddingRight: 4,
+                    paddingTop: 4,
+                    paddingBottom: 4,
+                    }}
+                >
+                    <span
+                    style={{ color: "white", fontSize: 12, fontWeight: "bold" }}
+                    ></span>
                 </div>
-            ),
-            onPress: () => launchMessages({ updateIsMessagesModalVisible: updateIsMessagesModalVisible, IsMessagesModalVisible: isMessagesModalVisible }),
-            show: true,
-        },
-        {
-            icon: faSync,
-            active: true,
-            alternateIcon: faSync,
-            onPress: () => switchVideoAlt({
-                parameters: {
-                    ...getAllParams(), ...mediaSFUFunctions(),
-                    //others
-                    MediaStream,
-                    MediaStreamTrack,
-                    mediaDevices,
-                    device: device.current,
-                    socket: socket.current,
-                    showAlert,
-                    checkPermission,
-                    streamSuccessVideo,
-                    hasCameraPermission,
-                    requestPermissionCamera,
-                    checkMediaPermission: 'web' !== 'web'
-                }
-            }),
-            activeColor: 'black',
-            inActiveColor: 'black',
-            show: islevel.current === '2',
-        },
-        {
-            icon: faVideoSlash,
-            alternateIcon: faVideo,
-            active: videoActive,
-            onPress: () => clickVideo({
-                parameters: {
-                    ...getAllParams(),
-                    ...mediaSFUFunctions(),
-                    //others
-                    MediaStream,
-                    MediaStreamTrack,
-                    mediaDevices,
-                    device: device.current,
-                    socket: socket.current,
-                    showAlert,
-                    checkPermission,
-                    streamSuccessVideo,
-                    hasCameraPermission,
-                    requestPermissionCamera,
-                    checkMediaPermission: 'web' !== 'web'
-                }
-            }),
-            show: islevel.current === '2',
-            activeColor: 'green',
-            inActiveColor: 'red',
-        },
-        {
-            icon: faMicrophoneSlash,
-            alternateIcon: faMicrophone,
-            active: micActive,
-            onPress: () => clickAudio({
-                parameters: {
-                    ...getAllParams(),
-                    ...mediaSFUFunctions(),
-                    //others
-                    MediaStream,
-                    MediaStreamTrack,
-                    mediaDevices,
-                    device: device.current,
-                    socket: socket.current,
-                    showAlert,
-                    checkPermission,
-                    streamSuccessAudio,
-                    hasAudioPermission,
-                    requestPermissionAudio,
-                    checkMediaPermission: 'web' !== 'web'
-                }
-            }),
-            activeColor: 'green',
-            inActiveColor: 'red',
-            show: islevel.current === '2',
-        },
-        {
-            customComponent: (
-                <div style={{ backgroundColor: 'transparent', borderWidth: 0, padding: 0, margin: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
-                    <FontAwesomeIcon icon={faChartBar} size={'lg'} color="black" />
-                    <span style={{ backgroundColor: 'transparent', borderWidth: 0, padding: 0, margin: 0 }}>
-                        {participantsCounter.current}
-                    </span>
                 </div>
-            ),
-            show: true,
+            )}
+            </div>
+        ),
+        onPress: () =>
+            launchMessages({
+            updateIsMessagesModalVisible: updateIsMessagesModalVisible,
+            isMessagesModalVisible: isMessagesModalVisible,
+            }),
+        show: true,
         },
         {
-            icon: faPhone,
-            active: endCallActive,
-            onPress: () => launchConfirmExit({ updateIsConfirmExitModalVisible: updateIsConfirmExitModalVisible, IsConfirmExitModalVisible: isConfirmExitModalVisible }),
-            activeColor: 'green',
-            inActiveColor: 'red',
-            show: true,
+        icon: faSync,
+        active: true,
+        alternateIcon: faSync,
+        onPress: () =>
+            switchVideoAlt({
+            parameters: {
+                ...getAllParams(),
+                ...mediaSFUFunctions(),
+            },
+            }),
+        activeColor: "black",
+        inActiveColor: "black",
+        show: islevel.current === "2",
         },
         {
-            icon: faPhone,
-            active: endCallActive,
-            onPress: () => console.log('End Call pressed'), //not in use
-            activeColor: 'transparent',
-            inActiveColor: 'transparent',
-            backgroundColor: 'transparent',
-            show: false,
-        }
+        icon: faVideoSlash,
+        alternateIcon: faVideo,
+        active: videoActive,
+        onPress: () =>
+            clickVideo({
+            parameters: {
+                ...getAllParams(),
+                ...mediaSFUFunctions(),
+            },
+            }),
+        show: islevel.current === "2",
+        activeColor: "green",
+        inActiveColor: "red",
+        },
+        {
+        icon: faMicrophoneSlash,
+        alternateIcon: faMicrophone,
+        active: micActive,
+        onPress: () =>
+            clickAudio({
+            parameters: {
+                ...getAllParams(),
+                ...mediaSFUFunctions(),
+            },
+            }),
+        activeColor: "green",
+        inActiveColor: "red",
+        show: islevel.current === "2",
+        },
+        {
+        customComponent: (
+            <div
+            style={{
+                backgroundColor: "transparent",
+                borderWidth: 0,
+                padding: 0,
+                margin: 5,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+            }}
+            >
+            <FontAwesomeIcon icon={faChartBar} size={"lg"} color="black" />
+            <span
+                style={{
+                backgroundColor: "transparent",
+                borderWidth: 0,
+                padding: 0,
+                margin: 0,
+                }}
+            >
+                {participantsCounter.current}
+            </span>
+            </div>
+        ),
+        show: true,
+        },
+        {
+        icon: faPhone,
+        active: endCallActive,
+        onPress: () =>
+            launchConfirmExit({
+            updateIsConfirmExitModalVisible: updateIsConfirmExitModalVisible,
+            isConfirmExitModalVisible: isConfirmExitModalVisible,
+            }),
+        activeColor: "green",
+        inActiveColor: "red",
+        show: true,
+        },
+        {
+        icon: faPhone,
+        active: endCallActive,
+        onPress: () => console.log("End Call pressed"), //not in use
+        activeColor: "transparent",
+        inActiveColor: "transparent",
+        backgroundColor: { default: "transparent" },
+        show: false,
+        },
     ];
 ```
 
 This sample code defines arrays `recordButtons` and `controlBroadcastButtons`, each containing configuration objects for different control buttons. These configurations include properties such as icon, active state, onPress function, activeColor, inActiveColor, and show flag to control the visibility of each button.
 
-You can customize these configurations according to your requirements, adding, removing, or modifying buttons as needed. Additionally, you can refer to the relevant component files (`ControlButtonsAltComponent.js` and `ControlButtonsComponentTouch.js`) for more details on how to add custom buttons.
+You can customize these configurations according to your requirements, adding, removing, or modifying buttons as needed. Additionally, you can refer to the relevant component files (`ControlButtonsAltComponent` and `ControlButtonsComponentTouch`) for more details on how to add custom buttons.
 
 <div style="text-align: center;">
   Preview of Broadcast Page
@@ -1176,7 +1628,7 @@ Here's a tabulated list of advanced control functions along with brief explanati
 | `resumePauseStreams`             | Resumes or pauses streams.                                                                             |
 | `readjust`                       | Readjusts display elements.                                                                            |
 | `checkGrid`                      | Checks the grid sizes to display.                                                                      |
-| `GetEstimate`                    | Gets an estimate of grids to add.                                                                      |
+| `getEstimate`                    | Gets an estimate of grids to add.                                                                      |
 | `calculateRowsAndColumns`        | Calculates rows and columns for the grid.                                                              |
 | `addVideosGrid`                  | Adds videos to the grid.                                                                               |
 | `onScreenChanges`                | Handles screen changes (orientation and resize).                                                        |
@@ -1245,7 +1697,7 @@ In the context of a room's real-time communication, various events occur, such a
 | `reInitiateRecording`         | Triggered when recording needs to be re-initiated.                                                       |
 | `getDomains`                  | Triggered when domains are received.                                                                     |
 | `updateConsumingDomains`      | Triggered when consuming domains are updated.                                                            |
-| `RecordingNotice`             | Triggered when a recording notice is received.                                                           |
+| `recordingNotice`             | Triggered when a recording notice is received.                                                           |
 | `timeLeftRecording`           | Triggered when time left for recording is received.                                                       |
 | `stoppedRecording`            | Triggered when recording stops.                                                                          |
 | `hostRequestResponse`         | Triggered when the host request response is received.                                                    |
@@ -1262,24 +1714,84 @@ In the context of a room's real-time communication, various events occur, such a
 ```javascript
 // Example usage of provided socket event handling functions
 
-import { participantRequested,screenProducerId } from 'mediasfu-reactjs'
+import { participantRequested, screenProducerId, updateMediaSettings } from 'mediasfu-reactjs'
 
-socket.current.on('participantRequested', async ({ userRequest }) => {
+socket.current.on(
+"participantRequested",
+async ({ userRequest }: { userRequest: Request }) => {
     await participantRequested({
-        userRequest,
-        parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+    userRequest,
+    requestList: requestList.current,
+    waitingRoomList: waitingRoomList.current,
+    updateTotalReqWait,
+    updateRequestList,
     });
-});
+}
+);
 
-socket.current.on('screenProducerId', async ({ producerId }) => {
-    await screenProducerId({
-        producerId,
-        parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+socket.current.on(
+"screenProducerId",
+async ({ producerId }: { producerId: string }) => {
+    screenProducerId({
+    producerId,
+    screenId: screenId.current,
+    membersReceived: membersReceived.current,
+    shareScreenStarted: shareScreenStarted.current,
+    deferScreenReceived: deferScreenReceived.current,
+    participants: participants.current,
+    updateScreenId,
+    updateShareScreenStarted,
+    updateDeferScreenReceived,
     });
-});
+}
+);
+
+socket.current.on(
+"updateMediaSettings",
+async ({ settings }: { settings: Settings }) => {
+    updateMediaSettings({
+    settings,
+    updateAudioSetting,
+    updateVideoSetting,
+    updateScreenshareSetting,
+    updateChatSetting,
+    });
+}
+);
 ```
 
 These functions enable seamless interaction with the server and ensure that the application stays synchronized with the real-time events occurring within the room.
+
+### Customizing Media Display in MediaSFU
+
+By default, media display in MediaSFU is handled by the following key functions:
+
+- **`prepopulateUserMedia`**: This function controls the main media grid, such as the host's video in webinar or broadcast views (MainGrid).
+- **`addVideosGrid`**: This function manages the mini grid's media, such as participants' media in MiniGrid views (MiniCards, AudioCards, VideoCards).
+
+#### Customizing the Media Display
+
+If you want to modify the default content displayed by MediaSFU components, such as the `MiniCard`, `AudioCard`, or `VideoCard`, you can replace the default UI with your own custom components.
+
+To implement your custom UI for media display:
+
+1. **Custom MainGrid (Host's Video)**: 
+   - Modify the UI in the `prepopulateUserMedia` function. 
+   - Example link to MediaSFU's default implementation: [`prepopulateUserMedia`](https://github.com/MediaSFU/MediaSFU-ReactJS/blob/main/src/consumers/prepopulateUserMedia.tsx).
+
+2. **Custom MiniGrid (Participants' Media)**:
+   - Modify the UI in the `addVideosGrid` function.
+   - Example link to MediaSFU's default implementation: [`addVideosGrid`](https://github.com/MediaSFU/MediaSFU-ReactJS/blob/main/src/consumers/addVideosGrid.tsx).
+
+To create a custom UI, you can refer to existing MediaSFU implementations like:
+
+- [MediasfuGeneric](https://github.com/MediaSFU/MediaSFU-ReactJS/blob/main/src/components/mediasfuComponents/MediasfuGeneric.tsx)
+- [MediasfuBroadcast](https://github.com/MediaSFU/MediaSFU-ReactJS/blob/main/src/components/mediasfuComponents/MediasfuBroadcast.tsx)
+
+Once your custom components are built, modify the imports of `prepopulateUserMedia` and `addVideosGrid` to point to your custom implementations instead of the default MediaSFU ones.
+
+This allows for full flexibility in how media is displayed in both the main and mini grids, giving you the ability to tailor the user experience to your specific needs.
+
 
 # API Reference <a name="api-reference"></a>
 

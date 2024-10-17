@@ -10,7 +10,7 @@
  * @param {boolean} options.parameters.lock_screen - Indicates whether the screen is locked.
  * @param {boolean} options.parameters.shared - Indicates whether the screen is being shared.
  * @param {boolean} options.parameters.updateMainWindow - The function to update the main window state.
- * @param {string} options.parameters.HostLabel - The label for the host.
+ * @param {string} options.parameters.hostLabel - The label for the host.
  * @param {string} options.parameters.roomName - The name of the room.
  * @param {Function} options.parameters.updateAudioProducer - The function to update the audio producer state.
  * @param {Function} options.parameters.updateUpdateMainWindow - The function to update the main window update state.
@@ -18,44 +18,44 @@
  * @throws Throws an error if there is an issue during the pauseion.
  */
 export const pauseSendTransportAudio = async ({ parameters }) => {
-    try {
-      // Destructure parameters
-      let {
-        audioProducer,
-        socket,
-        videoAlreadyOn,
-        islevel,
-        lock_screen,
-        shared,
-        updateMainWindow,
-        HostLabel,
-        roomName,
-        updateAudioProducer,
-        updateUpdateMainWindow,
-  
-        //mediasfu functions
-        prepopulateUserMedia,
-      } = parameters;
-  
-      // Pause the audio producer
-      await audioProducer.pause();
-      updateAudioProducer(audioProducer);
-  
-      // Update the UI
-      if (!videoAlreadyOn && islevel === '2') {
-        if (!lock_screen && !shared) {
-          updateMainWindow = true;
-          updateUpdateMainWindow(updateMainWindow);
-          await prepopulateUserMedia({ name: HostLabel, parameters });
-          updateMainWindow = false;
-          updateUpdateMainWindow(updateMainWindow);
-        }
+  try {
+    // Destructure parameters
+    let {
+      audioProducer,
+      socket,
+      videoAlreadyOn,
+      islevel,
+      lock_screen,
+      shared,
+      updateMainWindow,
+      hostLabel,
+      roomName,
+      updateAudioProducer,
+      updateUpdateMainWindow,
+
+      //mediasfu functions
+      prepopulateUserMedia,
+    } = parameters;
+
+    // Pause the audio producer
+    await audioProducer.pause();
+    updateAudioProducer(audioProducer);
+
+    // Update the UI
+    if (!videoAlreadyOn && islevel === "2") {
+      if (!lock_screen && !shared) {
+        updateMainWindow = true;
+        updateUpdateMainWindow(updateMainWindow);
+        await prepopulateUserMedia({ name: hostLabel, parameters });
+        updateMainWindow = false;
+        updateUpdateMainWindow(updateMainWindow);
       }
-  
-      // Notify the server about pausing audio producer
-      await socket.emit('pauseProducerMedia', { mediaTag: 'audio', roomName: roomName });
-    } catch (error) {
-  
     }
-  };
-  
+
+    // Notify the server about pausing audio producer
+    await socket.emit("pauseProducerMedia", {
+      mediaTag: "audio",
+      roomName: roomName,
+    });
+  } catch (error) {}
+};

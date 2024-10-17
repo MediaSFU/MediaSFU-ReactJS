@@ -121,7 +121,7 @@ async function createRoomOnMediaSFU(payload, apiUserName, apiKey) {
             },
             body: JSON.stringify(payload)
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }

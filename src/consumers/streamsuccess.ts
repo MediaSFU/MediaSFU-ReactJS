@@ -1,3 +1,4 @@
+/* eslint-disable eqeqeq */
 /**
  * Handles the success of obtaining a video stream.
  *
@@ -17,7 +18,7 @@
  * @param {string} options.parameters.userDefaultVideoInputDevice - The user's default video input device.
  * @param {object} options.parameters.params - Additional parameters related to the video stream.
  * @param {object} options.parameters.videoParamse - Additional parameters related to the video stream.
- * @param {object} options.parameters.HostLabel - The label for the host.
+ * @param {object} options.parameters.hostLabel - The label for the host.
  * @param {string} options.parameters.islevel - The user level.
  * @param {function} options.parameters.updateMainWindow - Function to update the main window state.
  * @param {boolean} options.parameters.lock_screen - Indicates if the screen is locked.
@@ -49,12 +50,10 @@
  */
 
 export const streamSuccessVideo = async ({ stream, parameters }) => {
-
   let { getUpdatedAllParams } = parameters;
-  parameters = await getUpdatedAllParams()
+  parameters = await getUpdatedAllParams();
 
   try {
-
     let {
       socket,
       participants,
@@ -69,7 +68,7 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       userDefaultVideoInputDevice,
       params,
       videoParamse,
-      HostLabel,
+
       islevel,
       member,
       updateMainWindow,
@@ -81,11 +80,8 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       allowed,
       currentFacingMode,
       device,
-      rtpCapabilities,
-
 
       //update functions
-      updateTransportCreated,
       updateTransportCreatedVideo,
       updateVideoAlreadyOn,
       updateVideoAction,
@@ -99,34 +95,29 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
       updateParticipants,
       updateVideoParams,
 
-
       //mediasoup functions
       createSendTransport,
       connectSendTransportVideo,
-      showAlert,
       reorderStreams,
-
-
     } = parameters;
 
-
-    localStreamVideo = await stream
-    updateLocalStreamVideo(localStreamVideo)
+    localStreamVideo = await stream;
+    updateLocalStreamVideo(localStreamVideo);
     //add the video stream track to localStream
 
     if (localStream == null) {
-      localStream = await new MediaStream([localStreamVideo.getVideoTracks()[0]]);
-      updateLocalStream(localStream)
+      localStream = await new MediaStream([
+        localStreamVideo.getVideoTracks()[0],
+      ]);
+      updateLocalStream(localStream);
     } else {
       // remove all video tracks that are currently in the localStream
       await localStream.getVideoTracks().forEach((track) => {
         localStream.removeTrack(track);
-      }
-
-      );
+      });
       // add the new video track to the localStream
       await localStream.addTrack(localStreamVideo.getVideoTracks()[0]);
-      updateLocalStream(localStream)
+      updateLocalStream(localStream);
     }
 
     //get the video track settings
@@ -137,93 +128,76 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
 
     //update the state variables
     if (defVideoID) {
-      updateDefVideoID(defVideoID)
+      updateDefVideoID(defVideoID);
     }
     if (userDefaultVideoInputDevice) {
-      updateUserDefaultVideoInputDevice(userDefaultVideoInputDevice)
+      updateUserDefaultVideoInputDevice(userDefaultVideoInputDevice);
     }
     if (currentFacingMode) {
-      updateCurrentFacingMode(currentFacingMode)
+      updateCurrentFacingMode(currentFacingMode);
     }
 
-    allowed = true
-    updateAllowed(allowed)
+    allowed = true;
+    updateAllowed(allowed);
 
-    try {
-      //apply the video constraints
-      if (islevel == '2') {
-        if (!shared || !shareScreenStarted) {
-          params = await hParams;
-          videoParamse = await { params }
-        } else {
-          params = await vParams;
-          videoParamse = await { params }
-        }
+    //apply the video constraints
+    if (islevel == "2") {
+      if (!shared || !shareScreenStarted) {
+        params = await hParams;
+        videoParamse = await { params };
       } else {
         params = await vParams;
-        videoParamse = await { params }
+        videoParamse = await { params };
       }
-
-
-
-      //remove vp9 codec from the video codecs; support only vp8 and h264
-      let codecs = device.rtpCapabilities.codecs.filter((codec) => codec.mimeType.toLowerCase() !== 'video/vp9');
-
-      //create transport if not created else connect transport
-      videoParams = await { track: localStream.getVideoTracks()[0], ...videoParamse, codecs };
-      await updateVideoParams(videoParams)
-
-
-      if (!transportCreated) {
-
-        try {
-          await createSendTransport({
-            parameters: {
-              ...parameters,
-              videoParams: videoParams
-            },
-            option: 'video'
-          });
-        } catch (error) {
-
-        }
-
-      } else {
-        await connectSendTransportVideo({
-          parameters: parameters,
-          videoParams: videoParams
-        });
-
-      }
-
-    } catch (error) {
-
-      if (showAlert) {
-        showAlert({
-          message: error.message,
-          type: 'danger',
-          duration: 3000
-        })
-      }
-
+    } else {
+      params = await vParams;
+      videoParamse = await { params };
     }
 
+    //remove vp9 codec from the video codecs; support only vp8 and h264
+    let codecs = device.rtpCapabilities.codecs.filter(
+      (codec) => codec.mimeType.toLowerCase() !== "video/vp9"
+    );
 
+    //create transport if not created else connect transport
+    videoParams = await {
+      track: localStream.getVideoTracks()[0],
+      ...videoParamse,
+      codecs,
+    };
+    await updateVideoParams(videoParams);
+
+    if (!transportCreated) {
+      try {
+        await createSendTransport({
+          parameters: {
+            ...parameters,
+            videoParams: videoParams,
+          },
+          option: "video",
+        });
+      } catch (error) {}
+    } else {
+      await connectSendTransportVideo({
+        parameters: parameters,
+        videoParams: videoParams,
+      });
+    }
 
     //update the videoAlreadyOn state
     videoAlreadyOn = true;
-    updateVideoAlreadyOn(videoAlreadyOn)
+    updateVideoAlreadyOn(videoAlreadyOn);
 
     //if user requested to share video, update the videoAction state
     if (videoAction == true) {
       videoAction = false;
-      updateVideoAction(videoAction)
+      updateVideoAction(videoAction);
     }
 
     // update the display screen if host
-    if (islevel == '2') {
+    if (islevel == "2") {
       updateMainWindow = true;
-      updateUpdateMainWindow(updateMainWindow)
+      updateUpdateMainWindow(updateMainWindow);
     }
 
     //update the participants array to reflect the change
@@ -232,47 +206,41 @@ export const streamSuccessVideo = async ({ stream, parameters }) => {
         participant.videoOn = true;
       }
     });
-    updateParticipants(participants)
+    updateParticipants(participants);
 
     //update the transport created state
     transportCreatedVideo = true;
-    updateTransportCreatedVideo(transportCreatedVideo)
+    updateTransportCreatedVideo(transportCreatedVideo);
 
     //reupdate the screen display
     if (lock_screen) {
-
       try {
-        await reorderStreams({ add: true, screenChanged: true, parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn } })
-      } catch (error) {
-
-      }
+        await reorderStreams({
+          add: true,
+          screenChanged: true,
+          parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn },
+        });
+      } catch (error) {}
     } else {
-
       try {
-        await reorderStreams({ add: false, screenChanged: true, parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn } })
-      } catch (error) {
-
-      }
-
+        await reorderStreams({
+          add: false,
+          screenChanged: true,
+          parameters: { ...parameters, videoAlreadyOn: videoAlreadyOn },
+        });
+      } catch (error) {}
     }
-
-
   } catch (error) {
     try {
-      let { showAlert } = parameters
+      let { showAlert } = parameters;
 
       if (showAlert) {
         showAlert({
           message: error.message,
-          type: 'danger',
-          duration: 3000
-        })
+          type: "danger",
+          duration: 3000,
+        });
       }
-    } catch (error) {
-
-    }
+    } catch (error) {}
   }
-
-
-
-}
+};

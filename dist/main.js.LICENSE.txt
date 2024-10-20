@@ -1,12 +1,3 @@
-/*!
- * cookie
- * Copyright(c) 2012-2014 Roman Shtylman
- * Copyright(c) 2015 Douglas Christopher Wilson
- * MIT Licensed
- */
-
-/*! queue-microtask. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
-
 /**
  * @license React
  * react-jsx-runtime.production.min.js

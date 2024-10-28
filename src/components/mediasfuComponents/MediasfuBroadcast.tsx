@@ -3913,11 +3913,13 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
     };
 
     if (validated) {
-      updateIsLoadingModalVisible(true);
 
       try {
         if (localUIMode.current === false) {
+          updateIsLoadingModalVisible(true);
           connectAndAddSocketMethods();
+        } else {
+          updateIsLoadingModalVisible(false);
         }
       } catch (error) {
         console.log("error connectAndaAddSocketMethods", error);
@@ -3928,7 +3930,6 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
         parameters: { ...getAllParams(), ...mediaSFUFunctions() },
       });
 
-      updateIsLoadingModalVisible(false);
     }
   }, [validated]);
 

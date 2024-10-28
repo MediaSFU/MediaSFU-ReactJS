@@ -81,14 +81,6 @@ A basic guide on how to use the module for common tasks.
 
 This section will guide users through the initial setup and installation of the npm module.
 
-*If users are interested in the Android/iOS (mobile) versions, they can refer to the Expo React Native project that is configured to produce both web and mobile apps. The source code for this project is available on GitHub at [*MediaSFU/MediaSFU*](https://github.com/MediaSFU/MediaSFU)*. 
-
-*For the community edition, users can visit the GitHub repository at [*MediaSFU/MediaSFUOpen*](https://github.com/MediaSFU/MediaSFUOpen)*.
-
-*Users can follow the instructions provided in the README of the respective GitHub repositories to set up and install the projects for both web and mobile platforms, ensuring a consistent user experience across different platforms*.
-
-*Users can follow the instructions provided here and in the README of the GitHub repository to set up and install the project for both web and mobile platforms using Expo. This allows for seamless development and deployment across multiple platforms, ensuring a consistent user experience*.
-
 ## Introduction
 
 MediaSFU is a 2-page application consisting of a prejoin/welcome page and the main events room page. This guide will walk you through the basic usage of the module for setting up these pages.

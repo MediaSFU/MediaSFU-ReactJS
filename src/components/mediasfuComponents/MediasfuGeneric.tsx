@@ -4698,11 +4698,13 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
     };
 
     if (validated) {
-      updateIsLoadingModalVisible(true);
 
       try {
         if (localUIMode.current === false) {
+          updateIsLoadingModalVisible(true);
           connectAndAddSocketMethods();
+        } else {
+          updateIsLoadingModalVisible(false);
         }
       } catch (error) {
         console.log("error connectAndaAddSocketMethods", error);
@@ -4713,7 +4715,6 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
         parameters: { ...getAllParams(), ...mediaSFUFunctions() },
       });
 
-      updateIsLoadingModalVisible(false);
     }
   }, [validated]);
 

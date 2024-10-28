@@ -3,6 +3,10 @@ import { Scanner } from "@yudiel/react-qr-scanner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQrcode } from "@fortawesome/free-solid-svg-icons";
 import Cookies from "universal-cookie";
+import { CSSProperties } from "react";
+import { Socket } from "socket.io-client";
+import { ConnectSocketType } from "../../sockets/SocketManager";
+import { ShowAlert } from "../../@types/types";
 
 const cookies = new Cookies();
 const MAX_ATTEMPTS = 10; // Maximum number of unsuccessful attempts before rate limiting
@@ -445,11 +449,6 @@ const WelcomePage: React.FC<WelcomePageOptions> = ({ parameters }) => {
     </div>
   );
 };
-
-import { CSSProperties } from "react";
-import { Socket } from "socket.io-client";
-import { ConnectSocketType } from "../../sockets/SocketManager";
-import { ShowAlert } from "../../@types/types";
 
 const styles: { [key: string]: CSSProperties } = {
   container: {

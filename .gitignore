@@ -11,6 +11,7 @@
 # production
 /build
 
+
 # misc
 .DS_Store
 .env.local
@@ -29,3 +30,4 @@ mediasfu-reactjs-0-0.1.0.tgz
 webpack.config.js
 rename_js_to_ts.sh
 specific_js_ts.sh
+/dist

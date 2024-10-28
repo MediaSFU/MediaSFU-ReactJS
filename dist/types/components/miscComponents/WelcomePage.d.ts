@@ -1,4 +1,7 @@
 import React from "react";
+import { Socket } from "socket.io-client";
+import { ConnectSocketType } from "../../sockets/SocketManager";
+import { ShowAlert } from "../../@types/types";
 export interface WelcomePageParameters {
     imgSrc?: string;
     showAlert?: ShowAlert;
@@ -39,8 +42,5 @@ export type WelcomePageType = (options: WelcomePageOptions) => JSX.Element;
  * <WelcomePage parameters={parameters} />
  */
 declare const WelcomePage: React.FC<WelcomePageOptions>;
-import { Socket } from "socket.io-client";
-import { ConnectSocketType } from "../../sockets/SocketManager";
-import { ShowAlert } from "../../@types/types";
 export default WelcomePage;
 //# sourceMappingURL=WelcomePage.d.ts.map

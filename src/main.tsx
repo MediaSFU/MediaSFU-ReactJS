@@ -7,7 +7,7 @@ import MainAspectComponent from './components/displayComponents/MainAspectCompon
 import ControlButtonsComponent from './components/displayComponents/ControlButtonsComponent';
 import ControlButtonsAltComponent from './components/displayComponents/ControlButtonsAltComponent';
 import ControlButtonsComponentTouch from './components/displayComponents/ControlButtonsComponentTouch';
-import OthergridComponent from './components/displayComponents/OtherGridComponent';
+import OtherGridComponent from './components/displayComponents/OtherGridComponent';
 import MainScreenComponent from './components/displayComponents/MainScreenComponent';
 import MainGridComponent from './components/displayComponents/MainGridComponent';
 import SubAspectComponent from './components/displayComponents/SubAspectComponent';
@@ -208,7 +208,7 @@ import { SoundPlayer } from './methods/utils/SoundPlayer';
 
 export { 
     initialValuesState,
-    LoadingModal, MainAspectComponent, ControlButtonsComponent, ControlButtonsAltComponent, ControlButtonsComponentTouch, OthergridComponent, MainScreenComponent, MainGridComponent, SubAspectComponent, MainContainerComponent, AlertComponent, MenuModal, RecordingModal, RequestsModal, WaitingRoomModal, DisplaySettingsModal, EventSettingsModal, CoHostModal, ParticipantsModal, MessagesModal, MediaSettingsModal, ConfirmExitModal, ConfirmHereModal, ShareEventModal, WelcomePage, PreJoinPage,
+    LoadingModal, MainAspectComponent, ControlButtonsComponent, ControlButtonsAltComponent, ControlButtonsComponentTouch, OtherGridComponent, MainScreenComponent, MainGridComponent, SubAspectComponent, MainContainerComponent, AlertComponent, MenuModal, RecordingModal, RequestsModal, WaitingRoomModal, DisplaySettingsModal, EventSettingsModal, CoHostModal, ParticipantsModal, MessagesModal, MediaSettingsModal, ConfirmExitModal, ConfirmHereModal, ShareEventModal, WelcomePage, PreJoinPage,
     Pagination, FlexibleGrid, FlexibleVideo, AudioGrid,
     launchMenuModal, launchRecording, startRecording, confirmRecording, launchWaiting, launchCoHost, launchMediaSettings, launchDisplaySettings, launchSettings, launchRequests, launchParticipants, launchMessages, launchConfirmExit,
     connectSocket, disconnectSocket, joinRoomClient, updateRoomParametersClient, createDeviceClient,

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import Cookies from "universal-cookie";
 import { ConnectSocketType, ShowAlert } from "../../@types/types";
 import { Socket } from "socket.io-client";
+import { CSSProperties } from "react";
 
 const cookies = new Cookies();
 const MAX_ATTEMPTS = 10; // Maximum number of unsuccessful attempts before rate limiting
@@ -490,8 +491,6 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
     </div>
   );
 };
-
-import { CSSProperties } from "react";
 
 const styles: { [key: string]: CSSProperties } = {
   container: {

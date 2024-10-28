@@ -3612,11 +3612,13 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
     };
 
     if (validated) {
-      updateIsLoadingModalVisible(true);
 
       try {
         if (localUIMode.current === false) {
+          updateIsLoadingModalVisible(true);
           connectAndAddSocketMethods();
+        } else {
+          updateIsLoadingModalVisible(false);
         }
       } catch (error) {
         console.log("error connectAndaAddSocketMethods", error);
@@ -3627,7 +3629,6 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
         parameters: { ...getAllParams(), ...mediaSFUFunctions() },
       });
 
-      updateIsLoadingModalVisible(false);
     }
   }, [validated]);
 

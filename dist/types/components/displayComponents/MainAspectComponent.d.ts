@@ -12,21 +12,52 @@ export interface MainAspectComponentOptions {
 }
 export type MainAspectComponentType = (options: MainAspectComponentOptions) => JSX.Element;
 /**
- * MainAspectComponent is a React functional component that adjusts its dimensions
- * based on the window size and specified fractions. It also updates screen size
- * states (wide, medium, small) based on the container's width.
+ * MainAspectComponent is a React functional component that dynamically adjusts its dimensions based on window size and specified fractions, while updating screen size states (wide, medium, small) based on container width.
  *
- * @param {string} backgroundColor - The background color of the component. Defaults to "transparent".
- * @param {React.ReactNode} children - The child elements to be rendered inside the component.
- * @param {boolean} showControls - Flag to determine if controls are shown, affecting the height calculation. Defaults to true.
- * @param {number} containerWidthFraction - Fraction of the window width to be used for the container's width. Defaults to 1.
- * @param {number} containerHeightFraction - Fraction of the window height to be used for the container's height. Defaults to 1.
- * @param {number} defaultFraction - Default fraction to adjust the height when controls are shown. Defaults to 0.94.
- * @param {Function} updateIsWideScreen - Callback function to update the wide screen state.
- * @param {Function} updateIsMediumScreen - Callback function to update the medium screen state.
- * @param {Function} updateIsSmallScreen - Callback function to update the small screen state.
+ * This component provides an adaptive container that resizes according to the window’s height and width, factoring in control visibility, and offers real-time updates for screen size breakpoints.
  *
- * @returns {JSX.Element} The rendered component with adjusted dimensions and background color.
+ * @component
+ * @param {MainAspectComponentOptions} props - The properties for the MainAspectComponent.
+ * @param {string} [props.backgroundColor='transparent'] - Background color of the component.
+ * @param {React.ReactNode} props.children - The child elements to render inside the component.
+ * @param {boolean} [props.showControls=true] - Determines if controls are shown, impacting height calculation.
+ * @param {number} [props.containerWidthFraction=1] - Fraction of the window width for container width.
+ * @param {number} [props.containerHeightFraction=1] - Fraction of the window height for container height.
+ * @param {number} [props.defaultFraction=0.94] - Default height fraction adjustment when controls are visible.
+ * @param {Function} props.updateIsWideScreen - Callback to update wide screen state.
+ * @param {Function} props.updateIsMediumScreen - Callback to update medium screen state.
+ * @param {Function} props.updateIsSmallScreen - Callback to update small screen state.
+ *
+ * @returns {JSX.Element} The rendered MainAspectComponent with adaptive dimensions.
+ *
+ * @example
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { MainAspectComponent } from 'mediasfu-reactjs';
+ *
+ * function App() {
+ *   const [isWideScreen, setIsWideScreen] = useState(false);
+ *   const [isMediumScreen, setIsMediumScreen] = useState(false);
+ *   const [isSmallScreen, setIsSmallScreen] = useState(false);
+ *
+ *   return (
+ *     <MainAspectComponent
+ *       backgroundColor="black"
+ *       showControls={true}
+ *       containerWidthFraction={0.5}
+ *       containerHeightFraction={0.5}
+ *       defaultFraction={0.9}
+ *       updateIsWideScreen={setIsWideScreen}
+ *       updateIsMediumScreen={setIsMediumScreen}
+ *       updateIsSmallScreen={setIsSmallScreen}
+ *     >
+ *       <div>Responsive Content</div>
+ *     </MainAspectComponent>
+ *   );
+ * }
+ *
+ * export default App;
+ * ```
  */
 declare const MainAspectComponent: React.FC<MainAspectComponentOptions>;
 export default MainAspectComponent;

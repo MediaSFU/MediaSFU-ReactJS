@@ -25,6 +25,21 @@ export type PollUpdatedType = (options: PollUpdatedOptions) => Promise<void>;
  * @param {Function} options.updatePoll - Function to update the current poll.
  * @param {Function} options.updateIsPollModalVisible - Function to update the visibility of the poll modal.
  * @returns {Promise<void>} A promise that resolves when the poll update is complete.
+ *
+ * @example
+ * ```typescript
+ * await pollUpdated({
+ *   data: { poll: updatedPoll, status: "started" },
+ *   polls: currentPolls,
+ *   poll: currentPoll,
+ *   member: "user123",
+ *   islevel: "1",
+ *   showAlert: (alert) => console.log(alert.message),
+ *   updatePolls: (polls) => setPolls(polls),
+ *   updatePoll: (poll) => setCurrentPoll(poll),
+ *   updateIsPollModalVisible: (visible) => setIsPollModalVisible(visible),
+ * });
+ * ```
  */
 export declare const pollUpdated: ({ data, polls, poll, member, islevel, showAlert, updatePolls, updatePoll, updateIsPollModalVisible, }: PollUpdatedOptions) => Promise<void>;
 //# sourceMappingURL=pollUpdated.d.ts.map

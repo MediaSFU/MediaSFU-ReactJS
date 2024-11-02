@@ -49,6 +49,7 @@ export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => JSX
  * @returns {JSX.Element} The rendered BreakoutRoomsModal component.
  *
  * @example
+ * ```tsx
  * <BreakoutRoomsModal
  *   isVisible={true}
  *   onBreakoutRoomsClose={handleClose}
@@ -56,6 +57,7 @@ export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => JSX
  *   position="topRight"
  *   backgroundColor="#83c0e9"
  * />
+ * ```
  */
 declare const BreakoutRoomsModal: React.FC<BreakoutRoomsModalOptions>;
 export default BreakoutRoomsModal;

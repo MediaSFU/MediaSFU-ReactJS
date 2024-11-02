@@ -66,20 +66,102 @@ export type RecordingModalType = (
 ) => JSX.Element;
 
 /**
- * RecordingModal component renders a modal for recording settings.
+ * RecordingModal component provides an interface for configuring and controlling
+ * recording settings within a modal. This component enables users to customize
+ * recording parameters, such as video and display type, background color, custom text,
+ * and orientation, and to initiate or confirm the recording process.
  *
- * @param {object} props - The properties object.
- * @param {boolean} props.isRecordingModalVisible - Determines if the modal is visible.
- * @param {function} props.onClose - Function to call when the modal is closed.
- * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
- * @param {string} [props.position="bottomRight"] - Position of the modal on the screen.
- * @param {function} props.confirmRecording - Function to call when confirming the recording.
- * @param {function} props.startRecording - Function to call when starting the recording.
- * @param {object} props.parameters - Parameters for the recording.
- * @param {boolean} props.parameters.recordPaused - Indicates if the recording is paused.
+ * @component
+ * @param {boolean} isRecordingModalVisible - Controls the visibility of the modal.
+ * @param {() => void} onClose - Callback function for closing the modal.
+ * @param {string} [backgroundColor="#83c0e9"] - Background color of the modal content.
+ * @param {string} [position="bottomRight"] - Screen position for the modal (e.g., "bottomRight").
+ * @param {ConfirmRecordingType} confirmRecording - Function for confirming recording settings.
+ * @param {StartRecordingType} startRecording - Function for starting the recording process.
+ * @param {RecordingModalParameters} parameters - Object containing all customizable recording parameters.
+ * @param {boolean} parameters.recordPaused - Indicates if recording is currently paused.
+ * @param {string} parameters.recordingVideoType - Specifies the video type for recording.
+ * @param {("video" | "media" | "all")} parameters.recordingDisplayType - Display type for recording.
+ * @param {string} parameters.recordingBackgroundColor - Background color during recording.
+ * @param {string} parameters.recordingNameTagsColor - Color of name tags in recording.
+ * @param {string} parameters.recordingOrientationVideo - Orientation setting for video.
+ * @param {boolean} parameters.recordingNameTags - Indicates if name tags are shown.
+ * @param {boolean} parameters.recordingAddText - Specifies if custom text is added to recording.
+ * @param {string} parameters.recordingCustomText - Text to be displayed in recording.
+ * @param {string} parameters.recordingCustomTextPosition - Position for custom text.
+ * @param {string} parameters.recordingCustomTextColor - Color of custom text.
+ * @param {string} parameters.recordingMediaOptions - Media options for recording.
+ * @param {string} parameters.recordingAudioOptions - Audio options for recording.
+ * @param {string} parameters.recordingVideoOptions - Video options for recording.
+ * @param {boolean} parameters.recordingAddHLS - Specifies if HLS is added to recording.
+ * @param {EventType} parameters.eventType - Type of event the recording is associated with.
+ * @param {Function} parameters.updateRecordingVideoType - Function to update video type.
+ * @param {Function} parameters.updateRecordingDisplayType - Function to update display type.
+ * @param {Function} parameters.updateRecordingBackgroundColor - Function to update background color.
+ * @param {Function} parameters.updateRecordingNameTagsColor - Function to update name tags color.
+ * @param {Function} parameters.updateRecordingOrientationVideo - Function to update orientation.
+ * @param {Function} parameters.updateRecordingNameTags - Function to toggle name tags.
+ * @param {Function} parameters.updateRecordingAddText - Function to toggle custom text.
+ * @param {Function} parameters.updateRecordingCustomText - Function to set custom text.
+ * @param {Function} parameters.updateRecordingCustomTextPosition - Function to set custom text position.
+ * @param {Function} parameters.updateRecordingCustomTextColor - Function to set custom text color.
+ * @param {Function} parameters.updateRecordingMediaOptions - Function to set media options.
+ * @param {Function} parameters.updateRecordingAudioOptions - Function to set audio options.
+ * @param {Function} parameters.updateRecordingVideoOptions - Function to set video options.
+ * @param {Function} parameters.updateRecordingAddHLS - Function to toggle HLS in recording.
+ * 
+ * @example
+ * ```tsx
+ * import { RecordingModal } from 'mediasfu-reactjs';
  *
- * @returns {JSX.Element} The rendered RecordingModal component.
+ * // Define the recording parameters
+ * const recordingParams = {
+ *   recordPaused: false,
+ *   recordingVideoType: "bestDisplay",
+ *   recordingDisplayType: "video",
+ *   recordingBackgroundColor: "#000000",
+ *   recordingNameTagsColor: "#FFFFFF",
+ *   recordingOrientationVideo: "landscape",
+ *   recordingNameTags: true,
+ *   recordingAddText: true,
+ *   recordingCustomText: "Sample Text",
+ *   recordingCustomTextPosition: "top",
+ *   recordingCustomTextColor: "#FF0000",
+ *   recordingMediaOptions: "option1",
+ *   recordingAudioOptions: "option2",
+ *   recordingVideoOptions: "option3",
+ *   recordingAddHLS: true,
+ *   eventType: "meeting",
+ *   updateRecordingVideoType: (value) => console.log(value),
+ *   updateRecordingDisplayType: (value) => console.log(value),
+ *   updateRecordingBackgroundColor: (value) => console.log(value),
+ *   updateRecordingNameTagsColor: (value) => console.log(value),
+ *   updateRecordingOrientationVideo: (value) => console.log(value),
+ *   updateRecordingNameTags: (value) => console.log(value),
+ *   updateRecordingAddText: (value) => console.log(value),
+ *   updateRecordingCustomText: (value) => console.log(value),
+ *   updateRecordingCustomTextPosition: (value) => console.log(value),
+ *   updateRecordingCustomTextColor: (value) => console.log(value),
+ *   updateRecordingMediaOptions: (value) => console.log(value),
+ *   updateRecordingAudioOptions: (value) => console.log(value),
+ *   updateRecordingVideoOptions: (value) => console.log(value),
+ *   updateRecordingAddHLS: (value) => console.log(value),
+ * };
+ * 
+ * // Render the RecordingModal component
+ * <RecordingModal
+ *   isRecordingModalVisible={true}
+ *   onClose={() => console.log("Modal closed")}
+ *   backgroundColor="#83c0e9"
+ *   position="bottomRight"
+ *   confirmRecording={() => console.log("Recording confirmed")}
+ *   startRecording={() => console.log("Recording started")}
+ *   parameters={recordingParams}
+ * />
+ * ```
  */
+
+
 const RecordingModal: React.FC<RecordingModalOptions> = ({
   isRecordingModalVisible,
   onClose,

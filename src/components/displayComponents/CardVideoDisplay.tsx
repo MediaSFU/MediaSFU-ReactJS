@@ -13,16 +13,46 @@ export interface CardVideoDisplayOptions {
 export type CardVideoDisplayType = (options: CardVideoDisplayOptions) => React.ReactNode;
 
 /**
- * CardVideoDisplay - A React functional component that displays a video stream.
+ * CardVideoDisplay - A React functional component that displays a video stream with configurable display options.
  *
- * @param {Object} props - The properties object.
- * @param {boolean} props.forceFullDisplay - If true, the video will take up the full display area.
- * @param {MediaStream} props.videoStream - The media stream to be displayed in the video element.
- * @param {string} [props.backgroundColor='transparent'] - The background color of the video container.
- * @param {boolean} [props.doMirror=false] - If true, the video will be mirrored horizontally.
+ * This component renders a video element from a provided `MediaStream`, allowing options such as mirroring the video, setting a background color, and controlling whether the video fills the display area.
  *
- * @returns {JSX.Element} - The rendered video display component.
+ * @component
+ * @param {CardVideoDisplayOptions} props - The properties object for CardVideoDisplay.
+ * @param {string} props.remoteProducerId - The ID of the remote producer for tracking the video stream source.
+ * @param {EventType} props.eventType - Type of the event, used for handling different video stream conditions.
+ * @param {boolean} props.forceFullDisplay - If true, the video fills the display area.
+ * @param {MediaStream | null} props.videoStream - The media stream to be displayed in the video element.
+ * @param {string} [props.backgroundColor='transparent'] - Background color for the video container.
+ * @param {boolean} [props.doMirror=false] - If true, the video is mirrored horizontally.
+ *
+ * @returns {JSX.Element} The rendered video display component.
+ * 
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { CardVideoDisplay } from 'mediasfu-reactjs';
+ *
+ * function App() {
+ *   const mediaStream = new MediaStream(); // Example media stream
+ *
+ *   return (
+ *     <CardVideoDisplay
+ *       remoteProducerId="producer-123"
+ *       eventType="live"
+ *       forceFullDisplay={true}
+ *       videoStream={mediaStream}
+ *       backgroundColor="black"
+ *       doMirror={true}
+ *     />
+ *   );
+ * }
+ *
+ * export default App;
+ * ```
  */
+
+
 const CardVideoDisplay: React.FC<CardVideoDisplayOptions> = ({
   forceFullDisplay,
   videoStream,

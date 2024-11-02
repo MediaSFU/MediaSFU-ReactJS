@@ -21,6 +21,17 @@ export type ProcessConsumerTransportsAudioType = (options: ProcessConsumerTransp
  * @returns {Promise<void>} A promise that resolves when the processing is complete.
  *
  * @throws Will throw an error if there is an issue processing the consumer transports.
+ *
+ * @example
+ * ```typescript
+ * await processConsumerTransportsAudio({
+ *   consumerTransports: [transport1, transport2],
+ *   lStreams: [stream1, stream2],
+ *   parameters: {
+ *     sleep: sleepFunction,
+ *   },
+ * });
+ * ```
  */
 export declare const processConsumerTransportsAudio: ({ consumerTransports, lStreams, parameters, }: ProcessConsumerTransportsAudioOptions) => Promise<void>;
 //# sourceMappingURL=processConsumerTransportsAudio.d.ts.map

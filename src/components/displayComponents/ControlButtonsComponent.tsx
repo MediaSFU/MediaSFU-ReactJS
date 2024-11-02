@@ -47,17 +47,67 @@ export type ControlButtonsComponentType = (
 ) => JSX.Element;
 
 /**
- * ControlButtonsComponent is a React functional component that renders a set of control buttons.
+ * ControlButtonsComponent is a React functional component that renders a set of customizable control buttons.
  *
- * @param {ControlButtonsComponentOptions} props - The properties for the component.
- * @param {Array<ButtonOptions>} props.buttons - An array of button options to render.
- * @param {string} [props.buttonBackgroundColor] - The default background color for the buttons.
- * @param {string} [props.alignment='flex-start'] - The alignment of the buttons within the container. Defaults to 'flex-start'.
- * @param {boolean} [props.vertical=false] - Whether the buttons should be arranged vertically. Defaults to false.
- * @param {React.CSSProperties} [props.buttonsContainerStyle] - Additional styles for the buttons container.
+ * This component organizes an array of buttons, each with options for icons, background color, and custom behavior. It supports horizontal or vertical layout and flexible alignment within the container.
  *
- * @returns {JSX.Element} The rendered component.
+ * @component
+ * @param {ControlButtonsComponentOptions} props - The properties object.
+ * @param {Button[]} props.buttons - Array of button configurations for rendering.
+ * @param {string} [props.buttonColor] - Default color for button icons.
+ * @param {Object} [props.buttonBackgroundColor] - Background color options for the buttons.
+ * @param {string} [props.buttonBackgroundColor.default] - Default background color for buttons.
+ * @param {string} [props.buttonBackgroundColor.pressed] - Background color when the button is pressed.
+ * @param {string} [props.alignment='flex-start'] - Horizontal alignment within the container ('flex-start', 'center', 'flex-end', 'space-between', 'space-around', 'space-evenly').
+ * @param {boolean} [props.vertical=false] - If true, arranges buttons vertically; otherwise, horizontally.
+ * @param {React.CSSProperties} [props.buttonsContainerStyle] - Additional CSS styles for the button container.
+ *
+ * @returns {JSX.Element} The rendered control buttons component.
+ * 
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { ControlButtonsComponent } from 'mediasfu-reactjs';
+ * import { faPlay, faPause, faStop } from '@fortawesome/free-solid-svg-icons';
+ *
+ * function App() {
+ *   const buttons = [
+ *     {
+ *       name: 'Play',
+ *       icon: faPlay,
+ *       onPress: () => console.log('Play button pressed'),
+ *       backgroundColor: { default: 'green' },
+ *       active: true,
+ *     },
+ *     {
+ *       name: 'Pause',
+ *       icon: faPause,
+ *       onPress: () => console.log('Pause button pressed'),
+ *       backgroundColor: { default: 'red' },
+ *     },
+ *     {
+ *       name: 'Stop',
+ *       icon: faStop,
+ *       onPress: () => console.log('Stop button pressed'),
+ *     },
+ *   ];
+ *
+ *   return (
+ *     <ControlButtonsComponent
+ *       buttons={buttons}
+ *       buttonBackgroundColor={{ default: 'transparent', pressed: 'gray' }}
+ *       alignment="flex-start"
+ *       vertical={false}
+ *       buttonsContainerStyle={{ padding: 10 }}
+ *     />
+ *   );
+ * }
+ *
+ * export default App;
+ * ```
  */
+
+
 const ControlButtonsComponent: React.FC<ControlButtonsComponentOptions> = ({
   buttons,
   buttonBackgroundColor,

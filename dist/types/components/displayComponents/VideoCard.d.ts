@@ -39,32 +39,64 @@ export interface VideoCardOptions {
 }
 export type VideoCardType = (options: VideoCardOptions) => JSX.Element;
 /**
- * VideoCard component displays a video stream with optional controls and information.
- * It also includes an animated waveform based on audio decibels.
+ * VideoCard component displays a video with optional control buttons, participant information, and an animated waveform.
  *
  * @component
- * @param {object} props - The properties object.
+ * @param {VideoCardOptions} props - The properties for the VideoCard component.
  * @param {React.CSSProperties} [props.customStyle] - Custom styles for the card.
- * @param {string} props.name - The name of the participant.
- * @param {string} [props.barColor="red"] - The color of the waveform bars.
- * @param {string} [props.textColor="white"] - The color of the text.
- * @param {string} props.remoteProducerId - The ID of the remote producer.
- * @param {string} props.eventType - The type of event.
- * @param {boolean} props.forceFullDisplay - Whether to force full display of the video.
- * @param {MediaStream} props.videoStream - The video stream to display.
- * @param {boolean} [props.showControls=true] - Whether to show video controls.
- * @param {boolean} [props.showInfo=true] - Whether to show participant information.
- * @param {React.ReactNode} [props.videoInfoComponent] - Custom component for video information.
- * @param {React.ReactNode} [props.videoControlsComponent] - Custom component for video controls.
- * @param {string} [props.controlsPosition="topLeft"] - Position of the controls overlay.
+ * @param {string} props.name - Name of the participant.
+ * @param {string} [props.barColor="red"] - Waveform bar color.
+ * @param {string} [props.textColor="white"] - Text color for participant name.
+ * @param {string} props.remoteProducerId - ID for the remote video producer.
+ * @param {EventType} props.eventType - Event type for the video.
+ * @param {boolean} props.forceFullDisplay - Flag to force full display of the video.
+ * @param {MediaStream} props.videoStream - Video stream for display.
+ * @param {boolean} [props.showControls=true] - Flag to display control buttons.
+ * @param {boolean} [props.showInfo=true] - Flag to display participant information.
+ * @param {React.ReactNode} [props.videoInfoComponent] - Custom video information component.
+ * @param {React.ReactNode} [props.videoControlsComponent] - Custom video controls component.
+ * @param {string} [props.controlsPosition="topLeft"] - Position of the control buttons overlay.
  * @param {string} [props.infoPosition="topRight"] - Position of the information overlay.
- * @param {object} props.participant - The participant object.
- * @param {string} props.backgroundColor - Background color of the card.
- * @param {Array} props.audioDecibels - Array of audio decibel levels.
- * @param {boolean} props.doMirror - Whether to mirror the video.
- * @param {object} props.parameters - Additional parameters for the component.
+ * @param {Participant} props.participant - Participant details.
+ * @param {string} props.backgroundColor - Background color of the video card.
+ * @param {Array<AudioDecibels>} props.audioDecibels - Audio decibel data for the waveform.
+ * @param {boolean} [props.doMirror=false] - Flag to mirror the video.
+ * @param {VideoCardParameters} props.parameters - Additional parameters for video card settings.
  *
  * @returns {JSX.Element} The rendered VideoCard component.
+ *
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { VideoCard } from 'mediasfu-reactjs';
+ *
+ * function App() {
+ *   return (
+ *     <VideoCard
+ *       customStyle={{ border: '1px solid black' }}
+ *       name="John Doe"
+ *       barColor="blue"
+ *       textColor="yellow"
+ *       remoteProducerId="12345"
+ *       eventType="video"
+ *       forceFullDisplay={true}
+ *       videoStream={mediaStream}
+ *       showControls={true}
+ *       showInfo={true}
+ *       controlsPosition="topLeft"
+ *       infoPosition="topRight"
+ *       participant={participant}
+ *       backgroundColor="black"
+ *       audioDecibels={audioDecibels}
+ *       doMirror={true}
+ *       parameters={parameters}
+ *     />
+ *   );
+ * }
+ *
+ *
+ * export default App;
+ * ```
  */
 declare const VideoCard: React.FC<VideoCardOptions>;
 import { AudioDecibels, CoHostResponsibility, Participant, ShowAlert } from "../../@types/types";

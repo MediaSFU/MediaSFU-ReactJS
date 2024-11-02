@@ -21,6 +21,22 @@ export type CheckGridType = (options: CheckGridOptions) => Promise<[boolean, num
  * - `lastrowcols` (number): The number of columns in the last row.
  *
  * If an error occurs, it logs the error to the console.
+ *
+ * @example
+ * const options = {
+ *   rows: 3,
+ *   cols: 4,
+ *   actives: 10,
+ * };
+ *
+ * checkGrid(options)
+ *   .then(result => {
+ *     console.log('Grid check result:', result);
+ *     // Example output: [true, 2, 3, 4, 2, 3, 4]
+ *   })
+ *   .catch(error => {
+ *     console.error('Error checking grid:', error);
+ *   });
  */
 export declare function checkGrid({ rows, cols, actives }: CheckGridOptions): Promise<[boolean, number, number, number, number, number, number] | void>;
 //# sourceMappingURL=checkGrid.d.ts.map

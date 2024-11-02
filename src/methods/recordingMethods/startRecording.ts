@@ -82,7 +82,43 @@ export type StartRecordingType = (options: StartRecordingOptions) => Promise<boo
  * @param {function} options.parameters.captureCanvasStream - Function to capture the canvas stream.
  * 
  * @returns {Promise<boolean | undefined>} - A promise that resolves to a boolean indicating if the recording attempt was successful, or undefined if not applicable.
+ *
+ * @example
+ * ```typescript
+ * startRecording({
+ *   parameters: {
+ *     roomName: "Room101",
+ *     userRecordingParams: myUserRecordingParams,
+ *     socket: mySocket,
+ *     updateIsRecordingModalVisible: setIsRecordingModalVisible,
+ *     confirmedToRecord: true,
+ *     showAlert: myShowAlert,
+ *     recordingMediaOptions: "video",
+ *     videoAlreadyOn: true,
+ *     audioAlreadyOn: true,
+ *     recordStarted: false,
+ *     recordPaused: false,
+ *     recordResumed: false,
+ *     recordStopped: false,
+ *     startReport: false,
+ *     endReport: false,
+ *     canRecord: true,
+ *     updateClearedToRecord: setClearedToRecord,
+ *     updateRecordStarted: setRecordStarted,
+ *     updateRecordPaused: setRecordPaused,
+ *     updateRecordResumed: setRecordResumed,
+ *     updateStartReport: setStartReport,
+ *     updateEndReport: setEndReport,
+ *     updateCanRecord: setCanRecord,
+ *     whiteboardStarted: true,
+ *     whiteboardEnded: false,
+ *     rePort: myRePort,
+ *     captureCanvasStream: myCaptureCanvasStream,
+ *   },
+ * });
+ * ```
  */
+
 export const startRecording = async ({
   parameters,
 }: StartRecordingOptions): Promise<boolean | undefined> => {

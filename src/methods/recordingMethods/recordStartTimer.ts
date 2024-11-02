@@ -52,7 +52,26 @@ export type RecordStartTimerType = (options: RecordStartTimerOptions) => Promise
  * This function initializes the recording start time and sets up an interval to update the timer every second.
  * It also manages the state of the timer, including enabling and disabling pause/resume actions.
  * The timer is stopped if the recording is paused, stopped, or if the room name is invalid.
+ * 
+ * @example
+ * ```typescript
+ * recordStartTimer({
+ *   parameters: {
+ *     recordStartTime: Date.now(),
+ *     recordTimerInterval: null,
+ *     isTimerRunning: false,
+ *     canPauseResume: false,
+ *     recordChangeSeconds: 10000,
+ *     updateRecordStartTime: (time) => console.log("Start time:", time),
+ *     updateRecordTimerInterval: (interval) => console.log("Timer interval:", interval),
+ *     updateIsTimerRunning: (isRunning) => console.log("Is timer running:", isRunning),
+ *     updateCanPauseResume: (canPause) => console.log("Can pause/resume:", canPause),
+ *     getUpdatedAllParams: () => updatedParameters,
+ *   },
+ * });
+ * ```
  */
+
 export async function recordStartTimer({
   parameters,
 }: RecordStartTimerOptions): Promise<void> {

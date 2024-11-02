@@ -29,6 +29,19 @@ export type RequestScreenShareType = (options: RequestScreenShareOptions) => Pro
  * @returns {Promise<void>} A promise that resolves when the screen share request is processed.
  *
  * @throws {Error} Throws an error if there is an issue during the screen share request process.
+ *
+ * @example
+ * ```typescript
+ * await requestScreenShare({
+ *   parameters: {
+ *     socket: socketInstance,
+ *     localUIMode: false,
+ *     targetResolution: 'fhd',
+ *     startShareScreen: startShareScreenFunction,
+ *     // other parameters...
+ *   },
+ * });
+ * ```
  */
 export declare function requestScreenShare({ parameters }: RequestScreenShareOptions): Promise<void>;
 //# sourceMappingURL=requestScreenShare.d.ts.map

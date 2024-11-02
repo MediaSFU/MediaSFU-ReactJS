@@ -35,6 +35,24 @@ export type OnScreenChangesType = (options: OnScreenChangesOptions) => Promise<v
  * @returns {Promise<void>} A promise that resolves when the screen changes have been handled.
  *
  * @throws {Error} Throws an error if there is an issue handling screen changes.
+ *
+ * @example
+ * ```typescript
+ * await onScreenChanges({
+ *   changed: true,
+ *   parameters: {
+ *     eventType: 'conference',
+ *     shareScreenStarted: false,
+ *     shared: false,
+ *     addForBasic: false,
+ *     updateMainHeightWidth: (height) => console.log('Updated height:', height),
+ *     updateAddForBasic: (value) => console.log('Updated addForBasic:', value),
+ *     itemPageLimit: 2,
+ *     updateItemPageLimit: (limit) => console.log('Updated item page limit:', limit),
+ *     reorderStreams: async (options) => console.log('Reordered streams with options:', options),
+ *   },
+ * });
+ * ```
  */
 export declare function onScreenChanges({ changed, parameters }: OnScreenChangesOptions): Promise<void>;
 //# sourceMappingURL=onScreenChanges.d.ts.map

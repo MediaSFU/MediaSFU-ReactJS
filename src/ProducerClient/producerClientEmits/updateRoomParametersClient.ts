@@ -218,6 +218,7 @@ export type UpdateRoomParametersClientType = (options: UpdateRoomParametersClien
  *   }
  * });
  */
+
 export const updateRoomParametersClient = ({ parameters }: UpdateRoomParametersClientOptions): void => {
   try {
     const {

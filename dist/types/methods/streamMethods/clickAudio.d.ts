@@ -64,7 +64,10 @@ export type ClickAudioType = (options: ClickAudioOptions) => Promise<void>;
  * - If the audio is off, it checks for admin restrictions, user permissions, and handles the logic for turning the audio on.
  * - It updates various states and emits socket events as necessary.
  *
- * The function makes use of several helper functions and state update functions passed in through the parameters.
+ * @example
+ * ```typescript
+ * clickAudio({ parameters });
+ * ```
  */
 export declare const clickAudio: ({ parameters }: ClickAudioOptions) => Promise<void>;
 //# sourceMappingURL=clickAudio.d.ts.map

@@ -231,6 +231,7 @@ const EditRoomModal: React.FC<EditRoomModalOptions> = ({
  * @returns {JSX.Element} The rendered BreakoutRoomsModal component.
  *
  * @example
+ * ```tsx
  * <BreakoutRoomsModal
  *   isVisible={true}
  *   onBreakoutRoomsClose={handleClose}
@@ -238,6 +239,7 @@ const EditRoomModal: React.FC<EditRoomModalOptions> = ({
  *   position="topRight"
  *   backgroundColor="#83c0e9"
  * />
+ * ```
  */
 const BreakoutRoomsModal: React.FC<BreakoutRoomsModalOptions> = ({
   isVisible,

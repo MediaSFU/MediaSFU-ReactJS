@@ -43,7 +43,26 @@ export type SwitchUserAudioType = (options: SwitchUserAudioOptions) => Promise<v
  * @returns {Promise<void>} A promise that resolves when the audio input device has been successfully switched.
  * 
  * @throws Will throw an error if the audio input device cannot be accessed or if there is an unexpected error.
+ * 
+ * @example
+ * ```typescript
+ * await switchUserAudio({
+ *   audioPreference: 'audio-device-id',
+ *   parameters: {
+ *     mediaDevices,
+ *     prevAudioInputDevice: 'prev-audio-device-id',
+ *     showAlert,
+ *     hasAudioPermission,
+ *     updateUserDefaultAudioInputDevice,
+ *     streamSuccessAudioSwitch,
+ *     requestPermissionAudio,
+ *     checkMediaPermission,
+ *   },
+ * });
+ * ```
  */
+
+
 export async function switchUserAudio({ audioPreference, parameters }: SwitchUserAudioOptions): Promise<void> {
   const {
     mediaDevices,

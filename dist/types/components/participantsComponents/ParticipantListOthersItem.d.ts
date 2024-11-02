@@ -7,17 +7,36 @@ export interface ParticipantListOthersItemOptions {
 }
 export type ParticipantListOthersItemType = (options: ParticipantListOthersItemOptions) => JSX.Element;
 /**
- * Component representing an item in the participant list for others.
+ * ParticipantListOthersItem component renders a single participant item, including the participant's name, role, and muted status.
  *
  * @component
- * @param {ParticipantListOthersItemOptions} props - The properties for the component.
+ * @param {ParticipantListOthersItemOptions} props - Properties for the component.
  * @param {Object} props.participant - The participant object.
- * @param {string} props.participant.name - The name of the participant.
- * @param {string} props.participant.islevel - The level of the participant.
- * @param {boolean} props.participant.muted - The muted status of the participant.
- * @param {string} props.member - The name of the current member.
- * @param {string} props.coHost - The name of the co-host.
- * @returns {JSX.Element} The rendered component.
+ * @param {string} props.participant.name - Name of the participant.
+ * @param {string} props.participant.islevel - Level of the participant (e.g., "2" for host).
+ * @param {boolean} props.participant.muted - Whether the participant is muted.
+ * @param {string} props.member - Name of the current user/member.
+ * @param {string} props.coHost - Name of the co-host.
+ *
+ * @returns {JSX.Element} The rendered ParticipantListOthersItem component.
+ *
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { ParticipantListOthersItem } from 'mediasfu-reactjs';
+ *
+ * const participant = {
+ *   name: "Participant 1",
+ *   islevel: "1",
+ *   muted: false,
+ * };
+ *
+ * <ParticipantListOthersItem
+ *   participant={participant}
+ *   member="Member 1"
+ *   coHost="Co-Host 1"
+ * />
+ * ```
  */
 declare const ParticipantListOthersItem: React.FC<ParticipantListOthersItemOptions>;
 export default ParticipantListOthersItem;

@@ -7,16 +7,33 @@ export interface ParticipantListOthersOptions {
 }
 export type ParticipantListOthersType = (options: ParticipantListOthersOptions) => JSX.Element;
 /**
- * Component that renders a list of participants with optional co-host and member status.
- * Each participant is rendered using the `ParticipantListOthersItem` component.
+ * ParticipantListOthers component renders a list of participants, each displayed using the `ParticipantListOthersItem` component.
  * A separator line is added between each participant except the last one.
  *
  * @component
  * @param {ParticipantListOthersOptions} props - The properties for the component.
- * @param {Array<Participant>} props.participants - The list of participants to display.
- * @param {boolean} props.coHost - Indicates if the co-host status should be displayed.
- * @param {boolean} props.member - Indicates if the member status should be displayed.
- * @returns {JSX.Element} The rendered component.
+ * @param {Participant[]} props.participants - Array of participants to display.
+ * @param {string} props.coHost - Indicates the co-host's identifier.
+ * @param {string} props.member - Indicates the member's identifier.
+ *
+ * @returns {JSX.Element} The rendered ParticipantListOthers component.
+ *
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { ParticipantListOthers } from 'mediasfu-reactjs';
+ *
+ * const participants = [
+ *   { name: "Participant 1", videoOn: true, audioOn: true, muted: false, id: "1" },
+ *   { name: "Participant 2", videoOn: true, audioOn: true, muted: false, id: "2" }
+ * ];
+ *
+ * <ParticipantListOthers
+ *   participants={participants}
+ *   coHost="coHost123"
+ *   member="member123"
+ * />
+ * ```
  */
 declare const ParticipantListOthers: React.FC<ParticipantListOthersOptions>;
 export default ParticipantListOthers;

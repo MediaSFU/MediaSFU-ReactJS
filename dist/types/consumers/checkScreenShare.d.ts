@@ -32,6 +32,28 @@ export type CheckScreenShareType = (options: CheckScreenShareOptions) => Promise
  * @returns {Promise<void>} A promise that resolves when the screen sharing status has been checked and the appropriate action has been taken.
  *
  * @throws Will log an error message if an error occurs during the process.
+ *
+ * @example
+ * const options = {
+ *   parameters: {
+ *     shared: false,
+ *     showAlert: showAlertFunction,
+ *     whiteboardStarted: false,
+ *     whiteboardEnded: false,
+ *     breakOutRoomStarted: false,
+ *     breakOutRoomEnded: false,
+ *     stopShareScreen: stopShareScreenFunction,
+ *     requestScreenShare: requestScreenShareFunction,
+ *   },
+ * };
+ *
+ * checkScreenShare(options)
+ *   .then(() => {
+ *     console.log('Screen share checked successfully');
+ *   })
+ *   .catch((error) => {
+ *     console.error('Error checking screen share:', error);
+ *   });
  */
 export declare function checkScreenShare({ parameters }: CheckScreenShareOptions): Promise<void>;
 //# sourceMappingURL=checkScreenShare.d.ts.map

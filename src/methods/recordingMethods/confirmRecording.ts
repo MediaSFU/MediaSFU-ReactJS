@@ -74,10 +74,45 @@ export type ConfirmRecordingType = (options: ConfirmRecordingOptions) => Promise
  * 
  * @example
  * ```typescript
- * const options: ConfirmRecordingOptions = { parameters: someParameters };
- * await confirmRecording(options);
+ * confirmRecording({
+ *   parameters: {
+ *     showAlert: (alert) => console.log(alert.message),
+ *     recordingMediaOptions: "video",
+ *     recordingAudioOptions: "high",
+ *     recordingVideoOptions: "all",
+ *     recordingVideoType: "HD",
+ *     recordingDisplayType: "video",
+ *     recordingNameTags: true,
+ *     recordingBackgroundColor: "#000000",
+ *     recordingNameTagsColor: "#ffffff",
+ *     recordingOrientationVideo: "landscape",
+ *     recordingAddHLS: true,
+ *     recordingAddText: true,
+ *     recordingCustomText: "Meeting",
+ *     recordingCustomTextPosition: "top-right",
+ *     recordingCustomTextColor: "#ffffff",
+ *     meetingDisplayType: "video",
+ *     recordingVideoParticipantsFullRoomSupport: true,
+ *     recordingAllParticipantsSupport: true,
+ *     recordingVideoParticipantsSupport: true,
+ *     recordingSupportForOtherOrientation: true,
+ *     recordingPreferredOrientation: "landscape",
+ *     recordingMultiFormatsSupport: true,
+ *     recordingVideoOptimized: true,
+ *     recordingAllParticipantsFullRoomSupport: true,
+ *     meetingVideoOptimized: false,
+ *     eventType: "broadcast",
+ *     breakOutRoomStarted: false,
+ *     breakOutRoomEnded: true,
+ *     updateRecordingDisplayType: (displayType) => console.log(`Updated display type: ${displayType}`),
+ *     updateRecordingVideoOptimized: (optimized) => console.log(`Updated video optimized: ${optimized}`),
+ *     updateUserRecordingParams: (params) => console.log(`Updated recording params:`, params),
+ *     updateConfirmedToRecord: (confirmed) => console.log(`Confirmed to record: ${confirmed}`),
+ *   }
+ * });
  * ```
  */
+
 export const confirmRecording = async ({
   parameters
 }: ConfirmRecordingOptions): Promise<void> => {

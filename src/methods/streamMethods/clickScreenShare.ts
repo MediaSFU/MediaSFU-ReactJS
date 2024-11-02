@@ -42,9 +42,41 @@ export type ClickScreenShareType = (options: ClickScreenShareOptions) => Promise
 /**
  * Handles the action for the screen button, including starting and stopping screen sharing.
  *
- * @param {ClickScreenShareParams} options - Options for handling the screen button action.
+ * @param {ClickScreenShareOptions} options - Options for handling the screen button action.
  * @returns {Promise<void>}
+ *
+ * @example
+ * ```typescript
+ * clickScreenShare({
+ *   parameters: {
+ *     showAlert: showAlertFunction,
+ *     roomName: "room123",
+ *     member: "John Doe",
+ *     socket: socketInstance,
+ *     islevel: "1",
+ *     youAreCoHost: false,
+ *     adminRestrictSetting: false,
+ *     audioSetting: "allow",
+ *     videoSetting: "allow",
+ *     screenshareSetting: "allow",
+ *     chatSetting: "allow",
+ *     screenAction: false,
+ *     screenAlreadyOn: false,
+ *     screenRequestState: null,
+ *     screenRequestTime: Date.now(),
+ *     audioOnlyRoom: false,
+ *     updateRequestIntervalSeconds: 60,
+ *     updateScreenRequestState: setScreenRequestState,
+ *     updateScreenAlreadyOn: setScreenAlreadyOn,
+ *     checkPermission: checkPermissionFunction,
+ *     checkScreenShare: checkScreenShareFunction,
+ *     stopShareScreen: stopShareScreenFunction,
+ *     getUpdatedAllParams: getUpdatedParamsFunction
+ *   }
+ * });
+ * ```
  */
+
 export const clickScreenShare = async ({ parameters }: ClickScreenShareOptions): Promise<void> => {
   let {
     showAlert,

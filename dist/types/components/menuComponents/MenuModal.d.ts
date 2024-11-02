@@ -17,18 +17,67 @@ export type MenuModalType = (options: MenuModalOptions) => JSX.Element;
 /**
  * MenuModal component displays a modal with various options and buttons.
  *
- * @param {string} backgroundColor - The background color of the modal content.
- * @param {boolean} isVisible - Determines if the modal is visible.
- * @param {() => void} onClose - Function to call when the modal is closed.
- * @param {Array} customButtons - Array of custom buttons to display in the modal.
- * @param {boolean} shareButtons - Determines if share buttons should be displayed.
- * @param {string} position - Position of the modal on the screen (e.g., "bottomRight").
- * @param {string} roomName - The name of the room.
- * @param {string} adminPasscode - The admin passcode for the meeting.
- * @param {string} islevel - The level of the user.
- * @param {string} eventType - The type of event.
+ * @component
+ * @param {MenuModalOptions} options - The options for the MenuModal component.
+ * @param {string} [options.backgroundColor="#83c0e9"] - Background color of the modal content.
+ * @param {boolean} options.isVisible - Determines if the modal is visible.
+ * @param {() => void} options.onClose - Function to call when the modal is closed.
+ * @param {CustomButton[]} [options.customButtons=[]] - Array of custom buttons to display in the modal.
+ * @param {boolean} [options.shareButtons=true] - Determines if share buttons should be displayed.
+ * @param {string} [options.position="bottomRight"] - Position of the modal on the screen (e.g., "bottomRight").
+ * @param {string} options.roomName - The name of the room.
+ * @param {string} options.adminPasscode - The admin passcode for the meeting.
+ * @param {string} options.islevel - The level of the user.
+ * @param {EventType} options.eventType - The type of event.
  *
  * @returns {JSX.Element} The rendered MenuModal component.
+ *
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { MenuModal } from 'mediasfu-reactjs';
+ * import { faSpinner } from '@fortawesome/free-solid-svg-icons';
+ *
+ * const customButtons = [
+ *   {
+ *     action: () => console.log("Button 1 clicked"),
+ *     show: true,
+ *     backgroundColor: "blue",
+ *     disabled: false,
+ *     icon: faSpinner,
+ *     iconStyle: { color: "white" },
+ *     text: "Button 1",
+ *     textStyle: { color: "white" },
+ *   },
+ *   {
+ *     action: () => console.log("Button 2 clicked"),
+ *     show: true,
+ *     backgroundColor: "red",
+ *     disabled: false,
+ *     icon: faSpinner,
+ *     iconStyle: { color: "white" },
+ *     text: "Button 2",
+ *     textStyle: { color: "white" },
+ *   },
+ * ];
+ *
+ * const App = () => (
+ *   <MenuModal
+ *     backgroundColor="#83c0e9"
+ *     isVisible={true}
+ *     onClose={() => console.log("Modal closed")}
+ *     customButtons={customButtons}
+ *     shareButtons={true}
+ *     position="bottomRight"
+ *     roomName="1234567890"
+ *     adminPasscode="1234"
+ *     islevel="2"
+ *     eventType="meeting"
+ *   />
+ * );
+ *
+ * export default App;
+ * ```
  */
 declare const MenuModal: React.FC<MenuModalOptions>;
 export default MenuModal;

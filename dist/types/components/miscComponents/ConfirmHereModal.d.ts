@@ -13,15 +13,44 @@ export type ConfirmHereModalType = (options: ConfirmHereModalOptions) => void;
 /**
  * ConfirmHereModal component displays a modal asking the user to confirm their presence.
  *
- * @param {boolean} isConfirmHereModalVisible - Determines if the modal is visible.
- * @param {() => void} onConfirmHereClose - Function to call when the modal is closed.
- * @param {string} [backgroundColor="#83c0e9"] - Background color of the modal.
- * @param {number} [countdownDuration=120] - Duration of the countdown in seconds.
- * @param {Socket} socket - Socket instance for communication.
- * @param {string} roomName - Name of the room for socket communication.
- * @param {Member} member - Member information for socket communication.
+ * @param {ConfirmHereModalOptions} props - The properties for ConfirmHereModal component.
+ * @param {boolean} props.isConfirmHereModalVisible - Determines if the modal is visible.
+ * @param {() => void} props.onConfirmHereClose - Function to close the modal.
+ * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
+ * @param {number} [props.countdownDuration=120] - Duration of the countdown in seconds.
+ * @param {Socket} props.socket - Socket instance for communication.
+ * @param {string} props.roomName - Name of the room for socket communication.
+ * @param {string} props.member - Member information for socket communication.
  *
  * @returns {JSX.Element} The rendered ConfirmHereModal component.
+ *
+ * @example
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { ConfirmHereModal } from 'mediasfu-reactjs';
+ * import { io } from 'socket.io-client';
+ *
+ * const App = () => {
+ *   const [isModalVisible, setIsModalVisible] = useState(true);
+ *   const socket = io("http://localhost:3000");
+ *
+ *   const handleCloseModal = () => setIsModalVisible(false);
+ *
+ *   return (
+ *     <ConfirmHereModal
+ *       isConfirmHereModalVisible={isModalVisible}
+ *       onConfirmHereClose={handleCloseModal}
+ *       backgroundColor="#83c0e9"
+ *       countdownDuration={120}
+ *       socket={socket}
+ *       roomName="room1"
+ *       member="user1"
+ *     />
+ *   );
+ * };
+ *
+ * export default App;
+ * ```
  */
 declare const ConfirmHereModal: React.FC<ConfirmHereModalOptions>;
 export default ConfirmHereModal;

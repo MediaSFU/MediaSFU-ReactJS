@@ -94,6 +94,7 @@ export type BackgroundModalType = (props: BackgroundModalOptions) => JSX.Element
  * @returns {JSX.Element | null} The rendered BackgroundModal component or null if not visible.
  *
  * @example
+ * ```tsx
  * <BackgroundModal
  *   isVisible={true}
  *   onClose={handleClose}
@@ -101,7 +102,9 @@ export type BackgroundModalType = (props: BackgroundModalOptions) => JSX.Element
  *   position="topRight"
  *   backgroundColor="#ffffff"
  * />
+ * ```
  */
+
 const BackgroundModal: React.FC<BackgroundModalOptions> = ({
   isVisible,
   onClose,

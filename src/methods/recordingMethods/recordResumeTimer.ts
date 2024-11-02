@@ -42,7 +42,27 @@ export type RecordResumeTimerType = (options: RecordResumeTimerOptions) => Promi
  * @param {Function} options.parameters.updateCanPauseResume - Function to update the pause/resume status.
  * 
  * @returns {Promise<boolean>} - Returns a promise that resolves to true if the timer was successfully resumed, otherwise false.
+ * 
+ * @example
+ * ```typescript
+ * recordResumeTimer({
+ *   parameters: {
+ *     isTimerRunning: false,
+ *     canPauseResume: true,
+ *     recordElapsedTime: 60,
+ *     recordStartTime: Date.now(),
+ *     recordTimerInterval: null,
+ *     showAlert: (alert) => console.log(alert.message),
+ *     updateRecordStartTime: (time) => console.log("New start time:", time),
+ *     updateRecordTimerInterval: (interval) => console.log("New interval:", interval),
+ *     updateIsTimerRunning: (isRunning) => console.log("Is timer running:", isRunning),
+ *     updateCanPauseResume: (canPause) => console.log("Can pause/resume:", canPause),
+ *     getUpdatedAllParams: () => updatedParameters,
+ *   },
+ * });
+ * ```
  */
+
 export async function recordResumeTimer({
   parameters,
 }: RecordResumeTimerOptions): Promise<boolean> {

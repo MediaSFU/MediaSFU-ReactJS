@@ -17,6 +17,18 @@ export type GenerateRandomMessagesType = (options: GenerateRandomMessagesOptions
  * @param {string} options.host - The host of the chat.
  * @param {boolean} [options.forChatBroadcast=false] - Flag to indicate if the messages are for chat broadcast.
  * @returns {Message[]} An array of generated messages.
+ *
+ * @example
+ * ```typescript
+ * generateRandomMessages({
+ *   participants: [{ name: "Alice" }, { name: "Bob" }],
+ *   member: "Alice",
+ *   host: "Bob",
+ *   coHost: "Carol",
+ *   forChatBroadcast: true,
+ * });
+ * // Returns an array of Message objects with random direct and group messages.
+ * ```
  */
 declare const generateRandomMessages: ({ participants, member, coHost, host, forChatBroadcast }: GenerateRandomMessagesOptions) => Message[];
 export { generateRandomMessages };

@@ -1,53 +1,3 @@
-/**
- * Whiteboard component that provides a collaborative drawing interface.
- *
- * @component
- * @param {WhiteboardOptions} props - The properties for the Whiteboard component.
- * @param {number} props.customWidth - Custom width for the whiteboard.
- * @param {number} props.customHeight - Custom height for the whiteboard.
- * @param {Object} props.parameters - Various parameters and state management functions for the whiteboard.
- * @param {boolean} props.showAspect - Flag to show aspect ratio.
- *
- * @returns {JSX.Element} The rendered Whiteboard component.
- *
- * @example
- * <Whiteboard
- *   customWidth={800}
- *   customHeight={600}
- *   parameters={parameters}
- *   showAspect={true}
- * />
- *
- * @remarks
- * This component uses the HTML5 Canvas API to provide drawing capabilities. It supports various modes such as drawing, erasing, panning, and selecting shapes.
- * It also supports touch events for mobile devices.
- *
- * The component maintains various states using `useRef` hooks to manage drawing modes, positions, and other properties.
- *
- * The `useEffect` hook is used to initialize the canvas and set up event listeners for mouse and touch events.
- *
- * The component also includes functions to handle drawing, erasing, zooming, and shape manipulation.
- *
- * @function updateFont - Updates the current font.
- * @function updateFontSize - Updates the current font size.
- * @function updateShape - Updates the current shape.
- * @function updateLineThickness - Updates the current line thickness.
- * @function updateBrushThickness - Updates the current brush thickness.
- * @function updateEraserThickness - Updates the current eraser thickness.
- * @function startDrawing - Starts the drawing process.
- * @function draw - Handles the drawing process.
- * @function stopDrawing - Stops the drawing process.
- * @function erase - Erases parts of the drawing.
- * @function zoomCanvas - Zooms the canvas in or out.
- * @function handleZoom - Handles the zoom event.
- * @function drawEdgeMarkers - Draws edge markers on the canvas.
- * @function drawShapes - Draws all shapes on the canvas.
- * @function drawLine - Draws a line on the canvas.
- * @function drawFreehand - Draws freehand shapes on the canvas.
- * @function drawPolygon - Draws a polygon on the canvas.
- * @function drawShape - Draws a specific shape on the canvas.
- * @function undo - Undoes the last action.
- */
 import React from 'react';
 import './Whiteboard.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -121,6 +71,74 @@ export interface WhiteboardOptions {
     showAspect: boolean;
 }
 export type WhiteboardType = (props: WhiteboardOptions) => JSX.Element;
+/**
+ * Whiteboard component provides a collaborative drawing interface with features such as
+ * freehand drawing, erasing, shapes, and undo/redo functionality.
+ *
+ * @component
+ * @param {WhiteboardOptions} props - Properties for configuring the Whiteboard.
+ * @param {number} props.customWidth - Custom width for the whiteboard.
+ * @param {number} props.customHeight - Custom height for the whiteboard.
+ * @param {WhiteboardParameters} props.parameters - Parameters and state management functions for whiteboard features.
+ * @param {boolean} props.showAspect - Flag to show the aspect ratio.
+ *
+ * @returns {JSX.Element} The rendered Whiteboard component.
+ *
+ * @example
+ * ```tsx
+ * import { Whiteboard } from 'mediasfu-reactjs';
+ * import { io } from 'socket.io-client';
+ *
+ * const parameters = {
+ *   socket: io("http://localhost:3000"),
+ *   showAlert: (alert) => console.log(alert),
+ *   islevel: "2",
+ *   roomName: "Room 1",
+ *   shapes: [],
+ *   useImageBackground: false,
+ *   redoStack: [],
+ *   undoStack: [],
+ *   whiteboardStarted: true,
+ *   whiteboardEnded: false,
+ *   whiteboardUsers: [{ id: "user1", name: "John" }],
+ *   participants: [{ id: "user1", name: "John", islevel: "1" }],
+ *   screenId: "screen1",
+ *   recordStarted: false,
+ *   recordStopped: false,
+ *   recordPaused: false,
+ *   recordResumed: false,
+ *   recordingMediaOptions: "video",
+ *   member: "John",
+ *   shareScreenStarted: false,
+ *   updateShapes: (newShapes) => console.log("Shapes updated:", newShapes),
+ *   updateUseImageBackground: (useImageBackground) => console.log("Background updated:", useImageBackground),
+ *   updateRedoStack: (redoStack) => console.log("Redo stack updated:", redoStack),
+ *   updateUndoStack: (undoStack) => console.log("Undo stack updated:", undoStack),
+ *   updateWhiteboardStarted: (started) => console.log("Whiteboard started:", started),
+ *   updateWhiteboardEnded: (ended) => console.log("Whiteboard ended:", ended),
+ *   updateWhiteboardUsers: (users) => console.log("Whiteboard users updated:", users),
+ *   updateParticipants: (participants) => console.log("Participants updated:", participants),
+ *   updateScreenId: (screenId) => console.log("Screen ID updated:", screenId),
+ *   updateShareScreenStarted: (shareStarted) => console.log("Screen sharing started:", shareStarted),
+ *   updateCanvasWhiteboard: (canvas) => console.log("Canvas updated:", canvas),
+ *   onScreenChanges: ({ changed }) => console.log("Screen changed:", changed),
+ *   captureCanvasStream: () => console.log("Canvas stream captured"),
+ * };
+ *
+ * <Whiteboard
+ *   customWidth={800}
+ *   customHeight={600}
+ *   parameters={parameters}
+ *   showAspect={true}
+ * />
+ * ```
+ *
+ * @remarks
+ * This component supports multiple drawing modes (pen, eraser, shapes) and manages complex state interactions.
+ * It leverages HTML5 Canvas for drawing operations and supports touch events for mobile devices.
+ * Various `useEffect` hooks initialize and set up event listeners, while methods handle drawing,
+ * erasing, zooming, and shape manipulation.
+ */
 declare const Whiteboard: React.FC<WhiteboardOptions>;
 export default Whiteboard;
 //# sourceMappingURL=Whiteboard.d.ts.map

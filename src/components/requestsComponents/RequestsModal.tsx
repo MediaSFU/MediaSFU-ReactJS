@@ -51,7 +51,41 @@ export type RequestsModalType = (options: RequestsModalOptions) => JSX.Element;
  * @param {RequestsModalParameters} parameters - Additional parameters for the modal.
  *
  * @returns {JSX.Element} The rendered RequestsModal component.
+ * 
+ * @example
+ * ```tsx
+ * import { RequestsModal, RenderRequestComponent } from 'mediasfu-reactjs';
+ * import { io } from 'socket.io-client';
+ *
+ * // Define request list and parameters
+ * const requestList = [
+ *   { id: "1", name: "Request 1", icon: "fa-microphone" },
+ *   { id: "2", name: "Request 2", icon: "fa-desktop" },
+ * ];
+ * const socket = io("http://localhost:3000");
+ * 
+ * const parameters = {
+ *   getUpdatedAllParams: () => ({ filteredRequestList: requestList }),
+ * };
+ * 
+ * // Render the RequestsModal component
+ * <RequestsModal
+ *   isRequestsModalVisible={true}
+ *   onRequestClose={() => console.log('Requests modal closed')}
+ *   requestCounter={2}
+ *   onRequestFilterChange={(text) => console.log('Filter changed to:', text)}
+ *   requestList={requestList}
+ *   updateRequestList={(newList) => console.log("Updated request list:", newList)}
+ *   roomName="Room 1"
+ *   socket={socket}
+ *   renderRequestComponent={RenderRequestComponent}
+ *   backgroundColor="#83c0e9"
+ *   position="topRight"
+ *   parameters={parameters}
+ * />
+ * ```
  */
+
 const RequestsModal: React.FC<RequestsModalOptions> = ({
   isRequestsModalVisible,
   onRequestClose,

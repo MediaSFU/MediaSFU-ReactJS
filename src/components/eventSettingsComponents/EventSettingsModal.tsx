@@ -56,7 +56,47 @@ export type EventSettingsModalType = (options: EventSettingsModalOptions) => JSX
  * @param {Function} props.showAlert - Callback function to show alerts.
  *
  * @returns {JSX.Element} The rendered EventSettingsModal component.
+ * 
+  * @example
+  * ```tsx
+ * import React, { useState } from 'react';
+ * import { EventSettingsModal } from 'mediasfu-reactjs';
+ * 
+ * const App = () => {
+ *   const [modalVisible, setModalVisible] = useState(true);
+ *   const handleCloseModal = () => setModalVisible(false);
+ * 
+ *   const parameters = {
+ *     audioSetting: "allow",
+ *     videoSetting: "disallow",
+ *     screenshareSetting: "approval",
+ *     chatSetting: "disallow",
+ *   };
+ * 
+ *   return (
+ *     <EventSettingsModal
+ *       isEventSettingsModalVisible={modalVisible}
+ *       onEventSettingsClose={handleCloseModal}
+ *       onModifyEventSettings={(options) => console.log("Settings modified", options)}
+ *       audioSetting={parameters.audioSetting}
+ *       videoSetting={parameters.videoSetting}
+ *       screenshareSetting={parameters.screenshareSetting}
+ *       chatSetting={parameters.chatSetting}
+ *       updateAudioSetting={(setting) => console.log("Audio setting updated", setting)}
+ *       updateVideoSetting={(setting) => console.log("Video setting updated", setting)}
+ *       updateScreenshareSetting={(setting) => console.log("Screenshare setting updated", setting)}
+ *       updateChatSetting={(setting) => console.log("Chat setting updated", setting)}
+ *       updateIsSettingsModalVisible={(isVisible) => setModalVisible(isVisible)}
+ *       position="topRight"
+ *       backgroundColor="#83c0e9"
+ *     />
+ *   );
+ * };
+ *
+ * export default App;
+ * ```
  */
+  
 const EventSettingsModal: React.FC<EventSettingsModalOptions> = ({
   isEventSettingsModalVisible,
   onEventSettingsClose,

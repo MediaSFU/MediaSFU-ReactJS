@@ -18,6 +18,7 @@ export type SoundPlayerType = (options: SoundPlayerOptions) => void;
  * SoundPlayer({ soundUrl: 'https://example.com/sound.mp3' });
  * ```
  */
+
 export const SoundPlayer = ({ soundUrl }: SoundPlayerOptions): void => {
   /**
    * Plays a sound from the specified URL.

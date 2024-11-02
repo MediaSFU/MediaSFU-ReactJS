@@ -16,16 +16,48 @@ export interface DisplaySettingsModalOptions {
 }
 export type DisplaySettingsModalType = (options: DisplaySettingsModalOptions) => JSX.Element;
 /**
- * DisplaySettingsModal component renders a modal for adjusting display settings.
+ * DisplaySettingsModal component provides a modal interface for managing display settings with options for display types, audiograph, and video controls.
  *
- * @param {boolean} isDisplaySettingsModalVisible - Determines if the modal is visible.
- * @param {() => void} onDisplaySettingsClose - Callback function to close the modal.
- * @param {Function} [onModifyDisplaySettings=modifyDisplaySettings] - Callback function to modify display settings.
- * @param {Object} parameters - Object containing the display settings parameters.
- * @param {string} [position='topRight'] - Position of the modal on the screen.
- * @param {string} [backgroundColor='#83c0e9'] - Background color of the modal.
+ * @component
+ * @param {DisplaySettingsModalOptions} props - The properties for DisplaySettingsModal.
+ * @param {boolean} props.isDisplaySettingsModalVisible - Controls the modal's visibility.
+ * @param {() => void} props.onDisplaySettingsClose - Function to close the modal.
+ * @param {Function} [props.onModifyDisplaySettings=modifyDisplaySettings] - Callback for modifying settings.
+ * @param {DisplaySettingsModalParameters} props.parameters - Display settings and related options.
+ * @param {string} [props.position='topRight'] - Modal positioning on the screen.
+ * @param {string} [props.backgroundColor='#83c0e9'] - Modal background color.
  *
- * @returns {JSX.Element} The rendered DisplaySettingsModal component.
+ * @returns {JSX.Element} The rendered modal component.
+ *
+ * @example
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { DisplaySettingsModal } from 'mediasfu-reactjs';
+ *
+ * const App = () => {
+ *   const [modalVisible, setModalVisible] = useState(true);
+ *   const handleModalClose = () => setModalVisible(false);
+ *
+ *   const parameters = {
+ *     meetingDisplayType: "video",
+ *     autoWave: true,
+ *     forceFullDisplay: false,
+ *     meetingVideoOptimized: true,
+ *   };
+ *
+ *   return (
+ *     <DisplaySettingsModal
+ *       isDisplaySettingsModalVisible={modalVisible}
+ *       onDisplaySettingsClose={handleModalClose}
+ *       parameters={parameters}
+ *       position="topRight"
+ *       backgroundColor="#83c0e9"
+ *     />
+ *   );
+ * }
+ *
+ * export default App;
+ * ```
  */
 declare const DisplaySettingsModal: React.FC<DisplaySettingsModalOptions>;
 export default DisplaySettingsModal;

@@ -16,20 +16,41 @@ export type SubAspectComponentType = (
 ) => JSX.Element;
 
 /**
- * SubAspectComponent is a React functional component that renders a sub-aspect
- * of a media display with optional controls. The component adjusts its width
- * based on the window size and provided fractions.
+ * SubAspectComponent is a responsive media sub-component that scales with the viewport and includes optional controls.
  *
- * @param {Object} props - The properties object.
+ * @param {Object} props - Properties for the SubAspectComponent.
  * @param {string} props.backgroundColor - The background color of the component.
- * @param {React.ReactNode} props.children - The child elements to be rendered inside the component.
- * @param {boolean} [props.showControls=true] - Flag to show or hide the controls.
- * @param {number} props.containerWidthFraction - The fraction of the window width to be used for the component's width.
- * @param {number} props.containerHeightFraction - The fraction of the window height to be used for the component's height.
- * @param {number} [props.defaultFractionSub=0.0] - The default sub-aspect fraction to be used if controls are shown.
+ * @param {React.ReactNode} props.children - Elements to render within the sub-aspect component.
+ * @param {boolean} [props.showControls=true] - Option to display controls.
+ * @param {number} props.containerWidthFraction - Fraction of the viewport width used for component width.
+ * @param {number} props.containerHeightFraction - Fraction of the viewport height used for component height.
+ * @param {number} [props.defaultFractionSub=0.0] - Default height fraction for the component if controls are visible.
  *
- * @returns {JSX.Element} The rendered sub-aspect component.
+ * @returns {JSX.Element} A responsive sub-aspect media display component.
+ * 
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { SubAspectComponent } from 'mediasfu-reactjs';
+ * 
+ * function App() {
+ *   return (
+ *     <SubAspectComponent
+ *       backgroundColor="black"
+ *       showControls={true}
+ *       containerWidthFraction={0.5}
+ *       containerHeightFraction={0.5}
+ *       defaultFractionSub={0.4}
+ *     >
+ *       <div>Content goes here</div>
+ *     </SubAspectComponent>
+ *   );
+ * }
+ * 
+ * export default App;
+ * ```
  */
+
 const SubAspectComponent: React.FC<SubAspectComponentOptions> = ({
   backgroundColor,
   children,

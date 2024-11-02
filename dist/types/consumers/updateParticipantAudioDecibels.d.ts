@@ -9,13 +9,23 @@ export type UpdateParticipantAudioDecibelsType = (options: UpdateParticipantAudi
 /**
  * Updates the audio decibels for a participant.
  *
- * @param {Object} options - The options for updating participant audio decibels.
+ * @param {UpdateParticipantAudioDecibelsOptions} options - The options for updating participant audio decibels.
  * @param {string} options.name - The name of the participant.
  * @param {number} options.averageLoudness - The average loudness of the participant.
- * @param {Array<{ name: string, averageLoudness: number }>} options.audioDecibels - The array of audio decibels entries.
+ * @param {Array<AudioDecibels>} options.audioDecibels - The array of audio decibels entries.
  * @param {Function} options.updateAudioDecibels - The function to update the audio decibels array.
  *
  * @returns {void}
+ *
+ * @example
+ * const options = {
+ *   name: 'participant1',
+ *   averageLoudness: 50,
+ *   audioDecibels: [{ name: 'participant1', averageLoudness: 50 }],
+ *   updateAudioDecibels: updateAudioDecibelsFunction,
+ * };
+ *
+ * updateParticipantAudioDecibels(options);
  */
 export declare function updateParticipantAudioDecibels({ name, averageLoudness, audioDecibels, updateAudioDecibels, }: UpdateParticipantAudioDecibelsOptions): void;
 //# sourceMappingURL=updateParticipantAudioDecibels.d.ts.map

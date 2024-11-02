@@ -7,9 +7,31 @@ export type MeetingPasscodeComponentType = (options: MeetingPasscodeComponentOpt
  * A React functional component that displays a meeting passcode in a read-only input field.
  *
  * @component
- * @param {MeetingPasscodeComponentOptions} props - The properties object.
- * @param {string} [props.meetingPasscode=""] - The passcode for the meeting, defaulting to an empty string if not provided.
- * @returns {JSX.Element} A JSX element containing a labeled input field with the meeting passcode.
+ * @param {MeetingIdComponentOptions} props - The properties object.
+ * @param {string} [props.meetingID=""] - The meeting ID to display.
+ * @returns {JSX.Element} The rendered MeetingIdComponent component.
+ *
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { MeetingIdComponent } from 'mediasfu-reactjs';
+ *
+ * const App = () => (
+ *   <MeetingIdComponent meetingID="1234567890" />
+ * );
+ *
+ * export default App;
+ *
+ * @example
+ * import React from 'react';
+ * import { MeetingIdComponent } from 'mediasfu-reactjs';
+ *
+ * const App = () => (
+ *   <MeetingIdComponent />
+ * );
+ *
+ * export default App;
+ * ```
  */
 declare const MeetingPasscodeComponent: React.FC<MeetingPasscodeComponentOptions>;
 export default MeetingPasscodeComponent;

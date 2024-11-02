@@ -56,7 +56,33 @@ export type StopRecordingType = (options: StopRecordingOptions) => Promise<void>
  * @param {Function} parameters.captureCanvasStream - Function to capture the canvas stream.
  * 
  * @returns {Promise<void>} A promise that resolves when the recording stop process is complete.
+ * 
+ * @example
+ * ```typescript
+ * stopRecording({
+ *   parameters: {
+ *     roomName: 'Room101',
+ *     socket: mySocket,
+ *     showAlert: myShowAlert,
+ *     startReport: true,
+ *     endReport: false,
+ *     recordStarted: true,
+ *     recordPaused: false,
+ *     recordStopped: false,
+ *     updateRecordPaused: setRecordPaused,
+ *     updateRecordStopped: setRecordStopped,
+ *     updateStartReport: setStartReport,
+ *     updateEndReport: setEndReport,
+ *     updateShowRecordButtons: setShowRecordButtons,
+ *     whiteboardStarted: true,
+ *     whiteboardEnded: false,
+ *     recordingMediaOptions: 'video',
+ *     captureCanvasStream: myCaptureCanvasStream,
+ *   },
+ * });
+ * ```
  */
+
 export const stopRecording = async ({
   parameters,
 }: StopRecordingOptions): Promise<void> => {

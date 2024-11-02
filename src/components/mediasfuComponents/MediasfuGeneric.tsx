@@ -1,46 +1,3 @@
-
-/**
- * MediasfuGeneric component options type.
- * 
- * @typedef {Object} MediasfuGenericOptions
- * @property {function} [PrejoinPage=WelcomePage] - Function to render the prejoin page.
- * @property {Object} [credentials={ apiUserName: "", apiKey: "" }] - API credentials.
- * @property {boolean} [useLocalUIMode=false] - Flag to use local UI mode.
- * @property {SeedData} [seedData={}] - Seed data for initial state.
- * @property {boolean} [useSeed=false] - Flag to use seed data.
- * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Image source URL.
- */
-
-/**
- * MediasfuGeneric component.
- * 
- * @component
- * @param {MediasfuGenericOptions} props - Component properties.
- * @returns {React.FC<MediasfuGenericOptions>} - React functional component.
- * 
- * @example
- * <MediasfuGeneric
- *   PrejoinPage={CustomPrejoinPage}
- *   credentials={{ apiUserName: "user", apiKey: "key" }}
- *   useLocalUIMode={true}
- *   seedData={customSeedData}
- *   useSeed={true}
- *   imgSrc="https://example.com/logo.png"
- * />
- * 
- * @description
- * This component handles the generic functionalities for MediaSFU, including joining rooms,
- * managing participants, and handling media streams. It uses various hooks and methods to
- * manage state and perform actions such as joining a room, updating initial values, and
- * handling media streams.
- * 
- */
-
-
- 
-
- 
-
 import React, { useEffect, useState, useRef } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -70,6 +27,7 @@ import {
   faChalkboardTeacher,
   faBan,
 } from "@fortawesome/free-solid-svg-icons";
+
 
 //initial values
 import { initialValuesState } from "../../methods/utils/initialValuesState";
@@ -309,6 +267,47 @@ export type MediasfuGenericOptions = {
   useSeed?: boolean;
   imgSrc?: string;
 };
+
+/**
+ * MediasfuGeneric component provides and combines the generic functionalities for MediaSFU.
+ * It supports webinar, broadcast, chat, conference views 
+ * Participants can share media (audio, video, screen share) with each other.
+ * Participants can chat with each other and engage in polls and breakout rooms, share screens, and more during the conference.
+ * 
+ * @typedef {Object} MediasfuGenericOptions
+ * @property {function} [PrejoinPage=WelcomePage] - Function to render the prejoin page.
+ * @property {Object} [credentials={ apiUserName: "", apiKey: "" }] - API credentials.
+ * @property {boolean} [useLocalUIMode=false] - Flag to use local UI mode.
+ * @property {SeedData} [seedData={}] - Seed data for initial state.
+ * @property {boolean} [useSeed=false] - Flag to use seed data.
+ * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Image source URL.
+ *
+ * MediasfuGeneric component.
+ * 
+ * @component
+ * @param {MediasfuGenericOptions} props - Component properties.
+ * @returns {React.FC<MediasfuGenericOptions>} - React functional component.
+ * 
+ * @example
+ * ```tsx
+ * <MediasfuGeneric
+ *   PrejoinPage={CustomPrejoinPage}
+ *   credentials={{ apiUserName: "user", apiKey: "key" }}
+ *   useLocalUIMode={true}
+ *   seedData={customSeedData}
+ *   useSeed={true}
+ *   imgSrc="https://example.com/logo.png"
+ * />
+ * ```
+ * 
+ * @description
+ * This component handles the generic functionalities for MediaSFU, including joining rooms,
+ * managing participants, and handling media streams. It uses various hooks and methods to
+ * manage state and perform actions such as joining a room, updating initial values, and
+ * handling media streams.
+ * 
+ */
+
 
 const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
   PrejoinPage = WelcomePage,

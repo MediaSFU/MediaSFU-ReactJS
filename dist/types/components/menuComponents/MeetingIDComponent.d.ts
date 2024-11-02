@@ -12,10 +12,12 @@ export type MeetingIdComponentType = (options: MeetingIdComponentOptions) => JSX
  * @returns {JSX.Element} The rendered MeetingIdComponent component.
  *
  * @example
+ * ```tsx
  * <MeetingIdComponent meetingID="1234567890" />
  *
  * @example
  * <MeetingIdComponent />
+ * ```
  *
  */
 declare const MeetingIdComponent: React.FC<MeetingIdComponentOptions>;

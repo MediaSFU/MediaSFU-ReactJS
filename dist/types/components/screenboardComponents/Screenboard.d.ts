@@ -35,17 +35,27 @@ export type ScreenboardType = (options: ScreenboardOptions) => JSX.Element;
  * @returns {JSX.Element} The Screenboard component.
  *
  * @example
+ * ```tsx
+ * import { Screenboard } from 'mediasfu-reactjs';
+ *
+ * // Define the parameters and functionality for the screenboard
+ * const parameters = {
+ *   updateCanvasScreenboard: (canvas) => console.log("Canvas updated:", canvas),
+ *   annotateScreenStream: true,
+ *   updateIsScreenboardModalVisible: (visible) => console.log("Modal visibility:", visible),
+ *   showAlert: (alertMessage) => console.log("Alert:", alertMessage),
+ *   sleep: ({ ms }) => new Promise((resolve) => setTimeout(resolve, ms)),
+ *   updateAnnotateScreenStream: (state) => console.log("Annotation state:", state),
+ * };
+ *
+ * // Render the Screenboard component
  * <Screenboard
- *   parameters={{
- *     updateCanvasScreenboard: (canvas) => { ... },
- *     annotateScreenStream: true,
- *     updateIsScreenboardModalVisible: (visible) => { ... },
- *     showAlert: (alert) => { ... },
- *     sleep: ({ ms }) => { ... },
- *     updateAnnotateScreenStream: (state) => { ... },
- *   }}
+ *   customWidth={800}
+ *   customHeight={600}
+ *   parameters={parameters}
  *   showAspect={true}
  * />
+ * ```
  */
 declare const Screenboard: React.FC<ScreenboardOptions>;
 export default Screenboard;

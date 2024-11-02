@@ -77,6 +77,51 @@ export type StopShareScreenType = (options: StopShareScreenOptions) => Promise<v
  * @param {Function} options.parameters.getVideos - Function to get videos.
  *
  * @returns {Promise<void>} A promise that resolves when the screen sharing process is stopped.
+ *
+ * @example
+ * const options = {
+ *   parameters: {
+ *     shared: true,
+ *     shareScreenStarted: true,
+ *     shareEnded: false,
+ *     updateMainWindow: true,
+ *     defer_receive: false,
+ *     hostLabel: "Host",
+ *     lock_screen: false,
+ *     forceFullDisplay: false,
+ *     firstAll: false,
+ *     first_round: false,
+ *     localStreamScreen: localStream, // MediaStream object
+ *     eventType: "conference",
+ *     prevForceFullDisplay: false,
+ *     annotateScreenStream: false,
+ *     updateShared: updateSharedFunction,
+ *     updateShareScreenStarted: updateShareScreenStartedFunction,
+ *     updateShareEnded: updateShareEndedFunction,
+ *     updateUpdateMainWindow: updateUpdateMainWindowFunction,
+ *     updateDefer_receive: updateDefer_receiveFunction,
+ *     updateLock_screen: updateLock_screenFunction,
+ *     updateForceFullDisplay: updateForceFullDisplayFunction,
+ *     updateFirstAll: updateFirstAllFunction,
+ *     updateFirst_round: updateFirst_roundFunction,
+ *     updateLocalStreamScreen: updateLocalStreamScreenFunction,
+ *     updateMainHeightWidth: updateMainHeightWidthFunction,
+ *     updateAnnotateScreenStream: updateAnnotateScreenStreamFunction,
+ *     updateIsScreenboardModalVisible: updateIsScreenboardModalVisibleFunction,
+ *     disconnectSendTransportScreen: disconnectSendTransportScreenFunction,
+ *     prepopulateUserMedia: prepopulateUserMediaFunction,
+ *     reorderStreams: reorderStreamsFunction,
+ *     getVideos: getVideosFunction,
+ *   },
+ * };
+ *
+ * stopShareScreen(options)
+ *   .then(() => {
+ *     console.log('Screen sharing stopped successfully');
+ *   })
+ *   .catch(error => {
+ *     console.error('Error stopping screen share:', error);
+ *   });
  */
 export declare function stopShareScreen({ parameters }: StopShareScreenOptions): Promise<void>;
 //# sourceMappingURL=stopShareScreen.d.ts.map

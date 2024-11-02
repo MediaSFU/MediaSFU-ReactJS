@@ -34,12 +34,12 @@ export type ConnectRecvTransportType = (options: ConnectRecvTransportOptions) =>
 /**
  * Connects the receiving transport to consume media from a remote producer.
  *
- * @param {Object} options - The options for connecting the receiving transport.
+ * @param {ConnectRecvTransportOptions} options - The options for connecting the receiving transport.
  * @param {Transport} options.consumerTransport - The transport used for consuming media.
  * @param {string} options.remoteProducerId - The ID of the remote producer.
  * @param {string} options.serverConsumerTransportId - The ID of the server consumer transport.
  * @param {Socket} options.nsock - The socket used for communication.
- * @param {ConnectRecvTransportOptions} options.parameters - The parameters for the connection.
+ * @param {ConnectRecvTransportParameters} options.parameters - The parameters for the connection.
  *
  * @returns {Promise<void>} A promise that resolves when the connection is established.
  *
@@ -64,6 +64,7 @@ export type ConnectRecvTransportType = (options: ConnectRecvTransportOptions) =>
  *   });
  * ```
  */
+
 export const connectRecvTransport = async ({
   consumerTransport,
   remoteProducerId,

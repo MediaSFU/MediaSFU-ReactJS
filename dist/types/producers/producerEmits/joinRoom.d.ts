@@ -11,7 +11,7 @@ export type JoinRoomType = (socket: Socket, roomName: string, islevel: string, m
 /**
  * Joins a user to a specified room via a socket connection.
  *
- * @param {Object} options - The options for joining the room.
+ * @param {JoinRoomOptions} options - The options for joining the room.
  * @param {Socket} options.socket - The socket instance to use for communication.
  * @param {string} options.roomName - The name of the room to join.
  * @param {string} options.islevel - The level of the user.
@@ -21,7 +21,24 @@ export type JoinRoomType = (socket: Socket, roomName: string, islevel: string, m
  *
  * @returns {Promise<object>} A promise that resolves with the data received from the 'joinRoom' event or rejects with a validation error.
  *
- * @throws {Error} Throws an error if the user is banned, suspended, or if the host has not joined the room yet.
+ * @example
+ * ```typescript
+ * const options = {
+ *   socket: socketInstance,
+ *   roomName: "s12345678",
+ *   islevel: "1",
+ *   member: "user123",
+ *   sec: "64CharacterLongSecretHere",
+ *   apiUserName: "user123",
+ * };
+ *
+ * try {
+ *   const response = await joinRoom(options);
+ *   console.log("Room joined:", response);
+ * } catch (error) {
+ *   console.error("Failed to join room:", error);
+ * }
+ * ```
  */
 declare function joinRoom({ socket, roomName, islevel, member, sec, apiUserName, }: JoinRoomOptions): Promise<object>;
 export { joinRoom };

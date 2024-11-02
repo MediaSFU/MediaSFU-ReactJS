@@ -74,9 +74,39 @@ export type ScreenboardModalType = (
  *
  * @returns {JSX.Element} The ScreenboardModal component.
  *
- * @component
- *
  * @example
+ * ```tsx
+ * import { ScreenboardModal } from 'mediasfu-reactjs';
+ *
+ * // Define the parameters and functionality for screen sharing and annotation
+ * const parameters = {
+ *   localStreamScreen: new MediaStream(),
+ *   shared: true,
+ *   hostLabel: "Host Name",
+ *   annotateScreenStream: true,
+ *   processedScreenStream: null,
+ *   mainScreenCanvas: null,
+ *   canvasScreenboard: null,
+ *   transportCreated: false,
+ *   screenProducer: null,
+ *   updateLocalStreamScreen: (stream) => console.log("Local Stream:", stream),
+ *   updateProcessedScreenStream: (stream) => console.log("Processed Stream:", stream),
+ *   updateMainScreenCanvas: (canvas) => console.log("Main Screen Canvas:", canvas),
+ *   sleep: ({ ms }) => new Promise((resolve) => setTimeout(resolve, ms)),
+ *   createSendTransport: async (options) => console.log("Create Transport:", options),
+ *   disconnectSendTransportScreen: async (options) => console.log("Disconnect Transport:", options),
+ *   connectSendTransportScreen: async (options) => console.log("Connect Transport:", options),
+ *   stopShareScreen: async (options) => console.log("Stop Share Screen:", options),
+ *   prepopulateUserMedia: async (options) => console.log("Prepopulate Media:", options),
+ *   getUpdatedAllParams: () => ({
+ *     filteredRequestList: [],
+ *   }),
+ * };
+ *
+ * const isVisible = true;
+ * const handleClose = () => console.log("Modal closed");
+ *
+ * // Render the ScreenboardModal component
  * <ScreenboardModal
  *   parameters={parameters}
  *   isVisible={isVisible}
@@ -84,7 +114,9 @@ export type ScreenboardModalType = (
  *   position="topRight"
  *   backgroundColor="#83c0e9"
  * />
+ * ```
  */
+
 const ScreenboardModal: React.FC<ScreenboardModalOptions> = ({
   parameters,
   isVisible,

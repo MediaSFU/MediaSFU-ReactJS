@@ -8,6 +8,12 @@ export type SleepType = (options: SleepOptions) => Promise<void>;
  * @param {SleepOptions} options - An object containing the sleep duration.
  * @param {number} options.ms - The number of milliseconds to sleep.
  * @returns {Promise<void>} A promise that resolves after the specified duration.
+ *
+ * @example
+ * ```typescript
+ * await sleep({ ms: 2000 });
+ * console.log("Waited for 2 seconds");
+ * ```
  */
 export declare function sleep({ ms }: SleepOptions): Promise<void>;
 //# sourceMappingURL=sleep.d.ts.map

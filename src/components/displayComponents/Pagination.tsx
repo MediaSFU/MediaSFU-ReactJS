@@ -46,26 +46,71 @@ export interface PaginationOptions {
 export type PaginationType = (options: PaginationOptions) => JSX.Element;
 
 /**
- * Pagination component for navigating through pages.
+ * Pagination is a React component for navigating pages, with options for layout, style, and real-time updates.
+ *
+ * This component supports navigating through pages while managing breakout rooms with socket events and optional alerts for restricted access. It allows custom styling, positioning, and direction of pagination controls.
  *
  * @component
  * @param {PaginationOptions} props - The properties for the Pagination component.
- * @param {number} props.totalPages - The total number of pages.
- * @param {number} props.currentUserPage - The current page of the user.
- * @param {function} [props.handlePageChange=generatePageContent] - Function to handle page change.
- * @param {string} [props.position="middle"] - The position of the pagination (left, middle, right).
- * @param {string} [props.location="middle"] - The location of the pagination (top, middle, bottom).
- * @param {string} [props.direction="horizontal"] - The direction of the pagination (horizontal, vertical).
- * @param {React.CSSProperties} [props.buttonsContainerStyle] - Custom styles for the buttons container.
- * @param {React.CSSProperties} [props.activePageStyle={ backgroundColor: "#2c678f" }] - Custom styles for the active page button.
- * @param {React.CSSProperties} [props.inactivePageStyle] - Custom styles for the inactive page buttons.
+ * @param {number} props.totalPages - Total number of pages.
+ * @param {number} props.currentUserPage - Current active page of the user.
+ * @param {function} [props.handlePageChange=generatePageContent] - Function to manage page changes.
+ * @param {string} [props.position="middle"] - Horizontal alignment ('left', 'middle', 'right').
+ * @param {string} [props.location="middle"] - Vertical alignment ('top', 'middle', 'bottom').
+ * @param {string} [props.direction="horizontal"] - Layout direction ('horizontal' or 'vertical').
+ * @param {React.CSSProperties} [props.buttonsContainerStyle] - Styles for the button container.
+ * @param {React.CSSProperties} [props.activePageStyle={ backgroundColor: "#2c678f" }] - Styles for the active page button.
+ * @param {React.CSSProperties} [props.inactivePageStyle] - Styles for the inactive page buttons.
  * @param {string} [props.backgroundColor="#ffffff"] - Background color of the pagination container.
  * @param {number} [props.paginationHeight=40] - Height of the pagination container.
- * @param {boolean} [props.showAspect=true] - Flag to show or hide the pagination.
- * @param {object} props.parameters - Additional parameters for the pagination.
+ * @param {boolean} [props.showAspect=true] - Flag to control pagination visibility.
+ * @param {PaginationParameters} props.parameters - Parameters for socket events, breakout rooms, and updates.
  *
- * @returns {JSX.Element} The rendered Pagination component.
+ * @returns {JSX.Element} A pagination component for navigating pages.
+ * 
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { Pagination } from 'mediasfu-reactjs';
+ * 
+ * function App() {
+ *   const parameters = {
+ *     mainRoomsLength: 2,
+ *     memberRoom: 1,
+ *     breakOutRoomStarted: true,
+ *     breakOutRoomEnded: false,
+ *     member: "John",
+ *     breakoutRooms: [[{ name: "John" }], [{ name: "Jane" }]],
+ *     hostNewRoom: 1,
+ *     roomName: "Room 1",
+ *     islevel: "1",
+ *     socket,
+ *     getUpdatedAllParams: () => parameters,
+ *   };
+ *   
+ *   return (
+ *     <Pagination
+ *       totalPages={5}
+ *       currentUserPage={2}
+ *       handlePageChange={generatePageContent}
+ *       position="middle"
+ *       location="middle"
+ *       direction="horizontal"
+ *       buttonsContainerStyle={{ padding: 10 }}
+ *       activePageStyle={{ backgroundColor: "#2c678f" }}
+ *       inactivePageStyle={{ backgroundColor: "#ffffff" }}
+ *       backgroundColor="#ffffff"
+ *       paginationHeight={40}
+ *       showAspect={true}
+ *       parameters={parameters}
+ *     />
+ *   );
+ * }
+ * 
+ * export default App;
+ * ```
  */
+
 const Pagination: React.FC<PaginationOptions> = ({
   totalPages,
   currentUserPage,

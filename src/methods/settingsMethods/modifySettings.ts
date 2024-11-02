@@ -39,7 +39,26 @@ export type ModifySettingsType = (options: ModifySettingsOptions) => Promise<voi
  * @returns {Promise<void>} A promise that resolves when the settings have been modified.
  * 
  * @throws Will show an alert if any setting is set to "approval" in demo mode (room name starts with "d").
+ * 
+ * @example
+ * ```typescript
+ * modifySettings({
+ *   roomName: "d123",
+ *   audioSet: "allow",
+ *   videoSet: "allow",
+ *   screenshareSet: "deny",
+ *   chatSet: "allow",
+ *   socket: mySocketInstance,
+ *   updateAudioSetting: setAudioSetting,
+ *   updateVideoSetting: setVideoSetting,
+ *   updateScreenshareSetting: setScreenshareSetting,
+ *   updateChatSetting: setChatSetting,
+ *   updateIsSettingsModalVisible: setIsSettingsModalVisible,
+ *   showAlert: (options) => alertUser(options),
+ * });
+ * ```
  */
+
 export const modifySettings = async ({
   showAlert,
   roomName,

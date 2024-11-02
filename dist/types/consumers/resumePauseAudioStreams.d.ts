@@ -27,11 +27,22 @@ export type ResumePauseAudioStreamsType = (options: ResumePauseAudioStreamsOptio
  * @param {ResumePauseAudioStreamsOptions} options - The options for resuming or pausing audio streams.
  * @param {number} [options.breakRoom=-1] - The ID of the break room.
  * @param {boolean} [options.inBreakRoom=false] - Indicates if the participant is in a break room.
- * @param {Parameters} options.parameters - The parameters required for processing audio streams.
+ * @param {ResumePauseAudioStreamsParameters} options.parameters - The parameters required for processing audio streams.
  *
  * @returns {Promise<void>} A promise that resolves when the audio streams have been processed.
  *
  * @throws Will log an error message if there is an issue processing the audio streams.
+ *
+ * @example
+ * ```typescript
+ * await resumePauseAudioStreams({
+ *   breakRoom: 1,
+ *   inBreakRoom: true,
+ *   parameters: {
+ *     // ...parameters here
+ *   },
+ * });
+ * ```
  */
 export declare const resumePauseAudioStreams: ({ breakRoom, inBreakRoom, parameters, }: ResumePauseAudioStreamsOptions) => Promise<void>;
 //# sourceMappingURL=resumePauseAudioStreams.d.ts.map

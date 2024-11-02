@@ -52,10 +52,30 @@ export type WelcomePageType = (options: WelcomePageOptions) => JSX.Element;
  * @param {Function} parameters.updateMember - Function to update the member name.
  *
  * @returns {JSX.Element} The rendered WelcomePage component.
- *
+ * 
  * @example
+ * ```tsx
+ * import React from 'react';
+ * import { WelcomePage } from 'mediasfu-reactjs';
+ * 
+ * const parameters = {
+ *   showAlert: (message) => console.log(message),
+ *   updateIsLoadingModalVisible: (visible) => console.log(visible),
+ *   connectSocket: (socket) => console.log(socket),
+ *   updateSocket: (socket) => console.log(socket),
+ *   updateValidated: (validated) => console.log(validated),
+ *   updateApiUserName: (apiUserName) => console.log(apiUserName),
+ *   updateApiToken: (apiToken) => console.log(apiToken),
+ *   updateLink: (link) => console.log(link),
+ *   updateRoomName: (roomName) => console.log(roomName),
+ *   updateMember: (userName) => console.log(userName),
+ * };
+ * 
  * <WelcomePage parameters={parameters} />
+ * ```
  */
+
+
 const WelcomePage: React.FC<WelcomePageOptions> = ({ parameters }) => {
   const [name, setName] = useState<string>("");
   const [secret, setSecret] = useState<string>("");

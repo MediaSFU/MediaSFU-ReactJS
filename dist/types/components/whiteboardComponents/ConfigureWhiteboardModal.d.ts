@@ -43,32 +43,63 @@ export interface ConfigureWhiteboardModalOptions {
 }
 export type ConfigureWhiteboardModalType = (options: ConfigureWhiteboardModalOptions) => JSX.Element;
 /**
- * Component for configuring the whiteboard settings in a modal.
+ * ConfigureWhiteboard provides a modal interface for configuring whiteboard settings,
+ * including assigning participants, validating settings, and starting or stopping
+ * a whiteboard session.
  *
  * @component
- * @param {ConfigureWhiteboardModalOptions} props - The properties for the component.
+ * @param {ConfigureWhiteboardModalOptions} props - Component properties.
  * @param {boolean} props.isVisible - Determines if the modal is visible.
- * @param {function} props.onConfigureWhiteboardClose - Callback to close the modal.
- * @param {object} props.parameters - Various parameters related to the whiteboard and participants.
- * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
+ * @param {function} props.onConfigureWhiteboardClose - Closes the modal.
+ * @param {ConfigureWhiteboardModalParameters} props.parameters - Various settings and functions for the whiteboard.
+ * @param {string} [props.backgroundColor="#83c0e9"] - Modal background color.
  * @param {string} [props.position="topRight"] - Position of the modal on the screen.
  *
- * @returns {JSX.Element} The rendered component.
+ * @returns {JSX.Element} The rendered ConfigureWhiteboard component.
  *
  * @example
+ * ```tsx
+ * import { ConfigureWhiteboard } from 'mediasfu-reactjs';
+ * import { io } from 'socket.io-client';
+ *
+ * const parameters = {
+ *   participants: [{ id: "1", name: "John Doe", islevel: "1", useBoard: false }],
+ *   socket: io("http://localhost:3000"),
+ *   itemPageLimit: 10,
+ *   islevel: "2",
+ *   roomName: "Room 1",
+ *   eventType: "meeting",
+ *   shareScreenStarted: false,
+ *   shared: false,
+ *   breakOutRoomStarted: false,
+ *   breakOutRoomEnded: true,
+ *   recordStarted: false,
+ *   recordResumed: false,
+ *   recordPaused: false,
+ *   recordStopped: false,
+ *   recordingMediaOptions: "video",
+ *   canStartWhiteboard: true,
+ *   whiteboardStarted: false,
+ *   whiteboardEnded: true,
+ *   hostLabel: "Host",
+ *   updateWhiteboardStarted: (started) => console.log("Whiteboard started:", started),
+ *   updateWhiteboardEnded: (ended) => console.log("Whiteboard ended:", ended),
+ *   updateWhiteboardUsers: (users) => console.log("Whiteboard users updated:", users),
+ *   updateCanStartWhiteboard: (canStart) => console.log("Can start whiteboard:", canStart),
+ *   updateIsConfigureWhiteboardModalVisible: (isVisible) => console.log("Whiteboard modal visibility:", isVisible),
+ *   onScreenChanges: ({ changed }) => console.log("Screen changed:", changed),
+ *   captureCanvasStream: () => console.log("Canvas stream captured"),
+ *   prepopulateUserMedia: ({ name }) => console.log("Prepopulating user media for:", name),
+ *   rePort: ({ restart }) => console.log("Report with restart:", restart),
+ *   showAlert: ({ message, type }) => console.log(`${type}: ${message}`),
+ * };
+ *
  * <ConfigureWhiteboard
  *   isVisible={true}
- *   onConfigureWhiteboardClose={handleClose}
+ *   onConfigureWhiteboardClose={() => console.log("Whiteboard modal closed")}
  *   parameters={parameters}
  * />
- *
- * @remarks
- * This component handles the configuration of the whiteboard, including assigning participants,
- * validating the whiteboard settings, and starting/stopping the whiteboard session.
- *
- * @internal
- * This component uses various hooks such as `useState`, `useEffect`, and `useRef` to manage state
- * and side effects. It also interacts with a socket for real-time updates.
+ * ```
  */
 declare const ConfigureWhiteboard: React.FC<ConfigureWhiteboardModalOptions>;
 export default ConfigureWhiteboard;

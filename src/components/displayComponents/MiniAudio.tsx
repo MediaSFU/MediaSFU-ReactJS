@@ -38,6 +38,7 @@ export type MiniAudioType = (options: MiniAudioOptions) => JSX.Element;
  * @returns {JSX.Element} The rendered MiniAudio component.
  *
  * @example
+ * ```tsx
  * <MiniAudio
  *   visible={true}
  *   customStyle={{ backgroundColor: 'blue' }}
@@ -51,6 +52,7 @@ export type MiniAudioType = (options: MiniAudioOptions) => JSX.Element;
  *   imageStyle={{ width: '100px' }}
  *   overlayPosition="top"
  * />
+ * ```
  */
 const MiniAudio: React.FC<MiniAudioOptions> = ({
   visible = true,

@@ -10,10 +10,10 @@ export type FormatNumberType = (options: FormatNumberOptions) => Promise<string 
  *
  * @example
  * ```typescript
- * formatNumber(500); // "500"
- * formatNumber(1500); // "1.5K"
- * formatNumber(1500000); // "1.5M"
- * formatNumber(1500000000); // "1.5B"
+ * formatNumber({ number: 500 }); // "500"
+ * formatNumber({ number: 1500 }); // "1.5K"
+ * formatNumber({ number: 1500000 }); // "1.5M"
+ * formatNumber({ number: 1500000000 }); // "1.5B"
  * ```
  */
 export declare const formatNumber: ({ number }: FormatNumberOptions) => Promise<string | undefined>;

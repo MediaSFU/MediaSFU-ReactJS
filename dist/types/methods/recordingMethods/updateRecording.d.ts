@@ -71,6 +71,41 @@ export type UpdateRecordingType = (options: UpdateRecordingOptions) => Promise<v
  * @property {Function} updateEndReport - Function to update the end report state.
  * @property {Function} updateCanRecord - Function to update the can record state.
  * @property {Function} rePort - Function to handle reporting.
+ *
+ * @example
+ * ```typescript
+ * updateRecording({
+ *   parameters: {
+ *     roomName: 'Room101',
+ *     socket: mySocket,
+ *     updateIsRecordingModalVisible: setIsRecordingModalVisible,
+ *     confirmedToRecord: true,
+ *     showAlert: myShowAlert,
+ *     recordingMediaOptions: 'video',
+ *     videoAlreadyOn: true,
+ *     audioAlreadyOn: true,
+ *     recordStarted: false,
+ *     recordPaused: false,
+ *     recordResumed: false,
+ *     recordStopped: false,
+ *     recordChangeSeconds: 3,
+ *     pauseRecordCount: 0,
+ *     startReport: false,
+ *     endReport: false,
+ *     canRecord: true,
+ *     canPauseResume: true,
+ *     updateCanPauseResume: setCanPauseResume,
+ *     updatePauseRecordCount: setPauseRecordCount,
+ *     updateClearedToRecord: setClearedToRecord,
+ *     updateRecordPaused: setRecordPaused,
+ *     updateRecordResumed: setRecordResumed,
+ *     updateStartReport: setStartReport,
+ *     updateEndReport: setEndReport,
+ *     updateCanRecord: setCanRecord,
+ *     rePort: myRePortFunction,
+ *   },
+ * });
+ * ```
  */
 export declare const updateRecording: ({ parameters }: UpdateRecordingOptions) => Promise<void>;
 //# sourceMappingURL=updateRecording.d.ts.map

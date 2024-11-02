@@ -46,6 +46,18 @@ export type RePortType = (options: RePortOptions) => Promise<void>;
  * @returns {Promise<void>} A promise that resolves when the reporting process is complete.
  *
  * @throws {Error} Throws an error if there is an issue during the reporting process.
+ *
+ * @example
+ * ```typescript
+ * await rePort({
+ *   restart: false,
+ *   parameters: {
+ *     islevel: "2",
+ *     mainScreenPerson: "John Doe",
+ *     // other parameters...
+ *   },
+ * });
+ * ```
  */
 export declare function rePort({ restart, parameters }: RePortOptions): Promise<void>;
 //# sourceMappingURL=rePort.d.ts.map

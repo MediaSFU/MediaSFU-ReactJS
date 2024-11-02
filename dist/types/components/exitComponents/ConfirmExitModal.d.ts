@@ -30,6 +30,37 @@ export type ConfirmExitModalType = (options: ConfirmExitModalOptions) => JSX.Ele
  * @param {string} props.islevel - Level of the user.
  *
  * @returns {JSX.Element} The ConfirmExitModal component.
+ *
+ * @example
+ * ```tsx
+ * import React from 'react';
+ * import { ConfirmExitModal } from 'mediasfu-reactjs';
+ * import { io } from 'socket.io-client';
+ *
+ * const App = () => {
+ *   const socket = io("http://localhost:3000");
+ *
+ *   const handleCloseModal = () => console.log("Modal closed");
+ *   const confirmExit = async (options) => console.log("Exit confirmed", options);
+ *
+ *   return (
+ *     <ConfirmExitModal
+ *       isConfirmExitModalVisible={true}
+ *       onConfirmExitClose={handleCloseModal}
+ *       exitEventOnConfirm={confirmExit}
+ *       member="John Doe"
+ *       ban={false}
+ *       roomName="Room 1"
+ *       socket={socket}
+ *       islevel="2"
+ *       position="topRight"
+ *       backgroundColor="#83c0e9"
+ *     />
+ *   );
+ * };
+ *
+ * export default App;
+ * ```
  */
 declare const ConfirmExitModal: React.FC<ConfirmExitModalOptions>;
 export default ConfirmExitModal;

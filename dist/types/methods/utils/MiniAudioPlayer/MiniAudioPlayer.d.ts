@@ -40,7 +40,7 @@ export type MiniAudioPlayerType = (options: MiniAudioPlayerOptions) => JSX.Eleme
  * @example
  * ```tsx
  * // Import and use MiniAudioPlayer in a React component
- * import MiniAudioPlayer from './MiniAudioPlayer';
+ * import { MiniAudioPlayer } from 'mediasfu-reactjs';
  *
  * const WaveformVisualizer = ({ stream }: { stream: MediaStream }) => (
  *   <canvas width="300" height="50" />

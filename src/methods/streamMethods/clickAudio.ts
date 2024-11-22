@@ -196,6 +196,15 @@ export const clickAudio = async ({ parameters }: ClickAudioOptions): Promise<voi
           return;
         }
 
+        if (audioRequestState === "rejected" && Date.now() - audioRequestTime < updateRequestIntervalSeconds * 1000) {
+          showAlert?.({
+            message: `A request was rejected. Please wait for ${updateRequestIntervalSeconds} seconds before sending another request.`,
+            type: "danger",
+            duration: 3000,
+          });
+          return;
+        }
+
         showAlert?.({
           message: "Request sent to host.",
           type: "success",
@@ -215,14 +224,13 @@ export const clickAudio = async ({ parameters }: ClickAudioOptions): Promise<voi
         break; }
 
       case 2:
-        if (audioRequestState === "rejected" && Date.now() - audioRequestTime < updateRequestIntervalSeconds * 1000) {
-          showAlert?.({
-            message: `A request was rejected. Please wait for ${updateRequestIntervalSeconds} seconds before sending another request.`,
-            type: "danger",
-            duration: 3000,
-          });
-          return;
-        }
+
+        showAlert?.({
+          message: "You cannot turn on your microphone. Access denied by host.",
+          type: "danger",
+          duration: 3000,
+        });
+       
         break;
 
       case 0:

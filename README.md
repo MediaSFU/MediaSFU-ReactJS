@@ -1830,9 +1830,8 @@ For sample codes and practical implementations, visit the [MediaSFU Sandbox](htt
 
 These troubleshooting steps should help users address common issues and optimize their experience with MediaSFU. If the issues persist or additional assistance is needed, users can refer to the [documentation](https://mediasfu.com/docs) or reach out to the support team for further assistance.
 
-<div style="text-align: center;">
+
 https://github.com/user-attachments/assets/310cb87c-dade-445d-aee7-dea1889d6dc4
-</div>
 
 # Contributing <a name="contributing"></a>
 

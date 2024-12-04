@@ -14,6 +14,7 @@ export type { CloseAndResizeOptions, CloseAndResizeType, CloseAndResizeParameter
 export type { CompareActiveNamesOptions, CompareActiveNamesType, CompareActiveNamesParameters } from '../consumers/compareActiveNames';
 export type { CompareScreenStatesOptions, CompareScreenStatesType, CompareScreenStatesParameters } from '../consumers/compareScreenStates';
 export type { ConnectIpsOptions, ConnectIpsType, ConnectIpsParameters } from '../consumers/connectIps';
+export type { ConnectLocalIpsOptions, ConnectLocalIpsType, ConnectLocalIpsParameters } from '../consumers/connectLocalIps';
 export type { ConnectRecvTransportOptions, ConnectRecvTransportType, ConnectRecvTransportParameters } from '../consumers/connectRecvTransport';
 export type { ConnectSendTransportOptions, ConnectSendTransportType, ConnectSendTransportParameters } from '../consumers/connectSendTransport';
 export type { ConnectSendTransportAudioOptions, ConnectSendTransportAudioType, ConnectSendTransportAudioParameters } from '../consumers/connectSendTransportAudio';
@@ -127,6 +128,7 @@ export type { JoinRoomClientOptions, JoinRoomClientType } from '../ProducerClien
 export type { UpdateRoomParametersClientOptions, UpdateRoomParametersClientType, UpdateRoomParametersClientParameters } from '../ProducerClient/producerClientEmits/updateRoomParametersClient';
 export type { JoinConRoomOptions, JoinConRoomType } from '../producers/producerEmits/joinConRoom';
 export type { JoinRoomOptions, JoinRoomType } from '../producers/producerEmits/joinRoom';
+export type { JoinLocalRoomOptions, JoinLocalRoomType } from '../producers/producerEmits/joinLocalRoom';
 export type { AllMembersOptions, AllMembersType, AllMembersParameters } from '../producers/socketReceiveMethods/allMembers';
 export type { AllMembersRestOptions, AllMembersRestType, AllMembersRestParameters } from '../producers/socketReceiveMethods/allMembersRest';
 export type { AllWaitingRoomMembersOptions, AllWaitingRoomMembersType } from '../producers/socketReceiveMethods/allWaitingRoomMembers';
@@ -156,7 +158,7 @@ export type { UpdateConsumingDomainsOptions, UpdateConsumingDomainsType, UpdateC
 export type { UpdateMediaSettingsOptions, UpdateMediaSettingsType } from '../producers/socketReceiveMethods/updateMediaSettings';
 export type { UpdatedCoHostOptions, UpdatedCoHostType } from '../producers/socketReceiveMethods/updatedCoHost';
 export type { UserWaitingOptions, UserWaitingType } from '../producers/socketReceiveMethods/userWaiting';
-export type { ConnectSocketOptions, ConnectSocketType, DisconnectSocketType, DisconnectSocketOptions } from '../sockets/SocketManager';
+export type { ConnectSocketOptions, ConnectSocketType, DisconnectSocketType, DisconnectSocketOptions, ConnectLocalSocketOptions, ConnectLocalSocketType, ResponseLocalConnection, ResponseLocalConnectionData } from '../sockets/SocketManager';
 export type { BackgroundModalOptions, BackgroundModalType, BackgroundModalParameters } from '../components/backgroundComponents/BackgroundModal';
 export type { BreakoutRoomsModalOptions, BreakoutRoomsModalType, BreakoutRoomsModalParameters } from '../components/breakoutComponents/BreakoutRoomsModal';
 export type { CoHostModalOptions, CoHostModalType } from '../components/coHostComponents/CoHostModal';
@@ -202,6 +204,7 @@ export type { WaitingRoomModalOptions, WaitingRoomModalType, WaitingRoomModalPar
 export type { ConfigureWhiteboardModalOptions, ConfigureWhiteboardModalType } from '../components/whiteboardComponents/ConfigureWhiteboardModal';
 export type { WhiteboardOptions, WhiteboardType, WhiteboardParameters, Shape } from '../components/whiteboardComponents/Whiteboard';
 export type { CustomButtonsOptions, CustomButtonsType, CustomButton } from '../components/menuComponents/CustomButtons';
+export type { CreateJoinRoomType, CreateRoomOnMediaSFUType, CreateJoinRoomResponse, CreateJoinRoomError } from '../methods/utils/joinRoomOnMediaSFU';
 export interface Participant {
     id?: string;
     audioID: string;
@@ -210,6 +213,7 @@ export interface Participant {
     ScreenOn?: boolean;
     islevel?: string;
     isAdmin?: boolean;
+    isHost?: boolean;
     name: string;
     muted?: boolean;
     isBanned?: boolean;
@@ -467,6 +471,20 @@ export interface CreateRoomOptions {
     safeRoomAction: 'warn' | 'kick' | 'ban';
     dataBuffer: boolean;
     bufferType: 'images' | 'audio' | 'all';
+}
+export interface ResponseJoinLocalRoom {
+    rtpCapabilities?: RtpCapabilities | null;
+    isHost: boolean;
+    eventStarted: boolean;
+    isBanned: boolean;
+    hostNotJoined: boolean;
+    eventRoomParams: MeetingRoomParams;
+    recordingParams: RecordingParams;
+    secureCode: string;
+    mediasfuURL: string;
+    apiKey: string;
+    apiUserName: string;
+    allowRecord: boolean;
 }
 export interface ResponseJoinRoom {
     rtpCapabilities?: RtpCapabilities | null;

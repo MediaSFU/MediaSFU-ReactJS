@@ -3,7 +3,9 @@ import { Socket } from "socket.io-client";
 import { PrepopulateUserMediaParameters, PrepopulateUserMediaType, CreateSendTransportParameters, CreateSendTransportType, ConnectSendTransportAudioParameters, ConnectSendTransportAudioType, SleepType } from "../@types/types";
 export interface StreamSuccessAudioSwitchParameters extends PrepopulateUserMediaParameters, CreateSendTransportParameters, ConnectSendTransportAudioParameters {
     audioProducer: Producer | null;
+    localAudioProducer?: Producer | null;
     socket: Socket;
+    localSocket?: Socket;
     roomName: string;
     localStream: MediaStream | null;
     localStreamAudio: MediaStream | null;
@@ -11,6 +13,7 @@ export interface StreamSuccessAudioSwitchParameters extends PrepopulateUserMedia
     audioPaused: boolean;
     audioAlreadyOn: boolean;
     transportCreated: boolean;
+    localTransportCreated?: boolean;
     audioParamse?: ProducerCodecOptions;
     defAudioID: string;
     userDefaultAudioInputDevice: string;
@@ -21,6 +24,7 @@ export interface StreamSuccessAudioSwitchParameters extends PrepopulateUserMedia
     lock_screen: boolean;
     shared: boolean;
     updateAudioProducer: (audioProducer: Producer | null) => void;
+    updateLocalAudioProducer?: (localAudioProducer: Producer | null) => void;
     updateLocalStream: (localStream: MediaStream | null) => void;
     updateAudioParams: (audioParams: ProducerOptions) => void;
     updateDefAudioID: (defAudioID: string) => void;
@@ -45,7 +49,9 @@ export type StreamSuccessAudioSwitchType = (options: StreamSuccessAudioSwitchOpt
  * @param {MediaStream} options.stream - The new media stream containing the audio track.
  * @param {Object} options.parameters - The parameters required for setting up the audio stream.
  * @param {Producer} options.parameters.audioProducer - The current audio producer.
+ * @param {Producer} options.parameters.localAudioProducer - The local audio producer.
  * @param {Socket} options.parameters.socket - The socket connection for communication.
+ * @param {Socket} options.parameters.localSocket - The local socket connection for communication.
  * @param {string} options.parameters.roomName - The name of the room.
  * @param {MediaStream | null} options.parameters.localStream - The local media stream.
  * @param {MediaStream | null} options.parameters.localStreamAudio - The local audio stream.
@@ -63,6 +69,7 @@ export type StreamSuccessAudioSwitchType = (options: StreamSuccessAudioSwitchOpt
  * @param {boolean} options.parameters.lock_screen - Indicates if the screen is locked.
  * @param {boolean} options.parameters.shared - Indicates if the screen is shared.
  * @param {Function} options.parameters.updateAudioProducer - Function to update the audio producer.
+ * @param {Function} options.parameters.updateLocalAudioProducer - Function to update the local audio producer.
  * @param {Function} options.parameters.updateLocalStream - Function to update the local stream.
  * @param {Function} options.parameters.updateAudioParams - Function to update the audio parameters.
  * @param {Function} options.parameters.updateDefAudioID - Function to update the default audio device ID.
@@ -80,6 +87,8 @@ export type StreamSuccessAudioSwitchType = (options: StreamSuccessAudioSwitchOpt
  *   stream: newAudioStream, // MediaStream object containing the new audio track
  *   parameters: {
  *     audioProducer: currentAudioProducer,
+ *     localAudioProducer: localAudioProducerInstance,
+ *     localSocket: localSocketInstance,
  *     socket: socketInstance,
  *     roomName: "Room1",
  *     localStream: null,
@@ -97,6 +106,7 @@ export type StreamSuccessAudioSwitchType = (options: StreamSuccessAudioSwitchOpt
  *     lock_screen: false,
  *     shared: false,
  *     updateAudioProducer: updateAudioProducerFunction,
+ *     updateLocalAudioProducer: updateLocalAudioProducerFunction,
  *     updateLocalStream: updateLocalStreamFunction,
  *     updateAudioParams: updateAudioParamsFunction,
  *     updateDefAudioID: updateDefAudioIDFunction,

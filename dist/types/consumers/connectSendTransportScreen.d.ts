@@ -1,34 +1,45 @@
 import { Transport, Producer, Device, ProducerOptions } from "mediasoup-client/lib/types";
 export interface ConnectSendTransportScreenParameters {
     screenProducer: Producer | null;
+    localScreenProducer?: Producer | null;
     device: Device | null;
     screenParams: ProducerOptions;
     producerTransport: Transport | null;
+    localProducerTransport?: Transport | null;
     params: ProducerOptions;
-    updateScreenProducer: (producer: (Producer | null)) => void;
+    updateScreenProducer: (producer: Producer | null) => void;
+    updateLocalScreenProducer?: (localProducer: Producer | null) => void;
     updateProducerTransport: (transport: Transport | null) => void;
+    updateLocalProducerTransport?: (localTransport: Transport | null) => void;
     getUpdatedAllParams: () => ConnectSendTransportScreenParameters;
     [key: string]: any;
 }
 export interface ConnectSendTransportScreenOptions {
     stream: MediaStream;
     parameters: ConnectSendTransportScreenParameters;
+    targetOption?: "all" | "local" | "remote";
 }
 export type ConnectSendTransportScreenType = (options: ConnectSendTransportScreenOptions) => Promise<void>;
 /**
  * Sets up and connects a screen sharing transport for sending video streams.
  *
- * @param {Object} options - The configuration options for setting up the screen transport.
- * @param {MediaStream} options.stream - The media stream with the screen video track to share.
- * @param {ConnectSendTransportScreenParameters} options.parameters - The transport setup parameters.
- * @param {Producer | null} options.parameters.screenProducer - The current screen producer instance.
- * @param {Device | null} options.parameters.device - The device object containing RTP capabilities.
- * @param {ProducerOptions} options.parameters.screenParams - The parameters for screen sharing production.
- * @param {Transport | null} options.parameters.producerTransport - The transport for screen sharing.
- * @param {ProducerOptions} options.parameters.params - Additional parameters for producing the screen share.
- * @param {Function} options.parameters.updateScreenProducer - Callback to update the screen producer instance.
- * @param {Function} options.parameters.updateProducerTransport - Callback to update the producer transport instance.
- * @param {Function} options.parameters.getUpdatedAllParams - Callback to retrieve updated device parameters.
+ * This function supports both a primary and a local screen producer, delegating local handling to a separate function.
+ *
+ * @param {ConnectSendTransportScreenOptions} options - The configuration options for setting up the screen transport.
+ * @param {"all" | "local" | "remote"} [options.targetOption] - The target option for connecting the transport.
+ * @param {MediaStream} options.stream - The screen stream to be shared.
+ * @param {ConnectSendTransportScreenParameters} options.parameters - The parameters required for setting up the screen transport.
+ * @param {Producer | null} options.parameters.screenProducer - The screen producer object to be updated.
+ * @param {Device | null} options.parameters.device - The device object for media capabilities.
+ * @param {ProducerOptions} options.parameters.screenParams - The parameters for the screen producer.
+ * @param {Transport | null} options.parameters.producerTransport - The producer transport object.
+ * @param {ProducerOptions} options.parameters.params - The parameters for the producer.
+ * @param {Function} options.parameters.updateScreenProducer - The function to update the screen producer object.
+ * @param {Function} options.parameters.updateProducerTransport - The function to update the producer transport object.
+ * @param {Function} [options.parameters.updateLocalScreenProducer] - The function to update the local screen producer object.
+ * @param {Function} [options.parameters.updateLocalProducerTransport] - The function to update the local producer transport object.
+ * @param {Function} options.parameters.getUpdatedAllParams - The function to get updated parameters.
+ * @param {Object} [options.parameters.*] - Additional parameters for future use.
  *
  * @returns {Promise<void>} - A promise that resolves once the screen transport is successfully connected and set up.
  *
@@ -38,18 +49,23 @@ export type ConnectSendTransportScreenType = (options: ConnectSendTransportScree
  * ```typescript
  * await connectSendTransportScreen({
  *   stream: screenStream,
+ *   targetOption: "all",
  *   parameters: {
  *     screenProducer: null,
+ *     localScreenProducer: null,
  *     device: mediaDevice,
  *     screenParams: { encodings: [{ maxBitrate: 1500000 }] },
  *     producerTransport: sendTransport,
+ *     localProducerTransport: localSendTransport,
  *     params: { track: screenStream.getVideoTracks()[0] },
  *     updateScreenProducer: setScreenProducer,
+ *     updateLocalScreenProducer: setLocalScreenProducer,
  *     updateProducerTransport: setProducerTransport,
+ *     updateLocalProducerTransport: setLocalProducerTransport,
  *     getUpdatedAllParams: getParams,
  *   },
  * });
  * ```
  */
-export declare const connectSendTransportScreen: ({ stream, parameters, }: ConnectSendTransportScreenOptions) => Promise<void>;
+export declare const connectSendTransportScreen: ConnectSendTransportScreenType;
 //# sourceMappingURL=connectSendTransportScreen.d.ts.map

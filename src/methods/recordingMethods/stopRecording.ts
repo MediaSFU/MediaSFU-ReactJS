@@ -4,7 +4,8 @@ import { recordPauseTimer } from "./recordPauseTimer";
 
 export interface StopRecordingParameters {
   roomName: string;
-  socket: Socket
+  socket: Socket;
+  localSocket?: Socket;
   showAlert?: ShowAlert;
   startReport: boolean;
   endReport: boolean;
@@ -39,6 +40,7 @@ export type StopRecordingType = (options: StopRecordingOptions) => Promise<void>
  * @param {StopRecordingOptions} parameters - The parameters required to stop the recording.
  * @param {string} parameters.roomName - The name of the room where the recording is taking place.
  * @param {Socket} parameters.socket - The socket instance used for communication.
+ * @param {Socket} [parameters.localSocket] - The local socket instance used for communication.
  * @param {Function} parameters.showAlert - Function to show alert messages.
  * @param {boolean} parameters.startReport - Indicates if the recording start report is active.
  * @param {boolean} parameters.endReport - Indicates if the recording end report is active.
@@ -63,6 +65,7 @@ export type StopRecordingType = (options: StopRecordingOptions) => Promise<void>
  *   parameters: {
  *     roomName: 'Room101',
  *     socket: mySocket,
+ *     localSocket: myLocalSocket,
  *     showAlert: myShowAlert,
  *     startReport: true,
  *     endReport: false,
@@ -89,6 +92,7 @@ export const stopRecording = async ({
   let {
     roomName,
     socket,
+    localSocket,
     showAlert,
     startReport,
     endReport,
@@ -121,8 +125,10 @@ export const stopRecording = async ({
     if (stop) {
       const action = "stopRecord";
 
+      let socketRef = localSocket && localSocket.connected ? localSocket : socket;
+
       await new Promise<void>((resolve) => {
-        socket.emit(
+        socketRef.emit(
           action,
           { roomName },
           ({ success, reason, recordState }: { success: boolean; reason: string; recordState: string }) => {

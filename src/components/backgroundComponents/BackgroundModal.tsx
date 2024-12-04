@@ -619,9 +619,9 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
           ) {
             return;
           }
-
-          selfieSegmentation.send({ image: videoElement });
-          requestAnimationFrame(processFrame);
+          
+            selfieSegmentation.send({ image: videoElement });
+            requestAnimationFrame(processFrame);
         };
 
         videoElement.onloadeddata = () => {
@@ -701,8 +701,22 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
           if (refVideo.paused) {
             refVideo.play();
           }
-        } catch (error) {
-          console.log("Error getting user media:", error);
+        } catch {
+          // remove the frameRate constraint and try again
+          try {
+            const stream = await mediaDevices.getUserMedia({
+              video: { ...vidCons },
+              audio: false,
+            });
+            segmentVideo = stream;
+            updateSegmentVideo(segmentVideo);
+            refVideo.srcObject = segmentVideo;
+            if (refVideo.paused) {
+              refVideo.play();
+            }
+          } catch (error) {
+            console.log("Error getting user media:", error);
+          }
         }
 
         refVideo.width =

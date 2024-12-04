@@ -22,6 +22,7 @@ export interface MenuModalOptions {
   adminPasscode: string;
   islevel: string;
   eventType: EventType;
+  localLink?: string;
 }
 export type MenuModalType = (options: MenuModalOptions) => JSX.Element;
 
@@ -40,6 +41,7 @@ export type MenuModalType = (options: MenuModalOptions) => JSX.Element;
  * @param {string} options.adminPasscode - The admin passcode for the meeting.
  * @param {string} options.islevel - The level of the user.
  * @param {EventType} options.eventType - The type of event.
+ * @param {string} [options.localLink] - The local link for the event.
  *
  * @returns {JSX.Element} The rendered MenuModal component.
  * 
@@ -84,6 +86,7 @@ export type MenuModalType = (options: MenuModalOptions) => JSX.Element;
  *     adminPasscode="1234"
  *     islevel="2"
  *     eventType="meeting"
+ *     localLink="http://localhost:3000"
  *   />
  * );
  * 
@@ -103,6 +106,7 @@ const MenuModal: React.FC<MenuModalOptions> = ({
   adminPasscode,
   islevel,
   eventType,
+  localLink,
 }) => {
   const screenWidth = window.innerWidth;
   let modalWidth = 0.7 * screenWidth;
@@ -195,6 +199,7 @@ const MenuModal: React.FC<MenuModalOptions> = ({
                 <ShareButtonsComponent
                   meetingID={roomName}
                   eventType={eventType}
+                  localLink={localLink} 
                 />
               )}
             </div>

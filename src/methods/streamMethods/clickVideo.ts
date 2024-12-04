@@ -310,7 +310,17 @@ export const clickVideo = async ({ parameters }: ClickVideoOptions): Promise<voi
             .then(async (stream) => {
               await streamSuccessVideo({ stream, parameters });
             })
-            .catch(() => {
+            .catch(async() => {
+              //remove frameRate from constraints
+              altMediaConstraints = {
+                video: { ...vidCons },
+                audio: false,
+              };
+              await mediaDevices
+              .getUserMedia(altMediaConstraints)
+              .then(async (stream) => {
+                await streamSuccessVideo({ stream, parameters });
+              }).catch(() => {
 
               showAlert?.({
                 message:
@@ -320,6 +330,7 @@ export const clickVideo = async ({ parameters }: ClickVideoOptions): Promise<voi
               });
 
             });
+          });
         });
     }
   }

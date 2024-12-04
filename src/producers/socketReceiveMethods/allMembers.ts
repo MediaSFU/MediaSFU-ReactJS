@@ -1,6 +1,7 @@
+import { Socket } from "socket.io-client";
 import {
   Participant, Request, ReorderStreamsType, ReorderStreamsParameters, SleepType, ConnectIpsParameters, OnScreenChangesParameters,
-  OnScreenChangesType, ConnectIpsType, ConsumeSocket,
+  OnScreenChangesType, ConnectIpsType, ConsumeSocket, ConnectLocalIpsType, ConnectLocalIpsParameters,
   CoHostResponsibility,
   WaitingRoomParticipant
 } from "../../@types/types";
@@ -36,7 +37,7 @@ import {
  * ```
  */
 
-export interface AllMembersParameters extends ReorderStreamsParameters, ConnectIpsParameters, OnScreenChangesParameters {
+export interface AllMembersParameters extends ReorderStreamsParameters, ConnectIpsParameters, OnScreenChangesParameters, ConnectLocalIpsParameters {
   participantsAll: Participant[];
   participants: Participant[];
   dispActiveNames: string[];
@@ -54,6 +55,7 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
   hostFirstSwitch: boolean;
   waitingRoomList: WaitingRoomParticipant[];
   islevel: string;
+  socket: Socket;
 
   updateParticipantsAll: (participantsAll: Participant[]) => void;
   updateParticipants: (participants: Participant[]) => void;
@@ -73,12 +75,13 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
   // mediasfu functions
   onScreenChanges: OnScreenChangesType;
   connectIps: ConnectIpsType;
+  connectLocalIps?: ConnectLocalIpsType;
   sleep: SleepType;
   reorderStreams: ReorderStreamsType;
 
   getUpdatedAllParams: () => AllMembersParameters;
   [key: string]: any;
-};
+}
 
 export interface AllMembersOptions {
   members: Participant[];
@@ -128,6 +131,7 @@ export const allMembers = async ({
     hostFirstSwitch,
     waitingRoomList,
     islevel,
+    socket,
 
     updateParticipantsAll,
     updateParticipants,
@@ -146,6 +150,7 @@ export const allMembers = async ({
 
     onScreenChanges,
     connectIps,
+    connectLocalIps,
     sleep,
     reorderStreams,
   } = parameters;
@@ -176,7 +181,14 @@ export const allMembers = async ({
     }
   }
 
-  if (!membersReceived) {
+  // check to expect no roomRecvIPs for local instance
+  let onLocal = false;
+  if (roomRecvIPs.length === 1 && roomRecvIPs[0] === "none") {
+    onLocal = true;
+  }
+
+
+  if (!membersReceived && !onLocal) {
     if (roomRecvIPs.length < 1) {
       let checkIPs = setInterval(async () => {
         if (roomRecvIPs.length > 0) {
@@ -233,6 +245,14 @@ export const allMembers = async ({
       deferScreenReceived = false;
       updateDeferScreenReceived(deferScreenReceived);
     }
+  }
+
+  if (onLocal && !membersReceived) {
+    if (connectLocalIps) {
+      await connectLocalIps({ socket: socket, parameters });
+    }
+    await sleep({ ms: 50 });
+    updateIsLoadingModalVisible(false);
   }
 
   requestList = requestss.filter((request) =>

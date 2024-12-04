@@ -10,6 +10,7 @@ export interface ConfirmHereModalOptions {
   backgroundColor?: string;
   countdownDuration?: number;
   socket: Socket;
+  localSocket?: Socket;
   roomName: string;
   member: string;
 }
@@ -24,6 +25,7 @@ function startCountdown({
   onConfirm,
   onUpdateCounter,
   socket,
+  localSocket,
   roomName,
   member,
 }: {
@@ -31,6 +33,7 @@ function startCountdown({
   onConfirm: () => void;
   onUpdateCounter: (timeRemaining: number) => void;
   socket: Socket;
+  localSocket?: Socket;
   roomName: string;
   member: string;
 }) {
@@ -47,6 +50,18 @@ function startCountdown({
         roomName: roomName,
         ban: false,
       });
+      try {
+        if (localSocket && localSocket.id) {
+          localSocket.emit("disconnectUser", {
+            member: member,
+            roomName: roomName,
+            ban: false,
+          });
+        } 
+      } catch  {
+        // Do nothing
+      }
+
       onConfirm();
     }
   }, 1000);
@@ -61,6 +76,7 @@ function startCountdown({
  * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
  * @param {number} [props.countdownDuration=120] - Duration of the countdown in seconds.
  * @param {Socket} props.socket - Socket instance for communication.
+ * @param {Socket} [props.localSocket] - Local socket instance for communication.
  * @param {string} props.roomName - Name of the room for socket communication.
  * @param {string} props.member - Member information for socket communication.
  *
@@ -75,6 +91,7 @@ function startCountdown({
  * const App = () => {
  *   const [isModalVisible, setIsModalVisible] = useState(true);
  *   const socket = io("http://localhost:3000");
+ *   const localSocket = io("http://localhost:3001");
  * 
  *   const handleCloseModal = () => setIsModalVisible(false);
  * 
@@ -85,6 +102,7 @@ function startCountdown({
  *       backgroundColor="#83c0e9"
  *       countdownDuration={120}
  *       socket={socket}
+ *       localSocket={socket}
  *       roomName="room1"
  *       member="user1"
  *     />
@@ -101,6 +119,7 @@ const ConfirmHereModal: React.FC<ConfirmHereModalOptions> = ({
   backgroundColor = "#83c0e9",
   countdownDuration = 120,
   socket,
+  localSocket,
   roomName,
   member,
 }) => {
@@ -113,6 +132,7 @@ const ConfirmHereModal: React.FC<ConfirmHereModalOptions> = ({
         onConfirm: onConfirmHereClose,
         onUpdateCounter: setCounter,
         socket,
+        localSocket,
         roomName,
         member,
       });

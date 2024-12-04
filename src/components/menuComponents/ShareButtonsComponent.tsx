@@ -22,6 +22,7 @@ export interface ShareButtonsComponentOptions {
   meetingID: string;
   shareButtons?: ShareButton[];
   eventType: EventType;
+  localLink?: string;
 }
 
 export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) => JSX.Element;
@@ -34,6 +35,7 @@ export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) 
  * @param {string} props.meetingID - The unique identifier for the meeting.
  * @param {ShareButton[]} [props.shareButtons=[]] - An optional array of share buttons to display. If not provided, default share buttons will be used.
  * @param {EventType} props.eventType - The type of event, which can be "chat", "broadcast", or "meeting". This determines the URL structure for sharing.
+ * @param {string} [props.localLink=""] - An optional local link to use for sharing the event.
  *
  * @returns {JSX.Element} The rendered component.
  * 
@@ -58,6 +60,7 @@ export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) 
  *     meetingID="1234567890" 
  *     eventType="meeting" 
  *     shareButtons={customShareButtons} 
+ *     localLink="https://example.com/meeting"
  *   />
  * );
  * 
@@ -69,6 +72,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
   meetingID,
   shareButtons = [],
   eventType,
+  localLink = "",
 }) => {
   const shareName =
     eventType === "chat"
@@ -77,15 +81,20 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       ? "broadcast"
       : "meeting";
 
+  const getShareUrl = () => {
+    if (localLink && !localLink.includes("mediasfu.com")) {
+      return `${localLink}/meeting/${meetingID}`;
+    }
+    return `https://${shareName}.mediasfu.com/${shareName}/${meetingID}`;
+  };
+
   const defaultShareButtons: ShareButton[] = [
     {
       icon: faCopy,
       action: async () => {
         // Action for the copy button
         try {
-          await navigator.clipboard.writeText(
-            `https://${shareName}.mediasfu.com/${shareName}/${meetingID}`
-          );
+          await navigator.clipboard.writeText(getShareUrl());
         } catch (error) {
           console.error("Failed to copy to clipboard", error);
         }
@@ -96,7 +105,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       icon: faEnvelope,
       action: () => {
         // Action for the email button
-        const emailUrl = `mailto:?subject=Join my meeting&body=Here's the link to the meeting: https://${shareName}.mediasfu.com/${shareName}/${meetingID}`;
+        const emailUrl = `mailto:?subject=Join my meeting&body=Here's the link to the meeting: ${getShareUrl()}`;
         window.open(emailUrl, "_blank");
       },
       show: true,
@@ -106,7 +115,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       action: () => {
         // Action for the Facebook button
         const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-          `https://${shareName}.mediasfu.com/${shareName}/${meetingID}`
+          getShareUrl()
         )}`;
         window.open(facebookUrl, "_blank");
       },
@@ -117,7 +126,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       action: () => {
         // Action for the WhatsApp button
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-          `https://${shareName}.mediasfu.com/${shareName}/${meetingID}`
+          getShareUrl()
         )}`;
         window.open(whatsappUrl, "_blank");
       },
@@ -128,7 +137,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       action: () => {
         // Action for the Telegram button
         const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(
-          `https://${shareName}.mediasfu.com/${shareName}/${meetingID}`
+          getShareUrl()
         )}`;
         window.open(telegramUrl, "_blank");
       },

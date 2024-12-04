@@ -1,4 +1,5 @@
-import { Participant, Request, ReorderStreamsType, ReorderStreamsParameters, SleepType, ConnectIpsParameters, OnScreenChangesParameters, OnScreenChangesType, ConnectIpsType, ConsumeSocket, CoHostResponsibility, WaitingRoomParticipant } from "../../@types/types";
+import { Socket } from "socket.io-client";
+import { Participant, Request, ReorderStreamsType, ReorderStreamsParameters, SleepType, ConnectIpsParameters, OnScreenChangesParameters, OnScreenChangesType, ConnectIpsType, ConsumeSocket, ConnectLocalIpsType, ConnectLocalIpsParameters, CoHostResponsibility, WaitingRoomParticipant } from "../../@types/types";
 /**
  * Handles participant management and UI updates for all members.
  *
@@ -29,7 +30,7 @@ import { Participant, Request, ReorderStreamsType, ReorderStreamsParameters, Sle
  * });
  * ```
  */
-export interface AllMembersParameters extends ReorderStreamsParameters, ConnectIpsParameters, OnScreenChangesParameters {
+export interface AllMembersParameters extends ReorderStreamsParameters, ConnectIpsParameters, OnScreenChangesParameters, ConnectLocalIpsParameters {
     participantsAll: Participant[];
     participants: Participant[];
     dispActiveNames: string[];
@@ -47,6 +48,7 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
     hostFirstSwitch: boolean;
     waitingRoomList: WaitingRoomParticipant[];
     islevel: string;
+    socket: Socket;
     updateParticipantsAll: (participantsAll: Participant[]) => void;
     updateParticipants: (participants: Participant[]) => void;
     updateRequestList: (requestList: Request[]) => void;
@@ -63,6 +65,7 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
     updateTotalReqWait: (total: number) => void;
     onScreenChanges: OnScreenChangesType;
     connectIps: ConnectIpsType;
+    connectLocalIps?: ConnectLocalIpsType;
     sleep: SleepType;
     reorderStreams: ReorderStreamsType;
     getUpdatedAllParams: () => AllMembersParameters;

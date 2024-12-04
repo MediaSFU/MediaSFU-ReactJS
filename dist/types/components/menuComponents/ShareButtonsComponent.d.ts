@@ -12,6 +12,7 @@ export interface ShareButtonsComponentOptions {
     meetingID: string;
     shareButtons?: ShareButton[];
     eventType: EventType;
+    localLink?: string;
 }
 export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) => JSX.Element;
 /**
@@ -22,6 +23,7 @@ export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) 
  * @param {string} props.meetingID - The unique identifier for the meeting.
  * @param {ShareButton[]} [props.shareButtons=[]] - An optional array of share buttons to display. If not provided, default share buttons will be used.
  * @param {EventType} props.eventType - The type of event, which can be "chat", "broadcast", or "meeting". This determines the URL structure for sharing.
+ * @param {string} [props.localLink=""] - An optional local link to use for sharing the event.
  *
  * @returns {JSX.Element} The rendered component.
  *
@@ -46,6 +48,7 @@ export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) 
  *     meetingID="1234567890"
  *     eventType="meeting"
  *     shareButtons={customShareButtons}
+ *     localLink="https://example.com/meeting"
  *   />
  * );
  *

@@ -1,6 +1,6 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "2.0.4",
+  "version": "3.0.0",
   "private": false,
   "main": "dist/main.js",
   "module": "dist/main.js",
@@ -107,6 +107,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:secure": "set HTTPS=true && set PORT=3001 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

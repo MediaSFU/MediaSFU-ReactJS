@@ -28,6 +28,7 @@ export interface BreakoutRoomsModalParameters {
   participants: Participant[];
   showAlert?: ShowAlert;
   socket: Socket;
+  localSocket?: Socket;
   itemPageLimit: number;
   meetingDisplayType: string;
   prevMeetingDisplayType: string;
@@ -252,6 +253,7 @@ const BreakoutRoomsModal: React.FC<BreakoutRoomsModalOptions> = ({
     participants,
     showAlert,
     socket,
+    localSocket,
     itemPageLimit,
     meetingDisplayType,
     prevMeetingDisplayType,
@@ -448,6 +450,18 @@ const BreakoutRoomsModal: React.FC<BreakoutRoomsModalOptions> = ({
           showAlert?.({ message: response.reason, type: 'danger' });
         }
       });
+
+      if (localSocket && localSocket.id) {
+        try {
+          localSocket.emit(emitName, { breakoutRooms: filteredBreakoutRooms, newParticipantAction, roomName }, (response: { success: boolean; reason: string }) => {
+            if (response.success) {
+              // do nothing
+            }
+          });
+        } catch {
+          console.log('Error starting local breakout rooms:');
+        }
+      }
     }
   };
 
@@ -465,6 +479,18 @@ const BreakoutRoomsModal: React.FC<BreakoutRoomsModalOptions> = ({
         showAlert?.({ message: response.reason, type: 'danger' });
       }
     });
+
+    if (localSocket && localSocket.id) {
+      try {
+        localSocket.emit('stopBreakout', { roomName }, (response: { success: boolean; reason: string }) => {
+          if (response.success) {
+            // do nothing
+          }
+        });
+      } catch {
+        console.log('Error stopping local breakout rooms:');
+      }
+    }
   };
 
   const handleEditRoom = (roomIndex: number) => {

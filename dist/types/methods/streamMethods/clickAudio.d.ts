@@ -18,6 +18,7 @@ export interface ClickAudioParameters extends DisconnectSendTransportAudioParame
     audioRequestTime: number;
     member: string;
     socket: Socket;
+    localSocket?: Socket;
     roomName: string;
     userDefaultAudioInputDevice: string;
     micAction: boolean;

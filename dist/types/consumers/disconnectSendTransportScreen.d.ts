@@ -3,8 +3,10 @@ import { Socket } from "socket.io-client";
 export interface DisconnectSendTransportScreenParameters {
     screenProducer: Producer | null;
     socket: Socket;
+    localSocket?: Socket;
     roomName: string;
     updateScreenProducer: (screenProducer: Producer | null) => void;
+    updateLocalScreenProducer?: (localScreenProducer: Producer | null) => void;
     getUpdatedAllParams: () => DisconnectSendTransportScreenParameters;
     [key: string]: any;
 }
@@ -23,8 +25,10 @@ export type DisconnectSendTransportScreenType = (options: DisconnectSendTranspor
  * @param {Function} options.parameters.getUpdatedAllParams - Function to get updated parameters.
  * @param {Producer | null} options.parameters.screenProducer - The screen producer to be closed.
  * @param {Socket} options.parameters.socket - The socket connection to notify the server.
+ * @param {Socket} [options.parameters.localSocket] - The local socket connection for communication.
  * @param {string} options.parameters.roomName - The name of the room.
  * @param {Function} options.parameters.updateScreenProducer - Function to update the screen producer state.
+ * @param {Function} [options.parameters.updateLocalScreenProducer] - Function to update the local screen producer state.
  * @returns {Promise<void>} A promise that resolves when the disconnection process is complete.
  * @throws {Error} If an error occurs during the disconnection process.
  *
@@ -33,8 +37,10 @@ export type DisconnectSendTransportScreenType = (options: DisconnectSendTranspor
  *   parameters: {
  *     screenProducer: screenProducerInstance,
  *     socket: socketInstance,
+ *     localSocket: localSocketInstance,
  *     roomName: 'Room 1',
  *     updateScreenProducer: (producer) => console.log('Updated screen producer:', producer),
+ *     updateLocalScreenProducer: (localProducer) => console.log('Updated local screen producer:', localProducer),
  *     getUpdatedAllParams: () => ({
  *       screenProducer: screenProducerInstance,
  *       socket: socketInstance,

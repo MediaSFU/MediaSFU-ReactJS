@@ -1,12 +1,51 @@
 import React from "react";
-import { ConnectSocketType, ShowAlert } from "../../@types/types";
+import { ConnectSocketType, ShowAlert, ConnectLocalSocketType, RecordingParams, MeetingRoomParams } from "../../@types/types";
 import { Socket } from "socket.io-client";
+export interface JoinLocalEventRoomParameters {
+    eventID: string;
+    userName: string;
+    secureCode?: string;
+    videoPreference?: string | null;
+    audioPreference?: string | null;
+    audioOutputPreference?: string | null;
+}
+export interface JoinLocalEventRoomOptions {
+    joinData: JoinLocalEventRoomParameters;
+    link?: string;
+}
+export interface CreateLocalRoomParameters {
+    eventID: string;
+    duration: number;
+    capacity: number;
+    userName: string;
+    scheduledDate: Date;
+    secureCode: string;
+    waitRoom?: boolean;
+    recordingParams?: RecordingParams;
+    eventRoomParams?: MeetingRoomParams;
+    videoPreference?: string | null;
+    audioPreference?: string | null;
+    audioOutputPreference?: string | null;
+    mediasfuURL?: string;
+}
+export interface CreateLocalRoomOptions {
+    createData: CreateLocalRoomParameters;
+    link?: string;
+}
+export interface CreateJoinLocalRoomResponse {
+    success: boolean;
+    secret: string;
+    reason?: string;
+    url?: string;
+}
 export interface PreJoinPageParameters {
     imgSrc?: string;
     showAlert?: ShowAlert;
     updateIsLoadingModalVisible: (visible: boolean) => void;
     connectSocket: ConnectSocketType;
+    connectLocalSocket?: ConnectLocalSocketType;
     updateSocket: (socket: Socket) => void;
+    updateLocalSocket?: (socket: Socket) => void;
     updateValidated: (validated: boolean) => void;
     updateApiUserName: (userName: string) => void;
     updateApiToken: (token: string) => void;
@@ -19,55 +58,12 @@ export interface Credentials {
     apiKey: string;
 }
 export interface PreJoinPageOptions {
+    localLink?: string;
+    connectMediaSFU?: boolean;
     parameters: PreJoinPageParameters;
     credentials?: Credentials;
 }
 export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
-export interface CreateJoinRoomResponse {
-    message: string;
-    roomName: string;
-    secureCode?: string;
-    publicURL: string;
-    link: string;
-    secret: string;
-    success: boolean;
-}
-export interface CreateJoinRoomError {
-    error: string;
-    success?: boolean;
-}
-export type CreateJoinRoomType = (options: {
-    payload: any;
-    apiUserName: string;
-    apiKey: string;
-}) => Promise<{
-    data: CreateJoinRoomResponse | CreateJoinRoomError | null;
-    success: boolean;
-}>;
-export type CreateRoomOnMediaSFUType = (options: {
-    payload: any;
-    apiUserName: string;
-    apiKey: string;
-}) => Promise<{
-    data: CreateJoinRoomResponse | CreateJoinRoomError | null;
-    success: boolean;
-}>;
-export declare function joinRoomOnMediaSFU({ payload, apiUserName, apiKey, }: {
-    payload: any;
-    apiUserName: string;
-    apiKey: string;
-}): Promise<{
-    data: CreateJoinRoomResponse | CreateJoinRoomError | null;
-    success: boolean;
-}>;
-export declare function createRoomOnMediaSFU({ payload, apiUserName, apiKey, }: {
-    payload: any;
-    apiUserName: string;
-    apiKey: string;
-}): Promise<{
-    data: CreateJoinRoomResponse | CreateJoinRoomError | null;
-    success: boolean;
-}>;
 /**
  * PreJoinPage component allows users to either create a new room or join an existing one.
  *
@@ -88,6 +84,7 @@ export declare function createRoomOnMediaSFU({ payload, apiUserName, apiKey, }: 
  * ```tsx
  * import React from 'react';
  * import { PreJoinPage } from 'mediasfu-reactjs';
+ * import { JoinLocalRoomOptions } from 'mediasfu-reactjs';
  *
  * const App = () => {
  *   const showAlertFunction = (message: string) => console.log(message);

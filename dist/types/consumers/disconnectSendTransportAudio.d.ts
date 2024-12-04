@@ -3,7 +3,9 @@ import { PrepopulateUserMediaType, PrepopulateUserMediaParameters } from "../@ty
 import { Producer } from "mediasoup-client/lib/types";
 export interface DisconnectSendTransportAudioParameters extends PrepopulateUserMediaParameters {
     audioProducer: Producer | null;
+    localAudioProducer?: Producer | null;
     socket: Socket;
+    localSocket?: Socket;
     videoAlreadyOn: boolean;
     islevel: string;
     lock_screen: boolean;
@@ -12,6 +14,7 @@ export interface DisconnectSendTransportAudioParameters extends PrepopulateUserM
     hostLabel: string;
     roomName: string;
     updateAudioProducer: (audioProducer: Producer | null) => void;
+    updateLocalAudioProducer?: (localAudioProducer: Producer | null) => void;
     updateUpdateMainWindow: (updateMainWindow: boolean) => void;
     prepopulateUserMedia: PrepopulateUserMediaType;
     [key: string]: any;
@@ -23,20 +26,26 @@ export type DisconnectSendTransportAudioType = (options: DisconnectSendTransport
 /**
  * Disconnects the send transport for audio by pausing the audio producer and updating the UI accordingly.
  *
- * @param {DisconnectSendTransportAudioOptions} options - The options required to disconnect the send transport for audio.
- * @param {Producer | null} options.parameters.audioProducer - The audio producer to be paused.
- * @param {Socket} options.parameters.socket - The socket connection to notify the server.
- * @param {boolean} options.parameters.videoAlreadyOn - Flag indicating if the video is already on.
+ * This function supports both a primary and a local audio producer, delegating local handling to a separate function.
+ *
+ * @param {DisconnectSendTransportAudioOptions} options - The options for disconnecting the send transport for audio.
+ * @param {DisconnectSendTransportAudioParameters} options.parameters - The parameters for disconnecting the send transport for audio.
+ * @param {Producer} options.parameters.audioProducer - The primary audio producer to disconnect.
+ * @param {Producer} [options.parameters.localAudioProducer] - The local audio producer to disconnect.
+ * @param {Socket} options.parameters.socket - The socket instance to use for communication.
+ * @param {Socket} [options.parameters.localSocket] - The local socket instance to use for communication.
+ * @param {boolean} options.parameters.videoAlreadyOn - Flag indicating if video is already on.
  * @param {string} options.parameters.islevel - The level of the user.
  * @param {boolean} options.parameters.lock_screen - Flag indicating if the screen is locked.
  * @param {boolean} options.parameters.shared - Flag indicating if the screen is shared.
- * @param {Function} options.parameters.updateMainWindow - Function to update the main window state.
- * @param {string} options.parameters.hostLabel - The label of the host.
+ * @param {boolean} options.parameters.updateMainWindow - Flag to update the main window.
+ * @param {string} options.parameters.hostLabel - The label for the host user.
  * @param {string} options.parameters.roomName - The name of the room.
- * @param {Function} options.parameters.updateAudioProducer - Function to update the audio producer state.
- * @param {Function} options.parameters.updateUpdateMainWindow - Function to update the main window update state.
- * @param {Function} options.parameters.prepopulateUserMedia - Function to prepopulate user media.
- *
+ * @param {function} options.parameters.updateAudioProducer - Function to update the audio producer.
+ * @param {function} [options.parameters.updateLocalAudioProducer] - Function to update the local audio producer (optional).
+ * @param {function} options.parameters.updateUpdateMainWindow - Function to update the main window state.
+ * @param {function} options.parameters.prepopulateUserMedia - Function to prepopulate user media.
+ * @param {object} options.parameters - The parameters required for disconnecting the send transport for audio.
  * @returns {Promise<void>} A promise that resolves when the send transport for audio is disconnected.
  *
  * @throws Will throw an error if the operation fails.
@@ -45,7 +54,9 @@ export type DisconnectSendTransportAudioType = (options: DisconnectSendTransport
  * const options = {
  *   parameters: {
  *     audioProducer: audioProducerInstance,
+ *     localAudioProducer: localAudioProducerInstance,
  *     socket: socketInstance,
+ *     localSocket: localSocketInstance,
  *     videoAlreadyOn: false,
  *     islevel: '1',
  *     lock_screen: false,
@@ -54,18 +65,15 @@ export type DisconnectSendTransportAudioType = (options: DisconnectSendTransport
  *     hostLabel: 'Host',
  *     roomName: 'Room 1',
  *     updateAudioProducer: (producer) => console.log('Updated audio producer:', producer),
+ *     updateLocalAudioProducer: (producer) => console.log('Updated local audio producer:', producer),
  *     updateUpdateMainWindow: (state) => console.log('Main window state updated:', state),
  *     prepopulateUserMedia: async ({ name, parameters }) => console.log('Prepopulating user media for', name),
  *   },
  * };
  *
  * disconnectSendTransportAudio(options)
- *   .then(() => {
- *     console.log('Audio send transport disconnected successfully');
- *   })
- *   .catch((error) => {
- *     console.error('Error disconnecting audio send transport:', error);
- *   });
+ *   .then(() => console.log("Audio send transport disconnected successfully"))
+ *   .catch((error) => console.log("Error disconnecting audio send transport:", error));
  */
-export declare const disconnectSendTransportAudio: ({ parameters }: DisconnectSendTransportAudioOptions) => Promise<void>;
+export declare const disconnectSendTransportAudio: DisconnectSendTransportAudioType;
 //# sourceMappingURL=disconnectSendTransportAudio.d.ts.map

@@ -3,6 +3,8 @@ import { WelcomePageOptions } from "../miscComponents/WelcomePage";
 import { SeedData, PreJoinPageOptions } from "../../@types/types";
 export type MediasfuWebinarOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
+    localLink?: string;
+    connectMediaSFU?: boolean;
     credentials?: {
         apiUserName: string;
         apiKey: string;
@@ -19,12 +21,14 @@ export type MediasfuWebinarOptions = {
  * Participants can chat with each other and engage in polls and breakout rooms, share screens, and more during the conference.
  *
  * @typedef {Object} MediasfuWebinarOptions
- * @property {(options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode} [PrejoinPage] - Component to render for the pre-join page.
- * @property {{ apiUserName: string; apiKey: string }} [credentials] - API credentials for the user.
- * @property {boolean} [useLocalUIMode] - Flag to determine if local UI mode should be used.
- * @property {SeedData} [seedData] - Seed data for initializing the component.
- * @property {boolean} [useSeed] - Flag to determine if seed data should be used.
- * @property {string} [imgSrc] - Source URL for the image.
+ * @property {function} [PrejoinPage=WelcomePage] - Function to render the prejoin page.
+ * @property {string} [localLink=""] - Local link for the media server (if using Community Edition).
+ * @property {boolean} [connectMediaSFU=true] - Flag to connect to the MediaSFU server (if using Community Edition and still need to connect to the server)
+ * @property {Object} [credentials={ apiUserName: "", apiKey: "" }] - API credentials.
+ * @property {boolean} [useLocalUIMode=false] - Flag to use local UI mode.
+ * @property {SeedData} [seedData={}] - Seed data for initial state.
+ * @property {boolean} [useSeed=false] - Flag to use seed data.
+ * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Image source URL.
  *
  * MediasfuWebinar component.
  *
@@ -43,6 +47,8 @@ export type MediasfuWebinarOptions = {
  *
  * <MediasfuWebinar
  *  PrejoinPage={PrejoinPage}
+ *  localLink="https://localhost:3000"
+ *  connectMediaSFU={true}
  * credentials={credentials}
  * useLocalUIMode={useLocalUIMode}
  * seedData={seedData}
@@ -50,6 +56,13 @@ export type MediasfuWebinarOptions = {
  * imgSrc={imgSrc}
  * />
  * ```
+ *
+ * @description
+ * This component handles the webinar functionalities for MediaSFU, including joining rooms,
+ * managing participants, and handling media streams. It uses various hooks and methods to
+ * manage state and perform actions such as joining a room, updating initial values, and
+ * handling media streams.
+ *
  */
 declare const MediasfuWebinar: React.FC<MediasfuWebinarOptions>;
 export default MediasfuWebinar;

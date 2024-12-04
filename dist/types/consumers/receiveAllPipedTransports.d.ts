@@ -8,6 +8,7 @@ export interface ReceiveAllPipedTransportsParameters extends GetPipedProducersAl
 }
 export interface ReceiveAllPipedTransportsOptions {
     nsock: Socket;
+    community?: boolean;
     parameters: ReceiveAllPipedTransportsParameters;
 }
 export type ReceiveAllPipedTransportsType = (options: ReceiveAllPipedTransportsOptions) => Promise<void>;
@@ -16,6 +17,7 @@ export type ReceiveAllPipedTransportsType = (options: ReceiveAllPipedTransportsO
  *
  * @param {ReceiveAllPipedTransportsOptions} options - The options for receiving all piped transports.
  * @param {Socket} options.nsock - The socket instance used for communication.
+ * @param {boolean} options.community - Whether the room is a community edition room.
  * @param {ReceiveAllPipedTransportsParameters} options.parameters - The parameters for the operation.
  * @param {string} options.parameters.roomName - The name of the room.
  * @param {string} options.parameters.member - The member identifier.
@@ -29,6 +31,7 @@ export type ReceiveAllPipedTransportsType = (options: ReceiveAllPipedTransportsO
  * ```typescript
  * await receiveAllPipedTransports({
  *   nsock: socketInstance,
+ *   community: false,
  *   parameters: {
  *     roomName: 'Room1',
  *     member: 'Member1',
@@ -37,5 +40,5 @@ export type ReceiveAllPipedTransportsType = (options: ReceiveAllPipedTransportsO
  * });
  * ```
  */
-export declare const receiveAllPipedTransports: ({ nsock, parameters }: ReceiveAllPipedTransportsOptions) => Promise<void>;
+export declare const receiveAllPipedTransports: ({ nsock, community, parameters }: ReceiveAllPipedTransportsOptions) => Promise<void>;
 //# sourceMappingURL=receiveAllPipedTransports.d.ts.map

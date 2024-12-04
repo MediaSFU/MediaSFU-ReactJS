@@ -6,6 +6,7 @@ export interface GetPipedProducersAltParameters extends SignalNewConsumerTranspo
     [key: string]: any;
 }
 export interface GetPipedProducersAltOptions {
+    community?: boolean;
     nsock: Socket;
     islevel: string;
     parameters: GetPipedProducersAltParameters;
@@ -15,6 +16,7 @@ export type GetPipedProducersAltType = (options: GetPipedProducersAltOptions) =>
  * Retrieves piped producers and signals new consumer transport for each retrieved producer.
  *
  * @param {GetPipedProducersAltOptions} options - The options for retrieving piped producers.
+ * @param {boolean} options.community - A flag indicating if the room is a community edition room.
  * @param {Socket} options.nsock - The WebSocket instance used for communication.
  * @param {string} options.islevel - A flag indicating the level of the request.
  * @param {GetPipedProducersAltParameters} options.parameters - Additional parameters for the request.
@@ -27,6 +29,7 @@ export type GetPipedProducersAltType = (options: GetPipedProducersAltOptions) =>
  *
  * @example
  * const options = {
+ *   community: false,
  *   nsock: socketInstance,
  *   islevel: '1',
  *   parameters: {
@@ -45,5 +48,5 @@ export type GetPipedProducersAltType = (options: GetPipedProducersAltOptions) =>
  *     console.error('Error retrieving piped producers:', error);
  *   });
  */
-export declare const getPipedProducersAlt: ({ nsock, islevel, parameters, }: GetPipedProducersAltOptions) => Promise<void>;
+export declare const getPipedProducersAlt: ({ community, nsock, islevel, parameters, }: GetPipedProducersAltOptions) => Promise<void>;
 //# sourceMappingURL=getPipedProducersAlt.d.ts.map

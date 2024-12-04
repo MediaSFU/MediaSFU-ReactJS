@@ -5,6 +5,7 @@ export interface UpdateRecordingParameters extends RecordResumeTimerParameters, 
     roomName: string;
     userRecordingParams: UserRecordingParams;
     socket: Socket;
+    localSocket?: Socket;
     updateIsRecordingModalVisible: (visible: boolean) => void;
     confirmedToRecord: boolean;
     showAlert?: ShowAlert;
@@ -46,6 +47,7 @@ export type UpdateRecordingType = (options: UpdateRecordingOptions) => Promise<v
  * @property {string} roomName - The name of the room where the recording is taking place.
  * @property {any} userRecordingParams - Parameters related to the user's recording settings.
  * @property {any} socket - The socket connection used for communication.
+ * @property {any} localSocket - The local socket connection used for communication.
  * @property {Function} updateIsRecordingModalVisible - Function to update the visibility of the recording modal.
  * @property {boolean} confirmedToRecord - Indicates if the user has confirmed to start recording.
  * @property {Function} showAlert - Function to show alert messages.
@@ -78,6 +80,7 @@ export type UpdateRecordingType = (options: UpdateRecordingOptions) => Promise<v
  *   parameters: {
  *     roomName: 'Room101',
  *     socket: mySocket,
+ *     localSocket: myLocalSocket,
  *     updateIsRecordingModalVisible: setIsRecordingModalVisible,
  *     confirmedToRecord: true,
  *     showAlert: myShowAlert,

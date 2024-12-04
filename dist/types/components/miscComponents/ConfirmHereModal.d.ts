@@ -6,6 +6,7 @@ export interface ConfirmHereModalOptions {
     backgroundColor?: string;
     countdownDuration?: number;
     socket: Socket;
+    localSocket?: Socket;
     roomName: string;
     member: string;
 }
@@ -19,6 +20,7 @@ export type ConfirmHereModalType = (options: ConfirmHereModalOptions) => void;
  * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
  * @param {number} [props.countdownDuration=120] - Duration of the countdown in seconds.
  * @param {Socket} props.socket - Socket instance for communication.
+ * @param {Socket} [props.localSocket] - Local socket instance for communication.
  * @param {string} props.roomName - Name of the room for socket communication.
  * @param {string} props.member - Member information for socket communication.
  *
@@ -33,6 +35,7 @@ export type ConfirmHereModalType = (options: ConfirmHereModalOptions) => void;
  * const App = () => {
  *   const [isModalVisible, setIsModalVisible] = useState(true);
  *   const socket = io("http://localhost:3000");
+ *   const localSocket = io("http://localhost:3001");
  *
  *   const handleCloseModal = () => setIsModalVisible(false);
  *
@@ -43,6 +46,7 @@ export type ConfirmHereModalType = (options: ConfirmHereModalOptions) => void;
  *       backgroundColor="#83c0e9"
  *       countdownDuration={120}
  *       socket={socket}
+ *       localSocket={socket}
  *       roomName="room1"
  *       member="user1"
  *     />

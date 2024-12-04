@@ -1350,131 +1350,92 @@ const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, pa
     }
   };
 
-   socket!.on('whiteboardAction', (data: { action: string, payload: any }) => {
-    const { action, payload } = data;
+  if (socket instanceof Socket) {
 
-    if (!ctx && canvasRef.current) {
-      ctx = canvasRef.current.getContext('2d');
-      canvasWhiteboard = canvas;
-      updateCanvasWhiteboard(canvasWhiteboard);
-    }
+    socket!.on('whiteboardAction', (data: { action: string, payload: any }) => {
+      const { action, payload } = data;
 
-    if (!ctx) return;
+      if (!ctx && canvasRef.current) {
+        ctx = canvasRef.current.getContext('2d');
+        canvasWhiteboard = canvas;
+        updateCanvasWhiteboard(canvasWhiteboard);
+      }
 
-    switch (action) {
-      case 'draw':
-        if (payload.type === 'freehand') {
-          drawFreehand(payload.points, payload.color, payload.thickness);
-          shapes.push({ type: 'freehand', points: payload.points, color: payload.color, thickness: payload.thickness });
-          updateShapes(shapes);
-        } else {
-          drawLine(payload.x1, payload.y1, payload.x2, payload.y2, payload.color, payload.thickness, payload.lineType);
-          shapes.push({ type: 'line', x1: payload.x1, y1: payload.y1, x2: payload.x2, y2: payload.y2, color: payload.color, thickness: payload.thickness, lineType: payload.lineType });
-          updateShapes(shapes);
-        }
-        break;
-      case 'shape':
-        drawShape(payload.type, payload.x1, payload.y1, payload.x2, payload.y2, payload.color, payload.thickness, payload.lineType);
-        shapes.push({ type: payload.type, x1: payload.x1, y1: payload.y1, x2: payload.x2, y2: payload.y2, color: payload.color, thickness: payload.thickness, lineType: payload.lineType });
-        updateShapes(shapes);
-        break;
-      case 'erase':
-        erase(payload.x, payload.y);
-        break;
-      case 'clear':
-        clearCanvas(false);
-        break;
-      case 'uploadImage':
-        { const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = function () {
-          const imageShape = {
-            type: 'image',
-            img,
-            src: payload.src,
-            x1: payload.x1,
-            y1: payload.y1,
-            x2: payload.x2,
-            y2: payload.y2,
-          };
-          shapes.push(imageShape);
-          updateShapes(shapes);
-          drawShapes();
-        };
-        img.src = payload.src;
-        break; }
-      case 'toggleBackground':
-        toggleBackground(false);
-        drawShapes();
-        break;
-      case 'undo':
-        if (shapes.length > 0) {
-          redoStack.push(shapes.pop()!);
-          updateRedoStack(redoStack);
-          drawShapes();
-        }
-        break;
-      case 'redo':
-        if (redoStack.length > 0) {
-          shapes.push(redoStack.pop()!);
-          updateShapes(shapes);
-          drawShapes();
-        }
-        break;
-      case 'text':
-        shapes.push({ type: 'text', text: payload.text, x: payload.x, y: payload.y, color: payload.color, font: payload.font, fontSize: payload.fontSize });
-        updateShapes(shapes);
-        drawShapes();
-        break;
-      case 'deleteShape':
-        shapes = shapes.filter(shape => shape !== payload);
-        updateShapes(shapes);
-        drawShapes();
-        break;
-      case 'shapes':
-        { const oldShapes = shapes.filter(shape => shape.type === 'image');
-        shapes = payload.shapes.map((shape: Shape) => {
-          if (shape.type === 'image') {
-            const oldShape = oldShapes.find(oldShape => oldShape.src === shape.src);
-            if (oldShape) {
-              return { ...shape, img: oldShape.img };
-            } else {
-              const img = new Image();
-              img.src = shape.src!;
-              img.crossOrigin = 'anonymous';
-              return { ...shape, img };
-            }
+      if (!ctx) return;
+
+      switch (action) {
+        case 'draw':
+          if (payload.type === 'freehand') {
+            drawFreehand(payload.points, payload.color, payload.thickness);
+            shapes.push({ type: 'freehand', points: payload.points, color: payload.color, thickness: payload.thickness });
+            updateShapes(shapes);
           } else {
-            return shape;
+            drawLine(payload.x1, payload.y1, payload.x2, payload.y2, payload.color, payload.thickness, payload.lineType);
+            shapes.push({ type: 'line', x1: payload.x1, y1: payload.y1, x2: payload.x2, y2: payload.y2, color: payload.color, thickness: payload.thickness, lineType: payload.lineType });
+            updateShapes(shapes);
           }
-        });
-        updateShapes(shapes);
-        drawShapes();
-        break; }
-      default:
-        break;
-    }
-  });
-
-  socket!.on('whiteboardUpdated', async (data: any) => {
-    try {
-      if (islevel == "2" && data.members) {
-        participants = await data.members.filter((participant: any) => participant.isBanned == false);
-        updateParticipants(participants);
-      }
-
-      whiteboardUsers = data.whiteboardUsers;
-      updateWhiteboardUsers(whiteboardUsers);
-
-      const useBoard = whiteboardUsers.find(user => user.name == member && user.useBoard) ? true : false;
-      if (islevel != "2" && !useBoard && !whiteboardEnded) {
-        changeMode('pan');
-      }
-
-      if (data.whiteboardData && Object.keys(data.whiteboardData).length > 0) {
-        if (data.whiteboardData.shapes) {
-          const oldShapes = shapes.filter(shape => shape.type === 'image');
-          shapes = data.whiteboardData.shapes.map((shape: Shape) => {
+          break;
+        case 'shape':
+          drawShape(payload.type, payload.x1, payload.y1, payload.x2, payload.y2, payload.color, payload.thickness, payload.lineType);
+          shapes.push({ type: payload.type, x1: payload.x1, y1: payload.y1, x2: payload.x2, y2: payload.y2, color: payload.color, thickness: payload.thickness, lineType: payload.lineType });
+          updateShapes(shapes);
+          break;
+        case 'erase':
+          erase(payload.x, payload.y);
+          break;
+        case 'clear':
+          clearCanvas(false);
+          break;
+        case 'uploadImage':
+          { const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = function () {
+            const imageShape = {
+              type: 'image',
+              img,
+              src: payload.src,
+              x1: payload.x1,
+              y1: payload.y1,
+              x2: payload.x2,
+              y2: payload.y2,
+            };
+            shapes.push(imageShape);
+            updateShapes(shapes);
+            drawShapes();
+          };
+          img.src = payload.src;
+          break; }
+        case 'toggleBackground':
+          toggleBackground(false);
+          drawShapes();
+          break;
+        case 'undo':
+          if (shapes.length > 0) {
+            redoStack.push(shapes.pop()!);
+            updateRedoStack(redoStack);
+            drawShapes();
+          }
+          break;
+        case 'redo':
+          if (redoStack.length > 0) {
+            shapes.push(redoStack.pop()!);
+            updateShapes(shapes);
+            drawShapes();
+          }
+          break;
+        case 'text':
+          shapes.push({ type: 'text', text: payload.text, x: payload.x, y: payload.y, color: payload.color, font: payload.font, fontSize: payload.fontSize });
+          updateShapes(shapes);
+          drawShapes();
+          break;
+        case 'deleteShape':
+          shapes = shapes.filter(shape => shape !== payload);
+          updateShapes(shapes);
+          drawShapes();
+          break;
+        case 'shapes':
+          { const oldShapes = shapes.filter(shape => shape.type === 'image');
+          shapes = payload.shapes.map((shape: Shape) => {
             if (shape.type === 'image') {
               const oldShape = oldShapes.find(oldShape => oldShape.src === shape.src);
               if (oldShape) {
@@ -1490,85 +1451,128 @@ const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, pa
             }
           });
           updateShapes(shapes);
-        }
-        if (data.whiteboardData.useImageBackground != null) {
-          useImageBackground = data.whiteboardData.useImageBackground;
-          updateUseImageBackground(useImageBackground);
-        } else {
-          useImageBackground = true;
-          updateUseImageBackground(true);
-        }
-        if (data.whiteboardData.redoStack) {
-          redoStack = data.whiteboardData.redoStack;
-          updateRedoStack(redoStack);
-        }
-        if (data.whiteboardData.undoStack) {
-          undoStack = data.whiteboardData.undoStack;
-          updateUndoStack(undoStack);
-        }
+          drawShapes();
+          break; }
+        default:
+          break;
       }
+    });
 
-      if (data.status == 'started' && !whiteboardStarted) {
-        whiteboardStarted = true;
-        whiteboardEnded = false;
-        screenId = `whiteboard-${roomName}`;
-
-        updateWhiteboardStarted(true);
-        updateWhiteboardEnded(false);
-        updateScreenId(screenId);
-
-        if (islevel != "2") {
-          shareScreenStarted = true;
-          updateShareScreenStarted(shareScreenStarted);
-          await onScreenChanges({ changed: true, parameters });
+    socket!.on('whiteboardUpdated', async (data: any) => {
+      try {
+        if (islevel == "2" && data.members) {
+          participants = await data.members.filter((participant: any) => participant.isBanned == false);
+          updateParticipants(participants);
         }
-      } else if (data.status == 'ended') {
-        const prevWhiteboardEnded = whiteboardEnded;
-        const prevWhiteboardStarted = whiteboardStarted;
-        whiteboardEnded = true;
-        whiteboardStarted = false;
-        updateWhiteboardStarted(false);
-        updateWhiteboardEnded(true);
-        if (islevel == "2" && prevWhiteboardEnded) {
-          // do nothing
-        } else {
-          shareScreenStarted = false;
-          screenId = "";
 
-          updateShareScreenStarted(false);
+        whiteboardUsers = data.whiteboardUsers;
+        updateWhiteboardUsers(whiteboardUsers);
+
+        const useBoard = whiteboardUsers.find(user => user.name == member && user.useBoard) ? true : false;
+        if (islevel != "2" && !useBoard && !whiteboardEnded) {
+          changeMode('pan');
+        }
+
+        if (data.whiteboardData && Object.keys(data.whiteboardData).length > 0) {
+          if (data.whiteboardData.shapes) {
+            const oldShapes = shapes.filter(shape => shape.type === 'image');
+            shapes = data.whiteboardData.shapes.map((shape: Shape) => {
+              if (shape.type === 'image') {
+                const oldShape = oldShapes.find(oldShape => oldShape.src === shape.src);
+                if (oldShape) {
+                  return { ...shape, img: oldShape.img };
+                } else {
+                  const img = new Image();
+                  img.src = shape.src!;
+                  img.crossOrigin = 'anonymous';
+                  return { ...shape, img };
+                }
+              } else {
+                return shape;
+              }
+            });
+            updateShapes(shapes);
+          }
+          if (data.whiteboardData.useImageBackground != null) {
+            useImageBackground = data.whiteboardData.useImageBackground;
+            updateUseImageBackground(useImageBackground);
+          } else {
+            useImageBackground = true;
+            updateUseImageBackground(true);
+          }
+          if (data.whiteboardData.redoStack) {
+            redoStack = data.whiteboardData.redoStack;
+            updateRedoStack(redoStack);
+          }
+          if (data.whiteboardData.undoStack) {
+            undoStack = data.whiteboardData.undoStack;
+            updateUndoStack(undoStack);
+          }
+        }
+
+        if (data.status == 'started' && !whiteboardStarted) {
+          whiteboardStarted = true;
+          whiteboardEnded = false;
+          screenId = `whiteboard-${roomName}`;
+
+          updateWhiteboardStarted(true);
+          updateWhiteboardEnded(false);
+          updateScreenId(screenId);
+
+          if (islevel != "2") {
+            shareScreenStarted = true;
+            updateShareScreenStarted(shareScreenStarted);
+            await onScreenChanges({ changed: true, parameters });
+          }
+        } else if (data.status == 'ended') {
+          const prevWhiteboardEnded = whiteboardEnded;
+          const prevWhiteboardStarted = whiteboardStarted;
+          whiteboardEnded = true;
+          whiteboardStarted = false;
+          updateWhiteboardStarted(false);
+          updateWhiteboardEnded(true);
+          if (islevel == "2" && prevWhiteboardEnded) {
+            // do nothing
+          } else {
+            shareScreenStarted = false;
+            screenId = "";
+
+            updateShareScreenStarted(false);
+            updateScreenId(screenId);
+            await onScreenChanges({ changed: true, parameters });
+          }
+
+          try {
+            if (prevWhiteboardStarted && islevel == "2" && ((recordStarted || recordResumed))) {
+              if (!(recordPaused || recordStopped)) {
+                if (recordingMediaOptions == 'video') {
+                  await captureCanvasStream({ parameters, start: false });
+                }
+              }
+            }
+          } catch (error) {
+            console.error(error);
+          }
+        } else if (data.status == 'started' && whiteboardStarted) {
+          whiteboardStarted = true;
+          whiteboardEnded = false;
+
+          updateWhiteboardStarted(true);
+          updateWhiteboardEnded(false);
+
+          shareScreenStarted = true;
+          screenId = `whiteboard-${roomName}`;
+
+          updateShareScreenStarted(true);
           updateScreenId(screenId);
           await onScreenChanges({ changed: true, parameters });
         }
-
-        try {
-          if (prevWhiteboardStarted && islevel == "2" && ((recordStarted || recordResumed))) {
-            if (!(recordPaused || recordStopped)) {
-              if (recordingMediaOptions == 'video') {
-                await captureCanvasStream({ parameters, start: false });
-              }
-            }
-          }
-        } catch (error) {
-          console.error(error);
-        }
-      } else if (data.status == 'started' && whiteboardStarted) {
-        whiteboardStarted = true;
-        whiteboardEnded = false;
-
-        updateWhiteboardStarted(true);
-        updateWhiteboardEnded(false);
-
-        shareScreenStarted = true;
-        screenId = `whiteboard-${roomName}`;
-
-        updateShareScreenStarted(true);
-        updateScreenId(screenId);
-        await onScreenChanges({ changed: true, parameters });
+      } catch (error) {
+        console.error('Error in whiteboardUpdated:', error);
       }
-    } catch (error) {
-      console.error('Error in whiteboardUpdated:', error);
-    }
-  });
+    });
+
+  }
 
   const handleDropdownClick = (id: string) => {
     dropdownOpen.current = dropdownOpen.current === id ? null : id;

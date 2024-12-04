@@ -1,5 +1,6 @@
-import { Participant, CoHostResponsibility, OnScreenChangesType, OnScreenChangesParameters, Request, ConnectIpsParameters, ReorderStreamsParameters, ConnectIpsType, SleepType, ReorderStreamsType, Settings, ConsumeSocket } from "../../@types/types";
-export interface AllMembersRestParameters extends OnScreenChangesParameters, ConnectIpsParameters, ReorderStreamsParameters {
+import { Socket } from "socket.io-client";
+import { Participant, CoHostResponsibility, OnScreenChangesType, OnScreenChangesParameters, Request, ConnectIpsParameters, ReorderStreamsParameters, ConnectIpsType, SleepType, ReorderStreamsType, Settings, ConsumeSocket, ConnectLocalIpsType, ConnectLocalIpsParameters } from "../../@types/types";
+export interface AllMembersRestParameters extends OnScreenChangesParameters, ConnectIpsParameters, ReorderStreamsParameters, ConnectLocalIpsParameters {
     participantsAll: Participant[];
     participants: Participant[];
     dispActiveNames: string[];
@@ -18,6 +19,7 @@ export interface AllMembersRestParameters extends OnScreenChangesParameters, Con
     videoSetting: string;
     screenshareSetting: string;
     chatSetting: string;
+    socket: Socket;
     updateParticipantsAll: (participantsAll: Participant[]) => void;
     updateParticipants: (participants: Participant[]) => void;
     updateRequestList: (requestList: Request[]) => void;
@@ -36,6 +38,7 @@ export interface AllMembersRestParameters extends OnScreenChangesParameters, Con
     updateIsLoadingModalVisible: (visible: boolean) => void;
     onScreenChanges: OnScreenChangesType;
     connectIps: ConnectIpsType;
+    connectLocalIps?: ConnectLocalIpsType;
     sleep: SleepType;
     reorderStreams: ReorderStreamsType;
     getUpdatedAllParams: () => AllMembersRestParameters;

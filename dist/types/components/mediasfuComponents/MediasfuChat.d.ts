@@ -3,6 +3,8 @@ import { WelcomePageOptions } from "../miscComponents/WelcomePage";
 import { PreJoinPageOptions, SeedData } from "../../@types/types";
 export type MediasfuChatOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
+    localLink?: string;
+    connectMediaSFU?: boolean;
     credentials?: {
         apiUserName: string;
         apiKey: string;
@@ -21,6 +23,8 @@ export type MediasfuChatOptions = {
  *
  * @param {Object} props - The properties object.
  * @param {React.ComponentType<any>} [props.PrejoinPage=WelcomePage] - The component to render before joining the chat.
+ * @param {string} [props.localLink=""] - The local link for the media server.
+ * @param {boolean} [props.connectMediaSFU=false] - Flag to determine if the media server should be connected.
  * @param {Object} [props.credentials={ apiUserName: "", apiKey: "" }] - The credentials for API access.
  * @param {string} props.credentials.apiUserName - The API username.
  * @param {string} props.credentials.apiKey - The API key.

@@ -2,6 +2,7 @@ import { Socket } from "socket.io-client";
 import { Participant, AutoAdjustType, ScreenState, EventType } from "../@types/types";
 export interface TriggerParameters {
     socket: Socket;
+    localSocket?: Socket;
     roomName: string;
     screenStates: ScreenState[];
     participants: Participant[];
@@ -46,6 +47,7 @@ export type TriggerType = (options: TriggerOptions) => Promise<void>;
  *   ref_ActiveNames: ["user1", "user2"],
  *   parameters: {
  *     socket: socketInstance,
+ *     localSocket: localSocketInstance,
  *     roomName: "room1",
  *     screenStates: [{ mainScreenPerson: "user1", mainScreenFilled: true, adminOnMainScreen: false }],
  *     participants: [{ name: "admin", islevel: "2" }],

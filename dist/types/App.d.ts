@@ -1,22 +1,23 @@
 /**
  * The main application component for MediaSFU.
  *
- * This component initializes the necessary credentials and configuration for the MediaSFU application,
- * including options for using seed data for generating random participants and messages.
- *
- * @returns {JSX.Element} The rendered Mediasfu component with the specified props.
+ * This component initializes the necessary configuration and credentials for the MediaSFU application.
+ * Users can specify their own Community Edition (CE) server, utilize MediaSFU Cloud by default, or enable MediaSFU Cloud for egress features.
  *
  * @remarks
- * - The `credentials` object contains the API username and API key for the Mediasfu account.
- * - The `useSeed` flag determines whether to use seed data for generating random participants and messages.
- * - The `eventType` variable indicates the type of UI display (e.g., 'broadcast', 'chat', 'webinar', 'conference').
- * - If `useSeed` is true, random participants, messages, requests, and waiting lists are generated and assigned to `seedData`.
- * - The `useLocalUIMode` flag is set to true if `useSeed` is true, preventing requests to the Mediasfu servers during UI development.
+ * - **Using Your Own Community Edition (CE) Server**: Set the `localLink` to point to your CE server.
+ * - **Using MediaSFU Cloud by Default**: If not using a custom server (`localLink` is empty), the application connects to MediaSFU Cloud.
+ * - **MediaSFU Cloud Egress Features**: To enable cloud recording, capturing, and returning real-time images and audio buffers,
+ *   set `connectMediaSFU` to `true` in addition to specifying your `localLink`.
+ * - **Credentials Requirement**: If not using your own server, provide `apiUserName` and `apiKey`. The same applies when using MediaSFU Cloud for egress.
+ * - **Deprecated Feature**: `useLocalUIMode` is deprecated due to updates for strong typing and improved configuration options.
  *
  * @component
  * @example
+ * ```tsx
  * // Example usage of the App component
  * <App />
+ * ```
  */
 declare const App: () => import("react/jsx-runtime").JSX.Element;
 export default App;

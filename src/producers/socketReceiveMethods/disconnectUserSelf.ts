@@ -4,6 +4,7 @@ export interface DisconnectUserSelfOptions {
   member: string;
   roomName: string;
   socket: Socket;
+  localSocket?: Socket;
 }
 
 // Export the type definition for the function
@@ -17,6 +18,7 @@ export type DisconnectUserSelfType = (options: DisconnectUserSelfOptions) => Pro
  * @param {Object} options.member - The member object representing the user to disconnect.
  * @param {string} options.roomName - The name of the room from which the user will be disconnected.
  * @param {Socket} options.socket - The socket instance used to emit the disconnection request.
+ * @param {Socket} [options.localSocket] - The local socket instance used to emit the disconnection request.
  * @returns {Promise<void>} A promise that resolves when the disconnection request has been emitted.
  * 
  * @example
@@ -25,11 +27,12 @@ export type DisconnectUserSelfType = (options: DisconnectUserSelfOptions) => Pro
  *  member: "user123",
  * roomName: "main-room",
  * socket: socketInstance,
+ * localSocket: localSocketInstance
  * });
  * ```
  */
 
-export async function disconnectUserSelf({ member, roomName, socket }: DisconnectUserSelfOptions): Promise<void> {
+export async function disconnectUserSelf({ member, roomName, socket, localSocket }: DisconnectUserSelfOptions): Promise<void> {
 
   // Emit the disconnection request to the socket, indicating that the user is being banned
   socket.emit("disconnectUser", {
@@ -37,4 +40,17 @@ export async function disconnectUserSelf({ member, roomName, socket }: Disconnec
     roomName: roomName,
     ban: true,
   });
+
+  try {
+    if (localSocket && localSocket.id) {
+      // Emit the disconnection request to the local socket, indicating that the user is being banned
+      localSocket.emit("disconnectUser", {
+        member: member,
+        roomName: roomName,
+        ban: true,
+      });
+    }
+  } catch  {
+    // Do nothing
+  }
 }

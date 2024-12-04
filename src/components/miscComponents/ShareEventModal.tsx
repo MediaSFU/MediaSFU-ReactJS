@@ -17,6 +17,7 @@ export interface ShareEventModalOptions {
   adminPasscode?: string;
   islevel?: string;
   eventType: EventType;
+  localLink?: string;
 }
 
 export type ShareEventModalType = (options: ShareEventModalOptions) => void;
@@ -34,6 +35,7 @@ export type ShareEventModalType = (options: ShareEventModalOptions) => void;
  * @param {string} [props.adminPasscode] - The admin passcode for the meeting.
  * @param {string} [props.islevel] - The level of the user.
  * @param {EventType} props.eventType - The type of the event.
+ * @param {string} [props.localLink] - The local link for the event.
  * 
  * @returns {JSX.Element} The rendered ShareEventModal component.
  * 
@@ -56,6 +58,7 @@ export type ShareEventModalType = (options: ShareEventModalOptions) => void;
  *       adminPasscode="1234"
  *       islevel="2"
  *       eventType="meeting"
+ *       localLink="http://localhost:3000"
  *     />
  *   );
  * };
@@ -75,6 +78,7 @@ const ShareEventModal: React.FC<ShareEventModalOptions> = ({
   adminPasscode,
   islevel,
   eventType,
+  localLink,
 }) => {
   const handleClose = () => {
     onShareEventClose();
@@ -146,7 +150,7 @@ const ShareEventModal: React.FC<ShareEventModalOptions> = ({
             <MeetingIdComponent meetingID={roomName} />
           </div>
           {shareButtons && (
-            <ShareButtonsComponent meetingID={roomName} eventType={eventType} />
+            <ShareButtonsComponent meetingID={roomName} eventType={eventType} localLink={localLink} />
           )}
         </div>
       </div>

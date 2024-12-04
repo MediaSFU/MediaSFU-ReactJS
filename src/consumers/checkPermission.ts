@@ -40,7 +40,7 @@ export type CheckPermissionType = (options: CheckPermissionOptions) => Promise<n
  */
 
 export async function checkPermission({ permissionType, audioSetting, videoSetting, screenshareSetting, chatSetting }: CheckPermissionOptions) {
-  try {;
+  try {
 
     // PermissionType is audioSetting, videoSetting, screenshareSetting, chatSetting
     // Perform a switch case to check for the permissionType and return the response

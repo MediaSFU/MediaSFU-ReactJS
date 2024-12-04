@@ -3,6 +3,8 @@ import { WelcomePageOptions } from "../miscComponents/WelcomePage";
 import { SeedData, PreJoinPageOptions } from "../../@types/types";
 export type MediasfuGenericOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
+    localLink?: string;
+    connectMediaSFU?: boolean;
     credentials?: {
         apiUserName: string;
         apiKey: string;
@@ -20,6 +22,8 @@ export type MediasfuGenericOptions = {
  *
  * @typedef {Object} MediasfuGenericOptions
  * @property {function} [PrejoinPage=WelcomePage] - Function to render the prejoin page.
+ * @property {string} [localLink=""] - Local link for the media server (if using Community Edition).
+ * @property {boolean} [connectMediaSFU=true] - Flag to connect to the MediaSFU server (if using Community Edition and still need to connect to the server)
  * @property {Object} [credentials={ apiUserName: "", apiKey: "" }] - API credentials.
  * @property {boolean} [useLocalUIMode=false] - Flag to use local UI mode.
  * @property {SeedData} [seedData={}] - Seed data for initial state.
@@ -36,6 +40,8 @@ export type MediasfuGenericOptions = {
  * ```tsx
  * <MediasfuGeneric
  *   PrejoinPage={CustomPrejoinPage}
+ *   localLink="https://localhost:3000"
+ *   connectMediaSFU={true}
  *   credentials={{ apiUserName: "user", apiKey: "key" }}
  *   useLocalUIMode={true}
  *   seedData={customSeedData}

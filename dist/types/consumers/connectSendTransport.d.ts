@@ -16,6 +16,7 @@ export interface ConnectSendTransportParameters extends ConnectSendTransportAudi
 }
 export interface ConnectSendTransportOptions {
     option: 'audio' | 'video' | 'screen' | 'all';
+    targetOption?: 'local' | 'remote' | 'all';
     parameters: ConnectSendTransportParameters;
 }
 export type ConnectSendTransportType = (options: ConnectSendTransportOptions) => Promise<void>;
@@ -24,6 +25,7 @@ export type ConnectSendTransportType = (options: ConnectSendTransportOptions) =>
  *
  * @param {ConnectSendTransportOptions} options - The options for connecting the send transport.
  * @param {string} options.option - The type of transport to connect ("audio", "video", "screen", or "all").
+ * @param {boolean} options.targetOption - The target option to connect ("local", "remote", or "all").
  * @param {ConnectSendTransportParameters} options.parameters - The parameters required for connecting the transport.
  * @param {ProducerOptions} options.parameters.audioParams - The audio parameters.
  * @param {ProducerOptions} options.parameters.videoParams - The video parameters.
@@ -44,6 +46,7 @@ export type ConnectSendTransportType = (options: ConnectSendTransportOptions) =>
  * @example
  * const options = {
  *   option: 'audio',
+ *   targetOption: 'local',
  *   parameters: {
  *     audioParams: audioProducerOptions,
  *     videoParams: videoProducerOptions,
@@ -67,5 +70,5 @@ export type ConnectSendTransportType = (options: ConnectSendTransportOptions) =>
  *     console.error('Error connecting transport:', error);
  *   });
  */
-export declare const connectSendTransport: ({ option, parameters }: ConnectSendTransportOptions) => Promise<void>;
+export declare const connectSendTransport: ({ option, targetOption, parameters }: ConnectSendTransportOptions) => Promise<void>;
 //# sourceMappingURL=connectSendTransport.d.ts.map

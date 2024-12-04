@@ -3,6 +3,7 @@ import { Participant, AutoAdjustType, ScreenState, EventType } from "../@types/t
 
 export interface TriggerParameters {
   socket: Socket;
+  localSocket?: Socket;
   roomName: string;
   screenStates: ScreenState[];
   participants: Participant[];
@@ -55,6 +56,7 @@ export type TriggerType = (options: TriggerOptions) => Promise<void>;
  *   ref_ActiveNames: ["user1", "user2"],
  *   parameters: {
  *     socket: socketInstance,
+ *     localSocket: localSocketInstance,
  *     roomName: "room1",
  *     screenStates: [{ mainScreenPerson: "user1", mainScreenFilled: true, adminOnMainScreen: false }],
  *     participants: [{ name: "admin", islevel: "2" }],
@@ -84,6 +86,7 @@ export async function trigger({
 
     let {
       socket,
+      localSocket,
       roomName,
       screenStates,
       participants,
@@ -102,6 +105,11 @@ export async function trigger({
       //mediasfu functions
       autoAdjust,
     } = parameters;
+
+    let socketRef = socket;
+    if (localSocket && localSocket.id) {
+      socketRef = localSocket;
+    }
 
     let personOnMainScreen = screenStates[0].mainScreenPerson;
     let adminName = "";
@@ -167,7 +175,7 @@ export async function trigger({
       if (lastUpdate == null || updateDateState != timestamp) {
         let now = new Date();
 
-        socket.emit(
+        socketRef.emit(
           "updateScreenClient",
           {
             roomName,
@@ -211,7 +219,7 @@ export async function trigger({
       if (lastUpdate == null || updateDateState !== timestamp) {
         let now = new Date();
 
-        socket.emit(
+        socketRef.emit(
           "updateScreenClient",
           {
             roomName,

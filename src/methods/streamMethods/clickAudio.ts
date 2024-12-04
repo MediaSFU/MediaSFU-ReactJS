@@ -24,6 +24,7 @@ export interface ClickAudioParameters extends DisconnectSendTransportAudioParame
   audioRequestTime: number;
   member: string;
   socket: Socket;
+  localSocket?: Socket;
   roomName: string;
   userDefaultAudioInputDevice: string;
   micAction: boolean;
@@ -104,6 +105,7 @@ export const clickAudio = async ({ parameters }: ClickAudioOptions): Promise<voi
     audioRequestTime,
     member,
     socket,
+    localSocket,
     roomName,
     userDefaultAudioInputDevice,
     micAction,
@@ -241,6 +243,15 @@ export const clickAudio = async ({ parameters }: ClickAudioOptions): Promise<voi
           updateAudioAlreadyOn(true);
           await resumeSendTransportAudio({ parameters });
           socket.emit("resumeProducerAudio", { mediaTag: "audio", roomName });
+          
+          try {
+            if (localSocket && localSocket.id){
+                localSocket.emit("resumeProducerAudio", { mediaTag: "audio", roomName });
+            } 
+          } catch (error) {
+            console.log("Error in resumeProducerAudio", error);
+            
+          }
 
           updateLocalStream(localStream);
           updateAudioAlreadyOn(audioAlreadyOn);

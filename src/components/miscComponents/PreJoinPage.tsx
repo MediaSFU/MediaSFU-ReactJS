@@ -338,7 +338,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = (
         const response = await roomCreator({payload, apiUserName: localData.current.apiUserName, apiKey: localData.current.apiKey, validate: false});
         if (response && response.success && response.data && "roomName" in response.data) {
           createData.eventID = response.data.roomName;
-          createData.secureCode = response.data.secret;
+          createData.secureCode = response.data.secureCode || "";
           createData.mediasfuURL = response.data.publicURL;
           await createLocalRoom({createData: createData, link: response.data.link});
         }else {

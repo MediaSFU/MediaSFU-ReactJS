@@ -70,6 +70,7 @@ export * from './methods/whiteboardMethods/launchConfigureWhiteboard';
 // Socket and Media Functions
 export * from './sockets/SocketManager';
 export * from './ProducerClient/producerClientEmits/joinRoomClient';
+export * from './producers/producerEmits/joinLocalRoom';
 export * from './ProducerClient/producerClientEmits/updateRoomParametersClient';
 export * from './ProducerClient/producerClientEmits/createDeviceClient';
 
@@ -175,6 +176,12 @@ export * from './components/displayComponents/MiniCardAudio';
 export * from './methods/utils/MiniAudioPlayer/MiniAudioPlayer';
 export * from './methods/utils/SoundPlayer';
 
+// new utils
+export * from './methods/utils/joinRoomOnMediaSFU';
+export * from './methods/utils/createRoomOnMediaSFU';
+export * from './methods/utils/checkLimitsAndMakeRequest';
+export * from './methods/utils/createResponseJoinRoom';
+
 
 //initial values
 import { initialValuesState } from './methods/utils/initialValuesState';
@@ -185,7 +192,7 @@ import MainAspectComponent from './components/displayComponents/MainAspectCompon
 import ControlButtonsComponent from './components/displayComponents/ControlButtonsComponent';
 import ControlButtonsAltComponent from './components/displayComponents/ControlButtonsAltComponent';
 import ControlButtonsComponentTouch from './components/displayComponents/ControlButtonsComponentTouch';
-import OthergridComponent from './components/displayComponents/OtherGridComponent';
+import OtherGridComponent from './components/displayComponents/OtherGridComponent';
 import MainScreenComponent from './components/displayComponents/MainScreenComponent';
 import MainGridComponent from './components/displayComponents/MainGridComponent';
 import SubAspectComponent from './components/displayComponents/SubAspectComponent';
@@ -243,8 +250,9 @@ import { launchConfigureWhiteboard } from './methods/whiteboardMethods/launchCon
 
 
 // mediasfu functions -- examples
-import { connectSocket, disconnectSocket } from './sockets/SocketManager';
+import { connectSocket, connectLocalSocket, disconnectSocket } from './sockets/SocketManager';
 import { joinRoomClient } from './ProducerClient/producerClientEmits/joinRoomClient';
+import { joinLocalRoom } from './producers/producerEmits/joinLocalRoom';
 import { updateRoomParametersClient } from './ProducerClient/producerClientEmits/updateRoomParametersClient';
 import { createDeviceClient } from './ProducerClient/producerClientEmits/createDeviceClient';
 
@@ -383,13 +391,22 @@ import MiniCardAudio from './components/displayComponents/MiniCardAudio';
 import MiniAudioPlayer from './methods/utils/MiniAudioPlayer/MiniAudioPlayer';
 import { SoundPlayer } from './methods/utils/SoundPlayer';
 
+//new utils
+import { joinRoomOnMediaSFU } from './methods/utils/joinRoomOnMediaSFU';
+import { createRoomOnMediaSFU } from './methods/utils/createRoomOnMediaSFU';
+import { checkLimitsAndMakeRequest } from './methods/utils/checkLimitsAndMakeRequest';
+import { createResponseJoinRoom } from './methods/utils/createResponseJoinRoom';
+
+
+
+
 
 export { 
     initialValuesState,
-    LoadingModal, MainAspectComponent, ControlButtonsComponent, ControlButtonsAltComponent, ControlButtonsComponentTouch, OthergridComponent, MainScreenComponent, MainGridComponent, SubAspectComponent, MainContainerComponent, AlertComponent, MenuModal, RecordingModal, RequestsModal, WaitingRoomModal, DisplaySettingsModal, EventSettingsModal, CoHostModal, ParticipantsModal, MessagesModal, MediaSettingsModal, ConfirmExitModal, ConfirmHereModal, ShareEventModal, WelcomePage, PreJoinPage,
+    LoadingModal, MainAspectComponent, ControlButtonsComponent, ControlButtonsAltComponent, ControlButtonsComponentTouch, OtherGridComponent, MainScreenComponent, MainGridComponent, SubAspectComponent, MainContainerComponent, AlertComponent, MenuModal, RecordingModal, RequestsModal, WaitingRoomModal, DisplaySettingsModal, EventSettingsModal, CoHostModal, ParticipantsModal, MessagesModal, MediaSettingsModal, ConfirmExitModal, ConfirmHereModal, ShareEventModal, WelcomePage, PreJoinPage,
     Pagination, FlexibleGrid, FlexibleVideo, AudioGrid,
     launchMenuModal, launchRecording, startRecording, confirmRecording, launchWaiting, launchCoHost, launchMediaSettings, launchDisplaySettings, launchSettings, launchRequests, launchParticipants, launchMessages, launchConfirmExit,
-    connectSocket, disconnectSocket, joinRoomClient, updateRoomParametersClient, createDeviceClient,
+    connectSocket, connectLocalSocket, disconnectSocket, joinRoomClient, joinLocalRoom, updateRoomParametersClient, createDeviceClient,
     switchVideoAlt, clickVideo, clickAudio, clickScreenShare, streamSuccessVideo, streamSuccessAudio, streamSuccessScreen, streamSuccessAudioSwitch, checkPermission, producerClosed, newPipeProducer,
     updateMiniCardsGrid, mixStreams, dispStreams, stopShareScreen, checkScreenShare, startShareScreen, requestScreenShare, reorderStreams, prepopulateUserMedia, getVideos, rePort, trigger, consumerResume, connectSendTransportAudio, connectSendTransportVideo, connectSendTransportScreen, processConsumerTransports, resumePauseStreams, readjust, checkGrid, getEstimate, 
     calculateRowsAndColumns, addVideosGrid, onScreenChanges, sleep, changeVids, compareActiveNames, compareScreenStates, createSendTransport, resumeSendTransportAudio, receiveAllPipedTransports, disconnectSendTransportVideo, disconnectSendTransportAudio, disconnectSendTransportScreen, connectSendTransport, getPipedProducersAlt, signalNewConsumerTransport, connectRecvTransport, reUpdateInter, updateParticipantAudioDecibels, closeAndResize, autoAdjust, switchUserVideoAlt, switchUserVideo, switchUserAudio, receiveRoomMessages, formatNumber, connectIps,
@@ -405,5 +422,7 @@ export {
 
     launchPoll, launchBackground, launchBreakoutRooms, launchConfigureWhiteboard,
 
-    PollModal, BackgroundModal, BreakoutRoomsModal, ConfigureWhiteboardModal, Whiteboard, Screenboard, ScreenboardModal
+    PollModal, BackgroundModal, BreakoutRoomsModal, ConfigureWhiteboardModal, Whiteboard, Screenboard, ScreenboardModal,
+
+    joinRoomOnMediaSFU, createRoomOnMediaSFU, checkLimitsAndMakeRequest, createResponseJoinRoom
 };

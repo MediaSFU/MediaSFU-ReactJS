@@ -33,6 +33,14 @@ MediaSFU offers a cutting-edge streaming experience that empowers users to custo
 
 # MediaSFU ReactJS Module Documentation
 
+## Unlock the Power of MediaSFU Community Edition  
+
+**MediaSFU Community Edition is free and open-source**—perfect for developers who want to run their own media server without upfront costs. With robust features and simple setup, you can launch your media solution in minutes. **Ready to scale?** Upgrade seamlessly to **MediaSFU Cloud** for enterprise-grade performance and global scalability.  
+
+**[Get started now on GitHub!](https://github.com/MediaSFU/MediaSFUOpen)** 
+
+---
+
 ## Table of Contents
 
 - [Features](#features)

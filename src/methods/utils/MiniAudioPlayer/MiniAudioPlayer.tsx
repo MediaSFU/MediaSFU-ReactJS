@@ -6,6 +6,7 @@ import {
   BreakoutParticipant,
   Participant,
 } from "../../../@types/types";
+import { Consumer } from "mediasoup-client/lib/types";
 
 export interface MiniAudioPlayerParameters extends
     ReUpdateInterParameters {
@@ -24,6 +25,7 @@ export interface MiniAudioPlayerParameters extends
 export interface MiniAudioPlayerOptions {
   stream: MediaStream | null;
   remoteProducerId: string;
+  consumer: Consumer;
   parameters: MiniAudioPlayerParameters;
   MiniAudioComponent?: React.ComponentType<any>;
   miniAudioProps?: Record<string, any>;
@@ -40,6 +42,7 @@ export type MiniAudioPlayerType = (
  * @component
  * @param {MiniAudioPlayerOptions} props - The properties for the MiniAudioPlayer component.
  * @param {MediaStream | null} props.stream - The media stream to be played by the audio player.
+ * @param {Consumer} props.consumer - The consumer object for the remote audio producer.
  * @param {string} props.remoteProducerId - The ID of the remote producer.
  * @param {MiniAudioPlayerParameters} props.parameters - The parameters object containing various settings and methods.
  * @param {Function} props.parameters.getUpdatedAllParams - Function to get updated parameters.
@@ -77,6 +80,7 @@ export type MiniAudioPlayerType = (
  *   return (
  *     <MiniAudioPlayer
  *       stream={stream}
+ *       consumer={consumer}
  *       remoteProducerId="producer123"
  *       parameters={parameters}
  *       MiniAudioComponent={WaveformVisualizer}
@@ -90,6 +94,7 @@ export type MiniAudioPlayerType = (
 const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
   stream,
   remoteProducerId,
+  consumer,
   parameters,
   MiniAudioComponent,
   miniAudioProps,
@@ -105,35 +110,29 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
     limitedBreakRoom,
   } = parameters;
 
-  const audioContext = useRef<AudioContext | null>(
-    new window.AudioContext()
-  );
-
   const [showWaveModal, setShowWaveModal] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const autoWaveCheck = useRef(false);
 
   useEffect(() => {
     if (stream) {
-      const analyser = audioContext.current?.createAnalyser();
-      if (!analyser) return;
-
-      analyser.fftSize = 32;
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      if (audioContext.current) {
-        const source = audioContext.current.createMediaStreamSource(stream);
-        source.connect(analyser);
-      }
 
       let consLow = false;
+      let averageLoudness = 128;
 
       const intervalId = setInterval(() => {
-        analyser.getByteTimeDomainData(dataArray);
-        const averageLoudness =
-          Array.from(dataArray).reduce((sum, value) => sum + value, 0) /
-          bufferLength;
+        try {
+          const receiver = consumer.rtpReceiver;
+          receiver?.getStats().then((stats) => {
+            stats.forEach((report) => {
+              if (report.type === "inbound-rtp" && report.kind === "audio" && report.audioLevel) {
+                averageLoudness = 127.5 + (report.audioLevel * 127.5);
+              }
+            });
+          });
+        } catch {
+          // Do nothing
+        }
 
         const updatedParams = getUpdatedAllParams();
         let {

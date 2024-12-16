@@ -254,7 +254,6 @@ export const clickAudio = async ({ parameters }: ClickAudioOptions): Promise<voi
           }
 
           updateLocalStream(localStream);
-          updateAudioAlreadyOn(audioAlreadyOn);
 
           if (micAction == true) {
             micAction = false;

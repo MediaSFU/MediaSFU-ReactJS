@@ -1,6 +1,6 @@
 import React from "react";
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { SeedData, PreJoinPageOptions } from "../../@types/types";
+import { SeedData, PreJoinPageOptions, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
 export type MediasfuWebinarOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -13,6 +13,16 @@ export type MediasfuWebinarOptions = {
     seedData?: SeedData;
     useSeed?: boolean;
     imgSrc?: string;
+    sourceParameters?: {
+        [key: string]: any;
+    };
+    updateSourceParameters?: (data: {
+        [key: string]: any;
+    }) => void;
+    returnUI?: boolean;
+    noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+    joinMediaSFURoom?: JoinRoomOnMediaSFUType;
+    createMediaSFURoom?: CreateRoomOnMediaSFUType;
 };
 /**
  * MediasfuWebinar component optimized for webinars.
@@ -29,8 +39,14 @@ export type MediasfuWebinarOptions = {
  * @property {SeedData} [seedData={}] - Seed data for initial state.
  * @property {boolean} [useSeed=false] - Flag to use seed data.
  * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Image source URL.
+ * @property {Object} [sourceParameters={}] - Source parameters.
+ * @property {function} [updateSourceParameters] - Function to update source parameters.
+ * @property {boolean} [returnUI=true] - Flag to return the UI.
+ * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
+ * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
+ * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
  *
- * MediasfuWebinar component.
+ * MediasfuWebinar component optimized for webinars.
  *
  * @component
  * @param {MediasfuWebinarOptions} props - Component properties.
@@ -38,22 +54,21 @@ export type MediasfuWebinarOptions = {
  *
  * @example
  * ```tsx
- * const PrejoinPage = WelcomePage;
- * const credentials = { apiUserName: '', apiKey: '' };
- * const useLocalUIMode = false;
- * const seedData = {};
- * const useSeed = false;
- * const imgSrc = 'https://mediasfu.com/images/logo192.png';
- *
  * <MediasfuWebinar
- *  PrejoinPage={PrejoinPage}
- *  localLink="https://localhost:3000"
- *  connectMediaSFU={true}
- * credentials={credentials}
- * useLocalUIMode={useLocalUIMode}
- * seedData={seedData}
- * useSeed={useSeed}
- * imgSrc={imgSrc}
+ *   PrejoinPage={CustomPrejoinPage}
+ *   localLink="https://localhost:3000"
+ *   connectMediaSFU={true}
+ *   credentials={{ apiUserName: "user", apiKey: "key" }}
+ *   useLocalUIMode={true}
+ *   seedData={customSeedData}
+ *   useSeed={true}
+ *   imgSrc="https://example.com/logo.png"
+ *   sourceParameters={{ key: value }}
+ *   updateSourceParameters={updateSourceParameters}
+ *   returnUI={true}
+ *   noUIPreJoinOptions={customPreJoinOptions}
+ *   joinMediaSFURoom={joinRoomOnMediaSFU}
+ *   createMediaSFURoom={createRoomOnMediaSFU}
  * />
  * ```
  *

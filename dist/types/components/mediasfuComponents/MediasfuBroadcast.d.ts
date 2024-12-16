@@ -1,6 +1,6 @@
 import React from "react";
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { PreJoinPageOptions, SeedData } from "../../@types/types";
+import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
 export type MediasfuBroadcastOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -13,6 +13,16 @@ export type MediasfuBroadcastOptions = {
     seedData?: SeedData;
     useSeed?: boolean;
     imgSrc?: string;
+    sourceParameters?: {
+        [key: string]: any;
+    };
+    updateSourceParameters?: (data: {
+        [key: string]: any;
+    }) => void;
+    returnUI?: boolean;
+    noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+    joinMediaSFURoom?: JoinRoomOnMediaSFUType;
+    createMediaSFURoom?: CreateRoomOnMediaSFUType;
 };
 /**
  * MediasfuBroadcast component optimizes the media experience for broadcasting events.
@@ -27,21 +37,17 @@ export type MediasfuBroadcastOptions = {
  * @property {boolean} [connectMediaSFU=true] - Flag to connect to the MediaSFU server (if using Community Edition and still need to connect to the server)
  * @property {Object} [credentials={ apiUserName: "", apiKey: "" }] - API credentials.
  * @property {boolean} [useLocalUIMode=false] - Flag to use local UI mode.
- * @property {Object} [seedData={}] - Seed data for initial state.
+ * @property {SeedData} [seedData={}] - Seed data for initial state.
  * @property {boolean} [useSeed=false] - Flag to use seed data.
  * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Image source URL.
+ * @property {Object} [sourceParameters={}] - Source parameters.
+ * @property {function} [updateSourceParameters] - Function to update source parameters.
+ * @property {boolean} [returnUI=true] - Flag to return the UI.
+ * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
+ * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
+ * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
  *
- * @typedef {Object} SeedData - Data structure to populate initial state in the MediasfuBroadcast.
- * @property {string} [member] - The member name.
- * @property {string} [host] - The host name.
- * @property {EventType} [eventType] - The type of event.
- * @property {Participant[]} [participants] - The list of participants.
- * @property {Message[]} [messages] - The list of messages.
- * @property {Poll[]} [polls] - The list of polls.
- * @property {BreakoutParticipant[][]} [breakoutRooms] - The list of breakout rooms.
- * @property {Request[]} [requests] - The list of requests.
- * @property {WaitingRoomParticipant[]} [waitingList] - The list of waiting room participants.
- * @property {WhiteboardUser[]} [whiteboardUsers] - The list of whiteboard users.
+ * MediasfuBroadcast component.
  *
  * @component
  * @param {MediasfuBroadcastOptions} props - Component properties.
@@ -50,12 +56,20 @@ export type MediasfuBroadcastOptions = {
  * @example
  * ```tsx
  * <MediasfuBroadcast
- *   PrejoinPage={WelcomePage}
- *   credentials={{ apiUserName: "username", apiKey: "apikey" }}
- *   useLocalUIMode={false}
- *   seedData={{}}
- *   useSeed={false}
- *   imgSrc="https://mediasfu.com/images/logo192.png"
+ *   PrejoinPage={CustomPrejoinPage}
+ *   localLink="https://localhost:3000"
+ *   connectMediaSFU={true}
+ *   credentials={{ apiUserName: "user", apiKey: "key" }}
+ *   useLocalUIMode={true}
+ *   seedData={customSeedData}
+ *   useSeed={true}
+ *   imgSrc="https://example.com/logo.png"
+ *   sourceParameters={{ key: value }}
+ *   updateSourceParameters={updateSourceParameters}
+ *   returnUI={true}
+ *   noUIPreJoinOptions={customPreJoinOptions}
+ *   joinMediaSFURoom={joinRoomOnMediaSFU}
+ *   createMediaSFURoom={createRoomOnMediaSFU}
  * />
  * ```
  *

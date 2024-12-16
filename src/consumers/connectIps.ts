@@ -99,7 +99,6 @@ export const connectIps = async ({
         consume_sockets,
         remIP,
         apiUserName,
-        apiKey,
         apiToken,
       });
       return [consume_sockets, roomRecvIPs];

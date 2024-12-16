@@ -1,6 +1,6 @@
 import React from "react";
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { SeedData, PreJoinPageOptions } from "../../@types/types";
+import { SeedData, PreJoinPageOptions, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
 export type MediasfuGenericOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -13,6 +13,16 @@ export type MediasfuGenericOptions = {
     seedData?: SeedData;
     useSeed?: boolean;
     imgSrc?: string;
+    sourceParameters?: {
+        [key: string]: any;
+    };
+    updateSourceParameters?: (data: {
+        [key: string]: any;
+    }) => void;
+    returnUI?: boolean;
+    noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+    joinMediaSFURoom?: JoinRoomOnMediaSFUType;
+    createMediaSFURoom?: CreateRoomOnMediaSFUType;
 };
 /**
  * MediasfuGeneric component provides and combines the generic functionalities for MediaSFU.
@@ -29,6 +39,12 @@ export type MediasfuGenericOptions = {
  * @property {SeedData} [seedData={}] - Seed data for initial state.
  * @property {boolean} [useSeed=false] - Flag to use seed data.
  * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Image source URL.
+ * @property {Object} [sourceParameters={}] - Source parameters.
+ * @property {function} [updateSourceParameters] - Function to update source parameters.
+ * @property {boolean} [returnUI=true] - Flag to return the UI.
+ * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
+ * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
+ * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
  *
  * MediasfuGeneric component.
  *
@@ -47,6 +63,12 @@ export type MediasfuGenericOptions = {
  *   seedData={customSeedData}
  *   useSeed={true}
  *   imgSrc="https://example.com/logo.png"
+ *   sourceParameters={{ key: value }}
+ *   updateSourceParameters={updateSourceParameters}
+ *   returnUI={true}
+ *   noUIPreJoinOptions={customPreJoinOptions}
+ *   joinMediaSFURoom={joinRoomOnMediaSFU}
+ *   createMediaSFURoom={createRoomOnMediaSFU}
  * />
  * ```
  *

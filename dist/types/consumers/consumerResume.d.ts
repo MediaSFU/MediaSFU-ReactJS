@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { ReorderStreamsType, ReorderStreamsParameters, Participant, PrepopulateUserMediaType, PrepopulateUserMediaParameters, Stream, MiniAudioPlayerParameters, EventType } from "../@types/types";
+import { Consumer } from "mediasoup-client/lib/types";
 export interface ConsumerResumeParameters extends ReorderStreamsParameters, PrepopulateUserMediaParameters, MiniAudioPlayerParameters {
     nStream: MediaStream | null;
     allAudioStreams: (Stream | Participant)[];
@@ -62,6 +63,7 @@ export interface ConsumerResumeOptions {
     params: ResumeParams;
     parameters: ConsumerResumeParameters;
     nsock: Socket;
+    consumer: Consumer;
 }
 export type ConsumerResumeType = (options: ConsumerResumeOptions) => Promise<void>;
 /**
@@ -73,6 +75,7 @@ export type ConsumerResumeType = (options: ConsumerResumeOptions) => Promise<voi
  * @param {ResumeParams} options.params - The parameters required for resuming the consumer.
  * @param {ConsumerResumeParameters} options.parameters - The parameters for updating the state.
  * @param {Socket} options.nsock - The socket instance for communication.
+ * @param {Consumer} options.consumer - The consumer instance to resume.
  *
  * @returns {Promise<void>} A promise that resolves when the consumer is successfully resumed.
  *
@@ -88,6 +91,7 @@ export type ConsumerResumeType = (options: ConsumerResumeOptions) => Promise<voi
  *     kind: 'audio', // or 'video'
  *     rtpParameters: {}, // RTP parameters
  *   },
+ *   consumer: consumerInstance,
  *   parameters: {
  *     nStream: null,
  *     allAudioStreams: [],
@@ -145,6 +149,6 @@ export type ConsumerResumeType = (options: ConsumerResumeOptions) => Promise<voi
  *     console.error('Error resuming consumer:', error);
  *   });
  */
-export declare const consumerResume: ({ track, remoteProducerId, params, parameters, nsock, }: ConsumerResumeOptions) => Promise<void>;
+export declare const consumerResume: ({ track, remoteProducerId, params, parameters, nsock, consumer, }: ConsumerResumeOptions) => Promise<void>;
 export {};
 //# sourceMappingURL=consumerResume.d.ts.map

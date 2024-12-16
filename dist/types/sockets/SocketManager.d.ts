@@ -1,5 +1,5 @@
-import { MeetingRoomParams, RecordingParams } from "../@types/types";
-import { Socket } from "socket.io-client";
+import { MeetingRoomParams, RecordingParams } from '../@types/types';
+import { Socket } from 'socket.io-client';
 export interface ResponseLocalConnection {
     socket?: Socket;
     data?: ResponseLocalConnectionData;
@@ -42,16 +42,16 @@ export type ConnectLocalSocketType = (options: ConnectLocalSocketOptions) => Pro
  * @example
  * ```typescript
  * const options = {
- *   apiUserName: "user123",
- *   apiKey: "yourApiKeyHere",
- *   link: "https://socketlink.com",
+ *   apiUserName: 'user123',
+ *   apiKey: 'yourApiKeyHere',
+ *   link: 'https://socketlink.com',
  * };
  *
  * try {
  *   const socket = await connectSocket(options);
- *   console.log("Connected to socket:", socket);
+ *   console.log('Connected to socket:', socket);
  * } catch (error) {
- *   console.error("Failed to connect to socket:", error);
+ *   console.error('Failed to connect to socket:', error);
  * }
  * ```
  */
@@ -67,14 +67,14 @@ declare function connectSocket({ apiUserName, apiKey, apiToken, link }: ConnectS
  * @example
  * ```typescript
  * const options = {
- *   link: "http://localhost:3000",
+ *   link: 'http://localhost:3000',
  * };
  *
  * try {
  *   const { socket, data } = await connectLocalSocket(options);
- *   console.log("Connected to socket:", socket, data);
+ *   console.log('Connected to socket:', socket, data);
  * } catch (error) {
- *   console.error("Failed to connect to socket:", error);
+ *   console.error('Failed to connect to socket:', error);
  * }
  * ```
  */
@@ -91,9 +91,9 @@ declare function connectLocalSocket({ link }: ConnectLocalSocketOptions): Promis
  *
  * try {
  *   const isDisconnected = await disconnectSocket(options);
- *   console.log("Disconnected:", isDisconnected);
+ *   console.log('Disconnected:', isDisconnected);
  * } catch (error) {
- *   console.error("Failed to disconnect:", error);
+ *   console.error('Failed to disconnect:', error);
  * }
  * ```
  */

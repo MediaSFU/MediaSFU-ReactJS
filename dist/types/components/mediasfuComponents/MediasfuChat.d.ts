@@ -1,6 +1,6 @@
 import React from "react";
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { PreJoinPageOptions, SeedData } from "../../@types/types";
+import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
 export type MediasfuChatOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -13,6 +13,16 @@ export type MediasfuChatOptions = {
     seedData?: SeedData;
     useSeed?: boolean;
     imgSrc?: string;
+    sourceParameters?: {
+        [key: string]: any;
+    };
+    updateSourceParameters?: (data: {
+        [key: string]: any;
+    }) => void;
+    returnUI?: boolean;
+    noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+    joinMediaSFURoom?: JoinRoomOnMediaSFUType;
+    createMediaSFURoom?: CreateRoomOnMediaSFUType;
 };
 /**
  * MediasfuChat component optimizes the media experience for chatting events.
@@ -21,43 +31,53 @@ export type MediasfuChatOptions = {
  * It manages various states and references related to the media session, including
  * user credentials, room details, participants, and recording parameters.
  *
- * @param {Object} props - The properties object.
- * @param {React.ComponentType<any>} [props.PrejoinPage=WelcomePage] - The component to render before joining the chat.
- * @param {string} [props.localLink=""] - The local link for the media server.
- * @param {boolean} [props.connectMediaSFU=false] - Flag to determine if the media server should be connected.
- * @param {Object} [props.credentials={ apiUserName: "", apiKey: "" }] - The credentials for API access.
- * @param {string} props.credentials.apiUserName - The API username.
- * @param {string} props.credentials.apiKey - The API key.
- * @param {boolean} [props.useLocalUIMode=false] - Flag to determine if local UI mode should be used.
- * @param {SeedData} [props.seedData={}] - The seed data for initializing the chat.
- * @param {boolean} [props.useSeed=false] - Flag to determine if seed data should be used.
- * @param {string} [props.imgSrc="https://mediasfu.com/images/logo192.png"] - The image source for the logo.
+ * @typedef {Object} MediasfuChatOptions
+ * @property {function} [PrejoinPage=WelcomePage] - Function to render the prejoin page.
+ * @property {string} [localLink=""] - Local link for the media server (if using Community Edition).
+ * @property {boolean} [connectMediaSFU=true] - Flag to connect to the MediaSFU server (if using Community Edition and still need to connect to the server)
+ * @property {Object} [credentials={ apiUserName: "", apiKey: "" }] - API credentials.
+ * @property {boolean} [useLocalUIMode=false] - Flag to use local UI mode.
+ * @property {SeedData} [seedData={}] - Seed data for initial state.
+ * @property {boolean} [useSeed=false] - Flag to use seed data.
+ * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Image source URL.
+ * @property {Object} [sourceParameters={}] - Source parameters.
+ * @property {function} [updateSourceParameters] - Function to update source parameters.
+ * @property {boolean} [returnUI=true] - Flag to return the UI.
+ * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
+ * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
+ * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
  *
- * @returns {JSX.Element} The MediasfuChat component.
+ * MediasfuGeneric component.
+ *
+ * @component
+ * @param {MediasfuChatOptions} props - Component properties.
+ * @returns {React.FC<MediasfuChatOptions>} - React functional component.
  *
  * @example
  * ```tsx
- * const PrejoinPage = WelcomePage;
- * const credentials = {
- * apiUserName: "username",
- * apiKey: "key",
- * };
- * const useLocalUIMode = false;
- * const seedData = {};
- * const useSeed = false;
- * const imgSrc = "https://mediasfu.com/images/logo192.png";
- *
- * return (
  * <MediasfuChat
- * PrejoinPage={PrejoinPage}
- * credentials={credentials}
- * useLocalUIMode={useLocalUIMode}
- * seedData={seedData}
- * useSeed={useSeed}
- * imgSrc={imgSrc}
+ *   PrejoinPage={CustomPrejoinPage}
+ *   localLink="https://localhost:3000"
+ *   connectMediaSFU={true}
+ *   credentials={{ apiUserName: "user", apiKey: "key" }}
+ *   useLocalUIMode={true}
+ *   seedData={customSeedData}
+ *   useSeed={true}
+ *   imgSrc="https://example.com/logo.png"
+ *   sourceParameters={{ key: value }}
+ *   updateSourceParameters={updateSourceParameters}
+ *   returnUI={true}
+ *   noUIPreJoinOptions={customPreJoinOptions}
+ *   joinMediaSFURoom={joinRoomOnMediaSFU}
+ *   createMediaSFURoom={createRoomOnMediaSFU}
  * />
- * );
  * ```
+ *
+ * @description
+ * This component handles the generic functionalities for MediaSFU, including joining rooms,
+ * managing participants, and handling media streams. It uses various hooks and methods to
+ * manage state and perform actions such as joining a room, updating initial values, and
+ * handling media streams.
  *
  */
 declare const MediasfuChat: React.FC<MediasfuChatOptions>;

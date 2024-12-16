@@ -1,7 +1,7 @@
- 
+
 // Socket manager for media socket.
-import { MeetingRoomParams, RecordingParams } from "../@types/types";
-import io, { Socket } from "socket.io-client"; // Importing socket type
+import { MeetingRoomParams, RecordingParams } from '../@types/types';
+import io, { Socket } from 'socket.io-client'; // Importing socket type
 
 /**
  * Validates the provided API key or token.
@@ -11,13 +11,13 @@ import io, { Socket } from "socket.io-client"; // Importing socket type
 async function validateApiKeyToken(value: string): Promise<boolean> {
   // API key or token must be alphanumeric and length 64
   if (!/^[a-z0-9]{64}$/i.test(value)) {
-    throw new Error("Invalid API key or token.");
+    throw new Error('Invalid API key or token.');
   }
   return true;
 }
 
 export interface ResponseLocalConnection {
-  socket? : Socket;
+  socket?: Socket;
   data?: ResponseLocalConnectionData;
 }
 
@@ -66,32 +66,32 @@ export type ConnectLocalSocketType = (options: ConnectLocalSocketOptions) => Pro
  * @example
  * ```typescript
  * const options = {
- *   apiUserName: "user123",
- *   apiKey: "yourApiKeyHere",
- *   link: "https://socketlink.com",
+ *   apiUserName: 'user123',
+ *   apiKey: 'yourApiKeyHere',
+ *   link: 'https://socketlink.com',
  * };
- * 
+ *
  * try {
  *   const socket = await connectSocket(options);
- *   console.log("Connected to socket:", socket);
+ *   console.log('Connected to socket:', socket);
  * } catch (error) {
- *   console.error("Failed to connect to socket:", error);
+ *   console.error('Failed to connect to socket:', error);
  * }
  * ```
  */
 
 async function connectSocket(
-  { apiUserName, apiKey, apiToken, link }: ConnectSocketOptions
+  { apiUserName, apiKey, apiToken, link }: ConnectSocketOptions,
 ): Promise<Socket> {
   // Validate inputs
   if (!apiUserName) {
-    throw new Error("API username required.");
+    throw new Error('API username required.');
   }
   if (!(apiKey || apiToken)) {
-    throw new Error("API key or token required.");
+    throw new Error('API key or token required.');
   }
   if (!link) {
-    throw new Error("Socket link required.");
+    throw new Error('Socket link required.');
   }
 
   // Validate the API key or token
@@ -104,10 +104,10 @@ async function connectSocket(
       await validateApiKeyToken(apiToken);
       useKey = false;
     } else {
-      throw new Error("Invalid API key or token format.");
+      throw new Error('Invalid API key or token format.');
     }
   } catch {
-    throw new Error("Invalid API key or token.");
+    throw new Error('Invalid API key or token.');
   }
 
   let socket: Socket;
@@ -116,7 +116,7 @@ async function connectSocket(
     // Connect to socket using the link provided
     if (useKey) {
       socket = io(`${link}/media`, {
-        transports: ["websocket"],
+        transports: ['websocket'],
         query: {
           apiUserName: apiUserName,
           apiKey: apiKey!,
@@ -124,7 +124,7 @@ async function connectSocket(
       });
     } else {
       socket = io(`${link}/media`, {
-        transports: ["websocket"],
+        transports: ['websocket'],
         query: {
           apiUserName: apiUserName,
           apiToken: apiToken!,
@@ -133,13 +133,23 @@ async function connectSocket(
     }
 
     // Handle socket connection events
-    socket.on("connection-success", ({ socketId }: { socketId: string }) => {
-      console.log("Connected to media socket.", socketId);
+    socket.on('connection-success', ({ socketId }: { socketId: string }) => {
+      //check if link contains mediasfu.com and contains more than one c
+      let conn = 'media';
+      try {
+        if (link.includes('mediasfu.com') && (link.match(/c/g)?.length ?? 0) > 1) {
+          conn = 'consume';
+        }
+      } catch {
+        // do nothing
+      }
+
+      console.log(`Connected to ${conn} socket with ID: ${socketId}`);
       resolve(socket);
     });
 
-    socket.on("connect_error", (error: Error) => {
-      reject(new Error("Error connecting to media socket: " + error.message));
+    socket.on('connect_error', (error: Error) => {
+      reject(new Error('Error connecting to media socket: ' + error.message));
     });
   });
 }
@@ -156,21 +166,21 @@ async function connectSocket(
  * @example
  * ```typescript
  * const options = {
- *   link: "http://localhost:3000",
+ *   link: 'http://localhost:3000',
  * };
- * 
+ *
  * try {
  *   const { socket, data } = await connectLocalSocket(options);
- *   console.log("Connected to socket:", socket, data);
+ *   console.log('Connected to socket:', socket, data);
  * } catch (error) {
- *   console.error("Failed to connect to socket:", error);
+ *   console.error('Failed to connect to socket:', error);
  * }
  * ```
  */
 
 async function connectLocalSocket({ link }: ConnectLocalSocketOptions): Promise<ResponseLocalConnection> {
   if (!link) {
-    throw new Error("Socket link required.");
+    throw new Error('Socket link required.');
   }
 
   let socket: Socket;
@@ -178,17 +188,17 @@ async function connectLocalSocket({ link }: ConnectLocalSocketOptions): Promise<
   return new Promise((resolve, reject) => {
     // Connect to socket using the link provided
     socket = io(`${link}/media`, {
-      transports: ["websocket"],
+      transports: ['websocket'],
     });
 
 
     // Handle socket connection events
-    socket.on("connection-success", (data: ResponseLocalConnectionData) => {
+    socket.on('connection-success', (data: ResponseLocalConnectionData) => {
       resolve({ socket, data });
     });
 
-    socket.on("connect_error", (error: Error) => {
-      reject(new Error("Error connecting to media socket: " + error.message));
+    socket.on('connect_error', (error: Error) => {
+      reject(new Error('Error connecting to media socket: ' + error.message));
     });
   });
 }
@@ -202,12 +212,12 @@ async function connectLocalSocket({ link }: ConnectLocalSocketOptions): Promise<
  * @example
  * ```typescript
  * const options = { socket: socketInstance };
- * 
+ *
  * try {
  *   const isDisconnected = await disconnectSocket(options);
- *   console.log("Disconnected:", isDisconnected);
+ *   console.log('Disconnected:', isDisconnected);
  * } catch (error) {
- *   console.error("Failed to disconnect:", error);
+ *   console.error('Failed to disconnect:', error);
  * }
  * ```
  */

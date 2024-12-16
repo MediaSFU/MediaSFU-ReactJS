@@ -135,6 +135,7 @@ export const connectRecvTransport = async ({
                     params,
                     parameters,
                     nsock,
+                    consumer,
                   });
                 } catch (error) {
                   // Handle error

@@ -226,18 +226,27 @@ updateValidated(true);
 See the following code for the PreJoinPage page logic:
 
 ```typescript
-import React, { useState, useRef } from "react";
-import { ConnectSocketType, ShowAlert, ConnectLocalSocketType, ResponseLocalConnection, ResponseLocalConnectionData, RecordingParams, MeetingRoomParams } from "../../@types/types";
+import React, { useState, useRef, useEffect } from "react";
+import {
+  ConnectSocketType,
+  ShowAlert,
+  ConnectLocalSocketType,
+  ResponseLocalConnection,
+  ResponseLocalConnectionData,
+  RecordingParams,
+  MeetingRoomParams,
+  CreateMediaSFURoomOptions,
+  JoinMediaSFURoomOptions,
+} from "../../@types/types";
 import { checkLimitsAndMakeRequest } from "../../methods/utils/checkLimitsAndMakeRequest";
-import { createRoomOnMediaSFU } from "../../methods/utils/createRoomOnMediaSFU";
-import { joinRoomOnMediaSFU } from "../../methods/utils/joinRoomOnMediaSFU";
+import { createRoomOnMediaSFU } from '../../methods/utils/createRoomOnMediaSFU';
+import { CreateRoomOnMediaSFUType, JoinRoomOnMediaSFUType, joinRoomOnMediaSFU } from "../../methods/utils/joinRoomOnMediaSFU";
 import { Socket } from "socket.io-client";
 import { CSSProperties } from "react";
 
 const apiKey = "yourAPIKEY";
 const apiUserName = "yourAPIUSERNAME";
 const user_credentials = { apiUserName, apiKey };
-
 
 export interface JoinLocalEventRoomParameters {
   eventID: string;
@@ -280,7 +289,6 @@ export interface CreateJoinLocalRoomResponse {
   url?: string;
 }
 
-
 // Type definitions for parameters and credentials
 export interface PreJoinPageParameters {
   imgSrc?: string;
@@ -308,14 +316,17 @@ export interface PreJoinPageOptions {
   connectMediaSFU?: boolean;
   parameters: PreJoinPageParameters;
   credentials?: Credentials;
+  returnUI?: boolean;
+  noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+  createMediaSFURoom?: CreateRoomOnMediaSFUType;
+  joinMediaSFURoom?: JoinRoomOnMediaSFUType;
 }
 
 export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
 
-
 /**
  * PreJoinPage component allows users to either create a new room or join an existing one.
- * 
+ *
  * @component
  * @param {PreJoinPageOptions} props - The properties for the PreJoinPage component.
  * @param {PreJoinPageParameters} props.parameters - Various parameters required for the component.
@@ -326,15 +337,21 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
  * @param {() => void} props.parameters.updateValidated - Function to update the validation status.
  * @param {string} [props.parameters.imgSrc] - The source URL for the logo image.
  * @param {Credentials} [props.credentials=user_credentials] - The user credentials containing the API username and API key.
- * 
+ * @param {boolean} [props.returnUI=false] - Flag to determine if the component should return the UI.
+ * @param {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [props.noUIPreJoinOptions] - The options for creating/joining a room without UI.
+ * @param {string} [props.localLink=""] - The link to the local server.
+ * @param {boolean} [props.connectMediaSFU=true] - Flag to determine if the component should connect to MediaSFU.
+ * @param {CreateRoomOnMediaSFUType} [props.createMediaSFURoom] - Function to create a room on MediaSFU.
+ * @param {JoinRoomOnMediaSFUType} [props.joinMediaSFURoom] - Function to join a room on MediaSFU.
+ *
  * @returns {JSX.Element} The rendered PreJoinPage component.
- * 
+ *
  * @example
  * ```tsx
  * import React from 'react';
  * import { PreJoinPage } from 'mediasfu-reactjs';
  * import { JoinLocalRoomOptions } from 'mediasfu-reactjs';
- * 
+ *
  * const App = () => {
  *   const showAlertFunction = (message: string) => console.log(message);
  *   const updateLoadingFunction = (visible: boolean) => console.log(`Loading: ${visible}`);
@@ -346,7 +363,7 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
  *   const updateLinkFunction = (link: string) => {}; // Update link function
  *   const updateRoomNameFunction = (roomName: string) => {}; // Update room name function
  *   const updateMemberFunction = (member: string) => {}; // Update member function
- * 
+ *
  *   return (
  *     <PreJoinPage
  *       parameters={{
@@ -366,23 +383,35 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
  *         apiUserName: "user123",
  *         apiKey: "apikey123"
  *       }}
+ *      returnUI={true} 
+ *      noUIPreJoinOptions={{
+ *      action: "create",
+ *      capacity: 10,
+ *      duration: 15,
+ *      eventType: "broadcast",
+ *      userName: "Prince",
+ *      }}
+ *      connectMediaSFU={true}
+ *      localLink="http://localhost:3000"
  *     />
  *   );
  * };
- * 
- * 
+ *
+ *
  * export default App;
  * ```
  */
 
-const PreJoinPage: React.FC<PreJoinPageOptions> = (
-  {
-    localLink = "",
-    connectMediaSFU = true,
-    parameters,
-    credentials = user_credentials,
-  }
-) => {
+const PreJoinPage: React.FC<PreJoinPageOptions> = ({
+  localLink = "",
+  connectMediaSFU = true,
+  parameters,
+  credentials = user_credentials,
+  returnUI = false,
+  noUIPreJoinOptions,
+  createMediaSFURoom = createRoomOnMediaSFU,
+  joinMediaSFURoom = joinRoomOnMediaSFU,
+}) => {
   const [isCreateMode, setIsCreateMode] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
   const [duration, setDuration] = useState<string>("");
@@ -390,6 +419,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = (
   const [capacity, setCapacity] = useState<string>("");
   const [eventID, setEventID] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const pending = useRef(false);
 
   const localConnected = useRef(false);
   const localData = useRef<ResponseLocalConnectionData | undefined>(undefined);
@@ -408,42 +438,227 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = (
     updateMember,
   } = parameters;
 
-
-  if (localLink.length > 0 && !localConnected.current && !initSocket.current) {
-
-    
-    try {
-      connectLocalSocket?.({ link: localLink }).then((response: ResponseLocalConnection | undefined) => {
-        localData.current = response!.data;
-        initSocket.current = response!.socket;
-        localConnected.current = true;
-      }).catch((error) => {
-        showAlert?.({
-          message: `Unable to connect to ${localLink}. ${error}`,
-          type: "danger",
-          duration: 3000,
-        });
-      }
-      );
-    } catch {
-      showAlert?.({
-        message: `Unable to connect to ${localLink}. Something went wrong.`,
-        type: "danger",
-        duration: 3000,
-      });
+  const handleCreateRoom = async () => {
+    if (pending.current) {
+      return;
     }
-  }
+    pending.current = true;
+    let payload = {} as CreateMediaSFURoomOptions;
+    if (returnUI) {
+      if (!name || !duration || !eventType || !capacity) {
+        setError("Please fill all the fields.");
+        return;
+      }
+      payload = {
+        action: "create",
+        duration: parseInt(duration),
+        capacity: parseInt(capacity),
+        eventType: eventType as "chat" | "broadcast" | "webinar" | "conference",
+        userName: name,
+        recordOnly: false,
+      };
+    } else {
+      if (
+        noUIPreJoinOptions &&
+        "action" in noUIPreJoinOptions &&
+        noUIPreJoinOptions.action === "create"
+      ) {
+        payload = noUIPreJoinOptions as CreateMediaSFURoomOptions;
+      } else {
+        pending.current = false;
+        throw new Error(
+          "Invalid options provided for creating a room without UI."
+        );
+      }
+    }
 
+    updateIsLoadingModalVisible(true);
 
-  const handleToggleMode = () => {
-    setIsCreateMode(!isCreateMode);
-    setError("");
+    if (localLink.length > 0) {
+      const secureCode =
+        Math.random().toString(30).substring(2, 14) +
+        Math.random().toString(30).substring(2, 14);
+      let eventID =
+        new Date().getTime().toString(30) +
+        new Date().getUTCMilliseconds() +
+        Math.floor(10 + Math.random() * 99).toString();
+      eventID = "m" + eventID;
+      const eventRoomParams = localData.current?.meetingRoomParams_;
+      eventRoomParams!.type = eventType as
+        | "chat"
+        | "broadcast"
+        | "webinar"
+        | "conference";
+
+      const createData: CreateLocalRoomParameters = {
+        eventID: eventID,
+        duration: parseInt(duration),
+        capacity: parseInt(capacity),
+        userName: payload.userName,
+        scheduledDate: new Date(),
+        secureCode: secureCode,
+        waitRoom: false,
+        recordingParams: localData.current?.recordingParams_,
+        eventRoomParams: eventRoomParams,
+        videoPreference: null,
+        audioPreference: null,
+        audioOutputPreference: null,
+        mediasfuURL: "",
+      };
+
+      // socket in main window is required and for no local room, no use of initSocket
+      // for local room, initSocket becomes the local socket, and localSocket is the connection to MediaSFU (if connectMediaSFU is true)
+      // else localSocket is the same as initSocket
+
+      if (
+        connectMediaSFU &&
+        initSocket.current &&
+        localData.current &&
+        localData.current.apiUserName &&
+        localData.current.apiKey
+      ) {
+        payload.recordOnly = true; // allow production to mediasfu only; no consumption
+        const response = await roomCreator({
+          payload,
+          apiUserName: localData.current.apiUserName,
+          apiKey: localData.current.apiKey,
+          validate: false,
+        });
+        if (
+          response &&
+          response.success &&
+          response.data &&
+          "roomName" in response.data
+        ) {
+          createData.eventID = response.data.roomName;
+          createData.secureCode = response.data.secureCode || "";
+          createData.mediasfuURL = response.data.publicURL;
+          await createLocalRoom({
+            createData: createData,
+            link: response.data.link,
+          });
+        } else {
+          pending.current = false;
+          updateIsLoadingModalVisible(false);
+          setError(`Unable to create room on MediaSFU.`);
+          try {
+            updateSocket(initSocket.current);
+            await createLocalRoom({ createData: createData });
+            pending.current = false;
+          } catch (error) {
+            pending.current = false;
+            updateIsLoadingModalVisible(false);
+            setError(`Unable to create room. ${error}`);
+          }
+        }
+      } else {
+        try {
+          updateSocket(initSocket.current!);
+          await createLocalRoom({ createData: createData });
+          pending.current = false;
+        } catch (error) {
+          pending.current = false;
+          updateIsLoadingModalVisible(false);
+          setError(`Unable to create room. ${error}`);
+        }
+      }
+    } else {
+      await roomCreator({
+        payload,
+        apiUserName: credentials.apiUserName,
+        apiKey: credentials.apiKey,
+        validate: true,
+      });
+      pending.current = false;
+    }
   };
 
-  const joinLocalRoom = async ({joinData, link=localLink}: JoinLocalEventRoomOptions) => {
+  const handleJoinRoom = async () => {
+    if (pending.current) {
+      return;
+    }
+    pending.current = true;
+    let payload = {} as JoinMediaSFURoomOptions;
+    if (returnUI) {
+      if (!name || !eventID) {
+        setError("Please fill all the fields.");
+        return;
+      }
+
+      payload = {
+        action: "join",
+        meetingID: eventID,
+        userName: name,
+      };
+    } else {
+      if (
+        noUIPreJoinOptions &&
+        "action" in noUIPreJoinOptions &&
+        noUIPreJoinOptions.action === "join"
+      ) {
+        payload = noUIPreJoinOptions as JoinMediaSFURoomOptions;
+      } else {
+        throw new Error(
+          "Invalid options provided for joining a room without UI."
+        );
+      }
+    }
+  
+    if (localLink.length > 0 && !localLink.includes("mediasfu.com")) {
+      const joinData: JoinLocalEventRoomParameters = {
+        eventID: eventID,
+        userName: payload.userName,
+        secureCode: "",
+        videoPreference: null,
+        audioPreference: null,
+        audioOutputPreference: null,
+      };
+
+      await joinLocalRoom({ joinData: joinData });
+      pending.current = false;
+      return;
+    }
+
+    updateIsLoadingModalVisible(true);
+
+    const response = await joinMediaSFURoom({
+      payload,
+      apiUserName: credentials.apiUserName,
+      apiKey: credentials.apiKey,
+      localLink: localLink,
+    });
+    if (response.success && response.data && "roomName" in response.data) {
+      await checkLimitsAndMakeRequest({
+        apiUserName: response.data.roomName,
+        apiToken: response.data.secret,
+        link: response.data.link,
+        userName: payload.userName,
+        parameters: parameters,
+      });
+      pending.current = false;
+    } else {
+      pending.current = false;
+      updateIsLoadingModalVisible(false);
+      setError(
+        `Unable to join room. ${
+          response.data
+            ? "error" in response.data
+              ? response.data.error
+              : ""
+            : ""
+        }`
+      );
+    }
+  };
+
+  const joinLocalRoom = async ({
+    joinData,
+    link = localLink,
+  }: JoinLocalEventRoomOptions) => {
     initSocket.current?.emit(
       "joinEventRoom",
-      joinData, (response: CreateJoinLocalRoomResponse) => {
+      joinData,
+      (response: CreateJoinLocalRoomResponse) => {
         if (response.success) {
           updateSocket(initSocket.current!);
           updateApiUserName(localData.current?.apiUserName || "");
@@ -457,15 +672,18 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = (
           updateIsLoadingModalVisible(false);
           setError(`Unable to join room. ${response.reason}`);
         }
-      });
-  }
+      }
+    );
+  };
 
-  const createLocalRoom = async ({createData, link=localLink}: CreateLocalRoomOptions) => {
-
+  const createLocalRoom = async ({
+    createData,
+    link = localLink,
+  }: CreateLocalRoomOptions) => {
     initSocket.current?.emit(
       "createRoom",
-      createData, (response: CreateJoinLocalRoomResponse) => {
-
+      createData,
+      (response: CreateJoinLocalRoomResponse) => {
         if (response.success) {
           updateSocket(initSocket.current!);
           updateApiUserName(localData.current?.apiUserName || "");
@@ -481,21 +699,33 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = (
           updateIsLoadingModalVisible(false);
           setError(`Unable to create room. ${response.reason}`);
         }
-      });
-  }
+      }
+    );
+  };
 
-  const roomCreator = async ({payload, apiUserName, apiKey, validate=true}: {payload: any, apiUserName: string, apiKey: string, validate?: boolean}) => {
-    const response = await createRoomOnMediaSFU({
+  const roomCreator = async ({
+    payload,
+    apiUserName,
+    apiKey,
+    validate = true,
+  }: {
+    payload: any;
+    apiUserName: string;
+    apiKey: string;
+    validate?: boolean;
+  }) => {
+    const response = await createMediaSFURoom({
       payload,
       apiUserName: apiUserName,
       apiKey: apiKey,
+      localLink: localLink,
     });
     if (response.success && response.data && "roomName" in response.data) {
       await checkLimitsAndMakeRequest({
         apiUserName: response.data.roomName,
         apiToken: response.data.secret,
         link: response!.data.link,
-        userName: name,
+        userName: payload.userName,
         parameters: parameters,
         validate: validate,
       });
@@ -514,143 +744,103 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = (
     }
   };
 
-  const handleCreateRoom = async () => {
-    if (!name || !duration || !eventType || !capacity) {
-      setError("Please fill all the fields.");
-      return;
-    }
-
-    const payload = {
-      action: "create",
-      duration: parseInt(duration),
-      capacity: parseInt(capacity),
-      eventType,
-      userName: name,
-      recordOnly: false,
-    };
-
-    updateIsLoadingModalVisible(true);
-
-
-    if (localLink.length > 0) {
-
-      const secureCode = Math.random().toString(30).substring(2, 14) +
-      Math.random().toString(30).substring(2, 14);
-      let eventID = new Date().getTime().toString(30) + new Date().getUTCMilliseconds() + Math.floor(10 + Math.random() * 99).toString();
-      eventID = "m" + eventID;
-      const eventRoomParams = localData.current?.meetingRoomParams_;
-      eventRoomParams!.type = eventType as "chat" | "broadcast" | "webinar" | "conference";
-
-      const createData: CreateLocalRoomParameters = {
-        eventID: eventID,
-        duration: parseInt(duration),
-        capacity: parseInt(capacity),
-        userName: name,
-        scheduledDate: new Date(),
-        secureCode: secureCode,
-        waitRoom: false,
-        recordingParams: localData.current?.recordingParams_,
-        eventRoomParams: eventRoomParams,
-        videoPreference: null,
-        audioPreference: null,
-        audioOutputPreference: null,
-        mediasfuURL: "",
-      };
-
-      // socket in main window is required and for no local room, no use of initSocket
-      // for local room, initSocket becomes the local socket, and localSocket is the connection to MediaSFU (if connectMediaSFU is true)
-      // else localSocket is the same as initSocket
-
-      if (connectMediaSFU && initSocket.current && localData.current && localData.current.apiUserName && localData.current.apiKey) {
-        payload.recordOnly = true; // allow production to mediasfu only; no consumption
-        const response = await roomCreator({payload, apiUserName: localData.current.apiUserName, apiKey: localData.current.apiKey, validate: false});
-        if (response && response.success && response.data && "roomName" in response.data) {
-          createData.eventID = response.data.roomName;
-          createData.secureCode = response.data.secureCode || "";
-          createData.mediasfuURL = response.data.publicURL;
-          await createLocalRoom({createData: createData, link: response.data.link});
-        }else {
-          updateIsLoadingModalVisible(false);
-          setError(`Unable to create room on MediaSFU.`);
-          try{
-            updateSocket(initSocket.current);
-            await createLocalRoom({createData: createData});
-          } catch (error) {
-            updateIsLoadingModalVisible(false);
-            setError(`Unable to create room. ${error}`);
-          }
+  const checkProceed = async ({
+    returnUI,
+    noUIPreJoinOptions,
+  }: {
+    returnUI: boolean;
+    noUIPreJoinOptions: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+  }) => {
+    if (!returnUI && noUIPreJoinOptions) {
+      if (
+        "action" in noUIPreJoinOptions &&
+        noUIPreJoinOptions.action === "create"
+      ) {
+        // update all the required parameters and call
+        const createOptions: CreateMediaSFURoomOptions =
+          noUIPreJoinOptions as CreateMediaSFURoomOptions;
+        if (
+          !createOptions.userName ||
+          !createOptions.duration ||
+          !createOptions.eventType ||
+          !createOptions.capacity
+        ) {
+          throw new Error(
+            "Please provide all the required parameters: userName, duration, eventType, capacity"
+          );
         }
+
+        await handleCreateRoom();
+      } else if (
+        "action" in noUIPreJoinOptions &&
+        noUIPreJoinOptions.action === "join"
+      ) {
+        // update all the required parameters and call
+        const joinOptions: JoinMediaSFURoomOptions =
+          noUIPreJoinOptions as JoinMediaSFURoomOptions;
+        if (!joinOptions.userName || !joinOptions.meetingID) {
+          throw new Error(
+            "Please provide all the required parameters: userName, meetingID"
+          );
+        }
+
+        await handleJoinRoom();
       } else {
-        try{
-          updateSocket(initSocket.current!);
-          await createLocalRoom({createData: createData});
-        } catch (error) {
-          updateIsLoadingModalVisible(false);
-          setError(`Unable to create room. ${error}`);
-        }
+        throw new Error(
+          "Invalid options provided for creating/joining a room without UI."
+        );
       }
-    }else{
-       await roomCreator({payload, apiUserName: credentials.apiUserName, apiKey: credentials.apiKey, validate: true});
-    }
-
-  }
-
-  const handleJoinRoom = async () => {
-    if (!name || !eventID) {
-      setError("Please fill all the fields.");
-      return;
-    }
-
-    const payload = {
-      action: "join",
-      meetingID: eventID,
-      userName: name,
-    };
-
-    if (localLink.length > 0 && !localLink.includes("mediasfu.com")) {
-        const joinData: JoinLocalEventRoomParameters = {
-          eventID: eventID,
-          userName: name,
-          secureCode: "",
-          videoPreference: null,
-          audioPreference: null,
-          audioOutputPreference: null,
-        };
-
-        await joinLocalRoom({joinData: joinData});
-        return;
-    }
-
-    updateIsLoadingModalVisible(true);
-
-    const response = await joinRoomOnMediaSFU({
-      payload,
-      apiUserName: credentials.apiUserName,
-      apiKey: credentials.apiKey,
-    });
-    if (response.success && response.data && "roomName" in response.data) {
-      await checkLimitsAndMakeRequest({
-        apiUserName: response.data.roomName,
-        apiToken: response.data.secret,
-        link: response.data.link,
-        userName: name,
-        parameters: parameters,
-      });
-    } else {
-      updateIsLoadingModalVisible(false);
-      setError(
-        `Unable to join room. ${
-          response.data
-            ? "error" in response.data
-              ? response.data.error
-              : ""
-            : ""
-        }`
-      );
     }
   };
 
- return (
+  useEffect(() => {
+    if (
+      localLink.length > 0 &&
+      !localConnected.current &&
+      !initSocket.current
+    ) {
+      try {
+        connectLocalSocket?.({ link: localLink })
+          .then((response: ResponseLocalConnection | undefined) => {
+            localData.current = response!.data;
+            initSocket.current = response!.socket;
+            localConnected.current = true;
+
+            if (!returnUI && noUIPreJoinOptions) {
+              checkProceed({ returnUI, noUIPreJoinOptions });
+            }
+          })
+          .catch((error) => {
+            showAlert?.({
+              message: `Unable to connect to ${localLink}. ${error}`,
+              type: "danger",
+              duration: 3000,
+            });
+          });
+      } catch {
+        showAlert?.({
+          message: `Unable to connect to ${localLink}. Something went wrong.`,
+          type: "danger",
+          duration: 3000,
+        });
+      }
+    } else if (localLink.length === 0 && !initSocket.current) {
+      if (!returnUI && noUIPreJoinOptions) {
+        checkProceed({ returnUI, noUIPreJoinOptions });
+      }
+    }
+  }, []);
+
+  const handleToggleMode = () => {
+    setIsCreateMode(!isCreateMode);
+    setError("");
+  };
+
+  if (!returnUI) {
+    return <></>;
+  }
+
+  return (
     // your JSX Element
   );
 
@@ -669,112 +859,119 @@ In this mode, the module will operate locally without making requests to MediaSF
 
 ### Example for Broadcast Room
 
-```javascript
+```typescript
 import { MediasfuBroadcast, generateRandomParticipants, generateRandomMessages } from 'mediasfu-reactjs';
 
-function App() {
-  const useSeed = true;
-  let seedData = {};
-
-  if (useSeed) {
-    const memberName = 'Alice';
-    const hostName = 'Fred';
-    const participants_ = generateRandomParticipants(memberName, "", hostName, true);
-    const messages_ = generateRandomMessages(participants_, memberName, "", hostName, true);
-
-    seedData = {
-      participants: participants_,
-      messages: messages_,
-      member: memberName,
-      host: hostName,
-    };
-  }
-
-  const useLocalUIMode = useSeed ? true : false;
-
-  return (
-    <MediasfuBroadcast useLocalUIMode={useLocalUIMode} useSeed={useSeed} seedData={useSeed ? seedData : {}} />
-  );
-}
-
-export default App;
-```
-
-### Example for Generic View
-
-```javascript
-// Import specific Mediasfu view components
-// Import the PreJoinPage component for the Pre-Join Page use case
-import { MediasfuGeneric,
-    MediasfuBroadcast, MediasfuChat, MediasfuWebinar, MediasfuConference, PreJoinPage
- } from 'mediasfu-reactjs'
-
-
-// Import methods for generating random participants, messages, requests, and waiting room lists if using seed data
-import { generateRandomParticipants, generateRandomMessages, generateRandomRequestList, generateRandomWaitingRoomList,
-} from 'mediasfu-reactjs';
-
-
 /**
- * The main application component for MediaSFU.
+ * App Component
  *
- * This component initializes the necessary configuration and credentials for the MediaSFU application.
- * Users can specify their own Community Edition (CE) server, utilize MediaSFU Cloud by default, or enable MediaSFU Cloud for egress features.
+ * This component demonstrates how to:
+ * - Configure credentials for MediaSFU Cloud and/or Community Edition (CE).
+ * - Use MediaSFU with or without a custom server.
+ * - Integrate a pre-join page.
+ * - Return no UI and manage state through sourceParameters, allowing a fully custom frontend.
  *
- * @remarks
- * - **Using Your Own Community Edition (CE) Server**: Set the `localLink` to point to your CE server.
- * - **Using MediaSFU Cloud by Default**: If not using a custom server (`localLink` is empty), the application connects to MediaSFU Cloud.
- * - **MediaSFU Cloud Egress Features**: To enable cloud recording, capturing, and returning real-time images and audio buffers,
- *   set `connectMediaSFU` to `true` in addition to specifying your `localLink`.
- * - **Credentials Requirement**: If not using your own server, provide `apiUserName` and `apiKey`. The same applies when using MediaSFU Cloud for egress.
- * - **Deprecated Feature**: `useLocalUIMode` is deprecated due to updates for strong typing and improved configuration options.
- *
- * @component
- * @example
- * ```tsx
- * // Example usage of the App component
- * <App />
- * ```
+ * Basic instructions:
+ * 1. Set `localLink` to your CE server if you have one, or leave it blank to use MediaSFU Cloud.
+ * 2. Set `connectMediaSFU` to determine whether you're connecting to MediaSFU Cloud services.
+ * 3. Provide credentials if using MediaSFU Cloud (dummy credentials are acceptable in certain scenarios).
+ * 4. If you prefer a custom UI, set `returnUI` to false and handle all interactions via `sourceParameters` and `updateSourceParameters`.
+ * 5. For secure production usage, consider using custom `createMediaSFURoom` and `joinMediaSFURoom` functions to forward requests through your backend.
  */
-const App = () => {
-  // ========================
-  // ====== CONFIGURATION ======
-  // ========================
 
-  // Mediasfu account credentials
-  // Replace 'your_api_username' and 'your_api_key' with your actual credentials
-  // Not needed if using a custom server with no MediaSFU Cloud Egress (recording, ...)
+const App = () => {
+  // =========================================================
+  //                API CREDENTIALS CONFIGURATION
+  // =========================================================
+  //
+  // Scenario A: Not using MediaSFU Cloud at all.
+  // - No credentials needed. Just set localLink to your CE server.
+  // Example:
+  /*
+  const credentials = {};
+  const localLink = 'http://your-ce-server.com'; // http://localhost:3000 for local testing
+  const connectMediaSFU = localLink.trim() !== '';
+  */
+
+  // Scenario B: Using MediaSFU CE + MediaSFU Cloud for Egress only.
+  // - Use dummy credentials (8 chars for userName, 64 chars for apiKey).
+  // - Your CE backend will forward requests with your real credentials.
+  /*
   const credentials = {
-    apiUserName: 'your_api_username',
-    apiKey: 'your_api_key',
+    apiUserName: 'dummyUsr',
+    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  };
+  const localLink = 'http://your-ce-server.com'; // http://localhost:3000 for local testing
+  const connectMediaSFU = localLink.trim() !== '';
+  */
+
+  // Scenario C: Using MediaSFU Cloud without your own server.
+  // - For development, use your actual or dummy credentials.
+  // - In production, securely handle credentials server-side and use custom room functions.
+  const credentials = {
+    apiUserName: 'yourDevUser', // 8 chars recommended for dummy
+    apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // 64 chars
+  };
+  const localLink = ''; // Leave empty if not using your own server
+  const connectMediaSFU = true; // Set to true if using MediaSFU Cloud since localLink is empty
+
+  // =========================================================
+  //                    UI RENDERING OPTIONS
+  // =========================================================
+  //
+  // If you want a fully custom UI (e.g., a custom layout inspired by WhatsApp):
+  // 1. Set `returnUI = false` to prevent the default MediaSFU UI from rendering.
+  // 2. Provide `noUIPreJoinOptions` to simulate what would have been entered on a pre-join page.
+  // 3. Use `sourceParameters` and `updateSourceParameters` to access and update state/actions.
+  // 4. No need for any of the above if you're using the default MediaSFU UI.
+  //
+  // Example noUIPreJoinOptions:
+  const noUIPreJoinOptions: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions = {
+    action: 'create',
+    capacity: 10,
+    duration: 15,
+    eventType: 'broadcast',
+    userName: 'Prince',
   };
 
-  // Specify your Community Edition (CE) server link or leave as an empty string if not using a custom server
-  const localLink = 'http://localhost:3000'; // Set to '' if not using your own server
+  // Example for joining a room:
+  // const noUIPreJoinOptions: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions = {
+  //   action: 'join',
+  //   userName: 'Prince',
+  //   meetingID: 'yourMeetingID'
+  // };
 
-  /**
-   * Automatically set `connectMediaSFU` to `true` if `localLink` is provided,
-   * indicating the use of MediaSFU Cloud by default.
-   *
-   * - If `localLink` is not empty, MediaSFU Cloud will be used for additional features.
-   * - If `localLink` is empty, the application will connect to MediaSFU Cloud by default.
-   */
-  const connectMediaSFU = localLink.trim() !== '';
+  const [sourceParameters, setSourceParameters] = useState<{ [key: string]: any }>({});
+  const updateSourceParameters = (data: { [key: string]: any }) => {
+    setSourceParameters(data);
+  };
 
-  // ========================
-  // ====== USE CASES ======
-  // ========================
+  // =========================================================
+  //                CUSTOM ROOM FUNCTIONS (OPTIONAL)
+  // =========================================================
+  //
+  // To securely forward requests to MediaSFU:
+  // - Implement custom `createMediaSFURoom` and `joinMediaSFURoom` functions.
+  // - These functions send requests to your server, which then communicates with MediaSFU Cloud.
+  //
+  // Already imported `createRoomOnMediaSFU` and `joinRoomOnMediaSFU` are examples.
+  //
+  // If using MediaSFU CE backend, ensure your server endpoints:
+  // - Validate dummy credentials.
+  // - Forward requests to mediasfu.com with real credentials.
 
+  // =========================================================
+  //              DEPRECATED FEATURES (SEED DATA)
+  // =========================================================
+  //
   // Deprecated Feature: useLocalUIMode
   // This feature is deprecated due to updates for strong typing.
   // It is no longer required and should not be used in new implementations.
-
-  /**
-   * Uncomment and configure the following section if you intend to use seed data
-   * for generating random participants and messages.
-   *
-   * Note: This is deprecated and maintained only for legacy purposes.
-   */
+  //
+  // Uncomment and configure the following section if you intend to use seed data
+  // for generating random participants and messages.
+  //
+  // Note: This is deprecated and maintained only for legacy purposes.
   /*
   const useSeed = false;
   let seedData = {};
@@ -818,54 +1015,14 @@ const App = () => {
   }
   */
 
-  // ========================
-  // ====== COMPONENT SELECTION ======
-  // ========================
-
-  /**
-   * Choose the Mediasfu component based on the event type and use case.
-   * Uncomment the component corresponding to your specific use case.
-   */
-
-  // ------------------------
-  // ====== SIMPLE USE CASE ======
-  // ------------------------
-
-  /**
-   * **Simple Use Case (Welcome Page)**
-   *
-   * Renders the default welcome page.
-   * No additional inputs required.
-   */
-  // return <MediasfuGeneric />;
-
-  // ------------------------
-  // ====== PRE-JOIN USE CASE ======
-  // ------------------------
-
-  /**
-   * **Use Case with Pre-Join Page (Credentials Required)**
-   *
-   * Uses a pre-join page that requires users to enter credentials.
-   */
-  // return <MediasfuGeneric PrejoinPage={PreJoinPage} credentials={credentials} />;
-
-  // ------------------------
-  // ====== SEED DATA USE CASE ======
-  // ------------------------
-
-  /**
-   * **Use Case with Local UI Mode (Seed Data Required)**
-   *
-   * Runs the application in local UI mode using seed data.
-   *
-   * @deprecated Due to updates for strong typing, this feature is deprecated.
-   */
-  // return <MediasfuGeneric useLocalUIMode={true} useSeed={true} seedData={seedData} />;
-
-  // ------------------------
-  // ====== BROADCAST EVENT TYPE ======
-  // ------------------------
+  // =========================================================
+  //              CHOOSE A USE CASE / COMPONENT
+  // =========================================================
+  //
+  // Multiple components are available depending on your event type:
+  // MediasfuBroadcast, MediasfuChat, MediasfuWebinar, MediasfuConference
+  //
+  // By default, we'll use MediasfuBroadcast with custom settings.
 
   /**
    * **MediasfuBroadcast Component**
@@ -883,86 +1040,525 @@ const App = () => {
   );
   */
 
-  // ------------------------
-  // ====== CHAT EVENT TYPE ======
-  // ------------------------
+  // =========================================================
+  //                    RENDER COMPONENT
+  // =========================================================
+  //
+  // The MediasfuBroadcast component is used by default.
+  // You can replace it with any other component based on your event type.
+  // Example: <MediasfuBroadcast ... />
+  //
+  // The PreJoinPage component is displayed if `returnUI` is true.
+  // If `returnUI` is false, `noUIPreJoinOptions` is used as a substitute.
+  // You can also use `sourceParameters` to interact with MediaSFU functionalities directly.
+  // Avoid using `useLocalUIMode` or `useSeed` in new implementations.
+  // Ensure that real credentials are not exposed in the frontend.
+  // Use HTTPS and secure backend endpoints for production.
 
-  /**
-   * **MediasfuChat Component**
-   *
-   * Uncomment to use the chat event type.
-   */
-  /*
   return (
-    <MediasfuChat
-      credentials={credentials}
-      localLink={localLink}
-      connectMediaSFU={connectMediaSFU}
-      // seedData={useSeed ? seedData : {}}
-    />
-  );
-  */
-
-  // ------------------------
-  // ====== WEBINAR EVENT TYPE ======
-  // ------------------------
-
-  /**
-   * **MediasfuWebinar Component**
-   *
-   * Uncomment to use the webinar event type.
-   */
-  /*
-  return (
-    <MediasfuWebinar
-      credentials={credentials}
-      localLink={localLink}
-      connectMediaSFU={connectMediaSFU}
-      // seedData={useSeed ? seedData : {}}
-    />
-  );
-  */
-
-  // ------------------------
-  // ====== CONFERENCE EVENT TYPE ======
-  // ------------------------
-
-  /**
-   * **MediasfuConference Component**
-   *
-   * Uncomment to use the conference event type.
-   */
-  /*
-  return (
-    <MediasfuConference
-      credentials={credentials}
-      localLink={localLink}
-      connectMediaSFU={connectMediaSFU}
-      // seedData={useSeed ? seedData : {}}
-    />
-  );
-  */
-
-  // ========================
-  // ====== DEFAULT COMPONENT ======
-  // ========================
-
-  /**
-   * **Default to MediasfuGeneric with Updated Configuration**
-   *
-   * Renders the welcome page with specified server and cloud connection settings.
-   */
-  return (
-    <MediasfuGeneric
+    <MediasfuBroadcast
+      // This pre-join page can be displayed if `returnUI` is true.
+      // If `returnUI` is false, `noUIPreJoinOptions` is used as a substitute.
       PrejoinPage={PreJoinPage}
       credentials={credentials}
       localLink={localLink}
       connectMediaSFU={connectMediaSFU}
+      returnUI={false}
+      noUIPreJoinOptions={noUIPreJoinOptions}
+      sourceParameters={sourceParameters}
+      updateSourceParameters={updateSourceParameters}
+      createMediaSFURoom={createRoomOnMediaSFU}
+      joinMediaSFURoom={joinRoomOnMediaSFU}
     />
   );
 };
 
 export default App;
+```
+
+### Example for Generic View
+
+```typescript
+// Import specific Mediasfu view components
+// Import the PreJoinPage component for the Pre-Join Page use case
+import { MediasfuGeneric,
+    MediasfuBroadcast, MediasfuChat, MediasfuWebinar, MediasfuConference, PreJoinPage
+ } from 'mediasfu-reactjs'
+
+
+// Import methods for generating random participants, messages, requests, and waiting room lists if using seed data
+import { generateRandomParticipants, generateRandomMessages, generateRandomRequestList, generateRandomWaitingRoomList,
+} from 'mediasfu-reactjs';
+
+
+
+/**
+ * App Component
+ *
+ * This component demonstrates how to:
+ * - Configure credentials for MediaSFU Cloud and/or Community Edition (CE).
+ * - Use MediaSFU with or without a custom server.
+ * - Integrate a pre-join page.
+ * - Return no UI and manage state through sourceParameters, allowing a fully custom frontend.
+ *
+ * Basic instructions:
+ * 1. Set `localLink` to your CE server if you have one, or leave it blank to use MediaSFU Cloud.
+ * 2. Set `connectMediaSFU` to determine whether you're connecting to MediaSFU Cloud services.
+ * 3. Provide credentials if using MediaSFU Cloud (dummy credentials are acceptable in certain scenarios).
+ * 4. If you prefer a custom UI, set `returnUI` to false and handle all interactions via `sourceParameters` and `updateSourceParameters`.
+ * 5. For secure production usage, consider using custom `createMediaSFURoom` and `joinMediaSFURoom` functions to forward requests through your backend.
+ */
+
+const App = () => {
+  // =========================================================
+  //                API CREDENTIALS CONFIGURATION
+  // =========================================================
+  //
+  // Scenario A: Not using MediaSFU Cloud at all.
+  // - No credentials needed. Just set localLink to your CE server.
+  // Example:
+  /*
+  const credentials = {};
+  const localLink = 'http://your-ce-server.com'; //http://localhost:3000
+  const connectMediaSFU = localLink.trim() !== '';
+  */
+
+  // Scenario B: Using MediaSFU CE + MediaSFU Cloud for Egress only.
+  // - Use dummy credentials (8 chars for userName, 64 chars for apiKey).
+  // - Your CE backend will forward requests with your real credentials.
+  /*
+  const credentials = {
+    apiUserName: 'dummyUsr',
+    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  };
+  const localLink = 'http://your-ce-server.com'; //http://localhost:3000
+  const connectMediaSFU = localLink.trim() !== '';
+  */
+
+  // Scenario C: Using MediaSFU Cloud without your own server.
+  // - For development, use your actual or dummy credentials.
+  // - In production, securely handle credentials server-side and use custom room functions.
+  const credentials = {
+    apiUserName: 'yourDevUser', // 8 chars recommended for dummy
+    apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // 64 chars
+  };
+  const localLink = ''; // Leave empty if not using your own server
+  const connectMediaSFU = true; // Set to true if using MediaSFU Cloud since localLink is empty
+
+  // =========================================================
+  //                    UI RENDERING OPTIONS
+  // =========================================================
+  //
+  // If you want a fully custom UI (e.g., a custom layout inspired by WhatsApp):
+  // 1. Set `returnUI = false` to prevent the default MediaSFU UI from rendering.
+  // 2. Provide `noUIPreJoinOptions` to simulate what would have been entered on a pre-join page.
+  // 3. Use `sourceParameters` and `updateSourceParameters` to access and update state/actions.
+  // 4. No need for any of the above if you're using the default MediaSFU UI.
+  //
+  // Example noUIPreJoinOptions:
+  const noUIPreJoinOptions: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions = {
+    action: 'create',
+    capacity: 10,
+    duration: 15,
+    eventType: 'broadcast',
+    userName: 'Prince',
+  };
+
+  // Example for joining a room:
+  // const noUIPreJoinOptions: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions = {
+  //   action: 'join',
+  //   userName: 'Prince',
+  //   meetingID: 'yourMeetingID'
+  // };
+
+  const returnUI = true; // Set to false for custom UI, true for default MediaSFU UI
+
+  const [sourceParameters, setSourceParameters] = useState<{ [key: string]: any }>({});
+  const updateSourceParameters = (data: { [key: string]: any }) => {
+    setSourceParameters(data);
+  };
+
+  // =========================================================
+  //                CUSTOM ROOM FUNCTIONS (OPTIONAL)
+  // =========================================================
+  //
+  // To securely forward requests to MediaSFU:
+  // - Implement custom `createMediaSFURoom` and `joinMediaSFURoom` functions.
+  // - These functions send requests to your server, which then communicates with MediaSFU Cloud.
+  //
+  // Already imported `createRoomOnMediaSFU` and `joinRoomOnMediaSFU` are examples.
+  //
+  // If using MediaSFU CE backend, ensure your server endpoints:
+  // - Validate dummy credentials.
+  // - Forward requests to mediasfu.com with real credentials.
+
+  // =========================================================
+  //              CHOOSE A USE CASE / COMPONENT
+  // =========================================================
+  //
+  // Multiple components are available depending on your event type:
+  // MediasfuBroadcast, MediasfuChat, MediasfuWebinar, MediasfuConference
+  //
+  // By default, we'll use MediasfuGeneric with custom settings.
+
+
+
+  // =========================================================
+  //                    RENDER COMPONENT
+  // =========================================================
+  //
+  // The MediasfuGeneric component is used by default.
+  // You can replace it with any other component based on your event type.
+  // Example: <MediasfuBroadcast ... />
+  // Example: <MediasfuChat ... />
+  // Example: <MediasfuWebinar ... />
+  // Example: <MediasfuConference ... />
+  //
+  // The PreJoinPage component is displayed if `returnUI` is true.
+  // If `returnUI` is false, `noUIPreJoinOptions` is used as a substitute.
+  // You can also use `sourceParameters` to interact with MediaSFU functionalities directly.
+  // Avoid using `useLocalUIMode` or `useSeed` in new implementations.
+  // Ensure that real credentials are not exposed in the frontend.
+  // Use HTTPS and secure backend endpoints for production.
+
+  // Example of MediaSFU CE with no MediaSFU Cloud
+  // return (
+  //   <MediasfuGeneric
+  //     PrejoinPage={PreJoinPage}
+  //     localLink={localLink}
+  //     />
+  // );
+
+  // Example of MediaSFU CE + MediaSFU Cloud for Egress only
+  // return (
+  //   <MediasfuGeneric
+  //     PrejoinPage={PreJoinPage}
+  //     credentials={credentials}
+  //     localLink={localLink}
+  //     connectMediaSFU={connectMediaSFU}
+  //     />
+  // );
+
+  // Example of MediaSFU Cloud only
+  // return (
+  //   <MediasfuGeneric
+  //     PrejoinPage={PreJoinPage}
+  //     credentials={credentials}
+  //     connectMediaSFU={connectMediaSFU}
+  //     />
+  // );
+
+  // Example of MediaSFU CE + MediaSFU Cloud for Egress only with custom UI
+  // return (
+  //   <MediasfuGeneric
+  //     PrejoinPage={PreJoinPage}
+  //     credentials={credentials}
+  //     localLink={localLink}
+  //     connectMediaSFU={connectMediaSFU}
+  //     returnUI={false}
+  //     noUIPreJoinOptions={noUIPreJoinOptions}
+  //     sourceParameters={sourceParameters}
+  //     updateSourceParameters={updateSourceParameters}
+  //     createMediaSFURoom={createRoomOnMediaSFU}
+  //     joinMediaSFURoom={joinRoomOnMediaSFU}
+  //   />
+
+  // Example of MediaSFU Cloud only with custom UI
+  // return (
+  //   <MediasfuGeneric
+  //     PrejoinPage={PreJoinPage}
+  //     credentials={credentials}
+  //     connectMediaSFU={connectMediaSFU}
+  //     returnUI={false}
+  //     noUIPreJoinOptions={noUIPreJoinOptions}
+  //     sourceParameters={sourceParameters}
+  //     updateSourceParameters={updateSourceParameters}
+  //     createMediaSFURoom={createRoomOnMediaSFU}
+  //     joinMediaSFURoom={joinRoomOnMediaSFU}
+  //   />
+
+  // Example of using MediaSFU CE only with custom UI
+  // return (
+  //   <MediasfuGeneric
+  //     PrejoinPage={PreJoinPage}
+  //     localLink={localLink}
+  //     connectMediaSFU={false}
+  //     returnUI={false}
+  //     noUIPreJoinOptions={noUIPreJoinOptions}
+  //     sourceParameters={sourceParameters}
+  //     updateSourceParameters={updateSourceParameters}
+  //   />
+
+
+  return (
+    <MediasfuGeneric
+      // This pre-join page can be displayed if `returnUI` is true.
+      // If `returnUI` is false, `noUIPreJoinOptions` is used as a substitute.
+      PrejoinPage={PreJoinPage}
+      credentials={credentials}
+      localLink={localLink}
+      connectMediaSFU={connectMediaSFU}
+      returnUI={returnUI}
+      noUIPreJoinOptions={!returnUI ? noUIPreJoinOptions : undefined}
+      sourceParameters={!returnUI ? sourceParameters : undefined}
+      updateSourceParameters={!returnUI ? updateSourceParameters : undefined}
+      createMediaSFURoom={createRoomOnMediaSFU} // no need to specify if not using custom functions
+      joinMediaSFURoom={joinRoomOnMediaSFU} // no need to specify if not using custom functions
+    />
+  );
+};
+
+export default App;
+
+/**
+ * =========================================================
+ *                     ADDITIONAL NOTES
+ * =========================================================
+ *
+ * Handling Core Methods:
+ * Once `sourceParameters` is populated, you can call core methods like `clickVideo` or `clickAudio` directly:
+ * Example:
+ * sourceParameters.clickVideo({ ...sourceParameters });
+ * sourceParameters.clickAudio({ ...sourceParameters });
+ *
+ * This allows your custom UI to directly interact with MediaSFU functionalities.
+ *
+ * Deprecated Features (Seed Data):
+ * The seed data generation feature is deprecated. Avoid using `useLocalUIMode` or `useSeed` in new implementations.
+ *
+ * Security Considerations:
+ * - Do not expose real credentials in your frontend code in production.
+ * - Use HTTPS and secure backend endpoints.
+ * - Validate inputs and handle errors gracefully.
+ *
+ * Example CE Backend Setup:
+ * If using MediaSFU CE + MediaSFU Cloud, your backend might look like this:
+ *
+ * app.post("/createRoom", async (req, res) => {
+ *   // Validate incoming dummy credentials
+ *   // Forward request to mediasfu.com with real credentials
+ * });
+ *
+ * app.post("/joinRoom", async (req, res) => {
+ *   // Validate incoming dummy credentials
+ *   // Forward request to mediasfu.com with real credentials
+ * });
+ *
+ * By doing so, you keep real credentials secure on your server.
+ *
+ * End of Guide.
+ */
+
+
+
+/**
+ * =======================
+ * ====== EXTRA NOTES ======
+ * =======================
+ *
+ * ### Handling Core Methods
+ * With `sourceParameters`, you can access core methods such as `clickVideo` and `clickAudio`:
+ *
+ * ```typescript
+ * sourceParameters.clickVideo({ ...sourceParameters });
+ * sourceParameters.clickAudio({ ...sourceParameters });
+ * ```
+ *
+ * This allows your custom UI to interact with MediaSFU's functionalities seamlessly.
+ *
+ * ### Seed Data (Deprecated)
+ * The seed data functionality is deprecated and maintained only for legacy purposes.
+ * It is recommended to avoid using it in new implementations.
+ *
+ * ### Security Considerations
+ * - **Protect API Credentials:** Ensure that API credentials are not exposed in the frontend. Use environment variables and secure backend services to handle sensitive information.
+ * - **Use HTTPS:** Always use HTTPS to secure data transmission between the client and server.
+ * - **Validate Inputs:** Implement proper validation and error handling on both client and server sides to prevent malicious inputs.
+ *
+ * ### Custom Backend Example for MediaSFU CE
+ * Below is an example of how to set up custom backend endpoints for creating and joining rooms using MediaSFU CE:
+ *
+ * ```javascript
+ * // Endpoint for `createRoom`
+ * app.post("/createRoom", async (req, res) => {
+ *   try {
+ *     const payload = req.body;
+ *     const [apiUserName, apiKey] = req.headers.authorization
+ *       .replace("Bearer ", "")
+ *       .split(":");
+ *
+ *     // Verify temporary credentials
+ *     if (!apiUserName || !apiKey || !verifyCredentials(apiUserName, apiKey)) {
+ *       return res.status(401).json({ error: "Invalid or expired credentials" });
+ *     }
+ *
+ *     const response = await fetch("https://mediasfu.com/v1/rooms/", {
+ *       method: "POST",
+ *       headers: {
+ *         "Content-Type": "application/json",
+ *         Authorization: `Bearer ${actualApiUserName}:${actualApiKey}`,
+ *       },
+ *       body: JSON.stringify(payload),
+ *     });
+ *
+ *     const result = await response.json();
+ *     res.status(response.status).json(result);
+ *   } catch (error) {
+ *     console.error("Error creating room:", error);
+ *     res.status(500).json({ error: "Internal server error" });
+ *   }
+ * });
+ *
+ * // Endpoint for `joinRoom`
+ * app.post("/joinRoom", async (req, res) => {
+ *   try {
+ *     const payload = req.body;
+ *     const [apiUserName, apiKey] = req.headers.authorization
+ *       .replace("Bearer ", "")
+ *       .split(":");
+ *
+ *     // Verify temporary credentials
+ *     if (!apiUserName || !apiKey || !verifyCredentials(apiUserName, apiKey)) {
+ *       return res.status(401).json({ error: "Invalid or expired credentials" });
+ *     }
+ *
+ *     const response = await fetch("https://mediasfu.com/v1/rooms", {
+ *       method: "POST",
+ *       headers: {
+ *         "Content-Type": "application/json",
+ *         Authorization: `Bearer ${actualApiUserName}:${actualApiKey}`,
+ *       },
+ *       body: JSON.stringify(payload),
+ *     });
+ *
+ *     const result = await response.json();
+ *     res.status(response.status).json(result);
+ *   } catch (error) {
+ *     console.error("Error joining room:", error);
+ *     res.status(500).json({ error: "Internal server error" });
+ *   }
+ * });
+ * ```
+ *
+ * ### Custom Room Function Implementation
+ * Below are examples of how to implement custom functions for creating and joining rooms securely:
+ *
+ * ```typescript
+ * import { CreateJoinRoomError, CreateJoinRoomResponse, CreateJoinRoomType, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from '../../@types/types';
+ *
+ *
+ * Async function to create a room on MediaSFU.
+ *
+ * @param {object} options - The options for creating a room.
+ * @param {CreateMediaSFURoomOptions} options.payload - The payload for the API request.
+ * @param {string} options.apiUserName - The API username.
+ * @param {string} options.apiKey - The API key.
+ * @param {string} options.localLink - The local link.
+ * @returns {Promise<{ data: CreateJoinRoomResponse | CreateJoinRoomError | null; success: boolean; }>} The response from the API.
+ * export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
+ *     payload,
+ *     apiUserName,
+ *     apiKey,
+ *     localLink = '',
+ * }) => {
+ *     try {
+ *         let finalLink = 'https://mediasfu.com/v1/rooms/';
+ *
+ *         // Update finalLink if using a local server
+ *         if (localLink) {
+ *             finalLink = `${localLink}/createRoom`;
+ *         }
+ *
+ *         const response = await fetch(finalLink, {
+ *             method: 'POST',
+ *             headers: {
+ *                 'Content-Type': 'application/json',
+ *                 Authorization: `Bearer ${apiUserName}:${apiKey}`,
+ *             },
+ *             body: JSON.stringify(payload),
+ *         });
+ *
+ *         if (!response.ok) {
+ *             throw new Error(`HTTP error! Status: ${response.status}`);
+ *         }
+ *
+ *         const data: CreateJoinRoomResponse = await response.json();
+ *         return { data, success: true };
+ *     } catch (error) {
+ *         const errorMessage = (error as Error).message || 'unknown error';
+ *         return {
+ *             data: { error: `Unable to create room, ${errorMessage}` },
+ *             success: false,
+ *         };
+ *     }
+ * };
+ *
+*
+*  Async function to join a room on MediaSFU.
+*
+*  @param {object} options - The options for joining a room.
+*  @param {JoinMediaSFURoomOptions} options.payload - The payload for the API request.
+*  @param {string} options.apiUserName - The API username.
+*  @param {string} options.apiKey - The API key.
+*  @param {string} options.localLink - The local link.
+*  @returns {Promise<{ data: CreateJoinRoomResponse | CreateJoinRoomError | null; success: boolean; }>} The response from the API.
+*
+* export const joinRoomOnMediaSFU: JoinRoomOnMediaSFUType = async ({
+*     payload,
+*     apiUserName,
+*     apiKey,
+*     localLink = '',
+* }) => {
+*     try {
+*         let finalLink = 'https://mediasfu.com/v1/rooms/join';
+*
+*         // Update finalLink if using a local server
+*         if (localLink) {
+*             finalLink = `${localLink}/joinRoom`;
+*         }
+*
+*         const response = await fetch(finalLink, {
+*             method: 'POST',
+*             headers: {
+*                 'Content-Type': 'application/json',
+*                 Authorization: `Bearer ${apiUserName}:${apiKey}`,
+*             },
+*             body: JSON.stringify(payload),
+*         });
+*
+*         if (!response.ok) {
+*             throw new Error(`HTTP error! Status: ${response.status}`);
+*         }
+*
+*         const data: CreateJoinRoomResponse = await response.json();
+*         return { data, success: true };
+*     } catch (error) {
+*         const errorMessage = (error as Error).message || 'unknown error';
+*         return {
+*             data: { error: `Unable to join room, ${errorMessage}` },
+*             success: false,
+*         };
+*     }
+* };
+* ```
+*
+* ### Example Usage of Core Methods
+* Core methods like `clickVideo` and `clickAudio` can now be accessed through `sourceParameters`:
+*
+* ```typescript
+* // Example of toggling video
+* sourceParameters.clickVideo({ ...sourceParameters });
+*
+* // Example of toggling audio
+* sourceParameters.clickAudio({ ...sourceParameters });
+* ```
+*
+* These methods allow your custom UI to interact with MediaSFU's functionalities seamlessly.
+*
+* ========================
+* ====== END OF GUIDE ======
+* ========================
+*/
 ```
 
 In the provided examples, users can set `useLocalUIMode` to `true` during UI development to prevent unwanted connections to MediaSFU servers. Additionally, they can generate seed data for rendering UI components locally by using random data generators provided by the module.

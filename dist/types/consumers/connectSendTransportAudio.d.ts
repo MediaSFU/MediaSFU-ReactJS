@@ -8,6 +8,9 @@ export interface ConnectSendTransportAudioParameters {
     updateProducerTransport: (transport: Transport | null) => void;
     updateLocalAudioProducer?: (localProducer: Producer | null) => void;
     updateLocalProducerTransport?: (localTransport: Transport | null) => void;
+    updateAudioLevel: (level: number) => void;
+    getUpdatedAllParams: () => ConnectSendTransportAudioParameters;
+    [key: string]: any;
 }
 export interface ConnectSendTransportAudioOptions {
     audioParams: ProducerOptions;
@@ -15,6 +18,7 @@ export interface ConnectSendTransportAudioOptions {
     targetOption?: 'all' | 'local' | 'remote';
 }
 export type ConnectSendTransportAudioType = (options: ConnectSendTransportAudioOptions) => Promise<void>;
+export declare const updateMicLevel: (audioProducer: Producer, updateAudioLevel: (level: number) => void) => Promise<void>;
 /**
  * Connects the send transport for audio by producing audio data and updating the audio producer and producer transport objects.
  *
@@ -30,6 +34,8 @@ export type ConnectSendTransportAudioType = (options: ConnectSendTransportAudioO
  * @param {(producer: Producer | null) => void} options.parameters.updateAudioProducer - The function to update the audio producer object.
  * @param {(transport: Transport | null) => void} options.parameters.updateProducerTransport - The function to update the producer transport object.
  * @param {(localProducer: Producer | null) => void} [options.parameters.updateLocalAudioProducer] - The function to update the local audio producer object.
+ * @param {(localTransport: Transport | null) => void} [options.parameters.updateLocalProducerTransport] - The function to update the local producer transport object.
+ * @param {(level: number) => void} [options.parameters.updateAudioLevel] - The function to update the audio level.
  * @returns {Promise<void>} A promise that resolves when the connection is established.
  *
  * @example
@@ -44,6 +50,7 @@ export type ConnectSendTransportAudioType = (options: ConnectSendTransportAudioO
  *     updateProducerTransport: (transport) => console.log("Updated transport:", transport),
  *     updateLocalAudioProducer: (localProducer) => console.log("Updated local producer:", localProducer),
  *     updateLocalProducerTransport: (localTransport) => console.log("Updated local transport:", localTransport),
+ *     updateAudioLevel: (level) => console.log("Updated audio level:", level),
  *   },
  * };
  *

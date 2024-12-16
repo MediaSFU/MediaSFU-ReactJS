@@ -232,7 +232,7 @@ export type { WhiteboardOptions, WhiteboardType, WhiteboardParameters, Shape } f
 export type { CustomButtonsOptions, CustomButtonsType, CustomButton } from '../components/menuComponents/CustomButtons';
 
 
-export type { CreateJoinRoomType, CreateRoomOnMediaSFUType, CreateJoinRoomResponse, CreateJoinRoomError } from '../methods/utils/joinRoomOnMediaSFU';  
+export type { CreateJoinRoomType, CreateRoomOnMediaSFUType, CreateJoinRoomResponse, CreateJoinRoomError, JoinRoomOnMediaSFUType } from '../methods/utils/joinRoomOnMediaSFU';  
 
 
 export interface Participant {
@@ -513,7 +513,6 @@ export interface RecordingParams {
   recordingVideoPausesCount?: number; // Number of video recording pauses
 }
 
-
 export interface CreateRoomOptions {
   action: 'create' | 'join'; // Either 'create' or 'join' based on the requirement
   meetingID: string; // The meeting ID, initially an empty string
@@ -532,6 +531,30 @@ export interface CreateRoomOptions {
   safeRoomAction: 'warn' | 'kick' | 'ban'; // Action for the safe room
   dataBuffer: boolean; // Whether to return data buffer
   bufferType: 'images' | 'audio' | 'all'; // Type of buffer data
+}
+
+export interface CreateMediaSFURoomOptions {
+  action: 'create'; // 'create' action
+  duration: number; // Duration of the meeting in minutes
+  capacity: number; // Max number of participants allowed
+  userName: string; // Username of the room host
+  scheduledDate?: number; // Unix timestamp (in milliseconds) for the scheduled date
+  secureCode?: string; // Secure code for the room host
+  eventType?: 'conference' | 'webinar' | 'chat' | 'broadcast'; // Type of event
+  meetingRoomParams?: MeetingRoomParams; // Object containing parameters related to the meeting room
+  recordingParams?: RecordingParams; // Object containing parameters related to recording
+  recordOnly?: boolean; // Whether the room is for media production only (egress)
+  safeRoom?: boolean; // Whether the room is a safe room
+  autoStartSafeRoom?: boolean; // Automatically start the safe room feature
+  safeRoomAction?: 'warn' | 'kick' | 'ban'; // Action for the safe room
+  dataBuffer?: boolean; // Whether to return data buffer
+  bufferType?: 'images' | 'audio' | 'all'; // Type of buffer data
+}
+
+export interface JoinMediaSFURoomOptions {
+  action: 'join'; // 'join' action
+  meetingID: string; // The meeting ID
+  userName: string; // Username of the room host
 }
 
 export interface ResponseJoinLocalRoom {

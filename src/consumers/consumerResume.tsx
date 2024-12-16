@@ -11,6 +11,7 @@ import {
   MiniAudioPlayerParameters,
   EventType,
 } from "../@types/types";
+import { Consumer } from "mediasoup-client/lib/types";
 
 export interface ConsumerResumeParameters
   extends ReorderStreamsParameters,
@@ -82,6 +83,7 @@ export interface ConsumerResumeOptions {
   params: ResumeParams;
   parameters: ConsumerResumeParameters;
   nsock: Socket;
+  consumer: Consumer;
 }
 
 //export the type definition for the function
@@ -99,6 +101,7 @@ export type ConsumerResumeType = (
  * @param {ResumeParams} options.params - The parameters required for resuming the consumer.
  * @param {ConsumerResumeParameters} options.parameters - The parameters for updating the state.
  * @param {Socket} options.nsock - The socket instance for communication.
+ * @param {Consumer} options.consumer - The consumer instance to resume.
  *
  * @returns {Promise<void>} A promise that resolves when the consumer is successfully resumed.
  *
@@ -114,6 +117,7 @@ export type ConsumerResumeType = (
  *     kind: 'audio', // or 'video'
  *     rtpParameters: {}, // RTP parameters
  *   },
+ *   consumer: consumerInstance,
  *   parameters: {
  *     nStream: null,
  *     allAudioStreams: [],
@@ -179,6 +183,7 @@ export const consumerResume = async ({
   params,
   parameters,
   nsock,
+  consumer,
 }: ConsumerResumeOptions): Promise<void> => {
   try {
     // Get updated parameters
@@ -281,6 +286,7 @@ export const consumerResume = async ({
           stream={nStream}
           remoteProducerId={remoteProducerId}
           parameters={parameters}
+          consumer={consumer}
           MiniAudioComponent={MiniAudio}
           miniAudioProps={{
             customStyle: { backgroundColor: "gray" },

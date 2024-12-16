@@ -1,5 +1,6 @@
 import React from "react";
-import { ConnectSocketType, ShowAlert, ConnectLocalSocketType, RecordingParams, MeetingRoomParams } from "../../@types/types";
+import { ConnectSocketType, ShowAlert, ConnectLocalSocketType, RecordingParams, MeetingRoomParams, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from "../../@types/types";
+import { CreateRoomOnMediaSFUType, JoinRoomOnMediaSFUType } from "../../methods/utils/joinRoomOnMediaSFU";
 import { Socket } from "socket.io-client";
 export interface JoinLocalEventRoomParameters {
     eventID: string;
@@ -62,6 +63,10 @@ export interface PreJoinPageOptions {
     connectMediaSFU?: boolean;
     parameters: PreJoinPageParameters;
     credentials?: Credentials;
+    returnUI?: boolean;
+    noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+    createMediaSFURoom?: CreateRoomOnMediaSFUType;
+    joinMediaSFURoom?: JoinRoomOnMediaSFUType;
 }
 export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
 /**
@@ -77,6 +82,12 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
  * @param {() => void} props.parameters.updateValidated - Function to update the validation status.
  * @param {string} [props.parameters.imgSrc] - The source URL for the logo image.
  * @param {Credentials} [props.credentials=user_credentials] - The user credentials containing the API username and API key.
+ * @param {boolean} [props.returnUI=false] - Flag to determine if the component should return the UI.
+ * @param {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [props.noUIPreJoinOptions] - The options for creating/joining a room without UI.
+ * @param {string} [props.localLink=""] - The link to the local server.
+ * @param {boolean} [props.connectMediaSFU=true] - Flag to determine if the component should connect to MediaSFU.
+ * @param {CreateRoomOnMediaSFUType} [props.createMediaSFURoom] - Function to create a room on MediaSFU.
+ * @param {JoinRoomOnMediaSFUType} [props.joinMediaSFURoom] - Function to join a room on MediaSFU.
  *
  * @returns {JSX.Element} The rendered PreJoinPage component.
  *
@@ -117,6 +128,16 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
  *         apiUserName: "user123",
  *         apiKey: "apikey123"
  *       }}
+ *      returnUI={true}
+ *      noUIPreJoinOptions={{
+ *      action: "create",
+ *      capacity: 10,
+ *      duration: 15,
+ *      eventType: "broadcast",
+ *      userName: "Prince",
+ *      }}
+ *      connectMediaSFU={true}
+ *      localLink="http://localhost:3000"
  *     />
  *   );
  * };

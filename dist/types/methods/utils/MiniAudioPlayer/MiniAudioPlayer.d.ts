@@ -1,5 +1,6 @@
 import React from "react";
 import { ReUpdateInterType, UpdateParticipantAudioDecibelsType, ReUpdateInterParameters, BreakoutParticipant } from "../../../@types/types";
+import { Consumer } from "mediasoup-client/lib/types";
 export interface MiniAudioPlayerParameters extends ReUpdateInterParameters {
     breakOutRoomStarted: boolean;
     breakOutRoomEnded: boolean;
@@ -12,6 +13,7 @@ export interface MiniAudioPlayerParameters extends ReUpdateInterParameters {
 export interface MiniAudioPlayerOptions {
     stream: MediaStream | null;
     remoteProducerId: string;
+    consumer: Consumer;
     parameters: MiniAudioPlayerParameters;
     MiniAudioComponent?: React.ComponentType<any>;
     miniAudioProps?: Record<string, any>;
@@ -24,6 +26,7 @@ export type MiniAudioPlayerType = (options: MiniAudioPlayerOptions) => JSX.Eleme
  * @component
  * @param {MiniAudioPlayerOptions} props - The properties for the MiniAudioPlayer component.
  * @param {MediaStream | null} props.stream - The media stream to be played by the audio player.
+ * @param {Consumer} props.consumer - The consumer object for the remote audio producer.
  * @param {string} props.remoteProducerId - The ID of the remote producer.
  * @param {MiniAudioPlayerParameters} props.parameters - The parameters object containing various settings and methods.
  * @param {Function} props.parameters.getUpdatedAllParams - Function to get updated parameters.
@@ -61,6 +64,7 @@ export type MiniAudioPlayerType = (options: MiniAudioPlayerOptions) => JSX.Eleme
  *   return (
  *     <MiniAudioPlayer
  *       stream={stream}
+ *       consumer={consumer}
  *       remoteProducerId="producer123"
  *       parameters={parameters}
  *       MiniAudioComponent={WaveformVisualizer}

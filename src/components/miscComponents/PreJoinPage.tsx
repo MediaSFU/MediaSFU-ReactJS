@@ -264,8 +264,8 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
 
       const createData: CreateLocalRoomParameters = {
         eventID: eventID,
-        duration: parseInt(duration),
-        capacity: parseInt(capacity),
+        duration: payload.duration,
+        capacity: payload.capacity,
         userName: payload.userName,
         scheduledDate: new Date(),
         secureCode: secureCode,
@@ -378,7 +378,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
   
     if (localLink.length > 0 && !localLink.includes("mediasfu.com")) {
       const joinData: JoinLocalEventRoomParameters = {
-        eventID: eventID,
+        eventID: payload.meetingID,
         userName: payload.userName,
         secureCode: "",
         videoPreference: null,

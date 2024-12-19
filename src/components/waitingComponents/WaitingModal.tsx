@@ -163,7 +163,7 @@ const WaitingRoomModal: React.FC<WaitingRoomModalOptions> = ({
   }, [waitingRoomList, reRender]);
 
   return (
-    <div style={modalContainerStyle}>
+    <div style={modalContainerStyle} className="mediasfu-waiting-modal">
       <div style={modalContentStyle}>
         <div className="modal-header">
           <div className="modal-title">

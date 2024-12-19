@@ -1601,13 +1601,13 @@ const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, pa
   };
 
   return (
-    <div id="whiteboard-interface" style={{ position: 'relative', display: showAspect ? 'block' : 'none', justifyContent: 'center', alignItems: 'center', border: '2px solid #000', backgroundColor: '#f0f0f0', width: customWidth, height: customHeight }}>
+    <div id="witehboard-interface" style={{ position: 'relative', display: showAspect ? 'block' : 'none', justifyContent: 'center', alignItems: 'center', border: '2px solid #000', backgroundColor: '#f0f0f0', width: customWidth, height: customHeight }}>
       <div id="whiteboardContent" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', overflow: 'auto' }}>
-        <button id="toolbarToggle" className="btn btnBoard btn-primary" style={{ position: 'absolute', top: '5px', left: '55px', zIndex: 1000 }} onClick={toggleToolbar}>
+        <button id="toolbarToggle" className="btn btnBoard btn-primary" style={{ position: 'absolute', top: '5px', left: '65px', zIndex: 1000 }} onClick={toggleToolbar}>
           <FontAwesomeIcon icon={toolbarVisible.current ? faChevronLeft : faChevronRight} />
         </button>
         {toolbarVisible.current && (
-          <div className="toolbar mb-3" id="toolbar" style={{ position: 'absolute', top: '5px', left: '100px', zIndex: 1000, backgroundColor: 'transparent' }}>
+          <div className="toolbar mb-3" id="toolbar" style={{ position: 'absolute', top: '5px', left: '110px', zIndex: 1000, backgroundColor: 'transparent' }}>
             <div className="btn-group" role="group">
               <button className="btn btnBoard btn-secondary dropdown-toggle" id="drawMode" onClick={() => handleDropdownClick('drawMode')}>
                 <FontAwesomeIcon icon={faPencilAlt} />

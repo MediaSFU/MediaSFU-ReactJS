@@ -175,7 +175,7 @@ const MediaSettingsModal: React.FC<MediaSettingsModalOptions> = ({
       <div style={modalContentStyle}>
         <div className="modal-header">
           <div className="modal-title">Media Settings</div>
-          <div className="btn-close-media-settings" onClick={onMediaSettingsClose}>
+          <div className="btn-close-media-settings" onClick={onMediaSettingsClose} style={{ cursor: 'pointer', marginLeft: 'auto', marginRight: 10 }}>
             <FontAwesomeIcon icon={faTimes} className="icon" size="xl" />
           </div>
         </div>
@@ -193,7 +193,7 @@ const MediaSettingsModal: React.FC<MediaSettingsModalOptions> = ({
               ))}
             </select>
           </div>
-          <div className="form-group">
+          <div className="form-group" style={{ marginTop: 10 }}>
             <label>
               <FontAwesomeIcon icon={faMicrophone} /> Select Microphone:
             </label>
@@ -206,7 +206,7 @@ const MediaSettingsModal: React.FC<MediaSettingsModalOptions> = ({
             </select>
           </div>
           <div className="form-group">
-            <button onClick={handleSwitchCamera} style={{ backgroundColor: '#83c0e9', color: 'black', padding: 10, borderRadius: 5, border: 'none', cursor: 'pointer', width: '100%' }}>
+            <button onClick={handleSwitchCamera} style={{ backgroundColor: '#83c0e9', color: 'black', padding: 10, borderRadius: 5, border: 'none', cursor: 'pointer', width: '100%', marginTop: 20 }}>
               <FontAwesomeIcon icon={faSyncAlt} /> Switch Camera
             </button>
           </div>

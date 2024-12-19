@@ -222,7 +222,7 @@ const CoHostModal: React.FC<CoHostModalOptions> = ({
   }, [isCoHostModalVisible, coHostResponsibility]);
 
   return (
-    <div style={modalContainerStyle}>
+    <div style={modalContainerStyle} className='mediasfu-cohost-modal'>
       <div style={modalContentStyle}>
         <div className="modal-header">
           <div className="modal-title">Manage Co-Host</div>

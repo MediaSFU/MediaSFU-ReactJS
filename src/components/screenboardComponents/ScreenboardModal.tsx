@@ -124,6 +124,7 @@ const ScreenboardModal: React.FC<ScreenboardModalOptions> = ({
   position = "topRight",
   backgroundColor = "#83c0e9",
 }) => {
+  parameters = parameters.getUpdatedAllParams();
   let {
     localStreamScreen,
     shared,

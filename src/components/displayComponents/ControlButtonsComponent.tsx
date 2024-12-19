@@ -137,7 +137,7 @@ const ControlButtonsComponent: React.FC<ControlButtonsComponentOptions> = ({
 
   return (
     <div
-      className="container"
+      className="mediasfu-container"
       style={{ ...getAlignmentStyle(), ...buttonsContainerStyle }}
     >
       {buttons.map((button, index) => (

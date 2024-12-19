@@ -18,6 +18,7 @@ import {
   faVideo,
   faMicrophone,
 } from "@fortawesome/free-solid-svg-icons";
+import './MediasfuCSS.css';
 
 //initial values
 import { initialValuesState } from "../../methods/utils/initialValuesState";

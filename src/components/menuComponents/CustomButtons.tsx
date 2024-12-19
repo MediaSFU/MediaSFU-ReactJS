@@ -82,7 +82,7 @@ export type CustomButtonsType = (options: CustomButtonsOptions) => JSX.Element;
 
 const CustomButtons: React.FC<CustomButtonsOptions> = ({ buttons }) => {
   return (
-    <div className="customButtonsContainer">
+    <div className="mediasfu-customButtonsContainer">
       {buttons.map((button, index) => (
         <button
           key={index}

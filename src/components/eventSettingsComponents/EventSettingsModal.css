@@ -1,65 +1,64 @@
 /* EventSettingsModal.css */
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  .modal-title {
-    font-size: 18px;
-    font-weight: bold;
-    color: black;
-  }
-  
-  .close-btn {
-    padding: 5px;
-  }
-  
-  .modal-body {
-    flex: 1;
-  }
-  
-  .form-group {
-    margin-bottom: 20px;
-  }
-  
-  .label {
-    font-size: 14px;
-    color: black;
-    margin-bottom: 5px;
-    font-weight: bold;
-    padding-right: 10px;
-  }
-  
-  .hr {
-    height: 1px;
-    background-color: black;
-    margin-top: 5px; /* Adjusted to use margin-top */
-    margin-bottom: 5px; /* Adjusted to use margin-bottom */
-  }
-  
-  .sep {
-    height: 1px;
-    background-color: white;
-    margin-top: 0; /* Adjusted to use margin-top */
-    margin-bottom: 0; /* Adjusted to use margin-bottom */
-  }
-  
-  .modal-footer {
-    margin-top: 10px;
-    display: flex;
-    justify-content: flex-end;
-  }
-  
-  .btn-apply-settings {
-    padding: 5px;
-    border-radius: 5px;
-    justify-content: center;
-    align-items: center;
-    background-color: black;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-  }
-  
+.mediasfu-event-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.mediasfu-event-modal .modal-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: black;
+}
+
+.mediasfu-event-modal .close-btn {
+  padding: 5px;
+}
+
+.mediasfu-event-modal .modal-body {
+  flex: 1;
+}
+
+.mediasfu-event-modal .form-group {
+  margin-bottom: 20px;
+}
+
+.mediasfu-event-modal .label {
+  font-size: 14px;
+  color: black;
+  margin-bottom: 5px;
+  font-weight: bold;
+  padding-right: 10px;
+}
+
+.mediasfu-event-modal .hr {
+  height: 1px;
+  background-color: black;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.mediasfu-event-modal .sep {
+  height: 1px;
+  background-color: white;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.mediasfu-event-modal .modal-footer {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mediasfu-event-modal .btn-apply-settings {
+  padding: 5px;
+  border-radius: 5px;
+  justify-content: center;
+  align-items: center;
+  background-color: black;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}

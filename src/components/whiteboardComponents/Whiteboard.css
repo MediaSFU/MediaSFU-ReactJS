@@ -1,36 +1,36 @@
-#whiteboardCanvas {
+#whiteboard-interface #whiteboardContent #whiteboardCanvas {
   border: 1px solid #000;
   cursor: crosshair;
   background-color: white;
 }
 
-.resize-handle,
-.move-handle {
+#whiteboard-interface #whiteboardContent .resize-handle,
+#whiteboard-interface #whiteboardContent .move-handle {
   width: 8px;
   height: 8px;
   background: red;
   position: absolute;
 }
 
-.move-handle {
+#whiteboard-interface #whiteboardContent .move-handle {
   background: blue;
 }
 
-#textInput {
+#whiteboard-interface #whiteboardContent #textInput {
   display: none;
   position: absolute;
   z-index: 10;
   width: 200px;
 }
 
-.shape-icon {
+#whiteboard-interface #whiteboardContent .shape-icon {
   width: 20px;
   height: 20px;
   color: white;
 }
 
-.toolbar .btn-group button,
-.toolbar .dropdown-menu a {
+#whiteboard-interface #whiteboardContent .toolbar .btn-group button,
+#whiteboard-interface #whiteboardContent .toolbar .dropdown-menu a {
   font-size: 0.8rem;
   padding: 5px 10px;
   margin: 0 2px;
@@ -38,81 +38,80 @@
   transition: background-color 0.2s;
 }
 
-.toolbar .dropdown-menu a {
+#whiteboard-interface #whiteboardContent .toolbar .dropdown-menu a {
   background-color: transparent;
   color: rgb(27, 26, 26);
 }
 
-.toolbar .btn-group button:hover,
-.toolbar .dropdown-menu a:hover {
+#whiteboard-interface #whiteboardContent .toolbar .btn-group button:hover,
+#whiteboard-interface #whiteboardContent .toolbar .dropdown-menu a:hover {
   background-color: #e3e7eb;
 }
 
-.toolbar .btn-group button.active {
+#whiteboard-interface #whiteboardContent .toolbar .btn-group button.active {
   background-color: #454d55;
 }
 
-.toolbarScreen .btn-group button,
-.toolbarScreen .dropdown-menu a {
+#whiteboard-interface #whiteboardContent .toolbarScreen .btn-group button,
+#whiteboard-interface #whiteboardContent .toolbarScreen .dropdown-menu a {
   font-size: 0.8rem;
   padding: 5px 10px;
   margin: 0 2px;
   border-radius: 4px;
-  transition: background-color 0.2s;
   color: "black";
 }
 
-.toolbarScreen .btn-group button {
+#whiteboard-interface #whiteboardContent .toolbarScreen .btn-group button {
   background-color: #e3e7eb;
   border: none;
 }
 
-.toolbarScreen .dropdown-menu a {
+#whiteboard-interface #whiteboardContent .toolbarScreen .dropdown-menu a {
   background-color: transparent;
   color: rgb(27, 26, 26);
 }
 
-.toolbarScreen .btn-group button:hover,
-.toolbarScreen .dropdown-menu a:hover {
+#whiteboard-interface #whiteboardContent .toolbarScreen .btn-group button:hover,
+#whiteboard-interface #whiteboardContent .toolbarScreen .dropdown-menu a:hover {
   background-color: rgba(214, 209, 209, 0.4);
   color: black;
 }
 
-.toolbarScreen .btn-group button.active {
+#whiteboard-interface #whiteboardContent .toolbarScreen .btn-group button.active {
   background-color: #454d55;
 }
 
-#toolbarToggleScreen {
+#whiteboard-interface #whiteboardContent #toolbarToggleScreen {
   background-color: rgba(214, 209, 209, 0.4);
   border: "1px solid black";
 }
 
-#toolbar,
-#toolbarScreen {
+#whiteboard-interface #whiteboardContent #toolbar,
+#whiteboard-interface #whiteboardContent #toolbarScreen {
   transition: display 0.3s ease-in-out;
 }
 
-#toolbarToggle,
-#toolbarToggleScreen {
+#whiteboard-interface #whiteboardContent #toolbarToggle,
+#whiteboard-interface #whiteboardContent #toolbarToggleScreen {
   cursor: pointer;
 }
 
-#colorPicker,
-#colorPickerScreen {
+#whiteboard-interface #whiteboardContent #colorPicker,
+#whiteboard-interface #whiteboardContent #colorPickerScreen {
   font-size: 0.8rem;
   padding: 2px 2px;
   width: 32px;
   height: 32px;
 }
 
-#lineTypePicker {
+#whiteboard-interface #whiteboardContent #lineTypePicker {
   font-size: 0.8rem;
   padding: 2px auto;
   width: 32px;
   height: 32px;
 }
 
-.btnBoard {
+#whiteboard-interface #whiteboardContent .btnBoard {
   font-size: 1rem;
   padding: 2px 2px;
   width: 40px;
@@ -120,7 +119,7 @@
   margin: 2px;
 }
 
-#lineTypePickerScreen {
+#whiteboard-interface #whiteboardContent #lineTypePickerScreen {
   font-size: 0.8rem;
   padding: 2px auto;
   width: 32px;
@@ -129,18 +128,18 @@
   color: #000;
 }
 
-.toggle-icon {
+#whiteboard-interface #whiteboardContent .toggle-icon {
   width: 34px;
   height: 34px;
   padding: 0;
   margin: 0;
 }
 
-#toggleBackground.active {
+#whiteboard-interface #whiteboardContent #toggleBackground.active {
   background-color: #fdfeff;
 }
 
-.annotateScreenBtn {
+#whiteboard-interface #whiteboardContent .annotateScreenBtn {
   background-color: #2d2e2f !important;
   border: 2px solid #000 !important;
   color: green !important;

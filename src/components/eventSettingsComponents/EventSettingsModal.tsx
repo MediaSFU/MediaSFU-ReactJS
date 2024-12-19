@@ -184,7 +184,7 @@ const EventSettingsModal: React.FC<EventSettingsModalOptions> = ({
   };
 
   return (
-    <div style={modalContainerStyle}>
+    <div style={modalContainerStyle} className="mediasfu-event-modal">
       <div style={modalContentStyle}>
         <div className="modal-header">
           <div className="modal-title">Event Settings</div>

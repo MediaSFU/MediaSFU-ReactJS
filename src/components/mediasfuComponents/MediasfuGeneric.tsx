@@ -27,6 +27,7 @@ import {
   faChalkboardTeacher,
   faBan,
 } from "@fortawesome/free-solid-svg-icons";
+import './MediasfuCSS.css';
 
 //initial values
 import { initialValuesState } from "../../methods/utils/initialValuesState";
@@ -4236,7 +4237,7 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
     setTimeout(async function () {
       updateValidated(false);
       //if on web, reload the page
-      window.location.reload();
+      // window.location.reload();
     }, 500);
   }
 

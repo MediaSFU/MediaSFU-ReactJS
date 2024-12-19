@@ -1,18 +1,18 @@
 
-  .modal-header {
+  .mediasfu-cohost-modal .modal-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 15px;
   }
   
-  .modal-title {
+  .mediasfu-cohost-modal .modal-title {
     font-size: 18px;
     font-weight: bold;
     color: black;
   }
   
-  .btn-close {
+  .mediasfu-cohost-modal .btn-close {
     padding: 5px;
     cursor: pointer;
   }

@@ -1,4 +1,5 @@
 import React from "react";
+import './MediasfuCSS.css';
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
 import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
 export type MediasfuBroadcastOptions = {

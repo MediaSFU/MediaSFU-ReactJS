@@ -1,25 +1,31 @@
-.waiting-list {
+.mediasfu-waiting-modal .waiting-list {
   display: flex;
   flex-direction: column;
 }
 
-.waiting-item {
+.mediasfu-waiting-modal .waiting-item {
   display: flex; /* Change display to flex */
   flex-direction: row; /* Set flexDirection to row */
   margin-top: 5px;
 }
 
-.col7 {
+.mediasfu-waiting-modal .col7 {
   flex: 5;
   justify-content: center;
 }
 
-.col2 {
+.mediasfu-waiting-modal .col2 {
   flex: 2;
   align-items: center;
   justify-content: center;
 }
 
-.col1 {
+.mediasfu-waiting-modal .col1 {
   flex: 1;
+}
+
+.mediasfu-waiting-modal .btn-close-waitings {
+  margin-left: auto;
+  margin-right: 10px;
+  cursor: pointer;
 }

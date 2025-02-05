@@ -39,6 +39,10 @@ MediaSFU offers a cutting-edge streaming experience that empowers users to custo
 
 **[Get started now on GitHub!](https://github.com/MediaSFU/MediaSFUOpen)** 
 
+### ✅ ReactJS SDK Setup Guide  
+[![Watch the ReactJS SDK Setup Guide](http://i.ytimg.com/vi/VvulSNB_AYg/hqdefault.jpg)](https://www.youtube.com/watch?v=VvulSNB_AYg)  
+🎥 [**Watch the ReactJS SDK Setup Guide**](https://youtu.be/VvulSNB_AYg)
+
 ---
 
 ## Table of Contents
@@ -85,6 +89,97 @@ Instructions on how to install the module using npm.
     ```bash
     npm install mediasfu-reactjs
     ```
+
+#### **1.1 Important Installation Notes**
+
+#### 🚫 **Avoid Using `--force` or `--legacy-peer-deps`**
+
+Using these flags can override important dependency checks, potentially causing **unstable builds** or **unexpected behavior**.
+
+- **Why Avoid Them?**  
+  They bypass compatibility checks, which can introduce **bugs** or **conflicts** within your project.
+
+---
+
+#### ⚙️ **Use Package Overrides (Recommended)**
+If you encounter **peer dependency conflicts**, use the `overrides` field in your `package.json` instead of forcing installations.
+
+##### ✅ **Example of Safe Overrides:**
+
+```json
+{
+  "overrides": {
+    "some-package": {
+      "dependency-name": "^1.2.3"
+    }
+  }
+}
+```
+
+- **Why This Works:**  
+  Overrides let you resolve conflicts **safely** without compromising the integrity of your project.
+
+---
+
+#### 🚩 **If You Absolutely Need to Use `--force` or `--legacy-peer-deps`**
+
+- Some peer dependencies **might be skipped**.  
+- You’ll need to **manually install** them to avoid runtime errors.
+
+##### 🔑 **Install the Required Peer Dependencies:**
+
+```bash
+npm install \
+"@fortawesome/fontawesome-svg-core@^6.6.0" \
+"@fortawesome/free-brands-svg-icons@^6.6.0" \
+"@fortawesome/free-solid-svg-icons@^6.6.0" \
+"@fortawesome/react-fontawesome@^0.2.2" \
+"@mediapipe/selfie_segmentation@0.1.1675465747" \
+"@yudiel/react-qr-scanner@^2.0.8" \
+"bootstrap@^5.3.3" \
+"mediasoup-client@3.7.17" \
+"react@^18.3.1" \
+"react-dom@^18.3.1" \
+"socket.io-client@4.8.0" \
+"universal-cookie@^7.2.0"
+```
+
+- **Why This Is Important:**  
+  These peer dependencies are critical for `mediasfu-reactjs` to function correctly.
+
+---
+
+#### 🔍 **How to Check for Peer Dependencies**
+
+1. **Open your `package.json`.**
+2. Look for the `peerDependencies` section:
+   ```json
+   "peerDependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+    "@fortawesome/free-brands-svg-icons": "^6.6.0",
+    "@fortawesome/free-solid-svg-icons": "^6.6.0",
+    "@fortawesome/react-fontawesome": "^0.2.2",
+    "@mediapipe/selfie_segmentation": "0.1.1675465747",
+    "@yudiel/react-qr-scanner": "^2.0.8",
+    "bootstrap": "^5.3.3",
+    "mediasoup-client": "3.7.17",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "socket.io-client": "4.8.0",
+    "universal-cookie": "^7.2.0"
+   }
+   ```
+
+3. **Ensure all are installed.** If not, run the install command above.
+
+---
+
+#### ✅ **Final Recommendations:**
+
+- Always try to resolve conflicts using **overrides** first.
+- Only use `--force` or `--legacy-peer-deps` as a **last resort**.
+
+---
 
 ### 2. Obtain an API Key (If Required) 
    You can get your API key by signing up or logging into your account at [mediasfu.com](https://www.mediasfu.com/).

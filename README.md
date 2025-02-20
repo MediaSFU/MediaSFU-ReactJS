@@ -135,7 +135,6 @@ npm install \
 "@fortawesome/free-solid-svg-icons@^6.6.0" \
 "@fortawesome/react-fontawesome@^0.2.2" \
 "@mediapipe/selfie_segmentation@0.1.1675465747" \
-"@yudiel/react-qr-scanner@^2.0.8" \
 "bootstrap@^5.3.3" \
 "mediasoup-client@3.7.17" \
 "react@^18.3.1" \
@@ -160,7 +159,6 @@ npm install \
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mediapipe/selfie_segmentation": "0.1.1675465747",
-    "@yudiel/react-qr-scanner": "^2.0.8",
     "bootstrap": "^5.3.3",
     "mediasoup-client": "3.7.17",
     "react": "^18.3.1",

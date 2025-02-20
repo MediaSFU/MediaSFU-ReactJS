@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Scanner } from "@yudiel/react-qr-scanner";
+// import { Scanner } from "@yudiel/react-qr-scanner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faQrcode } from "@fortawesome/free-solid-svg-icons";
 import Cookies from "universal-cookie";
@@ -423,7 +423,7 @@ const WelcomePage: React.FC<WelcomePageOptions> = ({ parameters }) => {
         Confirm
       </button>
 
-      <div style={styles.scannerContainer}>
+      {/* <div style={styles.scannerContainer}>
         <div style={styles.orContainer}>
           <hr style={styles.horizontalLine} />
           <span style={styles.orText}>OR</span>
@@ -449,7 +449,7 @@ const WelcomePage: React.FC<WelcomePageOptions> = ({ parameters }) => {
             </button>
           </div>
         )}
-      </div>
+      </div> */}
 
       <div style={styles.additionalOptionsContainer}>
         <p>

@@ -70,7 +70,7 @@ export interface WhiteboardOptions {
     parameters: WhiteboardParameters;
     showAspect: boolean;
 }
-export type WhiteboardType = (props: WhiteboardOptions) => JSX.Element;
+export type WhiteboardType = (props: WhiteboardOptions) => React.JSX.Element;
 /**
  * Whiteboard component provides a collaborative drawing interface with features such as
  * freehand drawing, erasing, shapes, and undo/redo functionality.
@@ -82,7 +82,7 @@ export type WhiteboardType = (props: WhiteboardOptions) => JSX.Element;
  * @param {WhiteboardParameters} props.parameters - Parameters and state management functions for whiteboard features.
  * @param {boolean} props.showAspect - Flag to show the aspect ratio.
  *
- * @returns {JSX.Element} The rendered Whiteboard component.
+ * @returns {React.JSX.Element} The rendered Whiteboard component.
  *
  * @example
  * ```tsx

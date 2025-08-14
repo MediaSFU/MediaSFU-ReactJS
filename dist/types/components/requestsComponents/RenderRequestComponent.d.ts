@@ -9,7 +9,7 @@ export interface RenderRequestComponentOptions {
     roomName: string;
     socket: Socket;
 }
-export type RenderRequestComponentType = (options: RenderRequestComponentOptions) => JSX.Element;
+export type RenderRequestComponentType = (options: RenderRequestComponentOptions) => React.JSX.Element;
 /**
  * RenderRequestComponent displays a request item with the request's name, icon,
  * and action buttons for acceptance or rejection. It enables real-time
@@ -25,7 +25,7 @@ export type RenderRequestComponentType = (options: RenderRequestComponentOptions
  * @param {string} props.roomName - The name of the room where the request is made.
  * @param {Socket} props.socket - The socket instance for real-time communication.
  *
- * @returns {JSX.Element} The rendered request component.
+ * @returns {React.JSX.Element} The rendered request component.
  *
  * @example
  * ```tsx

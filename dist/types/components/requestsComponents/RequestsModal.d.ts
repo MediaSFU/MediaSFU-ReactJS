@@ -24,7 +24,7 @@ export interface RequestsModalOptions {
     position?: string;
     parameters: RequestsModalParameters;
 }
-export type RequestsModalType = (options: RequestsModalOptions) => JSX.Element;
+export type RequestsModalType = (options: RequestsModalOptions) => React.JSX.Element;
 /**
  * RequestsModal component displays a modal with a list of requests.
  *
@@ -42,7 +42,7 @@ export type RequestsModalType = (options: RequestsModalOptions) => JSX.Element;
  * @param {string} [position="topRight"] - Position of the modal on the screen.
  * @param {RequestsModalParameters} parameters - Additional parameters for the modal.
  *
- * @returns {JSX.Element} The rendered RequestsModal component.
+ * @returns {React.JSX.Element} The rendered RequestsModal component.
  *
  * @example
  * ```tsx

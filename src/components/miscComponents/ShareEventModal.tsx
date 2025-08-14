@@ -37,7 +37,7 @@ export type ShareEventModalType = (options: ShareEventModalOptions) => void;
  * @param {EventType} props.eventType - The type of the event.
  * @param {string} [props.localLink] - The local link for the event.
  * 
- * @returns {JSX.Element} The rendered ShareEventModal component.
+ * @returns {React.JSX.Element} The rendered ShareEventModal component.
  * 
  * @example
  * ```tsx

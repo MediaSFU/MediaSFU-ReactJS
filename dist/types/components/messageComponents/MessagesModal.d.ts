@@ -50,7 +50,7 @@ export type MessagesModalType = (options: MessagesModalOptions) => void;
  * @param {Socket} props.socket - Socket object for real-time communication.
  * @param {string} props.chatSetting - Settings for the chat.
  *
- * @returns {JSX.Element} The rendered MessagesModal component.
+ * @returns {React.JSX.Element} The rendered MessagesModal component.
  *
  * @example
  * ```tsx

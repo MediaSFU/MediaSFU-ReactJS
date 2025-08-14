@@ -6,7 +6,7 @@ export interface MeetingProgressTimerOptions {
     textStyle?: React.CSSProperties;
     showTimer?: boolean;
 }
-export type MeetingProgressTimerType = (options: MeetingProgressTimerOptions) => JSX.Element;
+export type MeetingProgressTimerType = (options: MeetingProgressTimerOptions) => React.JSX.Element;
 /**
  * MeetingProgressTimer component displays a timer indicating the progress of a meeting.
  *
@@ -20,7 +20,7 @@ export type MeetingProgressTimerType = (options: MeetingProgressTimerOptions) =>
  * @param {React.CSSProperties} [props.textStyle={}] - Additional styles to apply to the timer text.
  * @param {boolean} [props.showTimer=true] - Flag to determine whether the timer should be displayed.
  *
- * @returns {JSX.Element} The rendered MeetingProgressTimer component.
+ * @returns {React.JSX.Element} The rendered MeetingProgressTimer component.
  *
  * @example
  * ```tsx

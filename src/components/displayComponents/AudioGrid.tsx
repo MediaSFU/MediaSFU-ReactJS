@@ -15,7 +15,7 @@ export type AudioGridType = (options: AudioGridOptions) => React.ReactNode;
  * @param {AudioGridOptions} props - The properties for the AudioGrid component.
  * @param {React.ReactNode[]} props.componentsToRender - An array of React components to be rendered in the grid layout.
  * 
- * @returns {JSX.Element} A JSX element containing the rendered grid of audio components.
+ * @returns {React.JSX.Element} A JSX element containing the rendered grid of audio components.
  * 
  * @example
  * ```tsx

@@ -61,7 +61,7 @@ export interface BreakoutRoomsModalOptions {
 }
 
 // Export the type definition for the function
-export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => JSX.Element;
+export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => React.JSX.Element;
 
 // RoomList component with types
 const RoomList: React.FC<RoomOptions> = ({ rooms, handleEditRoom, handleDeleteRoom, handleRemoveParticipant }) => {
@@ -229,7 +229,7 @@ const EditRoomModal: React.FC<EditRoomModalOptions> = ({
  * @param {string} [props.position='topRight'] - Position of the modal on the screen.
  * @param {string} [props.backgroundColor='#83c0e9'] - Background color of the modal.
  *
- * @returns {JSX.Element} The rendered BreakoutRoomsModal component.
+ * @returns {React.JSX.Element} The rendered BreakoutRoomsModal component.
  *
  * @example
  * ```tsx

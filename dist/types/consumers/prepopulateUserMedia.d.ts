@@ -35,7 +35,7 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     updateMainHeightWidth: (heightWidth: number) => void;
     updateScreenForceFullDisplay: (force: boolean) => void;
     updateUpdateMainWindow: (update: boolean) => void;
-    updateMainGridStream: (components: JSX.Element[]) => void;
+    updateMainGridStream: (components: React.JSX.Element[]) => void;
     getUpdatedAllParams: () => PrepopulateUserMediaParameters;
     [key: string]: any;
 }
@@ -43,7 +43,7 @@ export interface PrepopulateUserMediaOptions {
     name: string;
     parameters: PrepopulateUserMediaParameters;
 }
-export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) => Promise<JSX.Element[] | void>;
+export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) => Promise<React.JSX.Element[] | void>;
 /**
  * Prepopulates the user media based on the provided options.
  *
@@ -88,7 +88,7 @@ export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) =>
  * @param {Function} options.parameters.updateUpdateMainWindow - Function to update the main window update status.
  * @param {Function} options.parameters.updateMainGridStream - Function to update the main grid stream.
  *
- * @returns {Promise<JSX.Element[] | void>} A promise that resolves to an array of JSX elements or void.
+ * @returns {Promise<React.JSX.Element[] | void>} A promise that resolves to an array of JSX elements or void.
  *
  * @example
  * ```typescript
@@ -135,5 +135,5 @@ export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) =>
  * });
  * ```
  */
-export declare function prepopulateUserMedia({ name, parameters, }: PrepopulateUserMediaOptions): Promise<JSX.Element[] | void>;
+export declare function prepopulateUserMedia({ name, parameters, }: PrepopulateUserMediaOptions): Promise<React.JSX.Element[] | void>;
 //# sourceMappingURL=prepopulateUserMedia.d.ts.map

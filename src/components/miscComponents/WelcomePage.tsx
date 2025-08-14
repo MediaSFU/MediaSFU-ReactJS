@@ -32,7 +32,7 @@ export interface WelcomePageOptions {
   parameters: WelcomePageParameters;
 }
 
-export type WelcomePageType = (options: WelcomePageOptions) => JSX.Element;
+export type WelcomePageType = (options: WelcomePageOptions) => React.JSX.Element;
 
 /**
  * WelcomePage component allows users to enter event details manually or by scanning a QR code.
@@ -51,7 +51,7 @@ export type WelcomePageType = (options: WelcomePageOptions) => JSX.Element;
  * @param {Function} parameters.updateRoomName - Function to update the room name.
  * @param {Function} parameters.updateMember - Function to update the member name.
  *
- * @returns {JSX.Element} The rendered WelcomePage component.
+ * @returns {React.JSX.Element} The rendered WelcomePage component.
  * 
  * @example
  * ```tsx

@@ -36,7 +36,7 @@ export interface WaitingRoomModalOptions {
   onWaitingRoomItemPress?: RespondToWaitingType;
 }
 
-export type WaitingRoomModalType = (options: WaitingRoomModalOptions) => JSX.Element;
+export type WaitingRoomModalType = (options: WaitingRoomModalOptions) => React.JSX.Element;
 
 /**
  * WaitingRoomModal displays a modal interface for managing participants in a waiting room. 
@@ -57,7 +57,7 @@ export type WaitingRoomModalType = (options: WaitingRoomModalOptions) => JSX.Ele
  * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
  * @param {Object} props.parameters - Additional parameters for the modal.
  * 
- * @returns {JSX.Element} The rendered waiting room modal component.
+ * @returns {React.JSX.Element} The rendered waiting room modal component.
  * 
  * @example
  * ```tsx

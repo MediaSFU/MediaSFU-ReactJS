@@ -624,12 +624,12 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
   }); // Grid sizes with type GridSizes
 
   const screenForceFullDisplay = useRef<boolean>(false); // True if the screen should be forced to full display
-  const mainGridStream = useRef<JSX.Element[]>([]); // Array of main grid streams as JSX.Element[]
-  const [otherGridStreams, setOtherGridStreams] = useState<JSX.Element[][]>([
+  const mainGridStream = useRef<React.JSX.Element[]>([]); // Array of main grid streams as React.JSX.Element[]
+  const [otherGridStreams, setOtherGridStreams] = useState<React.JSX.Element[][]>([
     [],
     [],
-  ]); // Other grid streams as 2D array of JSX.Element[]
-  const audioOnlyStreams = useRef<JSX.Element[]>([]); // Array of audio-only streams
+  ]); // Other grid streams as 2D array of React.JSX.Element[]
+  const audioOnlyStreams = useRef<React.JSX.Element[]>([]); // Array of audio-only streams
 
   const [videoInputs, setVideoInputs] = useState<MediaDeviceInfo[]>([]); // Video inputs as array of MediaDeviceInfo
   const [audioInputs, setAudioInputs] = useState<MediaDeviceInfo[]>([]); // Audio inputs as array of MediaDeviceInfo
@@ -1401,15 +1401,15 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
     screenForceFullDisplay.current = value;
   };
 
-  const updateMainGridStream = (value: JSX.Element[]) => {
+  const updateMainGridStream = (value: React.JSX.Element[]) => {
     mainGridStream.current = value;
   };
 
-  const updateOtherGridStreams = (value: JSX.Element[][]) => {
+  const updateOtherGridStreams = (value: React.JSX.Element[][]) => {
     setOtherGridStreams(value);
   };
 
-  const updateAudioOnlyStreams = (value: JSX.Element[]) => {
+  const updateAudioOnlyStreams = (value: React.JSX.Element[]) => {
     audioOnlyStreams.current = value;
   };
 
@@ -1632,7 +1632,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
     useState<boolean>(false); // True if the breakout rooms modal should be shown
 
   // Whiteboard-related variables
-  const whiteboardUsers = useRef<WhiteboardUser[]>(); // Whiteboard users as array of WhiteboardUser
+  const whiteboardUsers = useRef<WhiteboardUser[]>([]); // Whiteboard users as array of WhiteboardUser
   const currentWhiteboardIndex = useRef<number | null>(null); // Current whiteboard index as number or null
   const canStartWhiteboard = useRef<boolean>(false); // True if the whiteboard can be started
   const whiteboardStarted = useRef<boolean>(false); // True if the whiteboard has started

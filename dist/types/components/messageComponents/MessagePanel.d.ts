@@ -24,7 +24,7 @@ export interface MessagePanelOptions {
     socket: Socket;
     chatSetting: string;
 }
-export type MessagePanelType = (options: MessagePanelOptions) => JSX.Element;
+export type MessagePanelType = (options: MessagePanelOptions) => React.JSX.Element;
 /**
  * MessagePanel component renders a panel for displaying and sending messages.
  *
@@ -51,7 +51,7 @@ export type MessagePanelType = (options: MessagePanelOptions) => JSX.Element;
  * @param {Socket} props.socket - The socket for real-time communication.
  * @param {string} props.chatSetting - Chat settings for the message panel.
  *
- * @returns {JSX.Element} The rendered MessagePanel component.
+ * @returns {React.JSX.Element} The rendered MessagePanel component.
  *
  * @example
  * ```tsx

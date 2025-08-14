@@ -26,7 +26,7 @@ export type CardVideoDisplayType = (options: CardVideoDisplayOptions) => React.R
  * @param {string} [props.backgroundColor='transparent'] - Background color for the video container.
  * @param {boolean} [props.doMirror=false] - If true, the video is mirrored horizontally.
  *
- * @returns {JSX.Element} The rendered video display component.
+ * @returns {React.JSX.Element} The rendered video display component.
  * 
  * @example
  * ```tsx

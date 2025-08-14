@@ -10,7 +10,7 @@ export interface MainAspectComponentOptions {
     updateIsMediumScreen: (isMedium: boolean) => void;
     updateIsSmallScreen: (isSmall: boolean) => void;
 }
-export type MainAspectComponentType = (options: MainAspectComponentOptions) => JSX.Element;
+export type MainAspectComponentType = (options: MainAspectComponentOptions) => React.JSX.Element;
 /**
  * MainAspectComponent is a React functional component that dynamically adjusts its dimensions based on window size and specified fractions, while updating screen size states (wide, medium, small) based on container width.
  *
@@ -28,7 +28,7 @@ export type MainAspectComponentType = (options: MainAspectComponentOptions) => J
  * @param {Function} props.updateIsMediumScreen - Callback to update medium screen state.
  * @param {Function} props.updateIsSmallScreen - Callback to update small screen state.
  *
- * @returns {JSX.Element} The rendered MainAspectComponent with adaptive dimensions.
+ * @returns {React.JSX.Element} The rendered MainAspectComponent with adaptive dimensions.
  *
  * @example
  * ```tsx

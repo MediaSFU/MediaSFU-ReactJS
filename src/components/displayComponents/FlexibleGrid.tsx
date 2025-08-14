@@ -9,7 +9,7 @@ export interface FlexibleGridOptions {
   backgroundColor?: string;
 }
 
-export type FlexibleGridType = (options: FlexibleGridOptions) => JSX.Element;
+export type FlexibleGridType = (options: FlexibleGridOptions) => React.JSX.Element;
 
 /**
  * FlexibleGrid component renders a customizable grid layout with specified dimensions and components.
@@ -25,7 +25,7 @@ export type FlexibleGridType = (options: FlexibleGridOptions) => JSX.Element;
  * @param {React.ReactNode[]} props.componentsToRender - Array of React components or elements to display in the grid.
  * @param {string} [props.backgroundColor='transparent'] - Background color for each grid item.
  *
- * @returns {JSX.Element} The rendered grid layout.
+ * @returns {React.JSX.Element} The rendered grid layout.
  * 
  * @example
  * ```tsx

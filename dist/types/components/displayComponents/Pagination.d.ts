@@ -32,7 +32,7 @@ export interface PaginationOptions {
     showAspect?: boolean;
     parameters: PaginationParameters;
 }
-export type PaginationType = (options: PaginationOptions) => JSX.Element;
+export type PaginationType = (options: PaginationOptions) => React.JSX.Element;
 /**
  * Pagination is a React component for navigating pages, with options for layout, style, and real-time updates.
  *
@@ -54,7 +54,7 @@ export type PaginationType = (options: PaginationOptions) => JSX.Element;
  * @param {boolean} [props.showAspect=true] - Flag to control pagination visibility.
  * @param {PaginationParameters} props.parameters - Parameters for socket events, breakout rooms, and updates.
  *
- * @returns {JSX.Element} A pagination component for navigating pages.
+ * @returns {React.JSX.Element} A pagination component for navigating pages.
  *
  * @example
  * ```tsx

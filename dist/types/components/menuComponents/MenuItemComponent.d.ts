@@ -5,7 +5,7 @@ export interface MenuItemComponentOptions {
     name?: string;
     onPress: () => void;
 }
-export type MenuItemComponentType = (options: MenuItemComponentOptions) => JSX.Element;
+export type MenuItemComponentType = (options: MenuItemComponentOptions) => React.JSX.Element;
 /**
  * MenuItemComponent renders a button with an optional icon and text.
  *
@@ -15,7 +15,7 @@ export type MenuItemComponentType = (options: MenuItemComponentOptions) => JSX.E
  * @param {string} [options.name] - The name or text to display.
  * @param {() => void} options.onPress - The function to call when the button is pressed.
  *
- * @returns {JSX.Element} A JSX element representing the menu item.
+ * @returns {React.JSX.Element} A JSX element representing the menu item.
  *
  * @example
  * ```tsx

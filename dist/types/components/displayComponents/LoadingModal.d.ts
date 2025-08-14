@@ -4,7 +4,7 @@ export interface LoadingModalOptions {
     backgroundColor?: string;
     displayColor?: string;
 }
-export type LoadingModalType = (options: LoadingModalOptions) => JSX.Element;
+export type LoadingModalType = (options: LoadingModalOptions) => React.JSX.Element;
 /**
  * LoadingModal component displays a full-screen modal with a loading spinner and customizable text color.
  *
@@ -16,7 +16,7 @@ export type LoadingModalType = (options: LoadingModalOptions) => JSX.Element;
  * @param {string} [props.backgroundColor='rgba(0, 0, 0, 0.5)'] - Background color of the modal overlay.
  * @param {string} [props.displayColor='black'] - Color of the loading text and spinner.
  *
- * @returns {JSX.Element} The rendered LoadingModal component.
+ * @returns {React.JSX.Element} The rendered LoadingModal component.
  *
  * @example
  * ```tsx

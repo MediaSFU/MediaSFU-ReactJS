@@ -22,7 +22,7 @@ export interface EventSettingsModalOptions {
     socket: Socket;
     showAlert?: ShowAlert;
 }
-export type EventSettingsModalType = (options: EventSettingsModalOptions) => JSX.Element;
+export type EventSettingsModalType = (options: EventSettingsModalOptions) => React.JSX.Element;
 /**
  * EventSettingsModal component provides a modal interface for modifying event settings.
  *
@@ -46,7 +46,7 @@ export type EventSettingsModalType = (options: EventSettingsModalOptions) => JSX
  * @param {Object} props.socket - Socket object for communication.
  * @param {Function} props.showAlert - Callback function to show alerts.
  *
- * @returns {JSX.Element} The rendered EventSettingsModal component.
+ * @returns {React.JSX.Element} The rendered EventSettingsModal component.
  *
   * @example
   * ```tsx

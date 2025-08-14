@@ -14,7 +14,7 @@ export interface MainContainerComponentOptions {
 
 export type MainContainerComponentType = (
   options: MainContainerComponentOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * MainContainerComponent is a React functional component that renders a container
@@ -34,7 +34,7 @@ export type MainContainerComponentType = (
  * @param {number} [props.marginBottom=0] - Bottom margin of the container.
  * @param {number} [props.padding=0] - Padding inside the container.
  *
- * @returns {JSX.Element} The rendered container component.
+ * @returns {React.JSX.Element} The rendered container component.
  * 
  * @example
  * ```tsx

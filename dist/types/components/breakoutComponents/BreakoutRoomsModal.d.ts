@@ -34,7 +34,7 @@ export interface BreakoutRoomsModalOptions {
     position?: 'topRight' | 'topLeft' | 'bottomRight' | 'bottomLeft';
     backgroundColor?: string;
 }
-export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => JSX.Element;
+export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => React.JSX.Element;
 /**
  * BreakoutRoomsModal component is a React functional component that manages the breakout rooms modal.
  * It allows users to create, edit, and manage breakout rooms for participants in a meeting.
@@ -47,7 +47,7 @@ export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => JSX
  * @param {string} [props.position='topRight'] - Position of the modal on the screen.
  * @param {string} [props.backgroundColor='#83c0e9'] - Background color of the modal.
  *
- * @returns {JSX.Element} The rendered BreakoutRoomsModal component.
+ * @returns {React.JSX.Element} The rendered BreakoutRoomsModal component.
  *
  * @example
  * ```tsx

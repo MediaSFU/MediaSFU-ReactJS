@@ -13,7 +13,7 @@ export interface MiniCardAudioOptions {
   imageStyle?: React.CSSProperties;
 }
 
-export type MiniCardAudioType = (options: MiniCardAudioOptions) => JSX.Element;
+export type MiniCardAudioType = (options: MiniCardAudioOptions) => React.JSX.Element;
 
 /**
  * MiniCardAudio component displays an audio card with an optional animated waveform and background image.
@@ -32,7 +32,7 @@ export type MiniCardAudioType = (options: MiniCardAudioOptions) => JSX.Element;
  * @param {boolean} [props.roundedImage=false] - If true, applies rounded corners to the background image.
  * @param {React.CSSProperties} [props.imageStyle] - Additional styles for customizing the background image.
  * 
- * @returns {JSX.Element} The rendered MiniCardAudio component.
+ * @returns {React.JSX.Element} The rendered MiniCardAudio component.
  * 
  * @example
  * ```tsx

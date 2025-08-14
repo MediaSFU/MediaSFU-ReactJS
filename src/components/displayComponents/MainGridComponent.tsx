@@ -13,7 +13,7 @@ export interface MainGridComponentOptions {
   meetingProgressTime: string;
 }
 
-export type MainGridComponentType = (options: MainGridComponentOptions) => JSX.Element;
+export type MainGridComponentType = (options: MainGridComponentOptions) => React.JSX.Element;
 
 /**
  * MainGridComponent is a React functional component that renders a main grid container
@@ -30,7 +30,7 @@ export type MainGridComponentType = (options: MainGridComponentOptions) => JSX.E
  * @param {boolean} [props.showTimer=true] - Flag to determine if the timer should be shown.
  * @param {string} props.meetingProgressTime - The time to display on the timer.
  *
- * @returns {JSX.Element} The rendered main grid container with optional children and timer.
+ * @returns {React.JSX.Element} The rendered main grid container with optional children and timer.
  * 
  * @example
  * ```tsx

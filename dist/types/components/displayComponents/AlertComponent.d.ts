@@ -7,7 +7,7 @@ export interface AlertComponentOptions {
     onHide?: () => void;
     textColor?: string;
 }
-export type AlertComponentType = (options: AlertComponentOptions) => JSX.Element;
+export type AlertComponentType = (options: AlertComponentOptions) => React.JSX.Element;
 /**
  * AlertComponent is a React functional component that displays an alert message with customizable options.
  *

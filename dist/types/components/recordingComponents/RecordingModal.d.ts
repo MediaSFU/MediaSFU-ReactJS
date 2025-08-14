@@ -43,7 +43,7 @@ export interface RecordingModalOptions {
     startRecording: StartRecordingType;
     parameters: RecordingModalParameters;
 }
-export type RecordingModalType = (options: RecordingModalOptions) => JSX.Element;
+export type RecordingModalType = (options: RecordingModalOptions) => React.JSX.Element;
 /**
  * RecordingModal component provides an interface for configuring and controlling
  * recording settings within a modal. This component enables users to customize

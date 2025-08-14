@@ -7,7 +7,7 @@ export interface MeetingPasscodeComponentOptions {
 
 export type MeetingPasscodeComponentType = (
   options: MeetingPasscodeComponentOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * A React functional component that displays a meeting passcode in a read-only input field.
@@ -15,7 +15,7 @@ export type MeetingPasscodeComponentType = (
  * @component
  * @param {MeetingIdComponentOptions} props - The properties object.
  * @param {string} [props.meetingID=""] - The meeting ID to display.
- * @returns {JSX.Element} The rendered MeetingIdComponent component.
+ * @returns {React.JSX.Element} The rendered MeetingIdComponent component.
  * 
  * @example
  * ```tsx

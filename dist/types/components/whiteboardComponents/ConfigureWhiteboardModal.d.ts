@@ -41,7 +41,7 @@ export interface ConfigureWhiteboardModalOptions {
     backgroundColor?: string;
     position?: string;
 }
-export type ConfigureWhiteboardModalType = (options: ConfigureWhiteboardModalOptions) => JSX.Element;
+export type ConfigureWhiteboardModalType = (options: ConfigureWhiteboardModalOptions) => React.JSX.Element;
 /**
  * ConfigureWhiteboard provides a modal interface for configuring whiteboard settings,
  * including assigning participants, validating settings, and starting or stopping
@@ -55,7 +55,7 @@ export type ConfigureWhiteboardModalType = (options: ConfigureWhiteboardModalOpt
  * @param {string} [props.backgroundColor="#83c0e9"] - Modal background color.
  * @param {string} [props.position="topRight"] - Position of the modal on the screen.
  *
- * @returns {JSX.Element} The rendered ConfigureWhiteboard component.
+ * @returns {React.JSX.Element} The rendered ConfigureWhiteboard component.
  *
  * @example
  * ```tsx

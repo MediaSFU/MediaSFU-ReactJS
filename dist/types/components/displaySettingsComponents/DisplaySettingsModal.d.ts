@@ -14,7 +14,7 @@ export interface DisplaySettingsModalOptions {
     position?: "topRight" | "topLeft" | "bottomRight" | "bottomLeft";
     backgroundColor?: string;
 }
-export type DisplaySettingsModalType = (options: DisplaySettingsModalOptions) => JSX.Element;
+export type DisplaySettingsModalType = (options: DisplaySettingsModalOptions) => React.JSX.Element;
 /**
  * DisplaySettingsModal component provides a modal interface for managing display settings with options for display types, audiograph, and video controls.
  *
@@ -27,7 +27,7 @@ export type DisplaySettingsModalType = (options: DisplaySettingsModalOptions) =>
  * @param {string} [props.position='topRight'] - Modal positioning on the screen.
  * @param {string} [props.backgroundColor='#83c0e9'] - Modal background color.
  *
- * @returns {JSX.Element} The rendered modal component.
+ * @returns {React.JSX.Element} The rendered modal component.
  *
  * @example
  * ```tsx

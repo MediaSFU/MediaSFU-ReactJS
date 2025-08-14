@@ -63,7 +63,7 @@ export interface RecordingModalOptions {
 
 export type RecordingModalType = (
   options: RecordingModalOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * RecordingModal component provides an interface for configuring and controlling

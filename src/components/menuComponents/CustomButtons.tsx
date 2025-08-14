@@ -21,7 +21,7 @@ export interface CustomButtonsOptions {
   buttons: CustomButton[];
 }
 
-export type CustomButtonsType = (options: CustomButtonsOptions) => JSX.Element;
+export type CustomButtonsType = (options: CustomButtonsOptions) => React.JSX.Element;
 
 /**
  * CustomButtons component renders a list of customizable buttons.
@@ -39,7 +39,7 @@ export type CustomButtonsType = (options: CustomButtonsOptions) => JSX.Element;
  * @param {Object} [props.buttons[].textStyle] - The style to be applied to the text.
  * @param {React.ReactNode} [props.buttons[].customComponent] - A custom component to be rendered inside the button.
  *
- * @returns {JSX.Element} The rendered CustomButtons component.
+ * @returns {React.JSX.Element} The rendered CustomButtons component.
  * 
  * @example
  * ```tsx

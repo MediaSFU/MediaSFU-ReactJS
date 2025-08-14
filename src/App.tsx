@@ -235,7 +235,7 @@ const App = () => {
     <MediasfuGeneric
       // This pre-join page can be displayed if `returnUI` is true.
       // If `returnUI` is false, `noUIPreJoinOptions` is used as a substitute.
-      PrejoinPage={PreJoinPage}
+      PrejoinPage={(options) => <PreJoinPage {...options} />}
       credentials={credentials}
       localLink={localLink}
       connectMediaSFU={connectMediaSFU}

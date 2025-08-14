@@ -38,7 +38,7 @@ export interface ParticipantsModalOptions {
     backgroundColor?: string;
     position?: string;
 }
-export type ParticipantsModalType = (options: ParticipantsModalOptions) => JSX.Element;
+export type ParticipantsModalType = (options: ParticipantsModalOptions) => React.JSX.Element;
 /**
  * ParticipantsModal - A React component that displays a modal for managing participants in an event.
  *
@@ -56,7 +56,7 @@ export type ParticipantsModalType = (options: ParticipantsModalOptions) => JSX.E
  * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
  * @param {ParticipantsModalParameters} props.parameters - Modal-specific parameters.
  *
- * @returns {JSX.Element} ParticipantsModal component.
+ * @returns {React.JSX.Element} ParticipantsModal component.
  *
  * @example
  * ```tsx

@@ -11,9 +11,9 @@ export interface AltButton {
     default?: string;
   };
   active?: boolean;
-  alternateIconComponent?: JSX.Element;
-  iconComponent?: JSX.Element;
-  customComponent?: JSX.Element;
+  alternateIconComponent?: React.JSX.Element;
+  iconComponent?: React.JSX.Element;
+  customComponent?: React.JSX.Element;
   color?: string;
   inActiveColor?: string;
   show?: boolean;
@@ -25,8 +25,8 @@ export interface ControlButtonsAltComponentOptions {
   location?: "top" | "bottom" | "center";
   direction?: "horizontal" | "vertical";
   buttonsContainerStyle?: React.CSSProperties;
-  alternateIconComponent?: JSX.Element;
-  iconComponent?: JSX.Element;
+  alternateIconComponent?: React.JSX.Element;
+  iconComponent?: React.JSX.Element;
   showAspect?: boolean;
 }
 
@@ -48,7 +48,7 @@ export type ControlButtonsAltComponentType = (
  * @param {React.CSSProperties} [props.buttonsContainerStyle] - Additional CSS styles for the buttons container.
  * @param {boolean} [props.showAspect=false] - If true, displays the buttons container; if false, the container is hidden.
  *
- * @returns {JSX.Element} The rendered component containing control buttons.
+ * @returns {React.JSX.Element} The rendered component containing control buttons.
  *
  * @example
  * ```tsx

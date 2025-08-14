@@ -24,7 +24,7 @@ export interface MenuModalOptions {
   eventType: EventType;
   localLink?: string;
 }
-export type MenuModalType = (options: MenuModalOptions) => JSX.Element;
+export type MenuModalType = (options: MenuModalOptions) => React.JSX.Element;
 
 /**
  * MenuModal component displays a modal with various options and buttons.
@@ -43,7 +43,7 @@ export type MenuModalType = (options: MenuModalOptions) => JSX.Element;
  * @param {EventType} options.eventType - The type of event.
  * @param {string} [options.localLink] - The local link for the event.
  *
- * @returns {JSX.Element} The rendered MenuModal component.
+ * @returns {React.JSX.Element} The rendered MenuModal component.
  * 
  * @example
  * ```tsx

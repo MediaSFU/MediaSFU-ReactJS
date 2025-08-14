@@ -199,9 +199,9 @@ export interface InitialValuesStateType {
     paginationDirection: string;
     gridSizes: GridSizes;
     screenForceFullDisplay: boolean;
-    mainGridStream: JSX.Element[];
-    otherGridStreams: JSX.Element[][];
-    audioOnlyStreams: JSX.Element[];
+    mainGridStream: React.JSX.Element[];
+    otherGridStreams: React.JSX.Element[][];
+    audioOnlyStreams: React.JSX.Element[];
     videoInputs: MediaDeviceInfo[];
     audioInputs: MediaDeviceInfo[];
     meetingProgressTime: string;

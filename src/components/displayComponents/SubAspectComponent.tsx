@@ -13,7 +13,7 @@ export interface SubAspectComponentOptions {
 
 export type SubAspectComponentType = (
   options: SubAspectComponentOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * SubAspectComponent is a responsive media sub-component that scales with the viewport and includes optional controls.
@@ -26,7 +26,7 @@ export type SubAspectComponentType = (
  * @param {number} props.containerHeightFraction - Fraction of the viewport height used for component height.
  * @param {number} [props.defaultFractionSub=0.0] - Default height fraction for the component if controls are visible.
  *
- * @returns {JSX.Element} A responsive sub-aspect media display component.
+ * @returns {React.JSX.Element} A responsive sub-aspect media display component.
  * 
  * @example
  * ```tsx

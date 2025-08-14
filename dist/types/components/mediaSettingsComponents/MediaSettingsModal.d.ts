@@ -21,7 +21,7 @@ export interface MediaSettingsModalOptions {
     position?: 'topRight' | 'topLeft' | 'bottomRight' | 'bottomLeft';
     backgroundColor?: string;
 }
-export type MediaSettingsModalType = (options: MediaSettingsModalOptions) => JSX.Element;
+export type MediaSettingsModalType = (options: MediaSettingsModalOptions) => React.JSX.Element;
 /**
  * MediaSettingsModal component provides a modal interface for users to configure media settings such as selecting video and audio input devices.
  *
@@ -36,7 +36,7 @@ export type MediaSettingsModalType = (options: MediaSettingsModalOptions) => JSX
  * @param {string} [props.position='topRight'] - Position of the modal on the screen.
  * @param {string} [props.backgroundColor='#83c0e9'] - Background color of the modal.
  *
- * @returns {JSX.Element} The rendered MediaSettingsModal component.
+ * @returns {React.JSX.Element} The rendered MediaSettingsModal component.
  *
  * @example
  * import React, { useState } from 'react';

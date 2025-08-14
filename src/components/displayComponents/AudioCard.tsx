@@ -50,7 +50,7 @@ export interface AudioCardOptions {
   parameters: AudioCardParameters;
 }
 
-export type AudioCardType = (options: AudioCardOptions) => JSX.Element;
+export type AudioCardType = (options: AudioCardOptions) => React.JSX.Element;
 
 /**
  * AudioCard component displays an audio card with various controls, participant information, and a visual waveform.
@@ -78,7 +78,7 @@ export type AudioCardType = (options: AudioCardOptions) => JSX.Element;
  * @param {AudioDecibels} [props.audioDecibels] - Audio decibel levels for waveform display.
  * @param {AudioCardParameters} props.parameters - Parameters object with various settings and states for the card.
  * 
- * @returns {JSX.Element} The rendered AudioCard component.
+ * @returns {React.JSX.Element} The rendered AudioCard component.
  * 
  * @example
  * ```tsx

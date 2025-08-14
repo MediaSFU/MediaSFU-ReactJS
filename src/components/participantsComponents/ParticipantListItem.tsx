@@ -40,7 +40,7 @@ export interface ParticipantListItemOptions {
 
 export type ParticipantListItemType = (
   options: ParticipantListItemOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * ParticipantListItem component renders a list item for a participant with various controls.
@@ -64,7 +64,7 @@ export type ParticipantListItemType = (
  * @param {Function} props.updateStartDirectMessage - Function to start a direct message.
  * @param {Participant[]} props.participants - Array of participants.
  * @param {Function} props.updateParticipants - Function to update the participants list.
- * @returns {JSX.Element} The rendered ParticipantListItem component.
+ * @returns {React.JSX.Element} The rendered ParticipantListItem component.
  * 
  * @example
  * ```tsx

@@ -22,7 +22,7 @@ export interface RenderRequestComponentOptions {
 
 export type RenderRequestComponentType = (
   options: RenderRequestComponentOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * RenderRequestComponent displays a request item with the request's name, icon, 
@@ -39,7 +39,7 @@ export type RenderRequestComponentType = (
  * @param {string} props.roomName - The name of the room where the request is made.
  * @param {Socket} props.socket - The socket instance for real-time communication.
  *
- * @returns {JSX.Element} The rendered request component.
+ * @returns {React.JSX.Element} The rendered request component.
  *
  * @example
  * ```tsx

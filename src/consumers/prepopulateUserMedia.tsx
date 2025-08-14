@@ -41,7 +41,7 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
   updateMainHeightWidth: (heightWidth: number) => void;
   updateScreenForceFullDisplay: (force: boolean) => void;
   updateUpdateMainWindow: (update: boolean) => void;
-  updateMainGridStream: (components: JSX.Element[]) => void;
+  updateMainGridStream: (components: React.JSX.Element[]) => void;
 
   // mediasfu functions
   getUpdatedAllParams: () => PrepopulateUserMediaParameters;
@@ -54,7 +54,7 @@ export interface PrepopulateUserMediaOptions {
 }
 
 // Export the type definition for the function
-export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) => Promise<JSX.Element[] | void>;
+export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) => Promise<React.JSX.Element[] | void>;
 
 /**
  * Prepopulates the user media based on the provided options.
@@ -100,7 +100,7 @@ export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) =>
  * @param {Function} options.parameters.updateUpdateMainWindow - Function to update the main window update status.
  * @param {Function} options.parameters.updateMainGridStream - Function to update the main grid stream.
  *
- * @returns {Promise<JSX.Element[] | void>} A promise that resolves to an array of JSX elements or void.
+ * @returns {Promise<React.JSX.Element[] | void>} A promise that resolves to an array of JSX elements or void.
  * 
  * @example
  * ```typescript
@@ -151,7 +151,7 @@ export type PrepopulateUserMediaType = (options: PrepopulateUserMediaOptions) =>
 export async function prepopulateUserMedia({
   name,
   parameters,
-}: PrepopulateUserMediaOptions): Promise<JSX.Element[] | void> {
+}: PrepopulateUserMediaOptions): Promise<React.JSX.Element[] | void> {
   try {
     // Destructure parameters
 
@@ -208,7 +208,7 @@ export async function prepopulateUserMedia({
     // Initialize variables
     let host: Participant | null = null;
     let hostStream: any;
-    let newComponent: JSX.Element[] = [];
+    let newComponent: React.JSX.Element[] = [];
 
     // Check if screen sharing is started or shared
     if (shareScreenStarted || shared) {

@@ -136,9 +136,9 @@ npm install \
 "@fortawesome/react-fontawesome@^0.2.2" \
 "@mediapipe/selfie_segmentation@0.1.1675465747" \
 "bootstrap@^5.3.3" \
-"mediasoup-client@3.7.17" \
-"react@^18.3.1" \
-"react-dom@^18.3.1" \
+"mediasoup-client@^3.15.0" \
+"react@^19.0.0" \
+"react-dom@^19.0.0" \
 "socket.io-client@4.8.0" \
 "universal-cookie@^7.2.0"
 ```
@@ -154,15 +154,15 @@ npm install \
 2. Look for the `peerDependencies` section:
    ```json
    "peerDependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.6.0",
+   "@fortawesome/fontawesome-svg-core": "^6.6.0",
     "@fortawesome/free-brands-svg-icons": "^6.6.0",
     "@fortawesome/free-solid-svg-icons": "^6.6.0",
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mediapipe/selfie_segmentation": "0.1.1675465747",
     "bootstrap": "^5.3.3",
-    "mediasoup-client": "3.7.17",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
+    "mediasoup-client": "^3.15.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "socket.io-client": "4.8.0",
     "universal-cookie": "^7.2.0"
    }
@@ -415,7 +415,7 @@ export interface PreJoinPageOptions {
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
 }
 
-export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
+export type PreJoinPageType = (options: PreJoinPageOptions) => React.JSX.Element;
 
 /**
  * PreJoinPage component allows users to either create a new room or join an existing one.
@@ -437,7 +437,7 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
  * @param {CreateRoomOnMediaSFUType} [props.createMediaSFURoom] - Function to create a room on MediaSFU.
  * @param {JoinRoomOnMediaSFUType} [props.joinMediaSFURoom] - Function to join a room on MediaSFU.
  *
- * @returns {JSX.Element} The rendered PreJoinPage component.
+ * @returns {React.JSX.Element} The rendered PreJoinPage component.
  *
  * @example
  * ```tsx
@@ -1840,15 +1840,15 @@ const BroadcastScreen = () => {
     const [recordState, setRecordState] = useState<string>("green"); // Recording state with specific values
 
     // Sample main grid and other grid elements
-    const mainGridStream = useRef<JSX.Element[]>([]); // Array of main grid streams as JSX.Element[]
-    const [otherGridStreams, setOtherGridStreams] = useState<JSX.Element[][]>([
+    const mainGridStream = useRef<React.JSX.Element[]>([]); // Array of main grid streams as React.JSX.Element[]
+    const [otherGridStreams, setOtherGridStreams] = useState<React.JSX.Element[][]>([
         [],
         [],
-    ]); // Other grid streams as 2D array of JSX.Element[]
+    ]); // Other grid streams as 2D array of React.JSX.Element[]
   
 
     // Sample audio only streams
-    const audioOnlyStreams = useRef<JSX.Element[]>([]); // Array of audio-only streams
+    const audioOnlyStreams = useRef<React.JSX.Element[]>([]); // Array of audio-only streams
 
     // Sample main height and width
     const [mainHeightWidth, setMainHeightWidth] = useState<number>(100); // Main height and width as number

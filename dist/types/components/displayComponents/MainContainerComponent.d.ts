@@ -10,7 +10,7 @@ export interface MainContainerComponentOptions {
     marginBottom?: number;
     padding?: number;
 }
-export type MainContainerComponentType = (options: MainContainerComponentOptions) => JSX.Element;
+export type MainContainerComponentType = (options: MainContainerComponentOptions) => React.JSX.Element;
 /**
  * MainContainerComponent is a React functional component that renders a container
  * with customizable dimensions and margins. The container's dimensions adapt to the window size
@@ -29,7 +29,7 @@ export type MainContainerComponentType = (options: MainContainerComponentOptions
  * @param {number} [props.marginBottom=0] - Bottom margin of the container.
  * @param {number} [props.padding=0] - Padding inside the container.
  *
- * @returns {JSX.Element} The rendered container component.
+ * @returns {React.JSX.Element} The rendered container component.
  *
  * @example
  * ```tsx

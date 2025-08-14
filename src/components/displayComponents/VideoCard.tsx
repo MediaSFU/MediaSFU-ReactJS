@@ -53,7 +53,7 @@ export interface VideoCardOptions {
   parameters: VideoCardParameters;
 }
 
-export type VideoCardType = (options: VideoCardOptions) => JSX.Element;  // Define the type for the function
+export type VideoCardType = (options: VideoCardOptions) => React.JSX.Element;  // Define the type for the function
 
 /**
  * VideoCard component displays a video with optional control buttons, participant information, and an animated waveform.
@@ -80,7 +80,7 @@ export type VideoCardType = (options: VideoCardOptions) => JSX.Element;  // Defi
  * @param {boolean} [props.doMirror=false] - Flag to mirror the video.
  * @param {VideoCardParameters} props.parameters - Additional parameters for video card settings.
  *
- * @returns {JSX.Element} The rendered VideoCard component.
+ * @returns {React.JSX.Element} The rendered VideoCard component.
  * 
  * @example
  * ```tsx

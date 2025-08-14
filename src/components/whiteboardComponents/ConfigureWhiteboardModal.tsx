@@ -75,7 +75,7 @@ export interface ConfigureWhiteboardModalOptions {
 
 export type ConfigureWhiteboardModalType = (
   options: ConfigureWhiteboardModalOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * ConfigureWhiteboard provides a modal interface for configuring whiteboard settings,
@@ -90,7 +90,7 @@ export type ConfigureWhiteboardModalType = (
  * @param {string} [props.backgroundColor="#83c0e9"] - Modal background color.
  * @param {string} [props.position="topRight"] - Position of the modal on the screen.
  *
- * @returns {JSX.Element} The rendered ConfigureWhiteboard component.
+ * @returns {React.JSX.Element} The rendered ConfigureWhiteboard component.
  *
  * @example
  * ```tsx

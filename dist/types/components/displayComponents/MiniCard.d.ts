@@ -7,7 +7,7 @@ export interface MiniCardOptions {
     roundedImage?: boolean;
     imageStyle?: React.CSSProperties;
 }
-export type MiniCardType = (options: MiniCardOptions) => JSX.Element;
+export type MiniCardType = (options: MiniCardOptions) => React.JSX.Element;
 /**
  * MiniAudio component displays an audio player with an optional waveform animation and draggable functionality.
  *
@@ -27,7 +27,7 @@ export type MiniCardType = (options: MiniCardOptions) => JSX.Element;
  * @param {React.CSSProperties} [props.imageStyle] - Additional styles for the background image.
  * @param {string} [props.overlayPosition] - Position of the overlay containing the waveform.
  *
- * @returns {JSX.Element} The rendered MiniAudio component.
+ * @returns {React.JSX.Element} The rendered MiniAudio component.
  *
  * @example
  * ```tsx

@@ -15,8 +15,8 @@ export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, 
   keepBackground: boolean;
   virtualStream: MediaStream | null;
   forceFullDisplay: boolean;
-  otherGridStreams: JSX.Element[][];
-  updateOtherGridStreams: (otherGridStreams: JSX.Element[][]) => void;
+  otherGridStreams: React.JSX.Element[][];
+  updateOtherGridStreams: (otherGridStreams: React.JSX.Element[][]) => void;
 
   // mediasfu functions
   updateMiniCardsGrid: UpdateMiniCardsGridType;
@@ -136,7 +136,7 @@ export async function addVideosGrid({
     updateMiniCardsGrid,
   } = parameters;
 
-  let newComponents: JSX.Element[][] = [[], []];
+  let newComponents: React.JSX.Element[][] = [[], []];
   let participant: any;
   let remoteProducerId: string = "";
 

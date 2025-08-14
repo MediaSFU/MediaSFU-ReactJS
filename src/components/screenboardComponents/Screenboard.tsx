@@ -30,7 +30,7 @@ export interface ScreenboardOptions {
   showAspect: boolean;
 }
 
-export type ScreenboardType = (options: ScreenboardOptions) => JSX.Element;
+export type ScreenboardType = (options: ScreenboardOptions) => React.JSX.Element;
 
 /**
  * Screenboard component provides a canvas for drawing, freehand drawing, erasing, and shape drawing.
@@ -47,7 +47,7 @@ export type ScreenboardType = (options: ScreenboardOptions) => JSX.Element;
  * @param {Function} props.parameters.updateAnnotateScreenStream - Function to update the screen annotation state.
  * @param {boolean} props.showAspect - Boolean indicating if the aspect ratio should be shown.
  * 
- * @returns {JSX.Element} The Screenboard component.
+ * @returns {React.JSX.Element} The Screenboard component.
  *
  * @example
  * ```tsx
@@ -201,7 +201,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
   };
 
   const dropdownItems = (
-    items: { label: string | JSX.Element; value: any }[],
+    items: { label: string | React.JSX.Element; value: any }[],
     name: string,
     callback: (value: any) => void
   ) => (

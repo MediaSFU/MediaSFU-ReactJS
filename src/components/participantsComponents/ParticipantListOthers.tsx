@@ -10,7 +10,7 @@ export interface ParticipantListOthersOptions {
 
 export type ParticipantListOthersType = (
   options: ParticipantListOthersOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * ParticipantListOthers component renders a list of participants, each displayed using the `ParticipantListOthersItem` component.
@@ -22,7 +22,7 @@ export type ParticipantListOthersType = (
  * @param {string} props.coHost - Indicates the co-host's identifier.
  * @param {string} props.member - Indicates the member's identifier.
  *
- * @returns {JSX.Element} The rendered ParticipantListOthers component.
+ * @returns {React.JSX.Element} The rendered ParticipantListOthers component.
  *
  * @example
  * ```tsx

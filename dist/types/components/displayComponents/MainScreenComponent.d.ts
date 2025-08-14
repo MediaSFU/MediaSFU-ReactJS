@@ -11,7 +11,7 @@ export interface MainScreenComponentOptions {
     showControls: boolean;
     componentSizes: ComponentSizes;
 }
-export type MainScreenComponentType = (options: MainScreenComponentOptions) => JSX.Element;
+export type MainScreenComponentType = (options: MainScreenComponentOptions) => React.JSX.Element;
 /**
  * MainScreenComponent is a React functional component that dynamically adjusts the layout
  * and dimensions of its child components based on props and the window size.
@@ -28,7 +28,7 @@ export type MainScreenComponentType = (options: MainScreenComponentOptions) => J
  * @param {boolean} props.showControls - Flag indicating if controls are shown, affecting container height.
  * @param {ComponentSizes} props.componentSizes - Current sizes of components (main and other dimensions).
  *
- * @returns {JSX.Element} The rendered main screen component.
+ * @returns {React.JSX.Element} The rendered main screen component.
  *
  * @example
  * ```tsx

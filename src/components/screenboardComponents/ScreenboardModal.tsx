@@ -59,7 +59,7 @@ export interface ScreenboardModalOptions {
 
 export type ScreenboardModalType = (
   options: ScreenboardModalOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * ScreenboardModal component provides a modal interface for screen annotation.
@@ -72,7 +72,7 @@ export type ScreenboardModalType = (
  * @param {string} [props.position="topRight"] - Position of the modal on the screen.
  * @param {string} [props.backgroundColor="#83c0e9"] - Background color of the modal.
  *
- * @returns {JSX.Element} The ScreenboardModal component.
+ * @returns {React.JSX.Element} The ScreenboardModal component.
  *
  * @example
  * ```tsx

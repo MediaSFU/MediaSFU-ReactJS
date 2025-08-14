@@ -31,7 +31,7 @@ export interface RequestsModalOptions {
   parameters: RequestsModalParameters;
 }
 
-export type RequestsModalType = (options: RequestsModalOptions) => JSX.Element;
+export type RequestsModalType = (options: RequestsModalOptions) => React.JSX.Element;
 
 /**
  * RequestsModal component displays a modal with a list of requests.
@@ -50,7 +50,7 @@ export type RequestsModalType = (options: RequestsModalOptions) => JSX.Element;
  * @param {string} [position="topRight"] - Position of the modal on the screen.
  * @param {RequestsModalParameters} parameters - Additional parameters for the modal.
  *
- * @returns {JSX.Element} The rendered RequestsModal component.
+ * @returns {React.JSX.Element} The rendered RequestsModal component.
  * 
  * @example
  * ```tsx
@@ -206,20 +206,18 @@ const RequestsModal: React.FC<RequestsModalOptions> = ({
           </div>
           <div style={{ maxHeight: "calc(100% - 150px)", overflowY: "auto" }}>
             <div id="request-list">
-              {requestList_s &&
-                requestList_s.length > 0 &&
-                requestList_s.map((requestItem, index) => (
-                  <div key={index} style={{ marginTop: 5 }}>
-                    {renderRequestComponent({
-                      request: requestItem,
-                      onRequestItemPress,
-                      requestList: requestList_s,
-                      updateRequestList,
-                      roomName,
-                      socket,
-                    })}
-                  </div>
-                ))}
+            {requestList_s.map((requestItem, index) => (
+              <div key={index} style={{ marginTop: 5 }}>
+                {renderRequestComponent({
+                  request: requestItem,
+                  onRequestItemPress,
+                  requestList: requestList_s,
+                  updateRequestList,
+                  roomName,
+                  socket,
+                }) as React.ReactElement}
+              </div>
+            ))}
             </div>
           </div>
         </div>

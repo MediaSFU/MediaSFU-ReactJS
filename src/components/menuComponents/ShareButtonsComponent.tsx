@@ -25,7 +25,7 @@ export interface ShareButtonsComponentOptions {
   localLink?: string;
 }
 
-export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) => JSX.Element;
+export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) => React.JSX.Element;
 
 /**
  * ShareButtonsComponent is a React functional component that renders a set of share buttons.
@@ -37,7 +37,7 @@ export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) 
  * @param {EventType} props.eventType - The type of event, which can be "chat", "broadcast", or "meeting". This determines the URL structure for sharing.
  * @param {string} [props.localLink=""] - An optional local link to use for sharing the event.
  *
- * @returns {JSX.Element} The rendered component.
+ * @returns {React.JSX.Element} The rendered component.
  * 
  * @example
  * ```tsx

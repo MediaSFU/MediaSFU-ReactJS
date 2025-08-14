@@ -18,7 +18,7 @@ export interface MiniAudioPlayerOptions {
     MiniAudioComponent?: React.ComponentType<any>;
     miniAudioProps?: Record<string, any>;
 }
-export type MiniAudioPlayerType = (options: MiniAudioPlayerOptions) => JSX.Element;
+export type MiniAudioPlayerType = (options: MiniAudioPlayerOptions) => React.JSX.Element;
 /**
  * MiniAudioPlayer component is a React functional component that renders an audio player
  * and optionally a mini audio component for visualizing audio waveforms.
@@ -38,7 +38,7 @@ export type MiniAudioPlayerType = (options: MiniAudioPlayerOptions) => JSX.Eleme
  * @param {React.ComponentType} [props.MiniAudioComponent] - An optional component to render for audio visualization.
  * @param {Object} [props.miniAudioProps] - Additional properties to pass to the MiniAudioComponent.
  *
- * @returns {JSX.Element} The rendered MiniAudioPlayer component.
+ * @returns {React.JSX.Element} The rendered MiniAudioPlayer component.
  *
  * @example
  * ```tsx

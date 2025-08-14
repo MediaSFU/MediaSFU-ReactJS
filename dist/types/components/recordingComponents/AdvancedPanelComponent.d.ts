@@ -26,7 +26,7 @@ export interface AdvancedPanelParameters {
 export interface AdvancedPanelOptions {
     parameters: AdvancedPanelParameters;
 }
-export type AdvancedPanelType = (options: AdvancedPanelOptions) => JSX.Element;
+export type AdvancedPanelType = (options: AdvancedPanelOptions) => React.JSX.Element;
 /**
  * AdvancedPanelComponent is a React component for configuring advanced recording options.
  *
@@ -54,7 +54,7 @@ export type AdvancedPanelType = (options: AdvancedPanelOptions) => JSX.Element;
  * @param {Function} parameters.updateRecordingCustomTextColor - Updates custom text color.
  * @param {EventType} parameters.eventType - Event type associated with the recording.
  *
- * @returns {JSX.Element} Rendered component for configuring advanced recording options.
+ * @returns {React.JSX.Element} Rendered component for configuring advanced recording options.
  *
  * @example
  * ```tsx

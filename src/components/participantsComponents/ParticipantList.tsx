@@ -23,7 +23,7 @@ export interface ParticipantListOptions {
   updateParticipants: (participants: Participant[]) => void;
 }
 
-export type ParticipantListType = (options: ParticipantListOptions) => JSX.Element;
+export type ParticipantListType = (options: ParticipantListOptions) => React.JSX.Element;
 
 /**
  * ParticipantList component renders a list of participants with various interaction options.
@@ -46,7 +46,7 @@ export type ParticipantListType = (options: ParticipantListOptions) => JSX.Eleme
  * @param {Function} props.updateStartDirectMessage - Function to initiate a direct message.
  * @param {Function} props.updateParticipants - Function to update the participants list.
  *
- * @returns {JSX.Element} The rendered ParticipantList component.
+ * @returns {React.JSX.Element} The rendered ParticipantList component.
  * 
  * @example
  * ```tsx

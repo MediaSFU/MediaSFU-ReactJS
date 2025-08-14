@@ -561,7 +561,10 @@ export interface CreateRoomOptions {
   autoStartSafeRoom: boolean; // Automatically start the safe room feature
   safeRoomAction: 'warn' | 'kick' | 'ban'; // Action for the safe room
   dataBuffer: boolean; // Whether to return data buffer
-  bufferType: 'images' | 'audio' | 'all'; // Type of buffer data
+  bufferType: 'images' | 'audio' | 'all'; // Type of buffer
+  supportSIP: boolean; // Whether to support SIP
+  directionSIP: 'inbound' | 'outbound' | 'both'; // Direction of SIP
+  preferPCMA: boolean; // Whether to prefer PCMA codec for SIP
 }
 
 export interface CreateMediaSFURoomOptions {
@@ -580,12 +583,16 @@ export interface CreateMediaSFURoomOptions {
   safeRoomAction?: 'warn' | 'kick' | 'ban'; // Action for the safe room
   dataBuffer?: boolean; // Whether to return data buffer
   bufferType?: 'images' | 'audio' | 'all'; // Type of buffer data
+  supportSIP?: boolean; // Whether to support SIP
+  directionSIP?: 'inbound' | 'outbound' | 'both'; // Direction of SIP
+  preferPCMA?: boolean; // Whether to prefer PCMA codec for SIP
 }
 
 export interface JoinMediaSFURoomOptions {
   action: 'join'; // 'join' action
   meetingID: string; // The meeting ID
   userName: string; // Username of the room host
+  secureCode?: string; // Secure code for the room host; optional and needed for sipOnly rooms
 }
 
 export interface ResponseJoinLocalRoom {

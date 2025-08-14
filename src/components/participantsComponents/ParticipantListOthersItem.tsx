@@ -11,7 +11,7 @@ export interface ParticipantListOthersItemOptions {
 
 export type ParticipantListOthersItemType = (
   options: ParticipantListOthersItemOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * ParticipantListOthersItem component renders a single participant item, including the participant's name, role, and muted status.
@@ -25,7 +25,7 @@ export type ParticipantListOthersItemType = (
  * @param {string} props.member - Name of the current user/member.
  * @param {string} props.coHost - Name of the co-host.
  * 
- * @returns {JSX.Element} The rendered ParticipantListOthersItem component.
+ * @returns {React.JSX.Element} The rendered ParticipantListOthersItem component.
  * 
  * @example
  * ```tsx

@@ -11,9 +11,9 @@ export interface Button {
         pressed?: string;
     };
     active?: boolean;
-    alternateIconComponent?: JSX.Element;
-    iconComponent?: JSX.Element;
-    customComponent?: JSX.Element;
+    alternateIconComponent?: React.JSX.Element;
+    iconComponent?: React.JSX.Element;
+    customComponent?: React.JSX.Element;
     color?: string;
     activeColor?: string;
     inActiveColor?: string;
@@ -30,9 +30,9 @@ export interface ControlButtonsComponentOptions {
     alignment?: "flex-start" | "center" | "flex-end" | "space-between" | "space-around" | "space-evenly";
     vertical?: boolean;
     buttonsContainerStyle?: React.CSSProperties;
-    alternateIconComponent?: JSX.Element;
+    alternateIconComponent?: React.JSX.Element;
 }
-export type ControlButtonsComponentType = (options: ControlButtonsComponentOptions) => JSX.Element;
+export type ControlButtonsComponentType = (options: ControlButtonsComponentOptions) => React.JSX.Element;
 /**
  * ControlButtonsComponent is a React functional component that renders a set of customizable control buttons.
  *
@@ -49,7 +49,7 @@ export type ControlButtonsComponentType = (options: ControlButtonsComponentOptio
  * @param {boolean} [props.vertical=false] - If true, arranges buttons vertically; otherwise, horizontally.
  * @param {React.CSSProperties} [props.buttonsContainerStyle] - Additional CSS styles for the button container.
  *
- * @returns {JSX.Element} The rendered control buttons component.
+ * @returns {React.JSX.Element} The rendered control buttons component.
  *
  * @example
  * ```tsx

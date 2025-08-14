@@ -81,7 +81,7 @@ export interface WhiteboardOptions {
   showAspect: boolean;
 }
 
-export type WhiteboardType = (props: WhiteboardOptions) => JSX.Element;
+export type WhiteboardType = (props: WhiteboardOptions) => React.JSX.Element;
 
 /**
  * Whiteboard component provides a collaborative drawing interface with features such as
@@ -94,7 +94,7 @@ export type WhiteboardType = (props: WhiteboardOptions) => JSX.Element;
  * @param {WhiteboardParameters} props.parameters - Parameters and state management functions for whiteboard features.
  * @param {boolean} props.showAspect - Flag to show the aspect ratio.
  *
- * @returns {JSX.Element} The rendered Whiteboard component.
+ * @returns {React.JSX.Element} The rendered Whiteboard component.
  *
  * @example
  * ```tsx
@@ -1586,7 +1586,7 @@ const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, pa
     }
   };
 
-  const dropdownItems = (items: Array<{ label: string | JSX.Element, value: any }>, name: string, callback: (value: any) => void) => (
+  const dropdownItems = (items: Array<{ label: string | React.JSX.Element, value: any }>, name: string, callback: (value: any) => void) => (
     <div className={`dropdown-menu ${dropdownOpen.current ? 'show' : ''}`}>
       {items.map((item, index) => (
         <button key={index} className="dropdown-item" onClick={() => handleItemClick(callback, name, item.value)} style={{ padding: '5px' }}>

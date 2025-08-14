@@ -12,7 +12,7 @@ export interface MiniAudioOptions {
     roundedImage?: boolean;
     imageStyle?: React.CSSProperties;
 }
-export type MiniAudioType = (options: MiniAudioOptions) => JSX.Element;
+export type MiniAudioType = (options: MiniAudioOptions) => React.JSX.Element;
 /**
  * MiniAudio component displays an audio player with optional waveform animation and draggable functionality.
  *
@@ -30,7 +30,7 @@ export type MiniAudioType = (options: MiniAudioOptions) => JSX.Element;
  * @param {React.CSSProperties} [props.imageStyle] - Custom styles for the background image.
  * @param {string} [props.overlayPosition] - The position of the overlay.
  *
- * @returns {JSX.Element} The rendered MiniAudio component.
+ * @returns {React.JSX.Element} The rendered MiniAudio component.
  *
  * @example
  * ```tsx

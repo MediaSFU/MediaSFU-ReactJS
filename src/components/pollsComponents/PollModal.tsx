@@ -28,7 +28,7 @@ export interface PollModalOptions {
   handleVotePoll: HandleVotePollType;
 }
 
-export type PollModalType = (options: PollModalOptions) => JSX.Element;
+export type PollModalType = (options: PollModalOptions) => React.JSX.Element;
 
 /**
  * PollModal component renders a modal for creating, viewing, and managing polls.
@@ -51,7 +51,7 @@ export type PollModalType = (options: PollModalOptions) => JSX.Element;
  * @param {HandleEndPollType} props.handleEndPoll - Function to handle poll ending.
  * @param {HandleVotePollType} props.handleVotePoll - Function to handle voting on a poll option.
  *
- * @returns {JSX.Element} The rendered PollModal component.
+ * @returns {React.JSX.Element} The rendered PollModal component.
  * 
  * @example
  * ```tsx

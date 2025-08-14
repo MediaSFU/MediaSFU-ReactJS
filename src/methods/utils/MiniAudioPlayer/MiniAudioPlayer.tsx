@@ -33,7 +33,7 @@ export interface MiniAudioPlayerOptions {
 
 export type MiniAudioPlayerType = (
   options: MiniAudioPlayerOptions
-) => JSX.Element;
+) => React.JSX.Element;
 
 /**
  * MiniAudioPlayer component is a React functional component that renders an audio player
@@ -54,7 +54,7 @@ export type MiniAudioPlayerType = (
  * @param {React.ComponentType} [props.MiniAudioComponent] - An optional component to render for audio visualization.
  * @param {Object} [props.miniAudioProps] - Additional properties to pass to the MiniAudioComponent.
  *
- * @returns {JSX.Element} The rendered MiniAudioPlayer component.
+ * @returns {React.JSX.Element} The rendered MiniAudioPlayer component.
  *
  * @example
  * ```tsx
@@ -338,7 +338,11 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
       {stream && (
         <audio
           autoPlay
-          ref={(ref) => ref && (ref.srcObject = stream)}
+          ref={(ref) => {
+            if (ref) {
+              ref.srcObject = stream;
+            }
+          }}
         />
       )}
       {renderMiniAudioComponent()}

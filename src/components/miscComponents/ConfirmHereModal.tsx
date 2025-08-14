@@ -80,7 +80,7 @@ function startCountdown({
  * @param {string} props.roomName - Name of the room for socket communication.
  * @param {string} props.member - Member information for socket communication.
  *
- * @returns {JSX.Element} The rendered ConfirmHereModal component.
+ * @returns {React.JSX.Element} The rendered ConfirmHereModal component.
  * 
  * @example
  * ```tsx

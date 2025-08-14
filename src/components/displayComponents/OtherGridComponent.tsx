@@ -30,7 +30,7 @@ export type OtherGridComponentType = React.FC<OtherGridComponentOptions>;
  * @param {boolean} props.showTimer - Determines whether the meeting progress timer should be displayed.
  * @param {string} props.meetingProgressTime - The meeting progress time to display on the timer.
  *
- * @returns {JSX.Element} A styled grid container with optional timer and child components.
+ * @returns {React.JSX.Element} A styled grid container with optional timer and child components.
  * 
  * @example
  * ```tsx

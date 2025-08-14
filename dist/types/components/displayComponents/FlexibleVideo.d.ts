@@ -11,7 +11,7 @@ export interface FlexibleVideoOptions {
     annotateScreenStream?: boolean;
     localStreamScreen?: MediaStream;
 }
-export type FlexibleVideoType = (options: FlexibleVideoOptions) => JSX.Element;
+export type FlexibleVideoType = (options: FlexibleVideoOptions) => React.JSX.Element;
 /**
  * FlexibleVideo component renders a flexible grid of video components with optional screenboard overlay and annotation support.
  *
@@ -30,7 +30,7 @@ export type FlexibleVideoType = (options: FlexibleVideoOptions) => JSX.Element;
  * @param {boolean} [props.annotateScreenStream=false] - Flag to enable annotation on the screen stream.
  * @param {MediaStream} [props.localStreamScreen] - Local screen stream for annotation.
  *
- * @returns {JSX.Element} The rendered FlexibleVideo component.
+ * @returns {React.JSX.Element} The rendered FlexibleVideo component.
  *
  * @example
  * ```tsx

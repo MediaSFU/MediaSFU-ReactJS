@@ -94,7 +94,7 @@ export interface PreJoinPageOptions {
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
 }
 
-export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
+export type PreJoinPageType = (options: PreJoinPageOptions) => React.JSX.Element;
 
 /**
  * PreJoinPage component allows users to either create a new room or join an existing one.
@@ -116,7 +116,7 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => JSX.Element;
  * @param {CreateRoomOnMediaSFUType} [props.createMediaSFURoom] - Function to create a room on MediaSFU.
  * @param {JoinRoomOnMediaSFUType} [props.joinMediaSFURoom] - Function to join a room on MediaSFU.
  *
- * @returns {JSX.Element} The rendered PreJoinPage component.
+ * @returns {React.JSX.Element} The rendered PreJoinPage component.
  *
  * @example
  * ```tsx

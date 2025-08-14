@@ -9,8 +9,8 @@ export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, 
     keepBackground: boolean;
     virtualStream: MediaStream | null;
     forceFullDisplay: boolean;
-    otherGridStreams: JSX.Element[][];
-    updateOtherGridStreams: (otherGridStreams: JSX.Element[][]) => void;
+    otherGridStreams: React.JSX.Element[][];
+    updateOtherGridStreams: (otherGridStreams: React.JSX.Element[][]) => void;
     updateMiniCardsGrid: UpdateMiniCardsGridType;
     getUpdatedAllParams: () => AddVideosGridParameters;
     [key: string]: any;

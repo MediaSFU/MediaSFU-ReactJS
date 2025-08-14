@@ -483,6 +483,9 @@ export interface CreateRoomOptions {
     safeRoomAction: 'warn' | 'kick' | 'ban';
     dataBuffer: boolean;
     bufferType: 'images' | 'audio' | 'all';
+    supportSIP: boolean;
+    directionSIP: 'inbound' | 'outbound' | 'both';
+    preferPCMA: boolean;
 }
 export interface CreateMediaSFURoomOptions {
     action: 'create';
@@ -500,11 +503,15 @@ export interface CreateMediaSFURoomOptions {
     safeRoomAction?: 'warn' | 'kick' | 'ban';
     dataBuffer?: boolean;
     bufferType?: 'images' | 'audio' | 'all';
+    supportSIP?: boolean;
+    directionSIP?: 'inbound' | 'outbound' | 'both';
+    preferPCMA?: boolean;
 }
 export interface JoinMediaSFURoomOptions {
     action: 'join';
     meetingID: string;
     userName: string;
+    secureCode?: string;
 }
 export interface ResponseJoinLocalRoom {
     rtpCapabilities?: RtpCapabilities | null;

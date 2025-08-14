@@ -5,7 +5,7 @@ export interface ParticipantListOthersOptions {
     coHost: string;
     member: string;
 }
-export type ParticipantListOthersType = (options: ParticipantListOthersOptions) => JSX.Element;
+export type ParticipantListOthersType = (options: ParticipantListOthersOptions) => React.JSX.Element;
 /**
  * ParticipantListOthers component renders a list of participants, each displayed using the `ParticipantListOthersItem` component.
  * A separator line is added between each participant except the last one.
@@ -16,7 +16,7 @@ export type ParticipantListOthersType = (options: ParticipantListOthersOptions) 
  * @param {string} props.coHost - Indicates the co-host's identifier.
  * @param {string} props.member - Indicates the member's identifier.
  *
- * @returns {JSX.Element} The rendered ParticipantListOthers component.
+ * @returns {React.JSX.Element} The rendered ParticipantListOthers component.
  *
  * @example
  * ```tsx

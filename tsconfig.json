@@ -30,7 +30,7 @@
       "@components/*": ["components/*"],
       "@utils/*": ["utils/*"]
     },
-    "types": ["react", "react-dom", "node"],
+    "types": ["react", "react-dom", "node", "react/jsx-runtime"],
     "typeRoots": ["node_modules/@types", "src/@types"]
   },
   "include": ["src"],

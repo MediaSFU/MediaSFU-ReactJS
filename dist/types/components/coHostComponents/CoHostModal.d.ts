@@ -19,7 +19,7 @@ export interface CoHostModalOptions {
     onCoHostClose: () => void;
     onModifyEventSettings?: (settings: ModifyCoHostSettingsOptions) => void;
 }
-export type CoHostModalType = (options: CoHostModalOptions) => JSX.Element;
+export type CoHostModalType = (options: CoHostModalOptions) => React.JSX.Element;
 /**
  * CoHostModal component allows managing co-host settings for an event.
  *
@@ -43,7 +43,7 @@ export type CoHostModalType = (options: CoHostModalOptions) => JSX.Element;
  * @param {Function} updateIsCoHostModalVisible - Function to control the visibility of the co-host modal.
  * @param {Socket} socket - Socket instance for real-time communication.
  *
- * @returns {JSX.Element} The CoHostModal component.
+ * @returns {React.JSX.Element} The CoHostModal component.
  *
  * @example
  * ```tsx

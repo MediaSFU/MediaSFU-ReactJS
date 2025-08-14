@@ -18,7 +18,7 @@ export interface StandardPanelOptions {
   parameters: StandardPanelParameters;
 }
 
-export type StandardPanelType = (options: StandardPanelOptions) => JSX.Element;
+export type StandardPanelType = (options: StandardPanelOptions) => React.JSX.Element;
 
 /**
  * StandardPanelComponent renders a panel for configuring recording options,
@@ -38,7 +38,7 @@ export type StandardPanelType = (options: StandardPanelOptions) => JSX.Element;
  * @param {function} parameters.updateRecordingAddHLS - Callback to update HLS recording option.
  * @param {EventType} parameters.eventType - Determines visibility of specific options.
  *
- * @returns {JSX.Element} The rendered configuration panel.
+ * @returns {React.JSX.Element} The rendered configuration panel.
  *
  * @example
  * ```tsx

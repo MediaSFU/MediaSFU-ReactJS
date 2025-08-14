@@ -13,7 +13,7 @@ export interface ConfirmExitModalOptions {
     socket: Socket;
     islevel: string;
 }
-export type ConfirmExitModalType = (options: ConfirmExitModalOptions) => JSX.Element;
+export type ConfirmExitModalType = (options: ConfirmExitModalOptions) => React.JSX.Element;
 /**
  * ConfirmExitModal component renders a modal dialog to confirm the exit action.
  *
@@ -29,7 +29,7 @@ export type ConfirmExitModalType = (options: ConfirmExitModalOptions) => JSX.Ele
  * @param {Object} props.socket - Socket object for communication.
  * @param {string} props.islevel - Level of the user.
  *
- * @returns {JSX.Element} The ConfirmExitModal component.
+ * @returns {React.JSX.Element} The ConfirmExitModal component.
  *
  * @example
  * ```tsx

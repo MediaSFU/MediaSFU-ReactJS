@@ -77,7 +77,7 @@ export interface BackgroundModalOptions {
 }
 
 // Export the type definition
-export type BackgroundModalType = (props: BackgroundModalOptions) => JSX.Element
+export type BackgroundModalType = (props: BackgroundModalOptions) => React.JSX.Element
 
 /**
  * BackgroundModal component provides a modal interface for managing background settings.
@@ -91,7 +91,7 @@ export type BackgroundModalType = (props: BackgroundModalOptions) => JSX.Element
  * @param {string} [props.position="topLeft"] - Position of the modal on the screen.
  * @param {string} [props.backgroundColor="#f5f5f5"] - Background color of the modal.
  *
- * @returns {JSX.Element | null} The rendered BackgroundModal component or null if not visible.
+ * @returns {React.JSX.Element | null} The rendered BackgroundModal component or null if not visible.
  *
  * @example
  * ```tsx

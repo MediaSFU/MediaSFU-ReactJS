@@ -21,7 +21,7 @@ export interface ConsumerResumeParameters extends ReorderStreamsParameters, Prep
     adminVidID?: string;
     mainHeightWidth: number;
     member: string;
-    audioOnlyStreams: JSX.Element[];
+    audioOnlyStreams: React.JSX.Element[];
     gotAllVids: boolean;
     defer_receive: boolean;
     firstAll: boolean;
@@ -40,7 +40,7 @@ export interface ConsumerResumeParameters extends ReorderStreamsParameters, Prep
     updateFirstAll: (value: boolean) => void;
     updateRemoteScreenStream: (value: Stream[]) => void;
     updateOldAllStreams: (value: (Stream | Participant)[]) => void;
-    updateAudioOnlyStreams: (value: JSX.Element[]) => void;
+    updateAudioOnlyStreams: (value: React.JSX.Element[]) => void;
     updateShareScreenStarted: (value: boolean) => void;
     updateGotAllVids: (value: boolean) => void;
     updateScreenId: (value: string) => void;

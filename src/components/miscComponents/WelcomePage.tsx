@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 // import { Scanner } from "@yudiel/react-qr-scanner";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faQrcode } from "@fortawesome/free-solid-svg-icons";
 import Cookies from "universal-cookie";
 import { CSSProperties } from "react";
 import { Socket } from "socket.io-client";
@@ -81,8 +79,8 @@ const WelcomePage: React.FC<WelcomePageOptions> = ({ parameters }) => {
   const [secret, setSecret] = useState<string>("");
   const [eventID, setEventID] = useState<string>("");
   const [link, setLink] = useState<string>("");
-  const [isScannerVisible, setScannerVisible] = useState<boolean>(false);
-  const [scannedData, setScannedData] = useState<any>(null);
+  const [, setScannerVisible] = useState<boolean>(false);
+  const [scannedData] = useState<any>(null);
 
   const {
     showAlert,

@@ -53,6 +53,7 @@ module.exports = [
             "react/react-in-jsx-scope": "off", // Disable the need for React to be in scope
             "no-inner-declarations": "off",
             "@typescript-eslint/no-unused-expressions": "off"
+            
         },
     }
 ];

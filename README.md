@@ -20,6 +20,26 @@
   </a>
 </p>
 
+---
+
+## 🚨 **BREAKING: AI Phone Agents at $0.10 per 1,000 minutes**
+
+📞 **Call our live AI demos right now:**
+- 🇺🇸 **+1 (785) 369-1724** - Mixed Support Demo  
+- 🇬🇧 **+44 7445 146575** - AI Conversation Demo  
+- 🇨🇦 **+1 (587) 407-1990** - Technical Support Demo  
+- 🇨🇦 **+1 (647) 558-6650** - Friendly AI Chat Demo  
+
+**Traditional providers charge $0.05 per minute. We charge $0.10 per 1,000 minutes. That's 500x cheaper.**
+
+✅ **Deploy AI phone agents in 30 minutes**  
+✅ **Works with ANY SIP provider** (Twilio, Telnyx, Zadarma, etc.)  
+✅ **Seamless AI-to-human handoffs**  
+✅ **Real-time call analytics & transcription**  
+
+📖 **[Complete SIP/PSTN Documentation →](https://mediasfu.com/telephony)**
+
+---
 
 MediaSFU offers a cutting-edge streaming experience that empowers users to customize their recordings and engage their audience with high-quality streams. Whether you're a content creator, educator, or business professional, MediaSFU provides the tools you need to elevate your streaming game.
 
@@ -136,7 +156,7 @@ npm install \
 "@fortawesome/react-fontawesome@^0.2.2" \
 "@mediapipe/selfie_segmentation@0.1.1675465747" \
 "bootstrap@^5.3.3" \
-"mediasoup-client@^3.15.0" \
+"mediasoup-client@^3.15.6" \
 "react@^19.0.0" \
 "react-dom@^19.0.0" \
 "socket.io-client@4.8.0" \
@@ -160,7 +180,7 @@ npm install \
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mediapipe/selfie_segmentation": "0.1.1675465747",
     "bootstrap": "^5.3.3",
-    "mediasoup-client": "^3.15.0",
+    "mediasoup-client": "^3.15.6",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "socket.io-client": "4.8.0",

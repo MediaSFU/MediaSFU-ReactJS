@@ -59,7 +59,32 @@ export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
     data: CreateJoinRoomResponse | CreateJoinRoomError | null;
     success: boolean;
 }> => {
-    try {
+  // Create a unique key for this room creation request
+  const roomIdentifier = payload.action === 'create' 
+    ? `create_${(payload as CreateMediaSFURoomOptions).userName}_${(payload as CreateMediaSFURoomOptions).duration}_${(payload as CreateMediaSFURoomOptions).capacity}`
+    : `join_${(payload as JoinMediaSFURoomOptions).meetingID}_${payload.userName}`;
+  
+  const pendingKey = `mediasfu_pending_${roomIdentifier}`;
+  const PENDING_TIMEOUT = 30 * 1000; // 30 seconds
+
+  try {
+        // Check if there's already a pending request for this room
+        const pendingRequest = localStorage.getItem(pendingKey);
+        if (pendingRequest) {
+        const pendingData = JSON.parse(pendingRequest);
+        const timeSincePending = Date.now() - pendingData.timestamp;
+        
+        if (timeSincePending < PENDING_TIMEOUT) {
+            return {
+            data: { error: "Room creation already in progress" },
+            success: false,
+            };
+        } else {
+            // Timeout exceeded, clear stale pending request
+            localStorage.removeItem(pendingKey);
+        }
+        }
+
         if (
             !apiUserName ||
             !apiKey ||
@@ -77,24 +102,55 @@ export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
             finalLink = localLink + '/createRoom';
         }
 
-        const response = await fetch(finalLink,
-            {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${apiUserName}:${apiKey}`,
-                },
-                body: JSON.stringify(payload),
-            }
-        );
+
+    // Mark request as pending
+    localStorage.setItem(pendingKey, JSON.stringify({
+      timestamp: Date.now(),
+      payload: {
+        action: payload.action,
+        userName: payload.userName,
+        meetingID: (payload as any).meetingID || 'create'
+      }
+    }));
+
+    // Set timeout to clear pending status
+    setTimeout(() => {
+      try {
+        localStorage.removeItem(pendingKey);
+      } catch (error) {
+        // Ignore localStorage errors
+      }
+    }, PENDING_TIMEOUT);
+
+    const response = await fetch(finalLink,
+        {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiUserName}:${apiKey}`,
+            },
+            body: JSON.stringify(payload),
+        }
+    );
 
         if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data: CreateJoinRoomResponse = await response.json();
-        return { data, success: true };
-    } catch (error) {
+    const data: CreateJoinRoomResponse = await response.json();
+    
+    // Clear pending status on success
+    localStorage.removeItem(pendingKey);
+    
+    return { data, success: true };
+  } catch (error) {
+    // Clear pending status on error
+    try {
+      localStorage.removeItem(pendingKey);
+    } catch (e) {
+      // Ignore localStorage errors
+    }
+    
         const errorMessage = (error as Error).message || 'unknown error';
         return {
             data: { error: `Unable to create room, ${errorMessage}` },

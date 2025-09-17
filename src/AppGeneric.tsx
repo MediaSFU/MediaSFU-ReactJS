@@ -19,6 +19,9 @@ import MediasfuChat from './components/mediasfuComponents/MediasfuChat';
 import MediasfuWebinar from './components/mediasfuComponents/MediasfuWebinar';
 import MediasfuConference from './components/mediasfuComponents/MediasfuConference';
 
+// Import custom card types for advanced UI customization
+import { CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from './@types/types';
+
 // Pre-Join Page component (if you choose to use it)
 import PreJoinPage from './components/miscComponents/PreJoinPage';
 
@@ -134,6 +137,320 @@ const App = () => {
   // - Forward requests to mediasfu.com with real credentials.
 
   // =========================================================
+  //              CUSTOM CARD COMPONENTS (OPTIONAL)
+  // =========================================================
+  //
+  // You can customize how individual video cards, audio cards, and mini cards
+  // are displayed by providing custom components. This is perfect for 
+  // implementing your own card layouts while keeping MediaSFU's core functionality.
+
+  // Custom Video Card Component
+  const CustomVideoCard: CustomVideoCardType = (options) => {
+    const {
+      participant,
+      stream,
+      width,
+      height,
+      doMirror,
+      showControls = true,
+      showInfo = true,
+      name,
+      backgroundColor = '#2a2a2a'
+    } = options;
+
+    return (
+      <div 
+        style={{
+          backgroundColor,
+          borderRadius: '12px',
+          border: '2px solid #4CAF50',
+          padding: '10px',
+          margin: '5px',
+          position: 'relative',
+          width: width || 200,
+          height: height || 150,
+        }}
+      >
+        {/* Video container */}
+        <div style={{
+          width: '100%',
+          height: '80%',
+          backgroundColor: '#000',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          position: 'relative'
+        }}>
+          {stream && (
+            <video
+              ref={(video) => {
+                if (video && stream) {
+                  video.srcObject = stream;
+                  video.play().catch(() => {});
+                }
+              }}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: doMirror === 'true' ? 'scaleX(-1)' : 'none'
+              }}
+              autoPlay
+              muted={participant?.muted || false}
+              playsInline
+            />
+          )}
+          
+          {/* User info overlay */}
+          {showInfo && name && (
+            <div style={{
+              position: 'absolute',
+              bottom: '8px',
+              left: '8px',
+              backgroundColor: 'rgba(0,0,0,0.7)',
+              color: 'white',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '12px',
+              fontWeight: 'bold'
+            }}>
+              {name}
+            </div>
+          )}
+        </div>
+
+        {/* Controls (if needed) */}
+        {showControls && (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginTop: '8px',
+            gap: '8px'
+          }}>
+            <button style={{
+              backgroundColor: '#4CAF50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '4px 8px',
+              fontSize: '10px',
+              cursor: 'pointer'
+            }}>
+              Custom Action
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Custom Audio Card Component
+  const CustomAudioCard: CustomAudioCardType = (options) => {
+    const {
+      name,
+      barColor,
+      textColor,
+      imageSource,
+      roundedImage,
+      imageStyle,
+    } = options;
+
+    return (
+      <div 
+        style={{
+          backgroundColor: '#1e1e1e',
+          borderRadius: '25px',
+          border: `2px solid ${barColor ? '#4CAF50' : '#ccc'}`,
+          padding: '15px',
+          margin: '5px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px',
+          minHeight: '60px',
+        }}
+      >
+        {/* Avatar or Image */}
+        <div style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: roundedImage ? '50%' : '8px',
+          backgroundColor: '#4CAF50',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: '16px',
+          ...imageStyle
+        }}>
+          {imageSource ? (
+            <img 
+              src={imageSource} 
+              alt={name}
+              style={{
+                width: '100%',
+                height: '100%',
+                borderRadius: roundedImage ? '50%' : '8px',
+                objectFit: 'cover'
+              }}
+            />
+          ) : (
+            name.charAt(0).toUpperCase()
+          )}
+        </div>
+
+        {/* Info section */}
+        <div style={{ flex: 1 }}>
+          <div style={{
+            color: textColor,
+            fontWeight: 'bold',
+            fontSize: '14px',
+            marginBottom: '4px'
+          }}>
+            {name}
+          </div>
+          
+          {/* Audio level visualization */}
+          <div style={{
+            display: 'flex',
+            gap: '2px',
+            alignItems: 'end',
+            height: '20px'
+          }}>
+            {[...Array(8)].map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: '3px',
+                  height: `${Math.random() * 15 + 5}px`,
+                  backgroundColor: barColor ? '#4CAF50' : '#ccc',
+                  borderRadius: '1px',
+                  opacity: 0.7
+                }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Status indicator */}
+        <div style={{
+          width: '30px',
+          height: '30px',
+          borderRadius: '50%',
+          backgroundColor: barColor ? '#4CAF50' : '#ccc',
+          color: 'white',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '12px'
+        }}>
+          🎤
+        </div>
+      </div>
+    );
+  };
+
+  // Custom Mini Card Component
+  const CustomMiniCard: CustomMiniCardType = (options) => {
+    const {
+      initials,
+      fontSize,
+      customStyle,
+      name,
+      showVideoIcon,
+      showAudioIcon,
+      imageSource,
+      roundedImage,
+      imageStyle,
+    } = options;
+
+    return (
+      <div 
+        style={{
+          width: '50px',
+          height: '50px',
+          borderRadius: roundedImage ? '50%' : '12px',
+          background: customStyle ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#4CAF50',
+          border: '2px solid #fff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontWeight: 'bold',
+          fontSize: fontSize || '14px',
+          margin: '2px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          position: 'relative',
+          ...imageStyle
+        }}
+        title={name}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.1)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)';
+        }}
+      >
+        {imageSource ? (
+          <img 
+            src={imageSource} 
+            alt={name}
+            style={{
+              width: '100%',
+              height: '100%',
+              borderRadius: roundedImage ? '50%' : '8px',
+              objectFit: 'cover'
+            }}
+          />
+        ) : (
+          initials
+        )}
+        
+        {/* Video/Audio status icons */}
+        <div style={{
+          position: 'absolute',
+          bottom: '-2px',
+          right: '-2px',
+          display: 'flex',
+          gap: '2px'
+        }}>
+          {showVideoIcon && (
+            <div style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              backgroundColor: '#4CAF50',
+              fontSize: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              📹
+            </div>
+          )}
+          {showAudioIcon && (
+            <div style={{
+              width: '12px',
+              height: '12px',
+              borderRadius: '50%',
+              backgroundColor: '#2196F3',
+              fontSize: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              🎤
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // =========================================================
   //              CHOOSE A USE CASE / COMPONENT
   // =========================================================
   //
@@ -245,6 +562,11 @@ const App = () => {
       updateSourceParameters={!returnUI ? updateSourceParameters : undefined}
       createMediaSFURoom={createRoomOnMediaSFU} // no need to specify if not using custom functions
       joinMediaSFURoom={joinRoomOnMediaSFU} // no need to specify if not using custom functions
+      
+      // Custom card components - uncomment to use
+      customVideoCard={CustomVideoCard}
+      customAudioCard={CustomAudioCard}
+      customMiniCard={CustomMiniCard}
     />
   );
 };
@@ -495,6 +817,73 @@ export default App;
 * ```
 *
 * These methods allow your custom UI to interact with MediaSFU's functionalities seamlessly.
+*
+* ### Custom Card Components
+* You can customize how individual video cards, audio cards, and mini cards are displayed:
+*
+* ```typescript
+* // Custom Video Card - displays video streams with custom styling
+* const CustomVideoCard: CustomVideoCardType = (options) => {
+*   const { participant, stream, width, height, name, showControls } = options;
+*   return <div>Your custom video card layout</div>;
+* };
+*
+* // Custom Audio Card - displays audio participants with custom styling
+* const CustomAudioCard: CustomAudioCardType = (options) => {
+*   const { name, barColor, textColor, imageSource } = options;
+*   return <div>Your custom audio card layout</div>;
+* };
+*
+* // Custom Mini Card - displays small participant cards
+* const CustomMiniCard: CustomMiniCardType = (options) => {
+*   const { initials, name, showVideoIcon, showAudioIcon } = options;
+*   return <div>Your custom mini card layout</div>;
+* };
+*
+* // Use in MediasfuGeneric component
+* <MediasfuGeneric
+*   customVideoCard={CustomVideoCard}
+*   customAudioCard={CustomAudioCard}
+*   customMiniCard={CustomMiniCard}
+*   // ... other props
+* />
+* ```
+*
+* ### Complete UI Replacement
+* For complete UI replacement, set returnUI to false and use sourceParameters:
+*
+* ```
+* const [sourceParameters, setSourceParameters] = useState({});
+* const updateSourceParameters = (data) => setSourceParameters(data);
+*
+* return (
+*   <div>
+*     <MediasfuGeneric
+*       returnUI={false}
+*       noUIPreJoinOptions={noUIPreJoinOptions}
+*       sourceParameters={sourceParameters}
+*       updateSourceParameters={updateSourceParameters}
+*     />
+*     // Your custom UI here
+*     <button onClick={() => sourceParameters.clickVideo?.(sourceParameters)}>
+*       Toggle Video
+*     </button>
+*   </div>
+* );
+* ```
+*
+* ### Container Styling
+* Customize the main container appearance:
+*
+* ```
+* <MediasfuGeneric
+*   containerStyle={{
+*     backgroundColor: '#1a1a1a',
+*     borderRadius: '10px',
+*     border: '2px solid #333'
+*   }}
+* />
+* ```
 *
 * ========================
 * ====== END OF GUIDE ======

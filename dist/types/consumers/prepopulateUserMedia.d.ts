@@ -1,4 +1,5 @@
-import { Participant, Stream, AudioCardParameters, EventType } from "../@types/types";
+import React from "react";
+import { Participant, Stream, AudioCardParameters, EventType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../@types/types";
 export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     participants: Participant[];
     allVideoStreams: (Stream | Participant)[];
@@ -36,6 +37,9 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     updateScreenForceFullDisplay: (force: boolean) => void;
     updateUpdateMainWindow: (update: boolean) => void;
     updateMainGridStream: (components: React.JSX.Element[]) => void;
+    customVideoCard?: CustomVideoCardType;
+    customAudioCard?: CustomAudioCardType;
+    customMiniCard?: CustomMiniCardType;
     getUpdatedAllParams: () => PrepopulateUserMediaParameters;
     [key: string]: any;
 }

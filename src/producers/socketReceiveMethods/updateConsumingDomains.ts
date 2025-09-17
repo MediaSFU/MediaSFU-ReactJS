@@ -88,6 +88,7 @@ export const updateConsumingDomains = async ({
       // Check if alt_domains has keys and remove duplicates
       if (Object.keys(alt_domains).length > 0) {
         await getDomains({ domains, alt_domains, apiUserName, apiKey, apiToken , parameters });
+      } else {
         await connectIps({
           consume_sockets: consume_sockets,
           remIP: domains,

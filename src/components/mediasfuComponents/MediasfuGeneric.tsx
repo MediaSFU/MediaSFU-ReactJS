@@ -264,6 +264,13 @@ import {
 } from "mediasoup-client/lib/types";
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 import { createResponseJoinRoom } from "../../methods/utils/createResponseJoinRoom";
+import {
+  CustomVideoCardType,
+  CustomAudioCardType,
+  CustomMiniCardType,
+  CustomPreJoinPageType,
+  CustomComponentType,
+} from "../../@types/types";
 
 export type MediasfuGenericOptions = {
   PrejoinPage?: (
@@ -282,6 +289,18 @@ export type MediasfuGenericOptions = {
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
   createMediaSFURoom?: CreateRoomOnMediaSFUType;
+  
+  // Custom Component Builders
+  customVideoCard?: CustomVideoCardType;
+  customAudioCard?: CustomAudioCardType;
+  customMiniCard?: CustomMiniCardType;
+  customPreJoinPage?: CustomPreJoinPageType;
+  
+  // Custom Full UI Component
+  customComponent?: CustomComponentType;
+  
+  // Container styling override
+  containerStyle?: React.CSSProperties;
 };
 
 /**
@@ -355,6 +374,12 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
   noUIPreJoinOptions,
   joinMediaSFURoom,
   createMediaSFURoom,
+  customVideoCard,
+  customAudioCard,
+  customMiniCard,
+  customPreJoinPage,
+  customComponent,
+  containerStyle,
 }) => {
 
   const updateStatesToInitialValues = async () => {
@@ -3202,6 +3227,12 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
 
       showAlert,
       getUpdatedAllParams,
+
+      // Custom Component Builders
+      customVideoCard,
+      customAudioCard,
+      customMiniCard,
+      customPreJoinPage,
     };
   };
 
@@ -5001,33 +5032,71 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
         maxWidth: "100vw",
         maxHeight: "100vh",
         overflow: "hidden",
+        ...containerStyle,
       }}
     >
-      {!validated ? (
-        <PrejoinPage
-          parameters={{
-            imgSrc,
-            showAlert,
-            updateIsLoadingModalVisible,
-            connectSocket,
-            connectLocalSocket,
-            updateSocket,
-            updateLocalSocket,
-            updateValidated,
-            updateApiUserName,
-            updateApiToken,
-            updateLink,
-            updateRoomName,
-            updateMember,
-          }}
-          credentials={credentials}
-          localLink={localLink}
-          connectMediaSFU={connectMediaSFU}
-          returnUI={returnUI}
-          noUIPreJoinOptions={noUIPreJoinOptions}
-          joinMediaSFURoom={joinMediaSFURoom}
-          createMediaSFURoom={createMediaSFURoom}
-        />
+      {customComponent && validated ? (
+        React.createElement(customComponent, {
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        })
+      ) : !validated ? (
+        customPreJoinPage ? (
+          React.createElement(
+            customPreJoinPage,
+            {
+              localLink: localLink,
+              connectMediaSFU: connectMediaSFU,
+              parameters: {
+                imgSrc,
+                showAlert,
+                updateIsLoadingModalVisible,
+                connectSocket,
+                connectLocalSocket,
+                updateSocket,
+                updateLocalSocket,
+                updateValidated,
+                updateApiUserName,
+                updateApiToken,
+                updateLink,
+                updateRoomName,
+                updateMember,
+              },
+              credentials: credentials,
+              returnUI: returnUI,
+              noUIPreJoinOptions: noUIPreJoinOptions,
+              createMediaSFURoom: createMediaSFURoom,
+              joinMediaSFURoom: joinMediaSFURoom,
+            }
+          )
+        ) : (
+          <PrejoinPage
+            parameters={{
+              imgSrc,
+              showAlert,
+              updateIsLoadingModalVisible,
+              connectSocket,
+              connectLocalSocket,
+              updateSocket,
+              updateLocalSocket,
+              updateValidated,
+              updateApiUserName,
+              updateApiToken,
+              updateLink,
+              updateRoomName,
+              updateMember,
+            }}
+            credentials={credentials}
+            localLink={localLink}
+            connectMediaSFU={connectMediaSFU}
+            returnUI={returnUI}
+            noUIPreJoinOptions={noUIPreJoinOptions}
+            joinMediaSFURoom={joinMediaSFURoom}
+            createMediaSFURoom={createMediaSFURoom}
+          />
+        )
       ) : returnUI ? (
         <MainContainerComponent>
           {/* Main aspect component containsa ll but the control buttons (as used for webinar and conference) */}
@@ -5255,7 +5324,7 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
         <> </>
       )}
 
-      {returnUI && (
+      {returnUI && !customComponent && (
         <>
           <MenuModal
             backgroundColor="rgba(181, 233, 229, 0.97)"

@@ -1,9 +1,20 @@
+import React from "react";
 import MiniCard from "../components/displayComponents/MiniCard";
 import VideoCard from "../components/displayComponents/VideoCard";
 import AudioCard from "../components/displayComponents/AudioCard";
 // import { RTCView } from "../methods/utils/webrtc/webrtc";
 
-import { Participant, Stream, UpdateMiniCardsGridType, UpdateMiniCardsGridParameters, AudioCardParameters, EventType } from "../@types/types";
+import { 
+  Participant, 
+  Stream, 
+  UpdateMiniCardsGridType, 
+  UpdateMiniCardsGridParameters, 
+  AudioCardParameters, 
+  EventType,
+  CustomVideoCardType,
+  CustomAudioCardType,
+  CustomMiniCardType
+} from "../@types/types";
 
 export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, AudioCardParameters {
   eventType: EventType;
@@ -17,6 +28,11 @@ export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, 
   forceFullDisplay: boolean;
   otherGridStreams: React.JSX.Element[][];
   updateOtherGridStreams: (otherGridStreams: React.JSX.Element[][]) => void;
+
+  // Custom component builders
+  customVideoCard?: CustomVideoCardType;
+  customAudioCard?: CustomAudioCardType;
+  customMiniCard?: CustomMiniCardType;
 
   // mediasfu functions
   updateMiniCardsGrid: UpdateMiniCardsGridType;
@@ -157,7 +173,22 @@ export async function addVideosGrid({
       remoteProducerId = participant.name;
 
       if (participant.audioID) {
-        newComponents[0].push(
+        const audioCardComponent = parameters.customAudioCard ? 
+          React.createElement(parameters.customAudioCard as any, {
+            key: `audio-${participant.id}`,
+            name: participant.name || "",
+            barColor: "red",
+            textColor: "white",
+            customStyle: { backgroundColor: "transparent",
+              border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black' },
+            controlsPosition: "topLeft",
+            infoPosition: "topRight",
+            roundedImage: true,
+            parameters: parameters,
+            backgroundColor: "transparent",
+            showControls: eventType !== "chat",
+            participant: participant,
+          }) : (
           <AudioCard
             key={`audio-${participant.id}`}
             name={participant.name || ""}
@@ -174,8 +205,19 @@ export async function addVideosGrid({
             participant={participant}
           />
         );
+
+        newComponents[0].push(audioCardComponent);
       } else {
-        newComponents[0].push(
+        const miniCardComponent = parameters.customMiniCard ? 
+          React.createElement(parameters.customMiniCard as any, {
+            key: `mini-${participant.id}`,
+            initials: participant.name,
+            fontSize: 20,
+            customStyle: {
+              backgroundColor: "transparent",
+              border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black'
+            },
+          }) : (
           <MiniCard
             key={`mini-${participant.id}`}
             initials={participant.name}
@@ -186,6 +228,8 @@ export async function addVideosGrid({
             }}
           />
         );
+
+        newComponents[0].push(miniCardComponent);
       }
     } else {
       if (remoteProducerId === "youyou" || remoteProducerId === "youyouyou") {
@@ -195,7 +239,16 @@ export async function addVideosGrid({
         }
 
         if (!videoAlreadyOn) {
-          newComponents[0].push(
+          const miniCardComponent = parameters.customMiniCard ? 
+            React.createElement(parameters.customMiniCard as any, {
+              key: `mini-you`,
+              initials: name,
+              fontSize: 20,
+              customStyle: {
+                backgroundColor: "transparent",
+                border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black'
+              },
+            }) : (
             <MiniCard
               key={`mini-you`}
               initials={name}
@@ -206,6 +259,8 @@ export async function addVideosGrid({
               }}
             />
           );
+
+          newComponents[0].push(miniCardComponent);
         } else {
           participant = {
             id: "youyouyou",
@@ -216,7 +271,24 @@ export async function addVideosGrid({
             name: "youyouyou",
           };
 
-          newComponents[0].push(
+          const videoCardComponent = parameters.customVideoCard ? 
+            React.createElement(parameters.customVideoCard as any, {
+              key: `video-you`,
+              videoStream: participant.stream || new MediaStream(),
+              remoteProducerId: participant.stream?.id || "",
+              eventType: eventType,
+              forceFullDisplay: eventType === "webinar" ? false : forceFullDisplay,
+              customStyle: {
+                border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black'
+              },
+              participant: participant,
+              backgroundColor: "transparent",
+              showControls: false,
+              showInfo: false,
+              name: participant.name,
+              doMirror: true,
+              parameters: parameters,
+            }) : (
             <VideoCard
               key={`video-you`}
               videoStream={participant.stream || new MediaStream()}
@@ -237,13 +309,32 @@ export async function addVideosGrid({
               parameters={parameters}
             />
           );
+
+          newComponents[0].push(videoCardComponent);
         }
       } else {
         const participant_ = ref_participants.find(
           (obj: Participant) => obj.videoID === remoteProducerId
         );
         if (participant_) {
-          newComponents[0].push(
+          const videoCardComponent = parameters.customVideoCard ? 
+            React.createElement(parameters.customVideoCard as any, {
+              key: `video-${participant_.id}`,
+              videoStream: participant.stream || new MediaStream(),
+              remoteProducerId: remoteProducerId || "",
+              eventType: eventType,
+              forceFullDisplay: forceFullDisplay,
+              customStyle: {
+                border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black'
+              },
+              participant: participant_,
+              backgroundColor: "transparent",
+              showControls: eventType !== "chat",
+              showInfo: true,
+              name: participant_.name || "",
+              doMirror: false,
+              parameters: parameters,
+            }) : (
             <VideoCard
               key={`video-${participant_.id}`}
               videoStream={participant.stream || new MediaStream()}
@@ -262,6 +353,8 @@ export async function addVideosGrid({
               parameters={parameters}
             />
           );
+
+          newComponents[0].push(videoCardComponent);
         }
       }
     }
@@ -299,7 +392,22 @@ export async function addVideosGrid({
 
       if (pseudoName) {
         if (participant.audioID) {
-          newComponents[1].push(
+          const audioCardComponent = parameters.customAudioCard ? 
+            React.createElement(parameters.customAudioCard as any, {
+              key: `audio-alt-${participant.id}`,
+              name: participant.name,
+              barColor: "red",
+              textColor: "white",
+              customStyle: { backgroundColor: "transparent",
+                border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black' },
+              controlsPosition: "topLeft",
+              infoPosition: "topRight",
+              roundedImage: true,
+              parameters: parameters,
+              backgroundColor: "transparent",
+              showControls: eventType !== "chat",
+              participant: participant,
+            }) : (
             <AudioCard
               key={`audio-alt-${participant.id}`}
               name={participant.name}
@@ -316,8 +424,19 @@ export async function addVideosGrid({
               participant={participant}
             />
           );
+
+          newComponents[1].push(audioCardComponent);
         } else {
-          newComponents[1].push(
+          const miniCardComponent = parameters.customMiniCard ? 
+            React.createElement(parameters.customMiniCard as any, {
+              key: `mini-alt-${participant.id}`,
+              initials: participant.name,
+              fontSize: 20,
+              customStyle: {
+                backgroundColor: "transparent",
+                border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black'
+              },
+            }) : (
             <MiniCard
               key={`mini-alt-${participant.id}`}
               initials={participant.name}
@@ -328,13 +447,32 @@ export async function addVideosGrid({
               }}
             />
           );
+
+          newComponents[1].push(miniCardComponent);
         }
       } else {
         const participant_ = ref_participants.find(
           (obj: Participant) => obj.videoID === remoteProducerId
         );
         if (participant_) {
-          newComponents[1].push(
+          const videoCardComponent = parameters.customVideoCard ? 
+            React.createElement(parameters.customVideoCard as any, {
+              key: `video-alt-${participant_.id}`,
+              videoStream: participant.stream || new MediaStream(),
+              remoteProducerId: remoteProducerId || "",
+              eventType: eventType,
+              forceFullDisplay: forceFullDisplay,
+              customStyle: {
+                border: eventType !== 'broadcast' ? '2px solid black' : '0px solid black'
+              },
+              participant: participant_,
+              backgroundColor: "transparent",
+              showControls: eventType !== "chat",
+              showInfo: true,
+              name: participant.name,
+              doMirror: false,
+              parameters: parameters,
+            }) : (
             <VideoCard
               key={`video-alt-${participant_.id}`}
               videoStream={participant.stream || new MediaStream()}
@@ -353,6 +491,8 @@ export async function addVideosGrid({
               parameters={parameters}
             />
           );
+
+          newComponents[1].push(videoCardComponent);
         }
       }
 

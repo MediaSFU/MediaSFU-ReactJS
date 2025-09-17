@@ -776,4 +776,63 @@ export type CreateWebRTCTransportResponse = {
   error?: string;
 };
 
+// Custom Component Builder Types
+export interface CustomVideoCardOptions {
+  participant: Participant;
+  stream: MediaStream | null;
+  width: number;
+  height: number;
+  imageSize?: number;
+  doMirror?: string;
+  showControls?: boolean;
+  showInfo?: boolean;
+  name?: string;
+  backgroundColor?: string;
+  onVideoPress?: () => void;
+  parameters?: any;
+}
+
+export interface CustomAudioCardOptions {
+  name: string;
+  barColor: boolean;
+  textColor: string;
+  imageSource: string;
+  roundedImage: boolean;
+  imageStyle: React.CSSProperties;
+  parameters?: any;
+}
+
+export interface CustomMiniCardOptions {
+  initials: string;
+  fontSize: string;
+  customStyle?: boolean;
+  name: string;
+  showVideoIcon: boolean;
+  showAudioIcon: boolean;
+  imageSource: string;
+  roundedImage: boolean;
+  imageStyle: React.CSSProperties;
+  parameters?: any;
+}
+
+export interface CustomPreJoinPageOptions {
+  localLink?: string;
+  connectMediaSFU?: boolean;
+  parameters: any;
+  credentials?: { apiUserName: string; apiKey: string };
+  returnUI?: boolean;
+  noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+  createMediaSFURoom?: any;
+  joinMediaSFURoom?: any;
+}
+
+// Custom Component Builder Function Types
+export type CustomVideoCardType = (options: CustomVideoCardOptions) => React.JSX.Element;
+export type CustomAudioCardType = (options: CustomAudioCardOptions) => React.JSX.Element;
+export type CustomMiniCardType = (options: CustomMiniCardOptions) => React.JSX.Element;
+export type CustomPreJoinPageType = (options: CustomPreJoinPageOptions) => React.JSX.Element;
+
+// Custom Full UI Component Type
+export type CustomComponentType = React.FC<{ parameters: any }>;
+
 

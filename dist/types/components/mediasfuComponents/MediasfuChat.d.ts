@@ -1,7 +1,7 @@
 import React from "react";
 import './MediasfuCSS.css';
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
+import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../../@types/types";
 export type MediasfuChatOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -24,6 +24,11 @@ export type MediasfuChatOptions = {
     noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
     joinMediaSFURoom?: JoinRoomOnMediaSFUType;
     createMediaSFURoom?: CreateRoomOnMediaSFUType;
+    customComponent?: CustomComponentType;
+    customVideoCard?: CustomVideoCardType;
+    customAudioCard?: CustomAudioCardType;
+    customMiniCard?: CustomMiniCardType;
+    containerStyle?: React.CSSProperties;
 };
 /**
  * MediasfuChat component optimizes the media experience for chatting events.
@@ -47,6 +52,10 @@ export type MediasfuChatOptions = {
  * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
  * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
  * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
+ * @property {CustomComponentType} [customComponent] - Custom component to replace the entire MediaSFU UI.
+ * @property {VideoCardType} [VideoCard] - Custom video card component for rendering video streams.
+ * @property {AudioCardType} [AudioCard] - Custom audio card component for rendering audio streams.
+ * @property {MiniCardType} [MiniCard] - Custom mini card component for rendering minimized streams.
  *
  * MediasfuGeneric component.
  *

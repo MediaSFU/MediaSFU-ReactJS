@@ -192,6 +192,10 @@ import {
   JoinMediaSFURoomOptions,
   JoinRoomOnMediaSFUType,
   CreateRoomOnMediaSFUType,
+  CustomComponentType,
+  CustomVideoCardType,
+  CustomAudioCardType,
+  CustomMiniCardType,
 } from "../../@types/types";
 import {
   Device,
@@ -220,6 +224,11 @@ export type MediasfuBroadcastOptions = {
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
   createMediaSFURoom?: CreateRoomOnMediaSFUType;
+  customComponent?: CustomComponentType;
+  customVideoCard?: CustomVideoCardType;
+  customAudioCard?: CustomAudioCardType;
+  customMiniCard?: CustomMiniCardType;
+  containerStyle?: React.CSSProperties;
 };
 
 /**
@@ -244,6 +253,8 @@ export type MediasfuBroadcastOptions = {
  * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
  * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
  * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
+ * @property {CustomComponentType} [customComponent] - Custom component to replace the entire MediaSFU UI.
+ * @property {React.CSSProperties} [containerStyle] - Custom styles to override the default container styling.
  *
  * MediasfuBroadcast component.
  *
@@ -268,6 +279,7 @@ export type MediasfuBroadcastOptions = {
  *   noUIPreJoinOptions={customPreJoinOptions}
  *   joinMediaSFURoom={joinRoomOnMediaSFU}
  *   createMediaSFURoom={createRoomOnMediaSFU}
+ *   customComponent={CustomBroadcastComponent}
  * />
  * ```
  *
@@ -294,6 +306,11 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
   noUIPreJoinOptions,
   joinMediaSFURoom,
   createMediaSFURoom,
+  customComponent,
+  customVideoCard,
+  customAudioCard,
+  customMiniCard,
+  containerStyle,
 }) => {
   const updateStatesToInitialValues = async () => {
     const initialValues = initialValuesState as { [key: string]: any };
@@ -3071,6 +3088,11 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
 
       showAlert,
       getUpdatedAllParams,
+
+      // Custom Component Builders
+      customVideoCard,
+      customAudioCard,
+      customMiniCard,
     };
   };
 
@@ -4217,9 +4239,17 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
         maxWidth: "100vw",
         maxHeight: "100vh",
         overflow: "hidden",
+        ...containerStyle,
       }}
     >
-      {!validated ? (
+      {customComponent ? (
+        React.createElement(customComponent, {
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        })
+      ) : !validated ? (
         <PrejoinPage
           parameters={{
             imgSrc,
@@ -4343,7 +4373,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
         <></>
       )}
 
-      {returnUI && (
+      {returnUI && !customComponent && (
         <>
           <ParticipantsModal
             backgroundColor="rgba(217, 227, 234, 0.99)"

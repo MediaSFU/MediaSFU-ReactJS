@@ -269,6 +269,73 @@ export default App;
 *
 * These methods allow your custom UI to interact with MediaSFU's functionalities seamlessly.
 *
+* ### Custom Card Components
+* You can customize how individual video cards, audio cards, and mini cards are displayed:
+*
+* ```typescript
+* // Custom Video Card - displays video streams with custom styling
+* const CustomVideoCard: CustomVideoCardType = (options) => {
+*   const { participant, stream, width, height, name, showControls } = options;
+*   return <div>Your custom video card layout</div>;
+* };
+*
+* // Custom Audio Card - displays audio participants with custom styling
+* const CustomAudioCard: CustomAudioCardType = (options) => {
+*   const { name, barColor, textColor, imageSource } = options;
+*   return <div>Your custom audio card layout</div>;
+* };
+*
+* // Custom Mini Card - displays small participant cards
+* const CustomMiniCard: CustomMiniCardType = (options) => {
+*   const { initials, name, showVideoIcon, showAudioIcon } = options;
+*   return <div>Your custom mini card layout</div>;
+* };
+*
+* // Use in MediasfuGeneric component
+* <MediasfuGeneric
+*   customVideoCard={CustomVideoCard}
+*   customAudioCard={CustomAudioCard}
+*   customMiniCard={CustomMiniCard}
+*   // ... other props
+* />
+* ```
+*
+* ### Complete UI Replacement
+* For complete UI replacement, set returnUI to false and use sourceParameters:
+*
+* ```
+* const [sourceParameters, setSourceParameters] = useState({});
+* const updateSourceParameters = (data) => setSourceParameters(data);
+*
+* return (
+*   <div>
+*     <MediasfuGeneric
+*       returnUI={false}
+*       noUIPreJoinOptions={noUIPreJoinOptions}
+*       sourceParameters={sourceParameters}
+*       updateSourceParameters={updateSourceParameters}
+*     />
+*     // Your custom UI here
+*     <button onClick={() => sourceParameters.clickVideo?.(sourceParameters)}>
+*       Toggle Video
+*     </button>
+*   </div>
+* );
+* ```
+*
+* ### Container Styling
+* Customize the main container appearance:
+*
+* ```
+* <MediasfuGeneric
+*   containerStyle={{
+*     backgroundColor: '#1a1a1a',
+*     borderRadius: '10px',
+*     border: '2px solid #333'
+*   }}
+* />
+* ```
+*
 * ========================
 * ====== END OF GUIDE ======
 * ========================

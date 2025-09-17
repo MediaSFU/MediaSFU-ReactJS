@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react/prop-types */
 /**
  * MediaSFU Component Configuration and Usage Guide
  *
@@ -7,6 +8,9 @@
  * 2. Handling API credentials securely depending on whether you use MediaSFU Cloud or your own MediaSFU CE server.
  * 3. Rendering custom UIs by disabling the default MediaSFU UI.
  * 4. Using custom "create room" and "join room" functions for secure, flexible integration.
+ * 5. NEW: Using customComponent for complete UI replacement
+ * 6. NEW: Using custom video/audio/mini cards for display customization
+ * 7. NEW: Using containerStyle for CSS customization
  *
  * Note: All guide instructions are provided as code comments. They will not render to the user directly.
  */
@@ -22,16 +26,181 @@ import MediasfuConference from './components/mediasfuComponents/MediasfuConferen
 // Pre-Join Page component (if you choose to use it)
 import PreJoinPage from './components/miscComponents/PreJoinPage';
 
-// Utilities for seed data (deprecated - do not use in new code)
-import { generateRandomParticipants } from './methods/utils/generateRandomParticipants';
-import { generateRandomMessages } from './methods/utils/generateRandomMessages';
-import { generateRandomRequestList } from './methods/utils/generateRandomRequestList';
-import { generateRandomWaitingRoomList } from './methods/utils/generateRandomWaitingRoomList';
-
 // Import custom "create" and "join" room functions
 import { createRoomOnMediaSFU } from './methods/utils/createRoomOnMediaSFU';
 import { joinRoomOnMediaSFU } from './methods/utils/joinRoomOnMediaSFU';
-import { CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from './@types/types';
+import { CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from './@types/types';
+
+// Example Custom Components for demonstration
+const CustomMainComponent: CustomComponentType = ({ parameters }) => {
+  // This completely replaces the entire MediaSFU UI
+  // You have access to all MediaSFU parameters and functions
+  const { participants, roomName, islevel, showAlert } = parameters;
+  
+  return (
+    <div style={{ 
+      height: '100vh', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      justifyContent: 'center',
+      backgroundColor: '#f0f0f0',
+      fontFamily: 'Arial, sans-serif'
+    }}>
+      <h1 style={{ color: '#333', marginBottom: '20px' }}>My Custom MediaSFU Interface</h1>
+      <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
+        <p><strong>Room:</strong> {roomName}</p>
+        <p><strong>Your Level:</strong> {islevel}</p>
+        <p><strong>Participants:</strong> {participants?.length || 0}</p>
+        <button 
+          onClick={() => showAlert?.({ message: 'Hello from custom UI!', type: 'success' })}
+          style={{ 
+            padding: '10px 20px', 
+            backgroundColor: '#007bff', 
+            color: 'white', 
+            border: 'none', 
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginTop: '10px'
+          }}
+        >
+          Show Alert
+        </button>
+      </div>
+      <p style={{ marginTop: '20px', color: '#666' }}>
+        This is a completely custom UI that replaces the entire MediaSFU interface.
+        You have full control over the layout and functionality.
+      </p>
+    </div>
+  );
+};
+
+// Example Custom Video Card
+const CustomVideoCard: CustomVideoCardType = ({ participant, stream, width, height, name, backgroundColor }) => {
+  return (
+    <div style={{
+      width: width || '100%',
+      height: height || '100%',
+      border: '3px solid #007bff',
+      borderRadius: '15px',
+      overflow: 'hidden',
+      position: 'relative',
+      backgroundColor: backgroundColor || '#000'
+    }}>
+      {/* Video element using the stream */}
+      {stream && (
+        <video
+          ref={(video) => {
+            if (video && stream) {
+              video.srcObject = stream;
+              video.play().catch(() => {});
+            }
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover'
+          }}
+          autoPlay
+          muted={participant?.muted || false}
+          playsInline
+        />
+      )}
+      <div style={{
+        position: 'absolute',
+        bottom: '10px',
+        left: '10px',
+        background: 'rgba(0, 123, 255, 0.8)',
+        color: 'white',
+        padding: '5px 10px',
+        borderRadius: '20px',
+        fontSize: '12px',
+        fontWeight: 'bold'
+      }}>
+        🎥 {name || participant.name}
+      </div>
+    </div>
+  );
+};
+
+// Example Custom Audio Card
+const CustomAudioCard: CustomAudioCardType = ({ name, barColor, textColor, imageSource, roundedImage, imageStyle }) => {
+  return (
+    <div style={{
+      width: '100%',
+      height: '100%',
+      border: `2px solid ${barColor ? '#28a745' : '#ccc'}`,
+      borderRadius: roundedImage ? '50%' : '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#e8f5e8',
+      flexDirection: 'column',
+      ...imageStyle
+    }}>
+      {imageSource ? (
+        <img 
+          src={imageSource} 
+          alt={name}
+          style={{
+            width: '30px',
+            height: '30px',
+            borderRadius: roundedImage ? '50%' : '4px',
+            marginBottom: '5px'
+          }}
+        />
+      ) : (
+        <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎵</div>
+      )}
+      <div style={{ 
+        fontSize: '12px', 
+        fontWeight: 'bold', 
+        color: textColor || '#28a745' 
+      }}>
+        {name}
+      </div>
+    </div>
+  );
+};
+
+// Example Custom Mini Card
+const CustomMiniCard: CustomMiniCardType = ({ name, initials, fontSize, imageSource, roundedImage, imageStyle, showVideoIcon, showAudioIcon }) => {
+  return (
+    <div style={{
+      width: '100%',
+      height: '100%',
+      border: '2px solid #ffc107',
+      borderRadius: roundedImage ? '50%' : '8px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#fff8dc',
+      fontSize: fontSize || '10px',
+      fontWeight: 'bold',
+      color: '#856404',
+      flexDirection: 'column',
+      ...imageStyle
+    }}>
+      {imageSource ? (
+        <img 
+          src={imageSource} 
+          alt={name}
+          style={{
+            width: '20px',
+            height: '20px',
+            borderRadius: roundedImage ? '50%' : '2px',
+            marginBottom: '2px'
+          }}
+        />
+      ) : (
+        <div>⭐ {initials}</div>
+      )}
+      <div style={{ fontSize: '8px', marginTop: '2px' }}>{name}</div>
+      {showVideoIcon && <span style={{ fontSize: '8px' }}>📹</span>}
+      {showAudioIcon && <span style={{ fontSize: '8px' }}>🎤</span>}
+    </div>
+  );
+};
 
 /**
  * App Component
@@ -118,6 +287,28 @@ const App = () => {
   const updateSourceParameters = (data: { [key: string]: any }) => {
     setSourceParameters(data);
   };
+
+  // =========================================================
+  //              NEW: CUSTOMIZATION OPTIONS
+  // =========================================================
+  //
+  // MediaSFU now supports three levels of customization:
+  //
+  // 1. **Custom Cards**: Replace individual video/audio/mini cards with your own components
+  //    - customVideoCard: Custom component for rendering video participants
+  //    - customAudioCard: Custom component for rendering audio-only participants  
+  //    - customMiniCard: Custom component for rendering minimized participants
+  //
+  // 2. **Custom Component**: Completely replace the entire MediaSFU UI
+  //    - customComponent: Your own React component that receives all MediaSFU parameters
+  //    - When used, all default UI (including modals) is replaced with your component
+  //
+  // 3. **Container Styling**: Customize the root container styles
+  //    - containerStyle: React.CSSProperties object to override default container styling
+  //
+  // Examples:
+  //   customVideoCard={MyVideoComponent}     // Custom video rendering
+  //   customAudioCard={MyAudioComponent}     // Custom audio-only rendering
 
   // =========================================================
   //                CUSTOM ROOM FUNCTIONS (OPTIONAL)
@@ -231,10 +422,21 @@ const App = () => {
   //   />
 
 
+//   customAudioCard={CustomAudioCard}  // Custom audio card component
+  //   customMiniCard={CustomMiniCard}    // Custom mini card component
+  //   customComponent={CustomMainComponent} // Complete UI replacement
+  //   containerStyle={{ backgroundColor: '#f5f5f5' }} // Custom container styling
+  //   />
+
+  // =========================================================
+  //                    RENDERING EXAMPLES
+  // =========================================================
+  //
+  // Choose one of the following examples based on your needs:
+
+  // Example 1: Standard MediaSFU with default UI
   return (
     <MediasfuGeneric
-      // This pre-join page can be displayed if `returnUI` is true.
-      // If `returnUI` is false, `noUIPreJoinOptions` is used as a substitute.
       PrejoinPage={(options) => <PreJoinPage {...options} />}
       credentials={credentials}
       localLink={localLink}
@@ -243,10 +445,70 @@ const App = () => {
       noUIPreJoinOptions={!returnUI ? noUIPreJoinOptions : undefined}
       sourceParameters={!returnUI ? sourceParameters : undefined}
       updateSourceParameters={!returnUI ? updateSourceParameters : undefined}
-      createMediaSFURoom={createRoomOnMediaSFU} // no need to specify if not using custom functions
-      joinMediaSFURoom={joinRoomOnMediaSFU} // no need to specify if not using custom functions
+      createMediaSFURoom={createRoomOnMediaSFU}
+      joinMediaSFURoom={joinRoomOnMediaSFU}
     />
   );
+
+  // Example 2: Custom Video/Audio/Mini Cards (Uncomment to use)
+  // return (
+  //   <MediasfuGeneric
+  //     PrejoinPage={(options) => <PreJoinPage {...options} />}
+  //     credentials={credentials}
+  //     localLink={localLink}
+  //     connectMediaSFU={connectMediaSFU}
+  //     customVideoCard={CustomVideoCard}
+  //     customAudioCard={CustomAudioCard}
+  //     customMiniCard={CustomMiniCard}
+  //     containerStyle={{ 
+  //       backgroundColor: '#f8f9fa',
+  //       fontFamily: 'Arial, sans-serif'
+  //     }}
+  //     createMediaSFURoom={createRoomOnMediaSFU}
+  //     joinMediaSFURoom={joinRoomOnMediaSFU}
+  //   />
+  // );
+
+  // Example 3: Complete Custom UI Replacement (Uncomment to use)
+  // return (
+  //   <MediasfuGeneric
+  //     credentials={credentials}
+  //     localLink={localLink}
+  //     connectMediaSFU={connectMediaSFU}
+  //     customComponent={CustomMainComponent}
+  //     createMediaSFURoom={createRoomOnMediaSFU}
+  //     joinMediaSFURoom={joinRoomOnMediaSFU}
+  //   />
+  // );
+
+  // Example 4: No UI Mode with Custom Backend (Uncomment to use)
+  // return (
+  //   <MediasfuGeneric
+  //     credentials={credentials}
+  //     localLink={localLink}
+  //     connectMediaSFU={connectMediaSFU}
+  //     returnUI={false}
+  //     noUIPreJoinOptions={noUIPreJoinOptions}
+  //     sourceParameters={sourceParameters}
+  //     updateSourceParameters={updateSourceParameters}
+  //     createMediaSFURoom={createRoomOnMediaSFU}
+  //     joinMediaSFURoom={joinRoomOnMediaSFU}
+  //   />
+  // );
+
+  // Example 5: Different Event Types (Uncomment to use)
+  // return (
+  //   <MediasfuWebinar
+  //     credentials={credentials}
+  //     localLink={localLink}
+  //     connectMediaSFU={connectMediaSFU}
+  //     customVideoCard={CustomVideoCard}
+  //     customAudioCard={CustomAudioCard}
+  //     customMiniCard={CustomMiniCard}
+  //     createMediaSFURoom={createRoomOnMediaSFU}
+  //     joinMediaSFURoom={joinRoomOnMediaSFU}
+  //   />
+  // );
 };
 
 export default App;

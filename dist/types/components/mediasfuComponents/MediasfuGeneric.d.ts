@@ -2,6 +2,7 @@ import React from "react";
 import './MediasfuCSS.css';
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
 import { SeedData, PreJoinPageOptions, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
+import { CustomVideoCardType, CustomAudioCardType, CustomMiniCardType, CustomPreJoinPageType, CustomComponentType } from "../../@types/types";
 export type MediasfuGenericOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -24,6 +25,12 @@ export type MediasfuGenericOptions = {
     noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
     joinMediaSFURoom?: JoinRoomOnMediaSFUType;
     createMediaSFURoom?: CreateRoomOnMediaSFUType;
+    customVideoCard?: CustomVideoCardType;
+    customAudioCard?: CustomAudioCardType;
+    customMiniCard?: CustomMiniCardType;
+    customPreJoinPage?: CustomPreJoinPageType;
+    customComponent?: CustomComponentType;
+    containerStyle?: React.CSSProperties;
 };
 /**
  * MediasfuGeneric component provides and combines the generic functionalities for MediaSFU.

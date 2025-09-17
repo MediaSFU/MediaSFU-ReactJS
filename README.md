@@ -70,6 +70,7 @@ MediaSFU offers a cutting-edge streaming experience that empowers users to custo
 - [Features](#features)
 - [Getting Started](#getting-started)
 - [Basic Usage Guide](#basic-usage-guide)
+- [UI Customization Guide](#ui-customization-guide)
 - [Intermediate Usage Guide](#intermediate-usage-guide)
 - [Advanced Usage Guide](#advanced-usage-guide)
 - [API Reference](#api-reference)
@@ -156,7 +157,7 @@ npm install \
 "@fortawesome/react-fontawesome@^0.2.2" \
 "@mediapipe/selfie_segmentation@0.1.1675465747" \
 "bootstrap@^5.3.3" \
-"mediasoup-client@^3.15.6" \
+"mediasoup-client@^3.16.0" \
 "react@^19.0.0" \
 "react-dom@^19.0.0" \
 "socket.io-client@4.8.0" \
@@ -180,7 +181,7 @@ npm install \
     "@fortawesome/react-fontawesome": "^0.2.2",
     "@mediapipe/selfie_segmentation": "0.1.1675465747",
     "bootstrap": "^5.3.3",
-    "mediasoup-client": "^3.15.6",
+    "mediasoup-client": "^3.16.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "socket.io-client": "4.8.0",
@@ -263,6 +264,65 @@ const App = () => {
 
 export default App;
 ```
+
+## Quick Customization (Dead Simple!)
+
+Want to customize your MediaSFU experience? Here are three **super easy** approaches:
+
+### 🎨 **Custom Styling (2 lines of code)**
+```javascript
+<MediasfuGeneric 
+  containerStyle={{ backgroundColor: '#1a1a2e', borderRadius: '15px' }} 
+/>
+```
+
+### 🖼️ **Custom Video Cards (Replace how videos look)**
+```javascript
+const MyVideoCard = ({ stream, name }) => (
+  <div style={{ border: '3px solid #00ff88', borderRadius: '10px' }}>
+    <video ref={video => {
+      if (video && stream) {
+        video.srcObject = stream;
+        video.play();
+      }
+    }} style={{ width: '100%' }} autoPlay muted />
+    <div style={{ background: '#00ff88', color: 'black', padding: '5px' }}>
+      {name} ✨
+    </div>
+  </div>
+);
+
+<MediasfuGeneric customVideoCard={MyVideoCard} />
+```
+
+### 🔧 **Complete Custom UI (Your own interface)**
+```javascript
+const App = () => {
+  const [mediasfuFunctions, setMediasfuFunctions] = useState({});
+  
+  return (
+    <div>
+      <MediasfuGeneric 
+        returnUI={false}
+        noUIPreJoinOptions={{ action: 'create', userName: 'Me', capacity: 10, duration: 30, eventType: 'conference' }}
+        updateSourceParameters={setMediasfuFunctions}
+      />
+      
+      {/* Your completely custom UI */}
+      <button onClick={() => mediasfuFunctions.clickVideo?.(mediasfuFunctions)}>
+        Toggle My Video
+      </button>
+      <button onClick={() => mediasfuFunctions.clickAudio?.(mediasfuFunctions)}>
+        Toggle My Audio  
+      </button>
+    </div>
+  );
+};
+```
+
+That's it! **No complex setup, no config files** - just pass a prop and customize away. 🚀
+
+---
 
 ### Programmatically Fetching Tokens  
 
@@ -1687,6 +1747,204 @@ If users experience responsiveness issues, whether during local development or i
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
 ```
+
+
+
+
+# UI Customization Guide <a name="ui-customization-guide"></a>
+
+MediaSFU provides **three simple approaches** for customizing your event room UI. Choose the level of customization that fits your needs:
+
+## 🎨 **Dead Simple UI Customization**
+
+### **1. No UI Mode (`returnUI: false`)**
+**Perfect for:** Complete custom interfaces, dashboard integration, or when you want total control.
+
+```javascript
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+
+const App = () => {
+  const [sourceParameters, setSourceParameters] = useState({});
+  
+  const updateSourceParameters = (data) => {
+    setSourceParameters(data);
+  };
+
+  return (
+    <div>
+      <MediasfuGeneric
+        returnUI={false}
+        noUIPreJoinOptions={{
+          action: 'create',
+          capacity: 10,
+          duration: 15,
+          eventType: 'broadcast',
+          userName: 'YourName'
+        }}
+        sourceParameters={sourceParameters}
+        updateSourceParameters={updateSourceParameters}
+      />
+      
+      {/* Your completely custom UI */}
+      <div className="my-custom-interface">
+        <button onClick={() => sourceParameters.clickVideo?.(sourceParameters)}>
+          Toggle Video
+        </button>
+        <button onClick={() => sourceParameters.clickAudio?.(sourceParameters)}>
+          Toggle Audio
+        </button>
+        {/* Access any MediaSFU function through sourceParameters */}
+      </div>
+    </div>
+  );
+};
+```
+
+### **2. Custom Card Components**
+**Perfect for:** Keeping MediaSFU's layout but styling individual video/audio cards your way.
+
+```javascript
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+
+const CustomVideoCard = (options) => {
+  const { participant, stream, width, height, name } = options;
+  
+  return (
+    <div style={{
+      borderRadius: '15px',
+      border: '3px solid #00ff88',
+      overflow: 'hidden',
+      background: 'linear-gradient(45deg, #1a1a1a, #2d2d2d)'
+    }}>
+      {stream && (
+        <video
+          ref={(video) => {
+            if (video && stream) {
+              video.srcObject = stream;
+              video.play().catch(() => {});
+            }
+          }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          autoPlay
+          muted={participant?.muted}
+          playsInline
+        />
+      )}
+      <div style={{
+        position: 'absolute',
+        bottom: '10px',
+        left: '10px',
+        background: 'rgba(0,255,136,0.8)',
+        padding: '5px 10px',
+        borderRadius: '20px',
+        color: 'black',
+        fontWeight: 'bold'
+      }}>
+        {name} ✨
+      </div>
+    </div>
+  );
+};
+
+const App = () => {
+  return (
+    <MediasfuGeneric
+      customVideoCard={CustomVideoCard}
+      // Optional: also customize audio cards and mini cards
+      // customAudioCard={YourCustomAudioCard}
+      // customMiniCard={YourCustomMiniCard}
+    />
+  );
+};
+```
+
+### **3. Container Styling**
+**Perfect for:** Quick theming and brand colors without touching individual components.
+
+```javascript
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+
+const App = () => {
+  return (
+    <MediasfuGeneric
+      containerStyle={{
+        backgroundColor: '#1a0033',  // Dark purple background
+        borderRadius: '20px',
+        border: '2px solid #00ff88',
+        boxShadow: '0 8px 32px rgba(0,255,136,0.3)'
+      }}
+    />
+  );
+};
+```
+
+## 🚀 **Why This Is Dead Simple**
+
+- **Option 1 (No UI)**: One prop (`returnUI: false`) gives you complete control
+- **Option 2 (Custom Cards)**: Just pass your component to `customVideoCard` - no complex setup
+- **Option 3 (Container Style)**: Standard React CSS properties - style like any div
+
+No configuration files, no build steps, no complex APIs. Just React components working exactly how you'd expect.
+
+## 📱 **Real-World Example: WhatsApp-Style Video Call**
+
+```javascript
+const WhatsAppStyleCall = () => {
+  const [sourceParameters, setSourceParameters] = useState({});
+  
+  const WhatsAppVideoCard = (options) => {
+    const { stream, name } = options;
+    return (
+      <div style={{
+        borderRadius: '12px',
+        overflow: 'hidden',
+        backgroundColor: '#202c33',
+        position: 'relative'
+      }}>
+        {stream && (
+          <video
+            ref={(video) => {
+              if (video && stream) {
+                video.srcObject = stream;
+                video.play().catch(() => {});
+              }
+            }}
+            style={{ width: '100%', height: '100%' }}
+            autoPlay
+            muted
+            playsInline
+          />
+        )}
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          left: '12px',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          color: '#fff',
+          padding: '4px 8px',
+          borderRadius: '6px',
+          fontSize: '12px'
+        }}>
+          {name}
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <MediasfuGeneric
+      customVideoCard={WhatsAppVideoCard}
+      containerStyle={{
+        backgroundColor: '#0b141a',
+        fontFamily: 'system-ui, -apple-system, sans-serif'
+      }}
+      updateSourceParameters={setSourceParameters}
+    />
+  );
+};
+```
+
+That's it! MediaSFU handles all the complex WebRTC, room management, and real-time features while you focus on making it look exactly how you want.
 
 
 

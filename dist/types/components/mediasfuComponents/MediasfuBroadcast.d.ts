@@ -1,7 +1,7 @@
 import React from "react";
 import './MediasfuCSS.css';
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
+import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../../@types/types";
 export type MediasfuBroadcastOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -24,6 +24,11 @@ export type MediasfuBroadcastOptions = {
     noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
     joinMediaSFURoom?: JoinRoomOnMediaSFUType;
     createMediaSFURoom?: CreateRoomOnMediaSFUType;
+    customComponent?: CustomComponentType;
+    customVideoCard?: CustomVideoCardType;
+    customAudioCard?: CustomAudioCardType;
+    customMiniCard?: CustomMiniCardType;
+    containerStyle?: React.CSSProperties;
 };
 /**
  * MediasfuBroadcast component optimizes the media experience for broadcasting events.
@@ -47,6 +52,8 @@ export type MediasfuBroadcastOptions = {
  * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
  * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
  * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
+ * @property {CustomComponentType} [customComponent] - Custom component to replace the entire MediaSFU UI.
+ * @property {React.CSSProperties} [containerStyle] - Custom styles to override the default container styling.
  *
  * MediasfuBroadcast component.
  *
@@ -71,6 +78,7 @@ export type MediasfuBroadcastOptions = {
  *   noUIPreJoinOptions={customPreJoinOptions}
  *   joinMediaSFURoom={joinRoomOnMediaSFU}
  *   createMediaSFURoom={createRoomOnMediaSFU}
+ *   customComponent={CustomBroadcastComponent}
  * />
  * ```
  *

@@ -1,4 +1,5 @@
-import { Participant, Stream, UpdateMiniCardsGridType, UpdateMiniCardsGridParameters, AudioCardParameters, EventType } from "../@types/types";
+import React from "react";
+import { Participant, Stream, UpdateMiniCardsGridType, UpdateMiniCardsGridParameters, AudioCardParameters, EventType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../@types/types";
 export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, AudioCardParameters {
     eventType: EventType;
     updateAddAltGrid: (addAltGrid: boolean) => void;
@@ -11,6 +12,9 @@ export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, 
     forceFullDisplay: boolean;
     otherGridStreams: React.JSX.Element[][];
     updateOtherGridStreams: (otherGridStreams: React.JSX.Element[][]) => void;
+    customVideoCard?: CustomVideoCardType;
+    customAudioCard?: CustomAudioCardType;
+    customMiniCard?: CustomMiniCardType;
     updateMiniCardsGrid: UpdateMiniCardsGridType;
     getUpdatedAllParams: () => AddVideosGridParameters;
     [key: string]: any;

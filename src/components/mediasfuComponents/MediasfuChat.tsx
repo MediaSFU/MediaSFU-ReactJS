@@ -166,6 +166,10 @@ import {
   JoinMediaSFURoomOptions,
   JoinRoomOnMediaSFUType,
   CreateRoomOnMediaSFUType,
+  CustomComponentType,
+  CustomVideoCardType,
+  CustomAudioCardType,
+  CustomMiniCardType,
 } from "../../@types/types";
 import {
   Device,
@@ -194,6 +198,11 @@ export type MediasfuChatOptions = {
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
   createMediaSFURoom?: CreateRoomOnMediaSFUType;
+  customComponent?: CustomComponentType;
+  customVideoCard?: CustomVideoCardType;
+  customAudioCard?: CustomAudioCardType;
+  customMiniCard?: CustomMiniCardType;
+  containerStyle?: React.CSSProperties;
 };
 
 /**
@@ -218,6 +227,10 @@ export type MediasfuChatOptions = {
  * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Options for the prejoin page.
  * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Function to join a room on MediaSFU.
  * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Function to create a room on MediaSFU.
+ * @property {CustomComponentType} [customComponent] - Custom component to replace the entire MediaSFU UI.
+ * @property {VideoCardType} [VideoCard] - Custom video card component for rendering video streams.
+ * @property {AudioCardType} [AudioCard] - Custom audio card component for rendering audio streams.
+ * @property {MiniCardType} [MiniCard] - Custom mini card component for rendering minimized streams.
  *
  * MediasfuGeneric component.
  *
@@ -268,6 +281,11 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
   noUIPreJoinOptions,
   joinMediaSFURoom,
   createMediaSFURoom,
+  customComponent,
+  customVideoCard,
+  customAudioCard,
+  customMiniCard,
+  containerStyle,
 }) => {
   const updateStatesToInitialValues = async () => {
     const initialValues = initialValuesState as { [key: string]: any };
@@ -3035,6 +3053,11 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
 
       showAlert,
       getUpdatedAllParams,
+
+      // Custom Component Builders
+      customVideoCard,
+      customAudioCard,
+      customMiniCard,
     };
   };
 
@@ -3917,9 +3940,17 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
         maxWidth: "100vw",
         maxHeight: "100vh",
         overflow: "hidden",
+        ...containerStyle,
       }}
     >
-      {!validated ? (
+      {customComponent ? (
+        React.createElement(customComponent, {
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        })
+      ) : !validated ? (
         <PrejoinPage
           parameters={{
             imgSrc,
@@ -4013,7 +4044,7 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
       ) : (
         <></>
       )}
-      {returnUI && (
+      {returnUI && !customComponent && (
         <>
           <MessagesModal
             backgroundColor={

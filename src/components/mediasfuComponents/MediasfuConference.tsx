@@ -248,6 +248,10 @@ import {
   JoinMediaSFURoomOptions,
   JoinRoomOnMediaSFUType,
   CreateRoomOnMediaSFUType,
+  CustomComponentType,
+  CustomVideoCardType,
+  CustomAudioCardType,
+  CustomMiniCardType,
 } from "../../@types/types";
 import {
   Device,
@@ -276,6 +280,11 @@ export type MediasfuConferenceOptions = {
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
   createMediaSFURoom?: CreateRoomOnMediaSFUType;
+  customComponent?: CustomComponentType;
+  customVideoCard?: CustomVideoCardType;
+  customAudioCard?: CustomAudioCardType;
+  customMiniCard?: CustomMiniCardType;
+  containerStyle?: React.CSSProperties;
 };
 
 /**
@@ -349,6 +358,11 @@ const MediasfuConference: React.FC<MediasfuConferenceOptions> = ({
   noUIPreJoinOptions,
   joinMediaSFURoom,
   createMediaSFURoom,
+  customComponent,
+  customVideoCard,
+  customAudioCard,
+  customMiniCard,
+  containerStyle,
 }) => {
   const updateStatesToInitialValues = async () => {
     const initialValues = initialValuesState as { [key: string]: any };
@@ -3194,6 +3208,11 @@ const MediasfuConference: React.FC<MediasfuConferenceOptions> = ({
 
       showAlert,
       getUpdatedAllParams,
+
+      // Custom Component Builders
+      customVideoCard,
+      customAudioCard,
+      customMiniCard,
     };
   };
 
@@ -4687,9 +4706,17 @@ const MediasfuConference: React.FC<MediasfuConferenceOptions> = ({
         maxWidth: "100vw",
         maxHeight: "100vh",
         overflow: "hidden",
+        ...containerStyle,
       }}
     >
-      {!validated ? (
+      {customComponent ? (
+        React.createElement(customComponent, {
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        })
+      ) : !validated ? (
         <PrejoinPage
           parameters={{
             imgSrc,
@@ -4899,7 +4926,7 @@ const MediasfuConference: React.FC<MediasfuConferenceOptions> = ({
         <> </>
       )}
 
-      {returnUI && (
+      {returnUI && !customComponent && (
         <>
           <MenuModal
             backgroundColor="rgba(181, 233, 229, 0.97)"

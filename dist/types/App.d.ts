@@ -6,6 +6,9 @@
  * 2. Handling API credentials securely depending on whether you use MediaSFU Cloud or your own MediaSFU CE server.
  * 3. Rendering custom UIs by disabling the default MediaSFU UI.
  * 4. Using custom "create room" and "join room" functions for secure, flexible integration.
+ * 5. NEW: Using customComponent for complete UI replacement
+ * 6. NEW: Using custom video/audio/mini cards for display customization
+ * 7. NEW: Using containerStyle for CSS customization
  *
  * Note: All guide instructions are provided as code comments. They will not render to the user directly.
  */

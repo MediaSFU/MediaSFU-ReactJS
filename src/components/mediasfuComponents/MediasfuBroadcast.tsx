@@ -2333,6 +2333,9 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
       switchVideoAlt,
       requestPermissionCamera,
       requestPermissionAudio,
+
+      getMediaDevicesList,
+      getParticipantMedia,
     };
   };
 
@@ -3771,6 +3774,68 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
 
   const onResize = async () => {
     await handleResize();
+  };
+
+  const getMediaDevicesList = async (kind: 'videoinput' | 'audioinput') => {
+    // Get the list of available media devices
+    try {
+      let devices = await mediaDevices.enumerateDevices();
+      let filtered = devices.filter((device: MediaDeviceInfo) => device.kind === kind);
+      return filtered;
+    } catch {
+      return [];
+    }
+  };
+
+  const getParticipantMedia = async (id: string = '', name: string, kind: string = 'video') => {
+    // Get the media stream of a participant by id or name
+    try {
+      let stream = null;
+
+      if (id && id !== '') {
+        if (kind === 'video') {
+          const videoStreamObj = allVideoStreams.current.find(
+            (obj: Participant | Stream) => obj.producerId === id,
+          );
+          if (videoStreamObj) {
+            stream = videoStreamObj.stream;
+          }
+        } else if (kind === 'audio') {
+          const audioStreamObj = allAudioStreams.current.find(
+            (obj: Participant | Stream) => obj.producerId === id,
+          );
+          if (audioStreamObj) {
+            stream = audioStreamObj.stream;
+          }
+        }
+      } else if (name && name !== '') {
+        const participant = participants.current.find(
+          (part: Participant) => part.name === name,
+        );
+        if (participant) {
+          const participantId = participant.id;
+          if (kind === 'video') {
+            const videoStreamObj = allVideoStreams.current.find(
+              (obj: Participant | Stream) => obj.producerId === participantId,
+            );
+            if (videoStreamObj) {
+              stream = videoStreamObj.stream;
+            }
+          } else if (kind === 'audio') {
+            const audioStreamObj = allAudioStreams.current.find(
+              (obj: Participant | Stream) => obj.producerId === participantId,
+            );
+            if (audioStreamObj) {
+              stream = audioStreamObj.stream;
+            }
+          }
+        }
+      }
+
+      return stream;
+    } catch {
+      return null;
+    }
   };
 
   useEffect(() => {

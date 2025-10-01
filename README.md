@@ -4,19 +4,34 @@
 
 <p align="center">
   <a href="https://twitter.com/media_sfu">
-    <img src="https://img.icons8.com/color/48/000000/twitter--v1.png" alt="Twitter" style="margin-right: 10px;">
+    <img src="https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white" alt="Twitter" />
   </a>
   <a href="https://www.mediasfu.com/forums">
-    <img src="https://img.icons8.com/color/48/000000/communication--v1.png" alt="Community Forum" style="margin-right: 10px;">
+    <img src="https://img.shields.io/badge/Community-Forum-blue?style=for-the-badge&logo=discourse&logoColor=white" alt="Community Forum" />
   </a>
   <a href="https://github.com/MediaSFU">
-    <img src="https://img.icons8.com/fluent/48/000000/github.png" alt="Github" style="margin-right: 10px;">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="Github" />
   </a>
   <a href="https://www.mediasfu.com/">
-    <img src="https://img.icons8.com/color/48/000000/domain--v1.png" alt="Website" style="margin-right: 10px;">
+    <img src="https://img.shields.io/badge/Website-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white" alt="Website" />
   </a>
   <a href="https://www.youtube.com/channel/UCELghZRPKMgjih5qrmXLtqw">
-    <img src="https://img.icons8.com/color/48/000000/youtube--v1.png" alt="Youtube" style="margin-right: 10px;">
+    <img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Youtube" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square" alt="License: MIT" />
+  </a>
+  <a href="https://mediasfu.com">
+    <img src="https://img.shields.io/badge/Built%20with-MediaSFU-blue?style=flat-square" alt="Built with MediaSFU" />
+  </a>
+  <a href="https://reactjs.org">
+    <img src="https://img.shields.io/badge/React-20232A?style=flat-square&logo=react&logoColor=61DAFB" alt="React" />
+  </a>
+  <a href="https://www.typescriptlang.org">
+    <img src="https://img.shields.io/badge/TypeScript-007ACC?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
   </a>
 </p>
 
@@ -69,10 +84,13 @@ MediaSFU offers a cutting-edge streaming experience that empowers users to custo
 
 - [Features](#features)
 - [Getting Started](#getting-started)
-- [Basic Usage Guide](#basic-usage-guide)
-- [UI Customization Guide](#ui-customization-guide)
-- [Intermediate Usage Guide](#intermediate-usage-guide)
-- [Advanced Usage Guide](#advanced-usage-guide)
+- [📘 ReactJS SDK Guide](#reactjs-sdk-guide)
+  - [Quick Start](#quick-start-5-minutes)
+  - [Understanding the Architecture](#understanding-mediasfu-architecture)
+  - [Core Concepts & Components](#core-concepts--components)
+  - [Working with Methods](#working-with-methods)
+  - [Media Streams & Participants](#media-streams--participants)
+  - [Customization & Styling](#customization--styling)
 - [API Reference](#api-reference)
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
@@ -91,6 +109,12 @@ MediaSFU's React SDK comes with a host of powerful features out of the box:
 8. **Chat (Direct & Group)**: Facilitate communication with direct and group chat options.
 9. **Cloud Recording (track-based)**: Customize recordings with track-based options, including watermarks, name tags, background colors, and more.
 10. **Managed Events**: Manage events with features to handle abandoned and inactive participants, as well as enforce time and capacity limits.
+
+## 🆕 **New Advanced Media Access**
+
+**Interested in getting just the media stream of a specific participant?** You can now easily retrieve individual participant streams using `sourceParameters.getParticipantMedia()` [Learn more →](#media-device-and-stream-utility-methods)
+
+**Need to access available cameras and microphones?** Use `sourceParameters.getMediaDevicesList()` to enumerate all available media devices on the user's system programmatically.
 
 # Getting Started <a name="getting-started"></a>
 
@@ -214,6 +238,1508 @@ If you plan to self-host MediaSFU or use it without MediaSFU Cloud services, you
 
 This setup allows full flexibility and customization while bypassing the need for cloud-dependent credentials.  
 
+---
+
+# 📘 ReactJS SDK Guide <a name="reactjs-sdk-guide"></a>
+
+This comprehensive guide will walk you through everything you need to know about building real-time communication apps with MediaSFU's ReactJS SDK. Whether you're a beginner or an experienced developer, you'll find clear explanations, practical examples, and best practices.
+
+---
+
+## Quick Start (5 Minutes) <a name="quick-start-5-minutes"></a>
+
+Get your first MediaSFU app running in just a few minutes.
+
+### Step 1: Install the Package
+
+```bash
+npm install mediasfu-reactjs
+```
+
+### Step 2: Import and Use
+
+```javascript
+import React from 'react';
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+
+function App() {
+  // Option 1: Use without credentials (for testing)
+  return <MediasfuGeneric />;
+
+  // Option 2: Use with MediaSFU Cloud credentials
+  // const credentials = { apiUserName: 'your_username', apiKey: 'your_api_key' };
+  // return <MediasfuGeneric credentials={credentials} />;
+}
+
+export default App;
+```
+
+### Step 3: Run Your App
+
+```bash
+npm start
+```
+
+**That's it!** You now have a fully functional video conferencing app with:
+- ✅ Video and audio streaming
+- ✅ Screen sharing  
+- ✅ Chat messaging
+- ✅ Participant management
+- ✅ Recording capabilities
+- ✅ Breakout rooms
+- ✅ Polls and whiteboards
+
+---
+
+## Understanding MediaSFU Architecture <a name="understanding-mediasfu-architecture"></a>
+
+Before diving deeper, let's understand how MediaSFU is structured.
+
+### The Three-Layer Architecture
+
+```
+┌─────────────────────────────────────────────┐
+│         Your React Application              │
+│   (App.js, components, business logic)      │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│        MediaSFU Components Layer            │
+│  (MediasfuGeneric, MediasfuBroadcast, etc.) │
+│        - Pre-built UI components             │
+│        - Event handling                      │
+│        - State management                    │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│        MediaSFU Core Methods Layer          │
+│   (Stream control, room management,         │
+│    WebRTC handling, socket communication)   │
+└─────────────────────────────────────────────┘
+                    ↓
+┌─────────────────────────────────────────────┐
+│        MediaSFU Backend Services            │
+│ (MediaSFU Cloud or Community Edition)       │
+└─────────────────────────────────────────────┘
+```
+
+### Key Concepts
+
+#### 1. **Event Room Types**
+
+MediaSFU provides 5 specialized room types, each optimized for specific use cases:
+
+| Room Type | Best For | Key Features |
+|-----------|----------|--------------|
+| **MediasfuGeneric** | General purpose meetings | Flexible layout, all features enabled |
+| **MediasfuBroadcast** | Live streaming events | Optimized for one-to-many communication |
+| **MediasfuWebinar** | Educational sessions | Presenter focus, Q&A features |
+| **MediasfuConference** | Business meetings | Equal participant layout, collaboration tools |
+| **MediasfuChat** | Interactive discussions | Chat-first interface, quick connections |
+
+```javascript
+// Choose the right room type for your use case
+import { MediasfuWebinar, MediasfuBroadcast, MediasfuConference } from 'mediasfu-reactjs';
+
+// For a webinar
+<MediasfuWebinar credentials={credentials} />
+
+// For a broadcast  
+<MediasfuBroadcast credentials={credentials} />
+
+// For a conference
+<MediasfuConference credentials={credentials} />
+```
+
+#### 2. **The Three Usage Modes**
+
+MediaSFU offers three progressive levels of customization:
+
+##### Mode 1: Default UI (Simplest)
+Use MediaSFU's complete pre-built interface - perfect for rapid development.
+
+```javascript
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+
+function App() {
+  return <MediasfuGeneric credentials={credentials} />;
+}
+```
+
+**When to use:**
+- ✅ Prototyping or MVP development
+- ✅ Need a production-ready UI quickly
+- ✅ Standard video conferencing features are sufficient
+
+##### Mode 2: Custom UI with MediaSFU Backend (Most Flexible)
+Build your own UI while using MediaSFU's powerful backend infrastructure.
+
+```javascript
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+import { useState } from 'react';
+
+function App() {
+  const [sourceParameters, setSourceParameters] = useState(null);
+  
+  const handleUpdateSourceParameters = (params) => {
+    setSourceParameters(params);
+  };
+
+  return (
+    <div>
+      <MediasfuGeneric 
+        returnUI={false}
+        sourceParameters={sourceParameters}
+        updateSourceParameters={handleUpdateSourceParameters}
+        credentials={credentials}
+        noUIPreJoinOptions={{ 
+          action: 'create',
+          userName: 'Your Name',
+          capacity: 50,
+          duration: 30,
+          eventType: 'conference'
+        }}
+      />
+      
+      {/* Your custom UI */}
+      {sourceParameters && (
+        <div className="custom-controls">
+          <button onClick={() => sourceParameters.clickVideo({ parameters: sourceParameters })}>
+            Toggle Video
+          </button>
+          <button onClick={() => sourceParameters.clickAudio({ parameters: sourceParameters })}>
+            Toggle Audio
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+**When to use:**
+- ✅ Need complete control over UI/UX
+- ✅ Building a custom branded experience
+- ✅ Integrating into existing app design
+
+##### Mode 3: Component Replacement (Balanced)
+Replace specific MediaSFU components while keeping the rest of the infrastructure.
+
+```javascript
+import { MediasfuGeneric, FlexibleVideo, FlexibleGrid } from 'mediasfu-reactjs';
+
+function CustomMainScreen({ parameters }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+      {/* Custom header */}
+      <div className="custom-header">
+        <h1>{parameters.roomName}</h1>
+        <span>{parameters.participants.length} participants</span>
+      </div>
+      
+      {/* Use MediaSFU's components in your layout */}
+      <FlexibleVideo 
+        customWidth={window.innerWidth}
+        customHeight={600}
+        parameters={parameters}
+      />
+      
+      <FlexibleGrid 
+        customWidth={window.innerWidth}
+        customHeight={400}
+        parameters={parameters}
+      />
+      
+      {/* Custom footer */}
+      <div className="custom-footer">
+        <button onClick={() => parameters.clickVideo({ parameters })}>
+          {parameters.videoAlreadyOn ? 'Stop Video' : 'Start Video'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <MediasfuGeneric 
+      credentials={credentials}
+      PrejoinPage={WelcomePage}
+      customComponent={CustomMainScreen}
+    />
+  );
+}
+```
+
+**When to use:**
+- ✅ Need custom main interface but want to keep MediaSFU's components
+- ✅ Partial customization with minimal effort
+- ✅ Want to maintain MediaSFU's functionality while customizing layout
+
+#### 3. **Parameters: Your Control Center**
+
+The `sourceParameters` object (or `parameters` in custom components) is your gateway to all MediaSFU functionality:
+
+```javascript
+// Available in sourceParameters or parameters object
+{
+  // Media Controls
+  clickVideo: (options) => {},
+  clickAudio: (options) => {},
+  clickScreenShare: (options) => {},
+  
+  // Room State
+  roomName: 'meeting-123',
+  participants: [...],
+  allVideoStreams: [...],
+  allAudioStreams: [...],
+  
+  // UI State
+  videoAlreadyOn: false,
+  audioAlreadyOn: false,
+  screenAlreadyOn: false,
+  
+  // Update Functions
+  updateVideoAlreadyOn: (value) => {},
+  updateAudioAlreadyOn: (value) => {},
+  
+  // And 200+ more properties and methods...
+}
+```
+
+**Access patterns:**
+
+```javascript
+// In Mode 1 (Default UI): Parameters are managed internally
+// You don't need to access them directly
+
+// In Mode 2 (Custom UI): Access via sourceParameters state
+const [sourceParameters, setSourceParameters] = useState(null);
+sourceParameters?.clickVideo({ parameters: sourceParameters });
+
+// In Mode 3 (Component Replacement): Passed to your custom component
+function CustomComponent({ parameters }) {
+  parameters.clickVideo({ parameters });
+}
+```
+
+---
+
+## Core Concepts & Components <a name="core-concepts--components"></a>
+
+Now that you understand the architecture, let's explore the building blocks.
+
+### 1. Display Components: Building Your Video Layout
+
+MediaSFU provides powerful components for organizing and displaying media streams.
+
+#### Primary Layout Components
+
+**FlexibleVideo** - Main video display area
+```javascript
+import { FlexibleVideo } from 'mediasfu-reactjs';
+
+<FlexibleVideo
+  customWidth={window.innerWidth}
+  customHeight={600}
+  parameters={parameters}
+/>
+```
+- Automatically handles main presenter or screen share
+- Smooth transitions between different video sources
+- Responsive sizing
+
+**FlexibleGrid** - Participant grid layout
+```javascript
+import { FlexibleGrid } from 'mediasfu-reactjs';
+
+<FlexibleGrid
+  customWidth={window.innerWidth}
+  customHeight={800}
+  parameters={parameters}
+/>
+```
+- Intelligent grid sizing (2x2, 3x3, 4x4, etc.)
+- Pagination for large participant lists
+- Automatic reflow on window resize
+
+**AudioGrid** - Audio-only participants
+```javascript
+import { AudioGrid } from 'mediasfu-reactjs';
+
+<AudioGrid parameters={parameters} />
+```
+- Displays participants without video
+- Audio level indicators
+- Compact layout for efficiency
+
+#### Container Components
+
+| Component | Purpose | Use Case |
+|-----------|---------|----------|
+| **MainContainerComponent** | Primary content wrapper | Wraps all main content areas |
+| **MainAspectComponent** | Aspect ratio container | Maintains proper video proportions |
+| **MainScreenComponent** | Screen layout manager | Organizes screen regions |
+| **SubAspectComponent** | Secondary content container | For picture-in-picture, sidebars |
+
+**Example: Building a custom layout**
+
+```javascript
+import {
+  MainContainerComponent,
+  FlexibleVideo,
+  FlexibleGrid,
+  AudioGrid
+} from 'mediasfu-reactjs';
+
+function CustomLayout({ parameters }) {
+  return (
+    <MainContainerComponent>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
+        {/* Main video area */}
+        <div style={{ flex: 3 }}>
+          <FlexibleVideo
+            customWidth={window.innerWidth}
+            customHeight={window.innerHeight * 0.6}
+            parameters={parameters}
+          />
+        </div>
+        
+        {/* Participant grid */}
+        <div style={{ flex: 2 }}>
+          <FlexibleGrid
+            customWidth={window.innerWidth}
+            customHeight={window.innerHeight * 0.3}
+            parameters={parameters}
+          />
+        </div>
+        
+        {/* Audio-only participants */}
+        <div style={{ height: 80 }}>
+          <AudioGrid parameters={parameters} />
+        </div>
+      </div>
+    </MainContainerComponent>
+  );
+}
+```
+
+### 2. Control Components: User Interactions
+
+**ControlButtonsComponent** - Standard control bar
+```javascript
+import { ControlButtonsComponent } from 'mediasfu-reactjs';
+
+<ControlButtonsComponent
+  parameters={parameters}
+  position="bottom" // or 'top', 'left', 'right'
+/>
+```
+Includes: mute, video, screenshare, participants, chat, settings, etc.
+
+**ControlButtonsAltComponent** - Alternative layout
+```javascript
+import { ControlButtonsAltComponent } from 'mediasfu-reactjs';
+
+<ControlButtonsAltComponent
+  parameters={parameters}
+  position="top"
+/>
+```
+Different button arrangement optimized for specific layouts.
+
+**ControlButtonsComponentTouch** - Touch-optimized controls
+```javascript
+import { ControlButtonsComponentTouch } from 'mediasfu-reactjs';
+
+<ControlButtonsComponentTouch parameters={parameters} />
+```
+Floating action buttons optimized for mobile/tablet interfaces.
+
+### 3. Modal Components: Feature Interfaces
+
+MediaSFU includes modals for various features:
+
+```javascript
+import {
+  ParticipantsModal,
+  MessagesModal,
+  SettingsModal,
+  DisplaySettingsModal,
+  RecordingModal,
+  PollModal,
+  BreakoutRoomsModal
+} from 'mediasfu-reactjs';
+
+// These are automatically rendered when enabled
+// Control their visibility via parameters
+parameters.updateIsParticipantsModalVisible(true);
+parameters.updateIsMessagesModalVisible(true);
+parameters.updateIsSettingsModalVisible(true);
+```
+
+Available modals:
+- **ParticipantsModal** - Participant list management
+- **MessagesModal** - Chat interface
+- **SettingsModal** - Event and room settings
+- **DisplaySettingsModal** - Layout and display options
+- **RecordingModal** - Recording controls and settings
+- **PollModal** - Create and manage polls
+- **BreakoutRoomsModal** - Breakout room management
+- **MediaSettingsModal** - Camera/microphone selection
+- **BackgroundModal** - Virtual background settings
+- **ConfigureWhiteboardModal** - Whiteboard configuration
+
+**Example: Programmatically showing modals**
+
+```javascript
+function CustomControls({ parameters }) {
+  return (
+    <div className="custom-toolbar">
+      <button onClick={() => parameters.updateIsParticipantsModalVisible(true)}>
+        Show Participants ({parameters.participants.length})
+      </button>
+      
+      <button onClick={() => parameters.updateIsMessagesModalVisible(true)}>
+        Open Chat
+      </button>
+      
+      <button onClick={() => parameters.launchPoll.launchPoll({ parameters })}>
+        Create Poll
+      </button>
+    </div>
+  );
+}
+```
+
+### 4. Video Cards: Individual Participant Display
+
+**VideoCard** - Individual participant video element
+```javascript
+import { VideoCard } from 'mediasfu-reactjs';
+
+<VideoCard
+  videoStream={participantStream}
+  remoteProducerId="producer-id"
+  eventType="conference"
+  forceFullDisplay={false}
+  participant={participantObject}
+  backgroundColor="#000000"
+  showControls={true}
+  showInfo={true}
+  name="Participant Name"
+  parameters={parameters}
+/>
+```
+
+**AudioCard** - Individual audio-only participant
+```javascript
+import { AudioCard } from 'mediasfu-reactjs';
+
+<AudioCard
+  name="Participant Name"
+  barColor="#4CAF50"
+  textColor="#FFFFFF"
+  customStyle={{ borderRadius: '10px' }}
+  controlsPosition="topLeft"
+  infoPosition="topRight"
+  participant={participantObject}
+  parameters={parameters}
+/>
+```
+
+**MiniCard** - Compact participant display (for grids)
+```javascript
+import { MiniCard } from 'mediasfu-reactjs';
+
+<MiniCard
+  participant={participantObject}
+  showControls={false}
+  parameters={parameters}
+/>
+```
+
+**Example: Custom Video Card**
+
+```javascript
+function MyCustomVideoCard({ stream, participant, parameters }) {
+  return (
+    <div style={{
+      border: '3px solid #00ff88',
+      borderRadius: '15px',
+      overflow: 'hidden',
+      position: 'relative'
+    }}>
+      <video 
+        ref={videoRef => {
+          if (videoRef && stream) {
+            videoRef.srcObject = stream;
+            videoRef.play();
+          }
+        }}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+        autoPlay
+        muted
+      />
+      
+      <div style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        background: 'rgba(0, 255, 136, 0.8)',
+        color: 'black',
+        padding: '8px',
+        fontWeight: 'bold'
+      }}>
+        {participant.name} {participant.muted && '🔇'}
+      </div>
+    </div>
+  );
+}
+
+// Use it
+<MediasfuGeneric 
+  credentials={credentials}
+  customVideoCard={MyCustomVideoCard}
+/>
+```
+
+---
+
+## Working with Methods <a name="working-with-methods"></a>
+
+MediaSFU provides 200+ methods for controlling every aspect of your real-time communication experience. Let's explore the most important categories.
+
+### Media Control Methods
+
+#### Video Control
+
+```javascript
+// Toggle video on/off
+parameters.clickVideo({ parameters });
+
+// Switch camera (front/back on mobile)
+parameters.switchVideoAlt({ parameters });
+
+// Switch to specific camera by ID
+const cameras = await parameters.getMediaDevicesList('videoinput');
+parameters.switchUserVideo({
+  videoPreference: cameras[1].deviceId,
+  parameters
+});
+
+// Get current video state
+const isVideoOn = parameters.videoAlreadyOn;
+
+// Update video state programmatically
+parameters.updateVideoAlreadyOn(true);
+```
+
+#### Audio Control
+
+```javascript
+// Toggle audio on/off
+parameters.clickAudio({ parameters });
+
+// Switch microphone
+const microphones = await parameters.getMediaDevicesList('audioinput');
+parameters.switchUserAudio({
+  audioPreference: microphones[1].deviceId,
+  parameters
+});
+
+// Get current audio state
+const isAudioOn = parameters.audioAlreadyOn;
+const hasHostPermission = parameters.micAction; // Host approval status
+
+// Mute/unmute specific participant (host only)
+parameters.controlMedia({
+  participantId: 'participant-id',
+  participantName: 'John Doe',
+  type: 'audio',
+  socket: parameters.socket,
+  roomName: parameters.roomName
+});
+```
+
+#### Screen Sharing
+
+```javascript
+// Start screen sharing
+parameters.clickScreenShare({ parameters });
+
+// Stop screen sharing
+parameters.stopShareScreen({ parameters });
+
+// Check if screen sharing is available
+const canShare = await parameters.checkScreenShare({ parameters });
+
+// Get screen share state
+const isSharing = parameters.screenAlreadyOn;
+const shareAudio = parameters.shareScreenStarted; // Sharing with audio
+```
+
+### Device Management Methods
+
+```javascript
+// Get available cameras
+const cameras = await parameters.getMediaDevicesList('videoinput');
+cameras.forEach(camera => {
+  console.log(`Camera: ${camera.label} (${camera.deviceId})`);
+});
+
+// Get available microphones
+const microphones = await parameters.getMediaDevicesList('audioinput');
+microphones.forEach(mic => {
+  console.log(`Microphone: ${mic.label} (${mic.deviceId})`);
+});
+
+// Building a device selector UI
+function DeviceSelector({ parameters }) {
+  const [cameras, setCameras] = useState([]);
+  const [microphones, setMicrophones] = useState([]);
+
+  useEffect(() => {
+    const loadDevices = async () => {
+      const cams = await parameters.getMediaDevicesList('videoinput');
+      const mics = await parameters.getMediaDevicesList('audioinput');
+      setCameras(cams);
+      setMicrophones(mics);
+    };
+    loadDevices();
+  }, []);
+
+  return (
+    <div>
+      <select onChange={(e) => {
+        parameters.switchUserVideo({
+          videoPreference: e.target.value,
+          parameters
+        });
+      }}>
+        {cameras.map(camera => (
+          <option key={camera.deviceId} value={camera.deviceId}>
+            {camera.label}
+          </option>
+        ))}
+      </select>
+
+      <select onChange={(e) => {
+        parameters.switchUserAudio({
+          audioPreference: e.target.value,
+          parameters
+        });
+      }}>
+        {microphones.map(mic => (
+          <option key={mic.deviceId} value={mic.deviceId}>
+            {mic.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+```
+
+### Participant Management Methods
+
+```javascript
+// Get all participants
+const participants = parameters.participants;
+const participantCount = parameters.participantsCounter;
+
+// Filter participants
+const videoParticipants = participants.filter(p => p.videoOn);
+const audioOnlyParticipants = participants.filter(p => !p.videoOn);
+const mutedParticipants = participants.filter(p => p.muted);
+
+// Find specific participant
+const participant = participants.find(p => p.name === 'John Doe');
+
+// Remove participant from room (host only)
+parameters.disconnectUserInitiate({
+  member: participantId,
+  roomName: parameters.roomName,
+  socket: parameters.socket
+});
+
+// Change participant role (host only)
+parameters.updateParticipant({
+  participantId: 'participant-id',
+  islevel: '2', // '2' = host, '1' = co-host, '0' = participant
+  parameters
+});
+
+// Request to unmute participant (sends request)
+parameters.requestScreenShare({ parameters });
+```
+
+### Chat & Messaging Methods
+
+```javascript
+// Send a group message
+parameters.sendMessage({
+  message: 'Hello everyone!',
+  type: 'group',
+  parameters
+});
+
+// Send direct message
+parameters.sendMessage({
+  message: 'Private message',
+  type: 'direct',
+  receivers: ['participant-id'],
+  parameters
+});
+
+// Access message history
+const messages = parameters.messages;
+
+// Listen for new messages (via update function)
+parameters.updateMessages = (newMessages) => {
+  console.log('New messages:', newMessages);
+};
+
+// Example: Custom chat component
+function CustomChat({ parameters }) {
+  const [message, setMessage] = useState('');
+
+  const sendMessage = () => {
+    parameters.sendMessage({
+      message,
+      type: 'group',
+      parameters
+    });
+    setMessage('');
+  };
+
+  return (
+    <div>
+      <div className="messages">
+        {parameters.messages.map((msg, index) => (
+          <div key={index}>
+            <strong>{msg.sender}:</strong> {msg.message}
+          </div>
+        ))}
+      </div>
+      <input
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+      />
+      <button onClick={sendMessage}>Send</button>
+    </div>
+  );
+}
+```
+
+### Recording Methods
+
+```javascript
+// Start recording
+parameters.startRecording({ parameters });
+
+// Stop recording
+parameters.stopRecording({ parameters });
+
+// Pause recording
+parameters.pauseRecording({ parameters });
+
+// Resume recording
+parameters.resumeRecording({ parameters });
+
+// Configure recording settings
+parameters.updateRecording({
+  recordingMediaOptions: 'video', // or 'audio'
+  recordingAudioOptions: 'all', // or 'host'
+  recordingVideoOptions: 'all', // or 'host'
+  recordingVideoType: 'fullDisplay', // or 'bestDisplay', 'all'
+  recordingDisplayType: 'video', // 'media', 'video', 'all'
+  recordingBackgroundColor: '#000000',
+  recordingNameTagsColor: '#ffffff',
+  recordingOrientationVideo: 'landscape', // or 'portrait'
+  recordingNameTags: true,
+  recordingAddHLS: false,
+  parameters
+});
+
+// Check recording state
+const isRecording = parameters.recordStarted;
+const isPaused = parameters.recordPaused;
+const recordingTime = parameters.recordElapsedTime;
+```
+
+### Polls & Surveys Methods
+
+```javascript
+// Create a poll
+parameters.handleCreatePoll({
+  poll: {
+    question: 'What time works best?',
+    type: 'multiple', // or 'single'
+    options: ['10 AM', '2 PM', '5 PM']
+  },
+  parameters
+});
+
+// Vote on a poll
+parameters.handleVotePoll({
+  pollId: 'poll-id',
+  optionIndex: 1,
+  parameters
+});
+
+// End a poll
+parameters.handleEndPoll({
+  pollId: 'poll-id',
+  parameters
+});
+
+// Access poll data
+const polls = parameters.polls;
+const activePoll = polls.find(p => p.status === 'active');
+
+// Example: Custom poll component
+function CustomPoll({ parameters }) {
+  const activePoll = parameters.polls.find(p => p.status === 'active');
+
+  if (!activePoll) return null;
+
+  return (
+    <div className="poll">
+      <h3>{activePoll.question}</h3>
+      {activePoll.options.map((option, index) => (
+        <button 
+          key={index}
+          onClick={() => {
+            parameters.handleVotePoll({
+              pollId: activePoll.id,
+              optionIndex: index,
+              parameters
+            });
+          }}
+        >
+          {option} ({activePoll.votes?.[index] || 0} votes)
+        </button>
+      ))}
+    </div>
+  );
+}
+```
+
+### Breakout Rooms Methods
+
+```javascript
+// Create breakout rooms
+parameters.createBreakoutRooms({
+  numberOfRooms: 3,
+  participants: parameters.participants,
+  parameters
+});
+
+// Assign participant to room
+parameters.assignParticipantToRoom({
+  participantId: 'participant-id',
+  roomIndex: 0,
+  parameters
+});
+
+// Start breakout rooms
+parameters.startBreakoutRooms({ parameters });
+
+// Stop breakout rooms
+parameters.stopBreakoutRooms({ parameters });
+
+// Access breakout room data
+const breakoutRooms = parameters.breakoutRooms;
+const currentRoom = parameters.currentBreakoutRoom;
+```
+
+### Whiteboard Methods
+
+```javascript
+// Show/hide whiteboard
+parameters.updateWhiteboardStarted(true);
+parameters.updateWhiteboardEnded(false);
+
+// Configure whiteboard
+parameters.launchConfigureWhiteboard.launchConfigureWhiteboard({ parameters });
+
+// Access whiteboard state
+const isWhiteboardActive = parameters.whiteboardStarted;
+const whiteboardData = parameters.whiteboardUsers;
+```
+
+### Utility Methods
+
+```javascript
+// Check permissions
+const hasPermission = await parameters.checkPermission({
+  permissionType: 'video', // or 'audio'
+  parameters
+});
+
+// Format large numbers
+const formatted = parameters.formatNumber(1250000); // Returns "1.25M"
+
+// Sleep/delay
+await parameters.sleep({ ms: 1000 });
+
+// Update display settings
+parameters.updateMainWindow(true); // Show/hide main window
+
+// Trigger layout recalculation
+parameters.onScreenChanges({ changed: true, parameters });
+
+// Get room information
+const roomInfo = {
+  name: parameters.roomName,
+  host: parameters.host,
+  capacity: parameters.capacity,
+  eventType: parameters.eventType,
+  duration: parameters.duration
+};
+```
+
+**Complete method documentation:** Visit [mediasfu.com/reactjs](https://www.mediasfu.com/reactjs/) for detailed documentation on all 200+ methods.
+
+---
+
+## Media Streams & Participants <a name="media-streams--participants"></a>
+
+Understanding how to work with media streams and participant data is crucial for building custom features.
+
+### Understanding Participants
+
+```javascript
+// Participant object structure
+{
+  id: string;              // Unique identifier
+  name: string;            // Display name
+  muted: boolean;          // Audio state
+  videoOn: boolean;        // Video state
+  audioID: string | null;  // Audio producer ID
+  videoID: string | null;  // Video producer ID
+  islevel: string;         // '2' = host, '1' = co-host, '0' = participant
+  // ... more properties
+}
+
+// Accessing participants
+const participants = parameters.participants;
+
+// Filter participants by criteria
+const videoParticipants = participants.filter(p => p.videoOn);
+const hosts = participants.filter(p => p.islevel === '2');
+
+// Find specific participant
+const participant = participants.find(p => p.id === 'participant-id');
+```
+
+### Working with Streams
+
+```javascript
+// Stream object structure
+{
+  producerId: string;      // Producer identifier
+  stream: MediaStream;     // Actual media stream
+  kind: string;           // 'video' or 'audio'
+  producerId: string;     // Associated producer ID
+  // ... more properties
+}
+
+// Get all video streams
+const videoStreams = parameters.allVideoStreams;
+
+// Get all audio streams
+const audioStreams = parameters.allAudioStreams;
+
+// Find stream by producer ID
+const stream = videoStreams.find(s => s.producerId === 'producer-id');
+```
+
+### Using the New Utility Methods
+
+```javascript
+// Get specific participant's video stream
+const videoStream = await parameters.getParticipantMedia({
+  id: 'participant-id',
+  name: 'John Doe',
+  kind: 'video'
+});
+
+// Get specific participant's audio stream
+const audioStream = await parameters.getParticipantMedia({
+  name: 'Alice Smith',
+  kind: 'audio'
+});
+
+// Example: Display specific participant's video
+function ParticipantSpotlight({ participantName, parameters }) {
+  const [stream, setStream] = useState(null);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const loadStream = async () => {
+      const mediaStream = await parameters.getParticipantMedia({
+        name: participantName,
+        kind: 'video'
+      });
+      setStream(mediaStream);
+    };
+    loadStream();
+  }, [participantName]);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+
+  return (
+    <div>
+      <h3>{participantName}'s Video</h3>
+      <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%' }} />
+    </div>
+  );
+}
+```
+
+### Monitoring Participant State Changes
+
+```javascript
+// Listen for participant updates
+parameters.updateParticipants = (updatedParticipants) => {
+  console.log('Participants updated:', updatedParticipants);
+  // Handle participant changes
+};
+
+// Example: Participant counter
+function ParticipantCounter({ parameters }) {
+  return (
+    <div>
+      <span>👥 {parameters.participantsCounter} participants</span>
+      <span>🎥 {parameters.participants.filter(p => p.videoOn).length} with video</span>
+      <span>🔇 {parameters.participants.filter(p => p.muted).length} muted</span>
+    </div>
+  );
+}
+```
+
+### Advanced Stream Management
+
+```javascript
+// Custom grid with specific participants
+function CustomParticipantGrid({ parameters }) {
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
+
+  const renderParticipantVideo = (participant) => {
+    if (!participant.videoID) return null;
+
+    const stream = parameters.allVideoStreams.find(
+      s => s.producerId === participant.videoID
+    );
+
+    return (
+      <video
+        key={participant.id}
+        ref={videoRef => {
+          if (videoRef && stream?.stream) {
+            videoRef.srcObject = stream.stream;
+            videoRef.play();
+          }
+        }}
+        autoPlay
+        playsInline
+        muted
+        style={{ width: '200px', height: '150px' }}
+      />
+    );
+  };
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+      {selectedParticipants.map(participant => (
+        <div key={participant.id}>
+          {renderParticipantVideo(participant)}
+          <p>{participant.name}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## Customization & Styling <a name="customization--styling"></a>
+
+Make MediaSFU match your brand and design requirements.
+
+### 1. Customizing the Pre-Join Page
+
+Replace the default pre-join page with your own:
+
+```javascript
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+
+function CustomPreJoinPage({ parameters, credentials }) {
+  const [name, setName] = useState('');
+  const [roomId, setRoomId] = useState('');
+
+  const joinRoom = async () => {
+    // Your validation logic
+    if (!name || !roomId) {
+      alert('Please enter your name and room ID');
+      return;
+    }
+
+    // Join the room
+    parameters.updateMember(name);
+    parameters.updateRoomName(roomId);
+    parameters.updateValidated(true);
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+    }}>
+      <img src="/your-logo.png" alt="Logo" style={{ width: 150, marginBottom: 40 }} />
+      
+      <h1 style={{ color: 'white', marginBottom: 30 }}>Welcome to Our Meeting</h1>
+      
+      <input
+        type="text"
+        placeholder="Your Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{
+          padding: '12px 20px',
+          marginBottom: 15,
+          width: 300,
+          borderRadius: 8,
+          border: 'none'
+        }}
+      />
+      
+      <input
+        type="text"
+        placeholder="Room ID"
+        value={roomId}
+        onChange={(e) => setRoomId(e.target.value)}
+        style={{
+          padding: '12px 20px',
+          marginBottom: 20,
+          width: 300,
+          borderRadius: 8,
+          border: 'none'
+        }}
+      />
+      
+      <button
+        onClick={joinRoom}
+        style={{
+          padding: '14px 40px',
+          background: '#4CAF50',
+          color: 'white',
+          border: 'none',
+          borderRadius: 8,
+          fontSize: 18,
+          cursor: 'pointer',
+          fontWeight: 'bold'
+        }}
+      >
+        Join Meeting
+      </button>
+    </div>
+  );
+}
+
+// Use it
+function App() {
+  return (
+    <MediasfuGeneric 
+      credentials={credentials}
+      PrejoinPage={CustomPreJoinPage}
+    />
+  );
+}
+```
+
+### 2. Custom Control Buttons
+
+Create your own control bar:
+
+```javascript
+function CustomControls({ parameters }) {
+  return (
+    <div style={{
+      position: 'fixed',
+      bottom: 20,
+      left: '50%',
+      transform: 'translateX(-50%)',
+      display: 'flex',
+      gap: 15,
+      background: 'rgba(0, 0, 0, 0.8)',
+      padding: 20,
+      borderRadius: 15,
+      boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+    }}>
+      {/* Video button */}
+      <button
+        onClick={() => parameters.clickVideo({ parameters })}
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: '50%',
+          border: 'none',
+          background: parameters.videoAlreadyOn ? '#4CAF50' : '#f44336',
+          color: 'white',
+          fontSize: 24,
+          cursor: 'pointer'
+        }}
+      >
+        📹
+      </button>
+      
+      {/* Audio button */}
+      <button
+        onClick={() => parameters.clickAudio({ parameters })}
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: '50%',
+          border: 'none',
+          background: parameters.audioAlreadyOn ? '#4CAF50' : '#f44336',
+          color: 'white',
+          fontSize: 24,
+          cursor: 'pointer'
+        }}
+      >
+        {parameters.audioAlreadyOn ? '🎤' : '🔇'}
+      </button>
+      
+      {/* Screen share button */}
+      <button
+        onClick={() => parameters.clickScreenShare({ parameters })}
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: '50%',
+          border: 'none',
+          background: parameters.screenAlreadyOn ? '#2196F3' : '#666',
+          color: 'white',
+          fontSize: 24,
+          cursor: 'pointer'
+        }}
+      >
+        🖥️
+      </button>
+      
+      {/* Leave button */}
+      <button
+        onClick={() => parameters.launchConfirmExit({ parameters })}
+        style={{
+          width: 60,
+          height: 60,
+          borderRadius: '50%',
+          border: 'none',
+          background: '#f44336',
+          color: 'white',
+          fontSize: 24,
+          cursor: 'pointer'
+        }}
+      >
+        📞
+      </button>
+    </div>
+  );
+}
+```
+
+### 3. Themed Application
+
+Apply your app's theme to MediaSFU:
+
+```javascript
+import { MediasfuGeneric } from 'mediasfu-reactjs';
+import './custom-theme.css';
+
+function App() {
+  return (
+    <div className="themed-app">
+      <MediasfuGeneric 
+        credentials={credentials}
+        // Custom styles for container
+        containerStyle={{
+          backgroundColor: '#1a1a2e',
+          borderRadius: '15px',
+          overflow: 'hidden'
+        }}
+        
+        // Custom card components
+        customVideoCard={CustomVideoCard}
+        customAudioCard={CustomAudioCard}
+        customMiniCard={CustomMiniCard}
+      />
+    </div>
+  );
+}
+
+// custom-theme.css
+/*
+.themed-app {
+  --primary-color: #6c5ce7;
+  --secondary-color: #a29bfe;
+  --background-color: #1a1a2e;
+  --text-color: #ffffff;
+}
+
+.themed-app button {
+  background: var(--primary-color);
+  color: var(--text-color);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.themed-app button:hover {
+  background: var(--secondary-color);
+  transform: translateY(-2px);
+}
+*/
+```
+
+### 4. Complete Custom UI Example
+
+Here's a complete example combining everything:
+
+```javascript
+import React, { useState } from 'react';
+import {
+  MediasfuGeneric,
+  FlexibleVideo,
+  FlexibleGrid,
+  AudioGrid
+} from 'mediasfu-reactjs';
+
+function CompleteCustomInterface({ parameters }) {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100vh',
+      background: '#0f0f1e'
+    }}>
+      {/* Custom Header */}
+      <header style={{
+        padding: '20px',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        color: 'white',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <h1>{parameters.roomName}</h1>
+        <div>
+          <span>👥 {parameters.participantsCounter} participants</span>
+          <span style={{ marginLeft: 20 }}>
+            ⏱️ {Math.floor(parameters.recordElapsedTime / 60)}:{(parameters.recordElapsedTime % 60).toString().padStart(2, '0')}
+          </span>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+        {/* Video Area */}
+        <div style={{ flex: 3, display: 'flex', flexDirection: 'column', padding: 20 }}>
+          <FlexibleVideo
+            customWidth={window.innerWidth * 0.7}
+            customHeight={window.innerHeight * 0.5}
+            parameters={parameters}
+          />
+          
+          <div style={{ marginTop: 20 }}>
+            <FlexibleGrid
+              customWidth={window.innerWidth * 0.7}
+              customHeight={window.innerHeight * 0.3}
+              parameters={parameters}
+            />
+          </div>
+        </div>
+
+        {/* Sidebar */}
+        <div style={{
+          flex: 1,
+          background: '#1a1a2e',
+          padding: 20,
+          overflowY: 'auto'
+        }}>
+          <h3 style={{ color: 'white' }}>Participants</h3>
+          {parameters.participants.map(participant => (
+            <div key={participant.id} style={{
+              padding: 10,
+              margin: '10px 0',
+              background: '#2a2a3e',
+              borderRadius: 8,
+              color: 'white'
+            }}>
+              {participant.name}
+              {participant.muted && ' 🔇'}
+              {participant.videoOn && ' 📹'}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Custom Controls */}
+      <div style={{
+        padding: 20,
+        background: '#1a1a2e',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 15
+      }}>
+        <button onClick={() => parameters.clickVideo({ parameters })}>
+          {parameters.videoAlreadyOn ? '📹 Stop Video' : '📹 Start Video'}
+        </button>
+        <button onClick={() => parameters.clickAudio({ parameters })}>
+          {parameters.audioAlreadyOn ? '🎤 Mute' : '🎤 Unmute'}
+        </button>
+        <button onClick={() => parameters.clickScreenShare({ parameters })}>
+          🖥️ Share Screen
+        </button>
+        <button onClick={() => parameters.updateIsMessagesModalVisible(true)}>
+          💬 Chat
+        </button>
+        <button onClick={() => parameters.launchConfirmExit({ parameters })} style={{ background: '#f44336' }}>
+          📞 Leave
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <MediasfuGeneric 
+      credentials={credentials}
+      customComponent={CompleteCustomInterface}
+    />
+  );
+}
+
+export default App;
+```
+
+---
 
 # Basic Usage Guide <a name="basic-usage-guide"></a>
 
@@ -2913,6 +4439,184 @@ For detailed information on the API methods and usage, please refer to the [Medi
 If you need further assistance or have any questions, feel free to ask!
 
 For sample codes and practical implementations, visit the [MediaSFU Sandbox](https://www.mediasfu.com/sandbox).
+
+## Media Device and Stream Utility Methods <a name="media-device-and-stream-utility-methods"></a>
+
+MediaSFU provides utility methods for accessing media devices and participant streams programmatically. These methods are especially useful when building custom UI components or implementing advanced media management features.
+
+### Available Utility Methods
+
+| Method | Description |
+|--------|-------------|
+| `getMediaDevicesList` | Retrieves available media devices (cameras/microphones) on the user's system. |
+| `getParticipantMedia` | Gets the media stream of a specific participant by ID or name. |
+
+### Usage Examples
+
+#### 1. Get Available Media Devices
+
+Use `getMediaDevicesList` to enumerate available video or audio input devices:
+
+```typescript
+// Access the method from sourceParameters
+const { getMediaDevicesList } = sourceParameters;
+
+// Get available video input devices (cameras)
+const videoDevices = await getMediaDevicesList("videoinput");
+console.log("Available cameras:", videoDevices);
+
+// Get available audio input devices (microphones)  
+const audioDevices = await getMediaDevicesList("audioinput");
+console.log("Available microphones:", audioDevices);
+
+// Example response format:
+// [
+//   { deviceId: "abc123", kind: "videoinput", label: "FaceTime HD Camera" },
+//   { deviceId: "def456", kind: "videoinput", label: "External USB Camera" }
+// ]
+```
+
+#### 2. Get Participant Media Streams
+
+Use `getParticipantMedia` to retrieve a participant's video or audio stream:
+
+```typescript
+// Access the method from sourceParameters
+const { getParticipantMedia } = sourceParameters;
+
+// Get participant's video stream by ID
+const participantVideoStream = await getParticipantMedia({
+  id: "participant123",
+  name: "John Doe",
+  kind: "video"
+});
+
+if (participantVideoStream) {
+  // Use the stream (e.g., attach to video element)
+  const videoElement = document.getElementById("participant-video");
+  videoElement.srcObject = participantVideoStream;
+  console.log("Got participant video stream:", participantVideoStream);
+}
+
+// Get participant's audio stream by name
+const participantAudioStream = await getParticipantMedia({
+  name: "Alice Smith",
+  kind: "audio"
+});
+
+if (participantAudioStream) {
+  // Use the audio stream
+  console.log("Got participant audio stream:", participantAudioStream);
+}
+```
+
+### Method Parameters
+
+**`getMediaDevicesList(kind: "videoinput" | "audioinput"): Promise<MediaDeviceInfo[]>`**
+
+Returns a list of available media devices filtered by type.
+
+- **Parameters:**
+  - `kind`: `"videoinput"` | `"audioinput"` - Type of media device to enumerate
+- **Returns:** `Promise<MediaDeviceInfo[]>` - Array of media device information objects
+
+**`getParticipantMedia({ id?, name, kind }: { id?: string, name: string, kind: "video" | "audio" }): Promise<MediaStream | null>`**
+
+Retrieves the media stream of a specific participant.
+
+- **Parameters:**
+  - `id` (optional): `string` - Participant ID to search by (takes priority over name)
+  - `name`: `string` - Participant's display name (used if ID not provided or not found)
+  - `kind`: `"video"` | `"audio"` - Type of media stream to retrieve
+- **Returns:** `Promise<MediaStream | null>` - The participant's media stream or null if not found
+
+### Common Use Cases
+
+1. **Device Selection UI**: Build custom device picker components that allow users to switch between cameras and microphones
+2. **Advanced UI Components**: Create sophisticated media display components with direct stream access
+3. **Media Processing**: Implement custom audio/video processing pipelines
+4. **Accessibility Features**: Build features that enhance accessibility with custom media handling
+5. **Analytics & Monitoring**: Track and analyze media streams for quality monitoring
+
+### Example: Custom Device Selector Component
+
+```typescript
+import React, { useState, useEffect } from 'react';
+
+function DeviceSelector({ sourceParameters }) {
+  const [videoDevices, setVideoDevices] = useState([]);
+  const [audioDevices, setAudioDevices] = useState([]);
+  const { getMediaDevicesList } = sourceParameters;
+
+  useEffect(() => {
+    const loadDevices = async () => {
+      const cameras = await getMediaDevicesList("videoinput");
+      const microphones = await getMediaDevicesList("audioinput");
+      setVideoDevices(cameras);
+      setAudioDevices(microphones);
+    };
+
+    loadDevices();
+  }, []);
+
+  return (
+    <div>
+      <h3>Select Camera</h3>
+      <select>
+        {videoDevices.map(device => (
+          <option key={device.deviceId} value={device.deviceId}>
+            {device.label || `Camera ${device.deviceId.slice(0, 5)}`}
+          </option>
+        ))}
+      </select>
+
+      <h3>Select Microphone</h3>
+      <select>
+        {audioDevices.map(device => (
+          <option key={device.deviceId} value={device.deviceId}>
+            {device.label || `Microphone ${device.deviceId.slice(0, 5)}`}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+```
+
+### Example: Display Specific Participant Stream
+
+```typescript
+import React, { useEffect, useRef } from 'react';
+
+function ParticipantVideo({ participantName, sourceParameters }) {
+  const videoRef = useRef(null);
+  const { getParticipantMedia } = sourceParameters;
+
+  useEffect(() => {
+    const loadStream = async () => {
+      const stream = await getParticipantMedia({
+        name: participantName,
+        kind: "video"
+      });
+
+      if (stream && videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    };
+
+    loadStream();
+  }, [participantName]);
+
+  return (
+    <div>
+      <h3>{participantName}'s Video</h3>
+      <video ref={videoRef} autoPlay playsInline muted style={{ width: '100%' }} />
+    </div>
+  );
+}
+```
+
+These utility methods provide low-level access to MediaSFU's media management system, enabling advanced customizations while maintaining compatibility with the core MediaSFU functionality.
 
 # Troubleshooting <a name="troubleshooting"></a>
 

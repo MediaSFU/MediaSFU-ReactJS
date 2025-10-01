@@ -2298,6 +2298,9 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
       clickScreenShare,
       requestPermissionCamera,
       requestPermissionAudio,
+
+      getMediaDevicesList,
+      getParticipantMedia,
     };
   };
 
@@ -3565,6 +3568,59 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
 
   const onResize = async () => {
     await handleResize();
+  };
+
+  const getMediaDevicesList = async (
+    kind: "videoinput" | "audioinput"
+  ): Promise<MediaDeviceInfo[]> => {
+    // Get the list of media devices
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      return devices.filter((device) => device.kind === kind);
+    } catch (error) {
+      console.error("Error getting media devices:", error);
+      return [];
+    }
+  };
+
+  const getParticipantMedia = async ({
+    id,
+    name,
+    kind,
+  }: {
+    id?: string;
+    name: string;
+    kind: "video" | "audio";
+  }): Promise<MediaStream | null> => {
+    // Get the participant media stream (video or audio) by id or name
+    try {
+      const participantsRef = participants.current || [];
+      let participant;
+      if (id) {
+        participant = participantsRef.find((p) => p.id === id);
+      }
+      if (!participant) {
+        participant = participantsRef.find((p) => p.name === name);
+      }
+      if (participant) {
+        if (kind === "video") {
+          const videoStream = allVideoStreams.current?.find(
+            (stream) => stream.producerId === participant!.videoID
+          );
+          return videoStream ? videoStream.stream : null;
+        } else {
+          const audioStream = allAudioStreams.current?.find(
+            (stream) => stream.producerId === participant!.audioID
+          );
+          return audioStream ? audioStream.stream : null;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error("Error getting participant media:", error);
+      return null;
+    }
   };
 
   useEffect(() => {

@@ -9,22 +9,6 @@
  *
  * Note: All guide instructions are provided as code comments. They will not render to the user directly.
  */
-/**
- * App Component
- *
- * This component demonstrates how to:
- * - Configure credentials for MediaSFU Cloud and/or Community Edition (CE).
- * - Use MediaSFU with or without a custom server.
- * - Integrate a pre-join page.
- * - Return no UI and manage state through sourceParameters, allowing a fully custom frontend.
- *
- * Basic instructions:
- * 1. Set `localLink` to your CE server if you have one, or leave it blank to use MediaSFU Cloud.
- * 2. Set `connectMediaSFU` to determine whether you're connecting to MediaSFU Cloud services.
- * 3. Provide credentials if using MediaSFU Cloud (dummy credentials are acceptable in certain scenarios).
- * 4. If you prefer a custom UI, set `returnUI` to false and handle all interactions via `sourceParameters` and `updateSourceParameters`.
- * 5. For secure production usage, consider using custom `createMediaSFURoom` and `joinMediaSFURoom` functions to forward requests through your backend.
- */
 declare const App: () => import("react/jsx-runtime").JSX.Element;
 export default App;
 /**

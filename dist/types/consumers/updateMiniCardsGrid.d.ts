@@ -1,4 +1,9 @@
 import { GridSizes, ComponentSizes, EventType } from "../@types/types";
+export interface GridLayoutMeta {
+    rows: number;
+    cols: number;
+    actualRows: number;
+}
 export interface UpdateMiniCardsGridParameters {
     updateGridRows: (rows: number) => void;
     updateGridCols: (cols: number) => void;
@@ -12,6 +17,8 @@ export interface UpdateMiniCardsGridParameters {
     componentSizes: ComponentSizes;
     eventType: EventType;
     getUpdatedAllParams: () => UpdateMiniCardsGridParameters;
+    updatePrimaryGridLayoutMeta?: (layout: GridLayoutMeta) => void;
+    updateAltGridLayoutMeta?: (layout: GridLayoutMeta) => void;
     [key: string]: any;
 }
 export interface UpdateMiniCardsGridOptions {

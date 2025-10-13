@@ -1,4 +1,10 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+const joinClassNames = (
+  ...classes: Array<string | undefined | null | false>
+): string | undefined => {
+  const filtered = classes.filter(Boolean).join(" ").trim();
+  return filtered.length > 0 ? filtered : undefined;
+};
 import {
   ConnectSocketType,
   ShowAlert,
@@ -92,85 +98,403 @@ export interface PreJoinPageOptions {
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   createMediaSFURoom?: CreateRoomOnMediaSFUType;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
+  containerProps?: React.HTMLAttributes<HTMLDivElement>;
+  logoContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  logoImageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
+  inputContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  orContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  orTextProps?: React.HTMLAttributes<HTMLSpanElement>;
+  toggleContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  toggleButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  createButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  joinButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  createNameInputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  durationInputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  capacityInputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  eventTypeSelectProps?: React.SelectHTMLAttributes<HTMLSelectElement>;
+  joinNameInputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  eventIdInputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  errorProps?: React.HTMLAttributes<HTMLParagraphElement>;
+  renderContainer?: (options: {
+    defaultContainer: React.ReactNode;
+    isCreateMode: boolean;
+    error: string;
+  }) => React.ReactNode;
+  renderLogo?: (options: { defaultLogo: React.ReactNode }) => React.ReactNode;
+  renderCreateForm?: (options: {
+    defaultContent: React.ReactNode;
+    values: {
+      name: string;
+      duration: string;
+      eventType: string;
+      capacity: string;
+    };
+    submit: () => Promise<void>;
+    setValues: {
+      onNameChange: React.ChangeEventHandler<HTMLInputElement>;
+      onDurationChange: React.ChangeEventHandler<HTMLInputElement>;
+      onEventTypeChange: React.ChangeEventHandler<HTMLSelectElement>;
+      onCapacityChange: React.ChangeEventHandler<HTMLInputElement>;
+    };
+  }) => React.ReactNode;
+  renderJoinForm?: (options: {
+    defaultContent: React.ReactNode;
+    values: { name: string; eventID: string };
+    submit: () => Promise<void>;
+    setValues: {
+      onNameChange: React.ChangeEventHandler<HTMLInputElement>;
+      onEventIDChange: React.ChangeEventHandler<HTMLInputElement>;
+    };
+  }) => React.ReactNode;
+  renderToggle?: (options: {
+    defaultToggle: React.ReactNode;
+    isCreateMode: boolean;
+    toggle: () => void;
+  }) => React.ReactNode;
+  renderError?: (options: {
+    defaultError: React.ReactNode;
+    error: string;
+  }) => React.ReactNode;
+  renderContent?: (options: {
+    defaultContent: React.ReactNode;
+    isCreateMode: boolean;
+    error: string;
+  }) => React.ReactNode;
 }
 
 export type PreJoinPageType = (options: PreJoinPageOptions) => React.JSX.Element;
 
 /**
- * PreJoinPage component allows users to either create a new room or join an existing one.
- *
+ * PreJoinPage - A comprehensive pre-meeting entry page with dual create/join functionality.
+ * 
+ * This component provides a complete pre-meeting interface allowing users to either create new
+ * meeting rooms or join existing ones. It handles form validation, API integration, socket
+ * connections, and supports both UI and headless (no-UI) modes for flexible integration.
+ * 
+ * **Key Features:**
+ * - **Dual Mode Operation**: Seamless toggle between room creation and joining interfaces
+ * - **Room Creation**: Configure event type (chat/broadcast/webinar/conference), duration, capacity
+ * - **Room Joining**: Enter event ID, username, and optional security code
+ * - **API Integration**: Connects to MediaSFU or local server for room management
+ * - **Socket Management**: Establishes WebSocket connections for real-time communication
+ * - **Form Validation**: Comprehensive validation with user-friendly error messages
+ * - **Headless Mode**: Support for no-UI operation with programmatic configuration
+ * - **Credential Management**: Handles API authentication and token management
+ * - **Loading States**: Integrated loading modal during connection/validation
+ * - **Custom Styling**: 20+ HTML attribute props for complete visual customization
+ * - **Render Hooks**: Six custom render functions for logo, forms, toggle, errors, and container
+ * - **Media Preferences**: Configure video, audio, and audio output settings before joining
+ * - **Local/Remote Servers**: Flexible connection to MediaSFU cloud or local instances
+ * - **Scheduled Events**: Support for scheduled meeting times with date/time pickers
+ * - **Security Features**: Optional secure codes and waiting room functionality
+ * - **Recording Configuration**: Pre-configure recording parameters and event room settings
+ * - **Responsive Design**: Mobile-friendly interface with touch-optimized controls
+ * 
  * @component
- * @param {PreJoinPageOptions} props - The properties for the PreJoinPage component.
- * @param {PreJoinPageParameters} props.parameters - Various parameters required for the component.
- * @param {ShowAlert} [props.parameters.showAlert] - Function to show alert messages.
- * @param {() => void} props.parameters.updateIsLoadingModalVisible - Function to update the loading modal visibility.
- * @param {ConnectSocketType} props.parameters.connectSocket - Function to connect to the socket.
- * @param {Socket} props.parameters.updateSocket - Function to update the socket.
- * @param {() => void} props.parameters.updateValidated - Function to update the validation status.
- * @param {string} [props.parameters.imgSrc] - The source URL for the logo image.
- * @param {Credentials} [props.credentials=user_credentials] - The user credentials containing the API username and API key.
- * @param {boolean} [props.returnUI=false] - Flag to determine if the component should return the UI.
- * @param {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [props.noUIPreJoinOptions] - The options for creating/joining a room without UI.
- * @param {string} [props.localLink=""] - The link to the local server.
- * @param {boolean} [props.connectMediaSFU=true] - Flag to determine if the component should connect to MediaSFU.
- * @param {CreateRoomOnMediaSFUType} [props.createMediaSFURoom] - Function to create a room on MediaSFU.
- * @param {JoinRoomOnMediaSFUType} [props.joinMediaSFURoom] - Function to join a room on MediaSFU.
- *
- * @returns {React.JSX.Element} The rendered PreJoinPage component.
- *
+ * 
+ * @param {PreJoinPageOptions} props - Configuration options for PreJoinPage
+ * @param {PreJoinPageParameters} props.parameters - Core parameters for room operations and state management
+ * @param {ShowAlert} [props.parameters.showAlert] - Function to display alert messages to users
+ * @param {() => void} props.parameters.updateIsLoadingModalVisible - Function to toggle loading modal visibility
+ * @param {ConnectSocketType} [props.parameters.connectSocket] - Function to establish MediaSFU socket connection
+ * @param {ConnectLocalSocketType} [props.parameters.connectLocalSocket] - Function to establish local server socket connection
+ * @param {(socket: Socket) => void} props.parameters.updateSocket - Function to update the active socket instance
+ * @param {(socket: Socket) => void} [props.parameters.updateLocalSocket] - Function to update the local socket instance
+ * @param {() => void} props.parameters.updateValidated - Function to mark connection as validated
+ * @param {(userName: string) => void} props.parameters.updateApiUserName - Function to store API username
+ * @param {(token: string) => void} props.parameters.updateApiToken - Function to store API authentication token
+ * @param {(link: string) => void} props.parameters.updateLink - Function to store meeting link
+ * @param {(roomName: string) => void} props.parameters.updateRoomName - Function to store room name
+ * @param {(member: string) => void} props.parameters.updateMember - Function to store member name
+ * @param {string} [props.parameters.imgSrc] - Logo image source URL for branding
+ * @param {Credentials} [props.credentials=user_credentials] - API credentials (apiUserName and apiKey)
+ * @param {boolean} [props.returnUI=false] - Flag to enable UI mode (true) or headless mode (false)
+ * @param {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [props.noUIPreJoinOptions] - Configuration for headless mode operation
+ * @param {string} [props.localLink=""] - URL for local server connection (empty string for MediaSFU cloud)
+ * @param {boolean} [props.connectMediaSFU=true] - Flag to enable MediaSFU cloud connection
+ * @param {CreateRoomOnMediaSFUType} [props.createMediaSFURoom=createRoomOnMediaSFU] - Function to create room on MediaSFU
+ * @param {JoinRoomOnMediaSFUType} [props.joinMediaSFURoom=joinRoomOnMediaSFU] - Function to join room on MediaSFU
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.containerProps] - HTML attributes for main container
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.logoContainerProps] - HTML attributes for logo container
+ * @param {React.ImgHTMLAttributes<HTMLImageElement>} [props.logoImageProps] - HTML attributes for logo image
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.inputContainerProps] - HTML attributes for input fields container
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.orContainerProps] - HTML attributes for "OR" separator container
+ * @param {React.HTMLAttributes<HTMLSpanElement>} [props.orTextProps] - HTML attributes for "OR" text element
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.toggleContainerProps] - HTML attributes for mode toggle container
+ * @param {React.ButtonHTMLAttributes<HTMLButtonElement>} [props.toggleButtonProps] - HTML attributes for toggle button
+ * @param {React.ButtonHTMLAttributes<HTMLButtonElement>} [props.createButtonProps] - HTML attributes for create room button
+ * @param {React.ButtonHTMLAttributes<HTMLButtonElement>} [props.joinButtonProps] - HTML attributes for join room button
+ * @param {React.InputHTMLAttributes<HTMLInputElement>} [props.createNameInputProps] - HTML attributes for create mode name input
+ * @param {React.InputHTMLAttributes<HTMLInputElement>} [props.durationInputProps] - HTML attributes for duration input
+ * @param {React.InputHTMLAttributes<HTMLInputElement>} [props.capacityInputProps] - HTML attributes for capacity input
+ * @param {React.SelectHTMLAttributes<HTMLSelectElement>} [props.eventTypeSelectProps] - HTML attributes for event type select
+ * @param {React.InputHTMLAttributes<HTMLInputElement>} [props.joinNameInputProps] - HTML attributes for join mode name input
+ * @param {React.InputHTMLAttributes<HTMLInputElement>} [props.eventIdInputProps] - HTML attributes for event ID input
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.errorProps] - HTML attributes for error message container
+ * @param {(options: {defaultContainer: React.ReactNode}) => React.ReactNode} [props.renderContainer] - Custom render function for main container
+ * @param {(options: {defaultLogo: React.ReactNode; imgSrc?: string}) => React.ReactNode} [props.renderLogo] - Custom render function for logo
+ * @param {(options: {defaultForm: React.ReactNode}) => React.ReactNode} [props.renderCreateForm] - Custom render function for create room form
+ * @param {(options: {defaultForm: React.ReactNode}) => React.ReactNode} [props.renderJoinForm] - Custom render function for join room form
+ * @param {(options: {defaultToggle: React.ReactNode; isCreateMode: boolean; toggle: () => void}) => React.ReactNode} [props.renderToggle] - Custom render function for mode toggle
+ * @param {(options: {defaultError: React.ReactNode; error: string}) => React.ReactNode} [props.renderError] - Custom render function for error display
+ * @param {(options: {defaultContent: React.ReactNode; isCreateMode: boolean; error: string}) => React.ReactNode} [props.renderContent] - Custom render function for entire content area
+ * 
+ * @returns {React.JSX.Element} The rendered pre-join page component
+ * 
  * @example
+ * // Basic usage with UI mode
  * ```tsx
  * import React from 'react';
  * import { PreJoinPage } from 'mediasfu-reactjs';
- * import { JoinLocalRoomOptions } from 'mediasfu-reactjs';
- *
- * const App = () => {
- *   const showAlertFunction = (message: string) => console.log(message);
- *   const updateLoadingFunction = (visible: boolean) => console.log(`Loading: ${visible}`);
- *   const connectSocketFunction = () => {}; // Connect socket function
- *   const updateSocketFunction = (socket: Socket) => {}; // Update socket function
- *   const updateValidatedFunction = (validated: boolean) => {}; // Update validated function
- *   const updateApiUserNameFunction = (userName: string) => {}; // Update API username function
- *   const updateApiTokenFunction = (token: string) => {}; // Update API token function
- *   const updateLinkFunction = (link: string) => {}; // Update link function
- *   const updateRoomNameFunction = (roomName: string) => {}; // Update room name function
- *   const updateMemberFunction = (member: string) => {}; // Update member function
- *
+ * 
+ * const BasicPreJoin = () => {
+ *   const handleAlert = (message: string) => {
+ *     alert(message);
+ *   };
+ * 
  *   return (
  *     <PreJoinPage
- *       parameters={{
- *         showAlert: showAlertFunction,
- *         updateIsLoadingModalVisible: updateLoadingFunction,
- *         connectSocket: connectSocketFunction,
- *         updateSocket: updateSocketFunction,
- *         updateValidated: updateValidatedFunction,
- *         updateApiUserName: updateApiUserNameFunction,
- *         updateApiToken: updateApiTokenFunction,
- *         updateLink: updateLinkFunction,
- *         updateRoomName: updateRoomNameFunction,
- *         updateMember: updateMemberFunction,
- *         imgSrc: "https://example.com/logo.png"
- *       }}
  *       credentials={{
- *         apiUserName: "user123",
- *         apiKey: "apikey123"
+ *         apiUserName: 'user123',
+ *         apiKey: 'your-api-key'
  *       }}
- *      returnUI={true} 
- *      noUIPreJoinOptions={{
- *      action: "create",
- *      capacity: 10,
- *      duration: 15,
- *      eventType: "broadcast",
- *      userName: "Prince",
- *      }}
- *      connectMediaSFU={true}
- *      localLink="http://localhost:3000"
+ *       returnUI={true}
+ *       parameters={{
+ *         showAlert: handleAlert,
+ *         updateIsLoadingModalVisible: (visible) => console.log('Loading:', visible),
+ *         connectSocket: async ({ socket, apiUserName, apiToken }) => {
+ *           // Socket connection logic
+ *         },
+ *         updateSocket: (socket) => console.log('Socket updated'),
+ *         updateValidated: () => console.log('Validated'),
+ *         updateApiUserName: (name) => console.log('API User:', name),
+ *         updateApiToken: (token) => console.log('Token set'),
+ *         updateLink: (link) => console.log('Link:', link),
+ *         updateRoomName: (room) => console.log('Room:', room),
+ *         updateMember: (member) => console.log('Member:', member),
+ *         imgSrc: 'https://example.com/logo.png'
+ *       }}
+ *       connectMediaSFU={true}
  *     />
  *   );
  * };
- *
- *
- * export default App;
+ * ```
+ * 
+ * @example
+ * // Custom styled with branding and validation
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { PreJoinPage } from 'mediasfu-reactjs';
+ * 
+ * const BrandedPreJoin = () => {
+ *   const [isLoading, setIsLoading] = useState(false);
+ * 
+ *   return (
+ *     <PreJoinPage
+ *       credentials={{
+ *         apiUserName: 'company_user',
+ *         apiKey: 'company_api_key'
+ *       }}
+ *       returnUI={true}
+ *       parameters={{
+ *         showAlert: (message) => {
+ *           console.log('Alert:', message);
+ *         },
+ *         updateIsLoadingModalVisible: setIsLoading,
+ *         connectSocket: async (options) => {},
+ *         updateSocket: (socket) => {},
+ *         updateValidated: () => {},
+ *         updateApiUserName: (name) => {},
+ *         updateApiToken: (token) => {},
+ *         updateLink: (link) => {},
+ *         updateRoomName: (room) => {},
+ *         updateMember: (member) => {},
+ *         imgSrc: 'https://company.com/logo.svg'
+ *       }}
+ *       containerProps={{
+ *         style: {
+ *           background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+ *           minHeight: '100vh',
+ *           fontFamily: "'Inter', sans-serif"
+ *         }
+ *       }}
+ *       createButtonProps={{
+ *         style: {
+ *           backgroundColor: '#10b981',
+ *           padding: '14px 28px',
+ *           borderRadius: '8px',
+ *           fontSize: '16px',
+ *           fontWeight: '600',
+ *           border: 'none',
+ *           cursor: 'pointer',
+ *           transition: 'all 0.3s'
+ *         }
+ *       }}
+ *       joinButtonProps={{
+ *         style: {
+ *           backgroundColor: '#3b82f6',
+ *           padding: '14px 28px',
+ *           borderRadius: '8px',
+ *           fontSize: '16px',
+ *           fontWeight: '600',
+ *           border: 'none',
+ *           cursor: 'pointer'
+ *         }
+ *       }}
+ *       renderLogo={({ imgSrc }) => (
+ *         <div style={{ textAlign: 'center', marginBottom: '40px' }}>
+ *           <img src={imgSrc} alt="Company Logo" style={{ width: '200px' }} />
+ *           <h1 style={{ color: 'white', marginTop: '20px' }}>Welcome to Our Platform</h1>
+ *         </div>
+ *       )}
+ *     />
+ *   );
+ * };
+ * ```
+ * 
+ * @example
+ * // Analytics tracking with event monitoring
+ * ```tsx
+ * import React, { useEffect } from 'react';
+ * import { PreJoinPage } from 'mediasfu-reactjs';
+ * 
+ * const AnalyticsPreJoin = () => {
+ *   useEffect(() => {
+ *     analytics.page('Pre-Join Page Viewed');
+ *   }, []);
+ * 
+ *   return (
+ *     <PreJoinPage
+ *       credentials={{
+ *         apiUserName: 'analytics_user',
+ *         apiKey: 'analytics_key'
+ *       }}
+ *       returnUI={true}
+ *       parameters={{
+ *         showAlert: (message) => {
+ *           analytics.track('Alert Shown', { message });
+ *           alert(message);
+ *         },
+ *         updateIsLoadingModalVisible: (visible) => {
+ *           analytics.track('Loading State Changed', { visible });
+ *         },
+ *         connectSocket: async (options) => {
+ *           analytics.track('Socket Connection Initiated', {
+ *             apiUserName: options.apiUserName
+ *           });
+ *         },
+ *         updateValidated: () => {
+ *           analytics.track('Connection Validated');
+ *         },
+ *         updateRoomName: (room) => {
+ *           analytics.track('Room Entered', { roomName: room });
+ *         },
+ *         updateSocket: (socket) => {},
+ *         updateApiUserName: (name) => {},
+ *         updateApiToken: (token) => {},
+ *         updateLink: (link) => {},
+ *         updateMember: (member) => {}
+ *       }}
+ *       renderToggle={({ defaultToggle, isCreateMode, toggle }) => (
+ *         <div onClick={() => {
+ *           analytics.track('Mode Toggled', {
+ *             from: isCreateMode ? 'create' : 'join',
+ *             to: isCreateMode ? 'join' : 'create'
+ *           });
+ *           toggle();
+ *         }}>
+ *           {defaultToggle}
+ *         </div>
+ *       )}
+ *       createMediaSFURoom={async (options) => {
+ *         analytics.track('Room Creation Attempted', {
+ *           eventType: options.eventType,
+ *           duration: options.duration,
+ *           capacity: options.capacity
+ *         });
+ *         const result = await createRoomOnMediaSFU(options);
+ *         analytics.track('Room Created Successfully', {
+ *           eventType: options.eventType
+ *         });
+ *         return result;
+ *       }}
+ *       joinMediaSFURoom={async (options) => {
+ *         analytics.track('Room Join Attempted', {
+ *           eventID: options.eventID
+ *         });
+ *         const result = await joinRoomOnMediaSFU(options);
+ *         analytics.track('Room Joined Successfully');
+ *         return result;
+ *       }}
+ *     />
+ *   );
+ * };
+ * ```
+ * 
+ * @example
+ * // Integration with MediasfuGeneric using uiOverrides
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { MediasfuGeneric, PreJoinPage } from 'mediasfu-reactjs';
+ * 
+ * const CustomPreJoin = (props) => (
+ *   <PreJoinPage
+ *     {...props}
+ *     renderContent={({ defaultContent, isCreateMode, error }) => (
+ *       <div className="custom-prejoin-wrapper">
+ *         <div className="welcome-banner">
+ *           <h2>🎥 {isCreateMode ? 'Start Your Meeting' : 'Join the Meeting'}</h2>
+ *           <p>Connect with your team in seconds</p>
+ *         </div>
+ *         {error && (
+ *           <div className="error-banner" style={{
+ *             backgroundColor: '#fee',
+ *             color: '#c00',
+ *             padding: '12px',
+ *             borderRadius: '6px',
+ *             marginBottom: '20px'
+ *           }}>
+ *             ⚠️ {error}
+ *           </div>
+ *         )}
+ *         {defaultContent}
+ *         <div className="help-section">
+ *           <a href="/help">Need help?</a>
+ *           <span> | </span>
+ *           <a href="/privacy">Privacy Policy</a>
+ *         </div>
+ *       </div>
+ *     )}
+ *     renderCreateForm={({ defaultForm }) => (
+ *       <div className="enhanced-create-form">
+ *         <div className="form-header">
+ *           <h3>Create New Room</h3>
+ *           <p>Set up your meeting parameters</p>
+ *         </div>
+ *         {defaultForm}
+ *         <div className="form-footer">
+ *           <small>🔒 Your meeting will be secure and encrypted</small>
+ *         </div>
+ *       </div>
+ *     )}
+ *   />
+ * );
+ * 
+ * const App = () => {
+ *   const [credentials] = useState({
+ *     apiUserName: 'user123',
+ *     apiKey: 'your-api-key'
+ *   });
+ * 
+ *   return (
+ *     <MediasfuGeneric
+ *       credentials={credentials}
+ *       uiOverrides={{
+ *         PreJoinPage: CustomPreJoin
+ *       }}
+ *     />
+ *   );
+ * };
  * ```
  */
 
@@ -183,6 +507,30 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
   noUIPreJoinOptions,
   createMediaSFURoom = createRoomOnMediaSFU,
   joinMediaSFURoom = joinRoomOnMediaSFU,
+  containerProps,
+  logoContainerProps,
+  logoImageProps,
+  inputContainerProps,
+  orContainerProps,
+  orTextProps,
+  toggleContainerProps,
+  toggleButtonProps,
+  createButtonProps,
+  joinButtonProps,
+  createNameInputProps,
+  durationInputProps,
+  capacityInputProps,
+  eventTypeSelectProps,
+  joinNameInputProps,
+  eventIdInputProps,
+  errorProps,
+  renderContainer,
+  renderLogo,
+  renderCreateForm,
+  renderJoinForm,
+  renderToggle,
+  renderError,
+  renderContent,
 }) => {
   const [isCreateMode, setIsCreateMode] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
@@ -760,96 +1108,506 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
     }
   }, []);
 
-  const handleToggleMode = () => {
-    setIsCreateMode(!isCreateMode);
+  const handleToggleMode = useCallback(() => {
+    setIsCreateMode((prev) => !prev);
     setError("");
-  };
+  }, []);
 
   if (!returnUI) {
     return <></>;
   }
 
-  return (
-    <div style={styles.container}>
-      <div style={styles.logoContainer}>
-        <img
-          src={parameters.imgSrc || "https://mediasfu.com/images/logo192.png"}
-          style={styles.logoImage}
-          alt="Logo"
-        />
-      </div>
-      <div style={styles.inputContainer}>
-        {isCreateMode ? (
-          <>
-            <input
-              type="text"
-              placeholder="Display Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={styles.inputField}
-            />
-            <input
-              type="text"
-              placeholder="Duration (minutes)"
-              value={duration}
-              onChange={(e) => setDuration(e.target.value)}
-              style={styles.inputField}
-            />
-            <select
-              value={eventType}
-              onChange={(e) => setEventType(e.target.value)}
-              style={styles.selectField}
-            >
-              <option value="">Select Event Type</option>
-              <option value="chat">Chat</option>
-              <option value="broadcast">Broadcast</option>
-              <option value="webinar">Webinar</option>
-              <option value="conference">Conference</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Room Capacity"
-              value={capacity}
-              onChange={(e) => setCapacity(e.target.value)}
-              style={styles.inputField}
-            />
-            <button onClick={handleCreateRoom} style={styles.actionButton}>
-              Create Room
-            </button>
-          </>
-        ) : (
-          <>
-            <input
-              type="text"
-              placeholder="Display Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              style={styles.inputField}
-            />
-            <input
-              type="text"
-              placeholder="Event ID"
-              value={eventID}
-              onChange={(e) => setEventID(e.target.value)}
-              style={styles.inputField}
-            />
-            <button onClick={handleJoinRoom} style={styles.actionButton}>
-              Join Room
-            </button>
-          </>
-        )}
-        {error && <p style={styles.error}>{error}</p>}
-      </div>
-      <div style={styles.orContainer}>
-        <span style={styles.orText}>OR</span>
-      </div>
-      <div style={styles.toggleContainer}>
-        <button onClick={handleToggleMode} style={styles.toggleButton}>
-          {isCreateMode ? "Switch to Join Mode" : "Switch to Create Mode"}
-        </button>
-      </div>
+  const {
+    className: containerClassName,
+    style: containerStyleOverrides,
+    ...restContainerProps
+  } = containerProps ?? {};
+
+  const {
+    className: logoContainerClassName,
+    style: logoContainerStyleOverrides,
+    ...restLogoContainerProps
+  } = logoContainerProps ?? {};
+
+  const {
+    className: inputContainerClassName,
+    style: inputContainerStyleOverrides,
+    ...restInputContainerProps
+  } = inputContainerProps ?? {};
+
+  const {
+    className: orContainerClassName,
+    style: orContainerStyleOverrides,
+    ...restOrContainerProps
+  } = orContainerProps ?? {};
+
+  const {
+    className: orTextClassName,
+    style: orTextStyleOverrides,
+    ...restOrTextProps
+  } = orTextProps ?? {};
+
+  const {
+    className: toggleContainerClassName,
+    style: toggleContainerStyleOverrides,
+    ...restToggleContainerProps
+  } = toggleContainerProps ?? {};
+
+  const {
+    className: toggleButtonClassName,
+    style: toggleButtonStyleOverrides,
+    onClick: toggleButtonOnClick,
+    ...restToggleButtonProps
+  } = toggleButtonProps ?? {};
+
+  const {
+    className: errorClassName,
+    style: errorStyleOverrides,
+    ...restErrorProps
+  } = errorProps ?? {};
+
+  const {
+    style: logoImageStyleOverrides,
+    alt: logoImageAlt,
+    src: logoImageSrc,
+    ...restLogoImageProps
+  } = logoImageProps ?? {};
+
+  const {
+    style: createNameInputStyleOverrides,
+    onChange: createNameInputOnChange,
+    type: createNameInputType,
+    placeholder: createNameInputPlaceholder,
+    ...restCreateNameInputProps
+  } = createNameInputProps ?? {};
+
+  const {
+    style: durationInputStyleOverrides,
+    onChange: durationInputOnChange,
+    type: durationInputType,
+    placeholder: durationInputPlaceholder,
+    ...restDurationInputProps
+  } = durationInputProps ?? {};
+
+  const {
+    style: capacityInputStyleOverrides,
+    onChange: capacityInputOnChange,
+    type: capacityInputType,
+    placeholder: capacityInputPlaceholder,
+    ...restCapacityInputProps
+  } = capacityInputProps ?? {};
+
+  const {
+    style: eventTypeSelectStyleOverrides,
+    onChange: eventTypeSelectOnChange,
+    ...restEventTypeSelectProps
+  } = eventTypeSelectProps ?? {};
+
+  const {
+    style: joinNameInputStyleOverrides,
+    onChange: joinNameInputOnChange,
+    type: joinNameInputType,
+    placeholder: joinNameInputPlaceholder,
+    ...restJoinNameInputProps
+  } = joinNameInputProps ?? {};
+
+  const {
+    style: eventIdInputStyleOverrides,
+    onChange: eventIdInputOnChange,
+    type: eventIdInputType,
+    placeholder: eventIdInputPlaceholder,
+    ...restEventIdInputProps
+  } = eventIdInputProps ?? {};
+
+  const {
+    style: createButtonStyleOverrides,
+    onClick: createButtonOnClick,
+    children: createButtonChildren,
+    ...restCreateButtonProps
+  } = createButtonProps ?? {};
+
+  const {
+    style: joinButtonStyleOverrides,
+    onClick: joinButtonOnClick,
+    children: joinButtonChildren,
+    ...restJoinButtonProps
+  } = joinButtonProps ?? {};
+
+  const createFormDefault = (
+    <>
+      <input
+        type={createNameInputType ?? "text"}
+        placeholder={createNameInputPlaceholder ?? "Display Name"}
+        value={name}
+        onChange={(event) => {
+          createNameInputOnChange?.(event);
+          if (!event.defaultPrevented) {
+            setName(event.target.value);
+          }
+        }}
+        style={{
+          ...styles.inputField,
+          ...createNameInputStyleOverrides,
+        }}
+        {...restCreateNameInputProps}
+      />
+      <input
+        type={durationInputType ?? "text"}
+        placeholder={durationInputPlaceholder ?? "Duration (minutes)"}
+        value={duration}
+        onChange={(event) => {
+          durationInputOnChange?.(event);
+          if (!event.defaultPrevented) {
+            setDuration(event.target.value);
+          }
+        }}
+        style={{
+          ...styles.inputField,
+          ...durationInputStyleOverrides,
+        }}
+        {...restDurationInputProps}
+      />
+      <select
+        value={eventType}
+        onChange={(event) => {
+          eventTypeSelectOnChange?.(event);
+          if (!event.defaultPrevented) {
+            setEventType(event.target.value);
+          }
+        }}
+        style={{
+          ...styles.selectField,
+          ...eventTypeSelectStyleOverrides,
+        }}
+        {...restEventTypeSelectProps}
+      >
+        <option value="">Select Event Type</option>
+        <option value="chat">Chat</option>
+        <option value="broadcast">Broadcast</option>
+        <option value="webinar">Webinar</option>
+        <option value="conference">Conference</option>
+      </select>
+      <input
+        type={capacityInputType ?? "text"}
+        placeholder={capacityInputPlaceholder ?? "Room Capacity"}
+        value={capacity}
+        onChange={(event) => {
+          capacityInputOnChange?.(event);
+          if (!event.defaultPrevented) {
+            setCapacity(event.target.value);
+          }
+        }}
+        style={{
+          ...styles.inputField,
+          ...capacityInputStyleOverrides,
+        }}
+        {...restCapacityInputProps}
+      />
+      <button
+        type="button"
+        onClick={async (event) => {
+          await Promise.resolve(createButtonOnClick?.(event));
+          if (!event.defaultPrevented) {
+            await handleCreateRoom();
+          }
+        }}
+        style={{
+          ...styles.actionButton,
+          ...createButtonStyleOverrides,
+        }}
+        {...restCreateButtonProps}
+      >
+        {createButtonChildren ?? "Create Room"}
+      </button>
+    </>
+  );
+
+  const createFormNode = renderCreateForm
+    ? renderCreateForm({
+        defaultContent: createFormDefault,
+        values: {
+          name,
+          duration,
+          eventType,
+          capacity,
+        },
+        submit: handleCreateRoom,
+        setValues: {
+          onNameChange: (event) => {
+            createNameInputOnChange?.(event);
+            if (!event.defaultPrevented) {
+              setName(event.target.value);
+            }
+          },
+          onDurationChange: (event) => {
+            durationInputOnChange?.(event);
+            if (!event.defaultPrevented) {
+              setDuration(event.target.value);
+            }
+          },
+          onEventTypeChange: (event) => {
+            eventTypeSelectOnChange?.(event);
+            if (!event.defaultPrevented) {
+              setEventType(event.target.value);
+            }
+          },
+          onCapacityChange: (event) => {
+            capacityInputOnChange?.(event);
+            if (!event.defaultPrevented) {
+              setCapacity(event.target.value);
+            }
+          },
+        },
+      })
+    : createFormDefault;
+
+  const joinFormDefault = (
+    <>
+      <input
+        type={joinNameInputType ?? "text"}
+        placeholder={joinNameInputPlaceholder ?? "Display Name"}
+        value={name}
+        onChange={(event) => {
+          joinNameInputOnChange?.(event);
+          if (!event.defaultPrevented) {
+            setName(event.target.value);
+          }
+        }}
+        style={{
+          ...styles.inputField,
+          ...joinNameInputStyleOverrides,
+        }}
+        {...restJoinNameInputProps}
+      />
+      <input
+        type={eventIdInputType ?? "text"}
+        placeholder={eventIdInputPlaceholder ?? "Event ID"}
+        value={eventID}
+        onChange={(event) => {
+          eventIdInputOnChange?.(event);
+          if (!event.defaultPrevented) {
+            setEventID(event.target.value);
+          }
+        }}
+        style={{
+          ...styles.inputField,
+          ...eventIdInputStyleOverrides,
+        }}
+        {...restEventIdInputProps}
+      />
+      <button
+        type="button"
+        onClick={async (event) => {
+          await Promise.resolve(joinButtonOnClick?.(event));
+          if (!event.defaultPrevented) {
+            await handleJoinRoom();
+          }
+        }}
+        style={{
+          ...styles.actionButton,
+          ...joinButtonStyleOverrides,
+        }}
+        {...restJoinButtonProps}
+      >
+        {joinButtonChildren ?? "Join Room"}
+      </button>
+    </>
+  );
+
+  const joinFormNode = renderJoinForm
+    ? renderJoinForm({
+        defaultContent: joinFormDefault,
+        values: { name, eventID },
+        submit: handleJoinRoom,
+        setValues: {
+          onNameChange: (event) => {
+            joinNameInputOnChange?.(event);
+            if (!event.defaultPrevented) {
+              setName(event.target.value);
+            }
+          },
+          onEventIDChange: (event) => {
+            eventIdInputOnChange?.(event);
+            if (!event.defaultPrevented) {
+              setEventID(event.target.value);
+            }
+          },
+        },
+      })
+    : joinFormDefault;
+
+  const {
+    children: orTextChildren,
+    ...restOrTextWithoutChildren
+  } = restOrTextProps;
+
+  const errorDefault = error ? (
+    <p
+      className={joinClassNames("prejoin-error", errorClassName)}
+      style={{
+        ...styles.error,
+        ...errorStyleOverrides,
+      }}
+      {...restErrorProps}
+    >
+      {error}
+    </p>
+  ) : null;
+
+  const errorNode = renderError
+    ? renderError({ defaultError: errorDefault, error })
+    : errorDefault;
+
+  const logoDefault = (
+    <div
+      className={joinClassNames("prejoin-logo-container", logoContainerClassName)}
+      style={{
+        ...styles.logoContainer,
+        ...logoContainerStyleOverrides,
+      }}
+      {...restLogoContainerProps}
+    >
+      <img
+        src={
+          logoImageSrc ??
+          parameters.imgSrc ??
+          "https://mediasfu.com/images/logo192.png"
+        }
+        style={{
+          ...styles.logoImage,
+          ...logoImageStyleOverrides,
+        }}
+        alt={logoImageAlt ?? "Logo"}
+        {...restLogoImageProps}
+      />
     </div>
   );
+
+  const logoNode = renderLogo
+    ? renderLogo({ defaultLogo: logoDefault })
+    : logoDefault;
+
+  const inputContainerNode = (
+    <div
+      className={joinClassNames(
+        "prejoin-input-container",
+        inputContainerClassName
+      )}
+      style={{
+        ...styles.inputContainer,
+        ...inputContainerStyleOverrides,
+      }}
+      {...restInputContainerProps}
+    >
+      {isCreateMode ? createFormNode : joinFormNode}
+      {errorNode}
+    </div>
+  );
+
+  const orNode = (
+    <div
+      className={joinClassNames("prejoin-or-container", orContainerClassName)}
+      style={{
+        ...styles.orContainer,
+        ...orContainerStyleOverrides,
+      }}
+      {...restOrContainerProps}
+    >
+      <span
+        className={joinClassNames("prejoin-or-text", orTextClassName)}
+        style={{
+          ...styles.orText,
+          ...orTextStyleOverrides,
+        }}
+        {...restOrTextWithoutChildren}
+      >
+        {orTextChildren ?? "OR"}
+      </span>
+    </div>
+  );
+
+  const toggleButtonNode = (
+    <button
+      type="button"
+      className={joinClassNames("prejoin-toggle-button", toggleButtonClassName)}
+      style={{
+        ...styles.toggleButton,
+        ...toggleButtonStyleOverrides,
+      }}
+      onClick={async (event) => {
+        await Promise.resolve(toggleButtonOnClick?.(event));
+        if (!event.defaultPrevented) {
+          handleToggleMode();
+        }
+      }}
+      {...restToggleButtonProps}
+    >
+      {restToggleButtonProps.children ??
+        (isCreateMode ? "Switch to Join Mode" : "Switch to Create Mode")}
+    </button>
+  );
+
+  const toggleDefault = (
+    <div
+      className={joinClassNames(
+        "prejoin-toggle-container",
+        toggleContainerClassName
+      )}
+      style={{
+        ...styles.toggleContainer,
+        ...toggleContainerStyleOverrides,
+      }}
+      {...restToggleContainerProps}
+    >
+      {toggleButtonNode}
+    </div>
+  );
+
+  const toggleNode = renderToggle
+    ? renderToggle({
+        defaultToggle: toggleDefault,
+        isCreateMode,
+        toggle: handleToggleMode,
+      })
+    : toggleDefault;
+
+  const contentDefault = (
+    <>
+      {logoNode}
+      {inputContainerNode}
+      {orNode}
+      {toggleNode}
+    </>
+  );
+
+  const contentNode = renderContent
+    ? renderContent({
+        defaultContent: contentDefault,
+        isCreateMode,
+        error,
+      })
+    : contentDefault;
+
+  const containerNode = (
+    <div
+      className={joinClassNames("prejoin-container", containerClassName)}
+      style={{
+        ...styles.container,
+        ...containerStyleOverrides,
+      }}
+      {...restContainerProps}
+    >
+      {contentNode}
+    </div>
+  );
+
+  return renderContainer
+    ? renderContainer({
+        defaultContainer: containerNode,
+        isCreateMode,
+        error,
+      })
+    : containerNode;
 };
 
 const styles: { [key: string]: CSSProperties } = {

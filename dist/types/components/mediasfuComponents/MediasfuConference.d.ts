@@ -1,7 +1,7 @@
 import React from "react";
 import './MediasfuCSS.css';
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { SeedData, PreJoinPageOptions, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../../@types/types";
+import { SeedData, PreJoinPageOptions, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType, MediasfuUICustomOverrides } from "../../@types/types";
 export type MediasfuConferenceOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -29,6 +29,7 @@ export type MediasfuConferenceOptions = {
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;
     containerStyle?: React.CSSProperties;
+    uiOverrides?: MediasfuUICustomOverrides;
 };
 /**
  * MediasfuConference component optimizes the media experience for conferences.

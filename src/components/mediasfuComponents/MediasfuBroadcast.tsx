@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faMicrophoneSlash,
@@ -71,6 +71,7 @@ import { streamSuccessAudio } from "../../consumers/streamSuccessAudio";
 import { streamSuccessScreen } from "../../consumers/streamSuccessScreen";
 import { streamSuccessAudioSwitch } from "../../consumers/streamSuccessAudioSwitch";
 import { checkPermission } from "../../consumers/checkPermission";
+import { withOverride, withFunctionOverride } from "./overrideHelpers";
 
 //mediasfu functions
 import { updateMiniCardsGrid } from "../../consumers/updateMiniCardsGrid";
@@ -196,6 +197,7 @@ import {
   CustomVideoCardType,
   CustomAudioCardType,
   CustomMiniCardType,
+  MediasfuUICustomOverrides,
 } from "../../@types/types";
 import {
   Device,
@@ -229,6 +231,7 @@ export type MediasfuBroadcastOptions = {
   customAudioCard?: CustomAudioCardType;
   customMiniCard?: CustomMiniCardType;
   containerStyle?: React.CSSProperties;
+  uiOverrides?: MediasfuUICustomOverrides;
 };
 
 /**
@@ -311,7 +314,80 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
   customAudioCard,
   customMiniCard,
   containerStyle,
+  uiOverrides,
 }) => {
+  const MainContainer = useMemo(
+    () => withOverride(uiOverrides?.mainContainer, MainContainerComponent),
+    [uiOverrides?.mainContainer]
+  );
+  const MainAspect = useMemo(
+    () => withOverride(uiOverrides?.mainAspect, MainAspectComponent),
+    [uiOverrides?.mainAspect]
+  );
+  const MainScreen = useMemo(
+    () => withOverride(uiOverrides?.mainScreen, MainScreenComponent),
+    [uiOverrides?.mainScreen]
+  );
+  const MainGrid = useMemo(
+    () => withOverride(uiOverrides?.mainGrid, MainGridComponent),
+    [uiOverrides?.mainGrid]
+  );
+  const FlexibleVideoComponent = useMemo(
+    () => withOverride(uiOverrides?.flexibleVideo, FlexibleVideo),
+    [uiOverrides?.flexibleVideo]
+  );
+  const ControlButtonsTouchComponent = useMemo(
+    () => withOverride(uiOverrides?.controlButtonsTouch, ControlButtonsComponentTouch),
+    [uiOverrides?.controlButtonsTouch]
+  );
+  const AudioGridComponent = useMemo(
+    () => withOverride(uiOverrides?.audioGrid, AudioGrid),
+    [uiOverrides?.audioGrid]
+  );
+  const ParticipantsModalComponent = useMemo(
+    () => withOverride(uiOverrides?.participantsModal, ParticipantsModal),
+    [uiOverrides?.participantsModal]
+  );
+  const RecordingModalComponent = useMemo(
+    () => withOverride(uiOverrides?.recordingModal, RecordingModal),
+    [uiOverrides?.recordingModal]
+  );
+  const MessagesModalComponent = useMemo(
+    () => withOverride(uiOverrides?.messagesModal, MessagesModal),
+    [uiOverrides?.messagesModal]
+  );
+  const ConfirmExitModalComponent = useMemo(
+    () => withOverride(uiOverrides?.confirmExitModal, ConfirmExitModal),
+    [uiOverrides?.confirmExitModal]
+  );
+  const ConfirmHereModalComponent = useMemo(
+    () => withOverride(uiOverrides?.confirmHereModal, ConfirmHereModal),
+    [uiOverrides?.confirmHereModal]
+  );
+  const ShareEventModalComponent = useMemo(
+    () => withOverride(uiOverrides?.shareEventModal, ShareEventModal),
+    [uiOverrides?.shareEventModal]
+  );
+  const LoadingModalComponent = useMemo(
+    () => withOverride(uiOverrides?.loadingModal, LoadingModal),
+    [uiOverrides?.loadingModal]
+  );
+  const AlertComponentOverride = useMemo(
+    () => withOverride(uiOverrides?.alert, AlertComponent),
+    [uiOverrides?.alert]
+  );
+  const PreJoinPageComponent = useMemo(
+    () => withOverride(uiOverrides?.preJoinPage, PrejoinPage),
+    [uiOverrides?.preJoinPage, PrejoinPage]
+  );
+  const consumerResumeFn = useMemo(
+    () => withFunctionOverride(uiOverrides?.consumerResume, consumerResume),
+    [uiOverrides?.consumerResume]
+  );
+  const addVideosGridFn = useMemo(
+    () => withFunctionOverride(uiOverrides?.addVideosGrid, addVideosGrid),
+    [uiOverrides?.addVideosGrid]
+  );
   const updateStatesToInitialValues = async () => {
     const initialValues = initialValuesState as { [key: string]: any };
     const updateFunctions = getAllParams() as unknown as {
@@ -2279,7 +2355,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
       getVideos,
       rePort,
       trigger,
-      consumerResume,
+  consumerResume: consumerResumeFn,
       connectSendTransport,
       connectSendTransportAudio,
       connectSendTransportVideo,
@@ -2290,7 +2366,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
       checkGrid,
       getEstimate,
       calculateRowsAndColumns,
-      addVideosGrid,
+  addVideosGrid: addVideosGridFn,
       onScreenChanges,
       sleep,
       changeVids,
@@ -4315,7 +4391,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
           },
         })
       ) : !validated ? (
-        <PrejoinPage
+        <PreJoinPageComponent
           parameters={{
             imgSrc,
             showAlert,
@@ -4340,9 +4416,9 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
           createMediaSFURoom={createMediaSFURoom}
         />
       ) : returnUI ? (
-        <MainContainerComponent>
+        <MainContainer>
           {/* Main aspect component containsa ll but the control buttons (as used for webinar and conference) */}
-          <MainAspectComponent
+          <MainAspect
             backgroundColor="rgba(217, 227, 234, 0.99)"
             defaultFraction={1 - controlHeight}
             updateIsWideScreen={updateIsWideScreen}
@@ -4354,7 +4430,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             }
           >
             {/* MainScreenComponent contains the main grid view and the minor grid view */}
-            <MainScreenComponent
+            <MainScreen
               doStack={true}
               mainSize={mainHeightWidth}
               updateComponentSizes={updateComponentSizes}
@@ -4369,7 +4445,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
               {/* MainGridComponent becomes the dominant grid view in broadcast and webinar event types */}
               {/* MainGridComponent becomes the dominant grid view in conference event type when screenshare is active */}
 
-              <MainGridComponent
+              <MainGrid
                 height={componentSizes.current.mainHeight}
                 width={componentSizes.current.mainWidth}
                 backgroundColor="rgba(217, 227, 234, 0.99)"
@@ -4378,7 +4454,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
                 timeBackgroundColor={recordState}
                 meetingProgressTime={meetingProgressTime}
               >
-                <FlexibleVideo
+                <FlexibleVideoComponent
                   customWidth={componentSizes.current.mainWidth}
                   customHeight={componentSizes.current.mainHeight}
                   rows={1}
@@ -4392,7 +4468,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
                   }
                 />
 
-                <ControlButtonsComponentTouch
+                <ControlButtonsTouchComponent
                   buttons={controlBroadcastButtons}
                   position={"right"}
                   location={"bottom"}
@@ -4401,7 +4477,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
                 />
 
                 {/* Button to launch recording modal */}
-                <ControlButtonsComponentTouch
+                <ControlButtonsTouchComponent
                   buttons={recordButton}
                   direction={"horizontal"}
                   showAspect={
@@ -4414,7 +4490,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
                 />
 
                 {/* Buttons to control recording */}
-                <ControlButtonsComponentTouch
+                <ControlButtonsTouchComponent
                   buttons={recordButtons}
                   direction={"horizontal"}
                   showAspect={
@@ -4425,22 +4501,22 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
                   location="bottom"
                   position="middle"
                 />
-                <AudioGrid
+                <AudioGridComponent
                   componentsToRender={
                     audioOnlyStreams.current ? audioOnlyStreams.current : []
                   }
                 />
-              </MainGridComponent>
-            </MainScreenComponent>
-          </MainAspectComponent>
-        </MainContainerComponent>
+              </MainGrid>
+            </MainScreen>
+          </MainAspect>
+        </MainContainer>
       ) : (
         <></>
       )}
 
       {returnUI && !customComponent && (
         <>
-          <ParticipantsModal
+          <ParticipantsModalComponent
             backgroundColor="rgba(217, 227, 234, 0.99)"
             isParticipantsModalVisible={isParticipantsModalVisible}
             onParticipantsClose={() => updateIsParticipantsModalVisible(false)}
@@ -4474,7 +4550,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             }}
           />
 
-          <RecordingModal
+          <RecordingModalComponent
             backgroundColor="rgba(217, 227, 234, 0.99)"
             isRecordingModalVisible={isRecordingModalVisible}
             onClose={() => updateIsRecordingModalVisible(false)}
@@ -4486,7 +4562,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             }}
           />
 
-          <MessagesModal
+          <MessagesModalComponent
             backgroundColor={
               eventType.current == "webinar" ||
               eventType.current == "conference"
@@ -4511,7 +4587,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             chatSetting={chatSetting.current}
           />
 
-          <ConfirmExitModal
+          <ConfirmExitModalComponent
             backgroundColor="rgba(181, 233, 229, 0.97)"
             isConfirmExitModalVisible={isConfirmExitModalVisible}
             onConfirmExitClose={() => updateIsConfirmExitModalVisible(false)}
@@ -4521,7 +4597,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             islevel={islevel.current}
           />
 
-          <ConfirmHereModal
+          <ConfirmHereModalComponent
             backgroundColor="rgba(181, 233, 229, 0.97)"
             isConfirmHereModalVisible={isConfirmHereModalVisible}
             onConfirmHereClose={() => updateIsConfirmHereModalVisible(false)}
@@ -4530,7 +4606,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             socket={socket.current}
           />
 
-          <ShareEventModal
+          <ShareEventModalComponent
             isShareEventModalVisible={isShareEventModalVisible}
             onShareEventClose={() => updateIsShareEventModalVisible(false)}
             roomName={roomName.current}
@@ -4540,7 +4616,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             localLink={localLink}
           />
 
-          <AlertComponent
+          <AlertComponentOverride
             visible={alertVisible}
             message={alertMessage}
             type={alertType}
@@ -4549,7 +4625,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
             textColor={"#ffffff"}
           />
 
-          <LoadingModal
+          <LoadingModalComponent
             isVisible={isLoadingModalVisible}
             backgroundColor="rgba(217, 227, 234, 0.99)"
             displayColor="black"

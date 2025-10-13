@@ -59,6 +59,40 @@ export interface RecordingModalOptions {
   confirmRecording: ConfirmRecordingType;
   startRecording: StartRecordingType;
   parameters: RecordingModalParameters;
+  title?: React.ReactNode;
+  overlayProps?: React.HTMLAttributes<HTMLDivElement>;
+  contentProps?: React.HTMLAttributes<HTMLDivElement>;
+  headerProps?: React.HTMLAttributes<HTMLDivElement>;
+  titleProps?: React.HTMLAttributes<HTMLHeadingElement>;
+  closeButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  closeIconComponent?: React.ReactNode;
+  headerDividerProps?: React.HTMLAttributes<HTMLHRElement>;
+  bodyProps?: React.HTMLAttributes<HTMLDivElement>;
+  panelsWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+  panelsScrollProps?: React.HTMLAttributes<HTMLDivElement>;
+  panelsContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  panelsActionsDividerProps?: React.HTMLAttributes<HTMLDivElement>;
+  actionsWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+  confirmButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  startButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  confirmButtonLabel?: React.ReactNode;
+  startButtonLabel?: React.ReactNode;
+  renderHeader?: (options: {
+    defaultHeader: React.ReactNode;
+    onClose: () => void;
+  }) => React.ReactNode;
+  renderPanels?: (options: {
+    defaultPanels: React.ReactNode;
+    parameters: RecordingModalParameters;
+  }) => React.ReactNode;
+  renderActions?: (options: {
+    defaultActions: React.ReactNode;
+    recordPaused: boolean;
+    handleConfirm: () => void;
+    handleStart: () => void;
+  }) => React.ReactNode;
+  renderBody?: (options: { defaultBody: React.ReactNode }) => React.ReactNode;
+  renderContent?: (options: { defaultContent: React.ReactNode }) => React.ReactNode;
 }
 
 export type RecordingModalType = (
@@ -66,98 +100,249 @@ export type RecordingModalType = (
 ) => React.JSX.Element;
 
 /**
- * RecordingModal component provides an interface for configuring and controlling
- * recording settings within a modal. This component enables users to customize
- * recording parameters, such as video and display type, background color, custom text,
- * and orientation, and to initiate or confirm the recording process.
- *
+ * RecordingModal - Comprehensive recording configuration interface
+ * 
+ * A feature-rich modal for configuring cloud recording settings including video quality,
+ * display options, branding (watermarks, name tags, custom text), background colors,
+ * and HLS streaming. Provides standard and advanced configuration panels with real-time preview.
+ * 
+ * Features:
+ * - Standard and advanced configuration panels
+ * - Video quality selection (fullDisplay, bestDisplay, all)
+ * - Display type options (video, media, all)
+ * - Background color picker for recording canvas
+ * - Name tags with custom colors
+ * - Custom text watermarks with positioning
+ * - Recording orientation (landscape/portrait)
+ * - Media/audio/video participant selection
+ * - HLS streaming toggle
+ * - Pause/resume recording controls
+ * - Custom render hooks for complete UI flexibility
+ * 
  * @component
- * @param {boolean} isRecordingModalVisible - Controls the visibility of the modal.
- * @param {() => void} onClose - Callback function for closing the modal.
- * @param {string} [backgroundColor="#83c0e9"] - Background color of the modal content.
- * @param {string} [position="bottomRight"] - Screen position for the modal (e.g., "bottomRight").
- * @param {ConfirmRecordingType} confirmRecording - Function for confirming recording settings.
- * @param {StartRecordingType} startRecording - Function for starting the recording process.
- * @param {RecordingModalParameters} parameters - Object containing all customizable recording parameters.
- * @param {boolean} parameters.recordPaused - Indicates if recording is currently paused.
- * @param {string} parameters.recordingVideoType - Specifies the video type for recording.
- * @param {("video" | "media" | "all")} parameters.recordingDisplayType - Display type for recording.
- * @param {string} parameters.recordingBackgroundColor - Background color during recording.
- * @param {string} parameters.recordingNameTagsColor - Color of name tags in recording.
- * @param {string} parameters.recordingOrientationVideo - Orientation setting for video.
- * @param {boolean} parameters.recordingNameTags - Indicates if name tags are shown.
- * @param {boolean} parameters.recordingAddText - Specifies if custom text is added to recording.
- * @param {string} parameters.recordingCustomText - Text to be displayed in recording.
- * @param {string} parameters.recordingCustomTextPosition - Position for custom text.
- * @param {string} parameters.recordingCustomTextColor - Color of custom text.
- * @param {string} parameters.recordingMediaOptions - Media options for recording.
- * @param {string} parameters.recordingAudioOptions - Audio options for recording.
- * @param {string} parameters.recordingVideoOptions - Video options for recording.
- * @param {boolean} parameters.recordingAddHLS - Specifies if HLS is added to recording.
- * @param {EventType} parameters.eventType - Type of event the recording is associated with.
- * @param {Function} parameters.updateRecordingVideoType - Function to update video type.
- * @param {Function} parameters.updateRecordingDisplayType - Function to update display type.
- * @param {Function} parameters.updateRecordingBackgroundColor - Function to update background color.
- * @param {Function} parameters.updateRecordingNameTagsColor - Function to update name tags color.
- * @param {Function} parameters.updateRecordingOrientationVideo - Function to update orientation.
- * @param {Function} parameters.updateRecordingNameTags - Function to toggle name tags.
- * @param {Function} parameters.updateRecordingAddText - Function to toggle custom text.
- * @param {Function} parameters.updateRecordingCustomText - Function to set custom text.
- * @param {Function} parameters.updateRecordingCustomTextPosition - Function to set custom text position.
- * @param {Function} parameters.updateRecordingCustomTextColor - Function to set custom text color.
- * @param {Function} parameters.updateRecordingMediaOptions - Function to set media options.
- * @param {Function} parameters.updateRecordingAudioOptions - Function to set audio options.
- * @param {Function} parameters.updateRecordingVideoOptions - Function to set video options.
- * @param {Function} parameters.updateRecordingAddHLS - Function to toggle HLS in recording.
+ * @param {RecordingModalOptions} options - Configuration options
+ * @param {boolean} options.isRecordingModalVisible - Modal visibility state
+ * @param {Function} options.onClose - Callback when modal is closed
+ * @param {string} [options.backgroundColor="#83c0e9"] - Modal background color
+ * @param {string} [options.position="bottomRight"] - Modal position on screen
+ * @param {ConfirmRecordingType} options.confirmRecording - Function to confirm recording settings
+ * @param {StartRecordingType} options.startRecording - Function to start/resume recording
+ * @param {RecordingModalParameters} options.parameters - Recording configuration parameters
+ * @param {React.ReactNode} [options.title] - Modal title content
+ * @param {object} [options.overlayProps] - HTML attributes for overlay div
+ * @param {object} [options.contentProps] - HTML attributes for content container
+ * @param {object} [options.headerProps] - HTML attributes for header section
+ * @param {object} [options.closeButtonProps] - HTML attributes for close button
+ * @param {React.ReactNode} [options.closeIconComponent] - Custom close icon
+ * @param {object} [options.bodyProps] - HTML attributes for body section
+ * @param {object} [options.panelsWrapperProps] - HTML attributes for panels container
+ * @param {object} [options.actionsWrapperProps] - HTML attributes for action buttons wrapper
+ * @param {object} [options.confirmButtonProps] - HTML attributes for confirm button
+ * @param {object} [options.startButtonProps] - HTML attributes for start/resume button
+ * @param {React.ReactNode} [options.confirmButtonLabel] - Custom confirm button label
+ * @param {React.ReactNode} [options.startButtonLabel] - Custom start/resume button label
+ * @param {Function} [options.renderHeader] - Custom header renderer
+ * @param {Function} [options.renderPanels] - Custom configuration panels renderer
+ * @param {Function} [options.renderActions] - Custom action buttons renderer
+ * @param {Function} [options.renderBody] - Custom body renderer
+ * @param {Function} [options.renderContent] - Custom content renderer
+ * 
+ * @returns {React.JSX.Element} Rendered recording modal
  * 
  * @example
+ * // Basic recording modal with default settings
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { RecordingModal } from 'mediasfu-reactjs';
+ * 
+ * function RecordingControls({ parameters }) {
+ *   const [isVisible, setIsVisible] = useState(false);
+ * 
+ *   return (
+ *     <>
+ *       <button onClick={() => setIsVisible(true)}>
+ *         Configure Recording
+ *       </button>
+ *       <RecordingModal
+ *         isRecordingModalVisible={isVisible}
+ *         onClose={() => setIsVisible(false)}
+ *         confirmRecording={parameters.confirmRecording}
+ *         startRecording={parameters.startRecording}
+ *         parameters={parameters}
+ *         backgroundColor="#0f172a"
+ *         position="bottomRight"
+ *       />
+ *     </>
+ *   );
+ * }
+ * ```
+ * 
+ * @example
+ * // Custom styling with branded colors
  * ```tsx
  * import { RecordingModal } from 'mediasfu-reactjs';
- *
- * // Define the recording parameters
- * const recordingParams = {
- *   recordPaused: false,
- *   recordingVideoType: "bestDisplay",
- *   recordingDisplayType: "video",
- *   recordingBackgroundColor: "#000000",
- *   recordingNameTagsColor: "#FFFFFF",
- *   recordingOrientationVideo: "landscape",
- *   recordingNameTags: true,
- *   recordingAddText: true,
- *   recordingCustomText: "Sample Text",
- *   recordingCustomTextPosition: "top",
- *   recordingCustomTextColor: "#FF0000",
- *   recordingMediaOptions: "option1",
- *   recordingAudioOptions: "option2",
- *   recordingVideoOptions: "option3",
- *   recordingAddHLS: true,
- *   eventType: "meeting",
- *   updateRecordingVideoType: (value) => console.log(value),
- *   updateRecordingDisplayType: (value) => console.log(value),
- *   updateRecordingBackgroundColor: (value) => console.log(value),
- *   updateRecordingNameTagsColor: (value) => console.log(value),
- *   updateRecordingOrientationVideo: (value) => console.log(value),
- *   updateRecordingNameTags: (value) => console.log(value),
- *   updateRecordingAddText: (value) => console.log(value),
- *   updateRecordingCustomText: (value) => console.log(value),
- *   updateRecordingCustomTextPosition: (value) => console.log(value),
- *   updateRecordingCustomTextColor: (value) => console.log(value),
- *   updateRecordingMediaOptions: (value) => console.log(value),
- *   updateRecordingAudioOptions: (value) => console.log(value),
- *   updateRecordingVideoOptions: (value) => console.log(value),
- *   updateRecordingAddHLS: (value) => console.log(value),
+ * 
+ * function BrandedRecording({ isVisible, onClose, parameters }) {
+ *   return (
+ *     <RecordingModal
+ *       isRecordingModalVisible={isVisible}
+ *       onClose={onClose}
+ *       confirmRecording={parameters.confirmRecording}
+ *       startRecording={parameters.startRecording}
+ *       parameters={parameters}
+ *       backgroundColor="#1e3a8a"
+ *       position="topRight"
+ *       contentProps={{
+ *         style: {
+ *           borderRadius: 20,
+ *           border: '2px solid #3b82f6',
+ *           boxShadow: '0 20px 60px rgba(59,130,246,0.3)',
+ *           maxHeight: '90vh',
+ *           overflow: 'auto',
+ *         },
+ *       }}
+ *       confirmButtonProps={{
+ *         style: {
+ *           background: 'linear-gradient(135deg, #22c55e 0%, #14532d 100%)',
+ *           color: 'white',
+ *           padding: '12px 32px',
+ *           borderRadius: 12,
+ *           fontWeight: 600,
+ *           border: 'none',
+ *           cursor: 'pointer',
+ *         },
+ *       }}
+ *       startButtonProps={{
+ *         style: {
+ *           background: 'linear-gradient(135deg, #dc2626 0%, #7f1d1d 100%)',
+ *           color: 'white',
+ *           padding: '12px 32px',
+ *           borderRadius: 12,
+ *           fontWeight: 600,
+ *           border: 'none',
+ *           cursor: 'pointer',
+ *         },
+ *       }}
+ *     />
+ *   );
+ * }
+ * ```
+ * 
+ * @example
+ * // Custom actions with analytics tracking
+ * ```tsx
+ * import { RecordingModal } from 'mediasfu-reactjs';
+ * 
+ * function AnalyticsRecording({ isVisible, onClose, parameters }) {
+ *   const handleConfirm = async () => {
+ *     analytics.track('recording_configured', {
+ *       videoType: parameters.recordingVideoType,
+ *       displayType: parameters.recordingDisplayType,
+ *       hasNameTags: parameters.recordingNameTags,
+ *       hasCustomText: parameters.recordingAddText,
+ *       hasHLS: parameters.recordingAddHLS,
+ *     });
+ *     await parameters.confirmRecording({ parameters });
+ *   };
+ * 
+ *   const handleStart = async () => {
+ *     analytics.track('recording_started', {
+ *       isPaused: parameters.recordPaused,
+ *     });
+ *     await parameters.startRecording({ parameters });
+ *   };
+ * 
+ *   return (
+ *     <RecordingModal
+ *       isRecordingModalVisible={isVisible}
+ *       onClose={onClose}
+ *       confirmRecording={handleConfirm}
+ *       startRecording={handleStart}
+ *       parameters={parameters}
+ *       renderActions={({ defaultActions, recordPaused, handleConfirm, handleStart }) => (
+ *         <div style={{
+ *           display: 'flex',
+ *           gap: 12,
+ *           padding: 20,
+ *           borderTop: '2px solid #1e3a8a',
+ *           justifyContent: 'space-between',
+ *         }}>
+ *           <button
+ *             onClick={handleConfirm}
+ *             style={{
+ *               flex: 1,
+ *               background: '#3b82f6',
+ *               color: 'white',
+ *               padding: '14px 24px',
+ *               borderRadius: 12,
+ *               border: 'none',
+ *               fontWeight: 600,
+ *               cursor: 'pointer',
+ *             }}
+ *           >
+ *             💾 Save Settings
+ *           </button>
+ *           <button
+ *             onClick={handleStart}
+ *             style={{
+ *               flex: 1,
+ *               background: recordPaused ? '#22c55e' : '#dc2626',
+ *               color: 'white',
+ *               padding: '14px 24px',
+ *               borderRadius: 12,
+ *               border: 'none',
+ *               fontWeight: 600,
+ *               cursor: 'pointer',
+ *             }}
+ *           >
+ *             {recordPaused ? '▶️ Resume' : '🔴 Start'} Recording
+ *           </button>
+ *         </div>
+ *       )}
+ *     />
+ *   );
+ * }
+ * ```
+ * 
+ * @example
+ * // Override with MediasfuGeneric uiOverrides
+ * ```tsx
+ * import { MediasfuGeneric, RecordingModal } from 'mediasfu-reactjs';
+ * 
+ * const uiOverrides = {
+ *   recordingModal: {
+ *     component: (props) => (
+ *       <RecordingModal
+ *         {...props}
+ *         backgroundColor="#0f172a"
+ *         position="topRight"
+ *         contentProps={{
+ *           style: {
+ *             maxHeight: '85vh',
+ *             borderRadius: 20,
+ *             border: '2px solid #3b82f6',
+ *           },
+ *         }}
+ *         confirmButtonProps={{
+ *           style: {
+ *             background: '#22c55e',
+ *             borderRadius: 12,
+ *             padding: '12px 28px',
+ *           },
+ *         }}
+ *         startButtonProps={{
+ *           style: {
+ *             background: '#dc2626',
+ *             borderRadius: 12,
+ *             padding: '12px 28px',
+ *           },
+ *         }}
+ *       />
+ *     ),
+ *   },
  * };
  * 
- * // Render the RecordingModal component
- * <RecordingModal
- *   isRecordingModalVisible={true}
- *   onClose={() => console.log("Modal closed")}
- *   backgroundColor="#83c0e9"
- *   position="bottomRight"
- *   confirmRecording={() => console.log("Recording confirmed")}
- *   startRecording={() => console.log("Recording started")}
- *   parameters={recordingParams}
- * />
+ * <MediasfuGeneric uiOverrides={uiOverrides} />;
  * ```
  */
 
@@ -170,16 +355,54 @@ const RecordingModal: React.FC<RecordingModalOptions> = ({
   confirmRecording,
   startRecording,
   parameters,
+  title = "Recording Settings",
+  overlayProps,
+  contentProps,
+  headerProps,
+  titleProps,
+  closeButtonProps,
+  closeIconComponent,
+  headerDividerProps,
+  bodyProps,
+  panelsWrapperProps,
+  panelsScrollProps,
+  panelsContainerProps,
+  panelsActionsDividerProps,
+  actionsWrapperProps,
+  confirmButtonProps,
+  startButtonProps,
+  confirmButtonLabel = "Confirm",
+  startButtonLabel = (
+    <>
+      Start <i className="fas fa-play" />
+    </>
+  ),
+  renderHeader,
+  renderPanels,
+  renderActions,
+  renderBody,
+  renderContent,
 }) => {
   const { recordPaused } = parameters;
 
-  const screenWidth = window.innerWidth;
-  let modalWidth = 0.8 * screenWidth;
-  if (modalWidth > 350) {
-    modalWidth = 350;
-  }
+  const defaultOverlayWidth =
+    typeof window !== "undefined" ? Math.min(window.innerWidth * 0.8, 350) : 320;
 
-  const modalContainerStyle: React.CSSProperties = {
+  const {
+    className: overlayClassName,
+    style: overlayStyleOverrides,
+    ...restOverlayProps
+  } = overlayProps ?? {};
+
+  const overlayClassNames = [
+    "mediasfu-recording-modal",
+    overlayClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const overlayStyle: React.CSSProperties = {
     position: "fixed",
     top: 0,
     left: 0,
@@ -188,132 +411,479 @@ const RecordingModal: React.FC<RecordingModalOptions> = ({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     display: isRecordingModalVisible ? "block" : "none",
     zIndex: 999,
+    ...overlayStyleOverrides,
   };
 
-  const modalContentStyle: React.CSSProperties = {
+  const {
+    className: contentClassName,
+    style: contentStyleOverrides,
+    ...restContentProps
+  } = contentProps ?? {};
+
+  const contentClassNames = [
+    "mediasfu-recording-modal__content",
+    contentClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const contentStyle: React.CSSProperties = {
     position: "fixed",
-    backgroundColor: backgroundColor,
+    backgroundColor,
     borderRadius: 10,
-    padding: 10,
-    width: modalWidth,
+    padding: 16,
+    width: defaultOverlayWidth,
     maxHeight: "85%",
-    overflowY: "auto",
+    overflow: "hidden",
     top: position.includes("top") ? 10 : "auto",
     bottom: position.includes("bottom") ? 10 : "auto",
     left: position.includes("Left") ? 10 : "auto",
     right: position.includes("Right") ? 10 : "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+    ...contentStyleOverrides,
   };
 
-  return (
-    <div style={modalContainerStyle}>
-      <div style={modalContentStyle}>
-        <div style={{ display: "flex", flexDirection: "column" }}>
+  const {
+    className: headerClassName,
+    style: headerStyleOverrides,
+    ...restHeaderProps
+  } = headerProps ?? {};
+
+  const headerClassNames = [
+    "modal-header",
+    headerClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const headerStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    ...headerStyleOverrides,
+  };
+
+  const {
+    className: titleClassName,
+    style: titleStyleOverrides,
+    ...restTitleProps
+  } = titleProps ?? {};
+
+  const titleClassNames = [
+    "modal-title",
+    titleClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const titleStyle: React.CSSProperties = {
+    margin: 0,
+    fontSize: "1.25rem",
+    fontWeight: 700,
+    color: "black",
+    ...titleStyleOverrides,
+  };
+
+  const {
+    className: closeButtonClassName,
+    style: closeButtonStyleOverrides,
+    onClick: closeButtonOnClick,
+    ...restCloseButtonProps
+  } = closeButtonProps ?? {};
+
+  const closeButtonClassNames = [
+    "btn-close-recording",
+    closeButtonClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const closeButtonStyle: React.CSSProperties = {
+    background: "none",
+    border: "none",
+    padding: 4,
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "black",
+    ...closeButtonStyleOverrides,
+  };
+
+  const defaultCloseIcon = closeIconComponent ?? (
+    <FontAwesomeIcon icon={faTimes} className="icon" />
+  );
+
+  const handleCloseClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    closeButtonOnClick?.(event);
+    if (!event.defaultPrevented) {
+      onClose();
+    }
+  };
+
+  const {
+    style: headerDividerStyleOverrides,
+    ...restHeaderDividerProps
+  } = headerDividerProps ?? {};
+
+  const headerDividerStyle: React.CSSProperties = {
+    height: 1,
+    backgroundColor: "black",
+    marginTop: 5,
+    marginBottom: 5,
+    border: "none",
+    ...headerDividerStyleOverrides,
+  };
+
+  const {
+    className: bodyClassName,
+    style: bodyStyleOverrides,
+    ...restBodyProps
+  } = bodyProps ?? {};
+
+  const bodyClassNames = [
+    "modal-body",
+    bodyClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const bodyStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+    flex: 1,
+    minHeight: 0,
+    ...bodyStyleOverrides,
+  };
+
+  const {
+    className: panelsWrapperClassName,
+    style: panelsWrapperStyleOverrides,
+    ...restPanelsWrapperProps
+  } = panelsWrapperProps ?? {};
+
+  const panelsWrapperClassNames = [
+    "recording-modal__panels-wrapper",
+    panelsWrapperClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const panelsWrapperStyle: React.CSSProperties = {
+    flex: 1,
+    display: "flex",
+    flexDirection: "column",
+    minHeight: 0,
+    ...panelsWrapperStyleOverrides,
+  };
+
+  const {
+    className: panelsScrollClassName,
+    style: panelsScrollStyleOverrides,
+    ...restPanelsScrollProps
+  } = panelsScrollProps ?? {};
+
+  const panelsScrollClassNames = [
+    "recording-modal__panels-scroll",
+    panelsScrollClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const panelsScrollStyle: React.CSSProperties = {
+    overflowY: "auto",
+    maxHeight: "calc(100% - 120px)",
+    padding: 0,
+    ...panelsScrollStyleOverrides,
+  };
+
+  const {
+    className: panelsContainerClassName,
+    style: panelsContainerStyleOverrides,
+    ...restPanelsContainerProps
+  } = panelsContainerProps ?? {};
+
+  const panelsContainerClassNames = [
+    "recording-modal__panels",
+    panelsContainerClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const panelsContainerStyle: React.CSSProperties = {
+    margin: 0,
+    padding: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    ...panelsContainerStyleOverrides,
+  };
+
+  const {
+    className: panelsActionsDividerClassName,
+    style: panelsActionsDividerStyleOverrides,
+    ...restPanelsActionsDividerProps
+  } = panelsActionsDividerProps ?? {};
+
+  const panelsActionsDividerClassNames = [
+    "recording-modal__divider",
+    panelsActionsDividerClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const panelsActionsDividerStyle: React.CSSProperties = {
+    height: 1,
+    backgroundColor: "white",
+    marginTop: 0,
+    marginBottom: 0,
+    ...panelsActionsDividerStyleOverrides,
+  };
+
+  const {
+    className: actionsWrapperClassName,
+    style: actionsWrapperStyleOverrides,
+    ...restActionsWrapperProps
+  } = actionsWrapperProps ?? {};
+
+  const actionsWrapperClassNames = [
+    "recording-modal__actions",
+    actionsWrapperClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const actionsWrapperStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    marginTop: 20,
+    gap: 16,
+    flexWrap: "wrap",
+    ...actionsWrapperStyleOverrides,
+  };
+
+  const {
+    className: confirmButtonClassName,
+    style: confirmButtonStyleOverrides,
+    onClick: confirmButtonOnClick,
+    ...restConfirmButtonProps
+  } = confirmButtonProps ?? {};
+
+  const confirmButtonClassNames = [
+    "recording-modal__confirm",
+    confirmButtonClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const confirmButtonStyle: React.CSSProperties = {
+    flex: 1,
+    padding: 8,
+    borderRadius: 5,
+    display: "inline-flex",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: "0 10px",
+    background: "#4CAF50",
+    cursor: "pointer",
+    border: "none",
+    color: "black",
+    fontSize: 14,
+    ...confirmButtonStyleOverrides,
+  };
+
+  const handleConfirm = () => {
+    confirmRecording({ parameters: { ...parameters } });
+  };
+
+  const handleConfirmClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    confirmButtonOnClick?.(event);
+    if (!event.defaultPrevented) {
+      handleConfirm();
+    }
+  };
+
+  const {
+    className: startButtonClassName,
+    style: startButtonStyleOverrides,
+    onClick: startButtonOnClick,
+    ...restStartButtonProps
+  } = startButtonProps ?? {};
+
+  const startButtonClassNames = [
+    "recording-modal__start",
+    startButtonClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const startButtonStyle: React.CSSProperties = {
+    flex: 1,
+    padding: 8,
+    borderRadius: 5,
+    display: "inline-flex",
+    justifyContent: "center",
+    alignItems: "center",
+    margin: "0 10px",
+    background: "#f44336",
+    cursor: "pointer",
+    border: "none",
+    color: "black",
+    fontSize: 14,
+    ...startButtonStyleOverrides,
+  };
+
+  const handleStart = () => {
+    startRecording({ parameters: { ...parameters } });
+  };
+
+  const handleStartClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    startButtonOnClick?.(event);
+    if (!event.defaultPrevented) {
+      handleStart();
+    }
+  };
+
+  const buildHeader = () => {
+    const defaultHeader = (
+      <div className={headerClassNames} style={headerStyle} {...restHeaderProps}>
+        <h2 className={titleClassNames} style={titleStyle} {...restTitleProps}>
+          {title}
+        </h2>
+        <button
+          type="button"
+          className={closeButtonClassNames}
+          style={closeButtonStyle}
+          onClick={handleCloseClick}
+          {...restCloseButtonProps}
+        >
+          {defaultCloseIcon}
+        </button>
+      </div>
+    );
+
+    return renderHeader ? renderHeader({ defaultHeader, onClose }) : defaultHeader;
+  };
+
+  const buildPanels = () => {
+    const defaultPanels = (
+      <div
+        className={panelsWrapperClassNames}
+        style={panelsWrapperStyle}
+        {...restPanelsWrapperProps}
+      >
+        <div
+          className={panelsScrollClassNames}
+          style={panelsScrollStyle}
+          {...restPanelsScrollProps}
+        >
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 15,
-            }}
+            className={panelsContainerClassNames}
+            style={panelsContainerStyle}
+            {...restPanelsContainerProps}
           >
-            <h2
-              style={{
-                fontSize: "x-large",
-                fontWeight: "bold",
-                color: "black",
-              }}
-            >
-              Recording Settings
-            </h2>
-            <button
-              onClick={onClose}
-              style={{ border: "none", background: "none", cursor: "pointer" }}
-            >
-              <FontAwesomeIcon
-                icon={faTimes}
-                size="xl"
-                style={{ fontSize: 20, color: "black" }}
-              />
-            </button>
-          </div>
-          <hr
-            style={{
-              height: 1,
-              backgroundColor: "black",
-              marginTop: 5,
-              marginBottom: 5,
-            }}
-          />
-          <div style={{ flex: 1 }}>
-            <div
-              style={{
-                overflowY: "auto",
-                maxHeight: "calc(100% - 120px)",
-                padding: 0,
-              }}
-            >
-              <div style={{ margin: 0, padding: 0 }}>
-                <StandardPanelComponent parameters={parameters} />
-                <AdvancedPanelComponent parameters={parameters} />
-              </div>
-            </div>
-            <div
-              style={{
-                height: 1,
-                backgroundColor: "white",
-                marginTop: 0,
-                marginBottom: 0,
-              }}
-            />
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                marginTop: 20,
-              }}
-            >
-              <button
-                onClick={() =>
-                  confirmRecording({ parameters: { ...parameters } })
-                }
-                style={{
-                  flex: 1,
-                  padding: 5,
-                  borderRadius: 5,
-                  justifyContent: "center",
-                  alignItems: "center",
-                  margin: "0 10px",
-                  background: "#4CAF50",
-                  cursor: "pointer",
-                }}
-              >
-                <span style={{ color: "black", fontSize: 14 }}>Confirm</span>
-              </button>
-              {!recordPaused && (
-                <button
-                  onClick={() =>
-                    startRecording({ parameters: { ...parameters } })
-                  }
-                  style={{
-                    flex: 1,
-                    padding: 5,
-                    borderRadius: 5,
-                    justifyContent: "center",
-                    alignItems: "center",
-                    margin: "0 10px",
-                    background: "#f44336",
-                    cursor: "pointer",
-                  }}
-                >
-                  <span style={{ color: "black", fontSize: 14 }}>
-                    Start <i className="fas fa-play" />
-                  </span>
-                </button>
-              )}
-            </div>
+            <StandardPanelComponent parameters={parameters} />
+            <AdvancedPanelComponent parameters={parameters} />
           </div>
         </div>
       </div>
+    );
+
+    return renderPanels
+      ? renderPanels({ defaultPanels, parameters })
+      : defaultPanels;
+  };
+
+  const buildActions = () => {
+    const defaultActions = (
+      <div
+        className={actionsWrapperClassNames}
+        style={actionsWrapperStyle}
+        {...restActionsWrapperProps}
+      >
+        <button
+          type="button"
+          className={confirmButtonClassNames}
+          style={confirmButtonStyle}
+          onClick={handleConfirmClick}
+          {...restConfirmButtonProps}
+        >
+          {confirmButtonLabel}
+        </button>
+        {!recordPaused && (
+          <button
+            type="button"
+            className={startButtonClassNames}
+            style={startButtonStyle}
+            onClick={handleStartClick}
+            {...restStartButtonProps}
+          >
+            {startButtonLabel}
+          </button>
+        )}
+      </div>
+    );
+
+    return renderActions
+      ? renderActions({
+          defaultActions,
+          recordPaused,
+          handleConfirm,
+          handleStart,
+        })
+      : defaultActions;
+  };
+
+  const headerNode = buildHeader();
+  const panelsNode = buildPanels();
+  const actionsNode = buildActions();
+
+  const defaultBody = (
+    <div className={bodyClassNames} style={bodyStyle} {...restBodyProps}>
+      {panelsNode}
+      <div
+        className={panelsActionsDividerClassNames}
+        style={panelsActionsDividerStyle}
+        {...restPanelsActionsDividerProps}
+      />
+      {actionsNode}
+    </div>
+  );
+
+  const bodyNode = renderBody ? renderBody({ defaultBody }) : defaultBody;
+
+  const defaultContent = (
+    <div className={contentClassNames} style={contentStyle} {...restContentProps}>
+      {headerNode}
+      <hr style={headerDividerStyle} {...restHeaderDividerProps} />
+      {bodyNode}
+    </div>
+  );
+
+  const contentNode = renderContent
+    ? renderContent({ defaultContent })
+    : defaultContent;
+
+  return (
+    <div className={overlayClassNames} style={overlayStyle} {...restOverlayProps}>
+      {contentNode}
     </div>
   );
 };

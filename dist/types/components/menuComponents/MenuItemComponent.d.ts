@@ -1,9 +1,29 @@
 import React from "react";
+import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 export interface MenuItemComponentOptions {
     icon?: IconDefinition;
     name?: string;
     onPress: () => void;
+    buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+    iconProps?: Partial<FontAwesomeIconProps>;
+    textProps?: React.HTMLAttributes<HTMLSpanElement>;
+    renderButton?: (options: {
+        defaultButton: React.ReactNode;
+        iconNode: React.ReactNode;
+        textNode: React.ReactNode;
+    }) => React.ReactNode;
+    renderIcon?: (options: {
+        defaultIcon: React.ReactNode;
+    }) => React.ReactNode;
+    renderText?: (options: {
+        defaultText: React.ReactNode;
+    }) => React.ReactNode;
+    renderContent?: (options: {
+        defaultContent: React.ReactNode;
+        iconNode: React.ReactNode;
+        textNode: React.ReactNode;
+    }) => React.ReactNode;
 }
 export type MenuItemComponentType = (options: MenuItemComponentOptions) => React.JSX.Element;
 /**

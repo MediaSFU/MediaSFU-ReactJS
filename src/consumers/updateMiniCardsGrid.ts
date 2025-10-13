@@ -1,4 +1,10 @@
 import { GridSizes, ComponentSizes, EventType } from "../@types/types";
+
+export interface GridLayoutMeta {
+  rows: number;
+  cols: number;
+  actualRows: number;
+}
 export interface UpdateMiniCardsGridParameters {
   updateGridRows: (rows: number) => void;
   updateGridCols: (cols: number) => void;
@@ -13,6 +19,8 @@ export interface UpdateMiniCardsGridParameters {
   eventType: EventType;
 
   getUpdatedAllParams: () => UpdateMiniCardsGridParameters;
+  updatePrimaryGridLayoutMeta?: (layout: GridLayoutMeta) => void;
+  updateAltGridLayoutMeta?: (layout: GridLayoutMeta) => void;
   [key: string]: any;
 }
 
@@ -85,6 +93,8 @@ export async function updateMiniCardsGrid({
     updateAltGridRows,
     updateAltGridCols,
     updateGridSizes,
+    updatePrimaryGridLayoutMeta,
+    updateAltGridLayoutMeta,
 
     gridSizes,
     paginationDirection,
@@ -135,6 +145,12 @@ export async function updateMiniCardsGrid({
 
     gridSizes = { ...gridSizes, gridWidth: cardWidth, gridHeight: cardHeight };
     updateGridSizes(gridSizes);
+
+    updatePrimaryGridLayoutMeta?.({
+      rows,
+      cols,
+      actualRows,
+    });
   } else {
     updateAltGridRows(rows);
     updateAltGridCols(cols);
@@ -145,6 +161,12 @@ export async function updateMiniCardsGrid({
       altGridHeight: cardHeight,
     };
     updateGridSizes(gridSizes);
+
+    updateAltGridLayoutMeta?.({
+      rows,
+      cols,
+      actualRows,
+    });
   }
 }
 

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 import { faCopy, faEnvelope, IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import {
   faFacebook,
@@ -8,13 +9,22 @@ import {
 } from "@fortawesome/free-brands-svg-icons";
 import { EventType } from "../../@types/types";
 
+const joinClassNames = (
+  ...classes: Array<string | undefined | null | false>
+): string | undefined => {
+  const filtered = classes.filter(Boolean).join(" ").trim();
+  return filtered.length > 0 ? filtered : undefined;
+};
+
 // Define interface for custom share buttons
 export interface ShareButton {
   icon: IconDefinition;
-  action: () => void;
+  action: () => void | Promise<void>;
   show: boolean;
   color?: string;
   iconColor?: string;
+  wrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+  iconProps?: Partial<FontAwesomeIconProps>;
 }
 
 // Define props interface
@@ -23,6 +33,33 @@ export interface ShareButtonsComponentOptions {
   shareButtons?: ShareButton[];
   eventType: EventType;
   localLink?: string;
+  containerProps?: React.HTMLAttributes<HTMLDivElement>;
+  renderContainer?: (options: {
+    defaultContainer: React.ReactNode;
+    buttons: ShareButton[];
+    shareUrl: string;
+  }) => React.ReactNode;
+  renderButtons?: (options: {
+    defaultButtons: React.ReactNode[];
+    buttons: ShareButton[];
+    shareUrl: string;
+  }) => React.ReactNode;
+  renderButton?: (options: {
+    defaultButton: React.ReactNode;
+    button: ShareButton;
+    index: number;
+    shareUrl: string;
+  }) => React.ReactNode;
+  renderIcon?: (options: {
+    defaultIcon: React.ReactNode;
+    button: ShareButton;
+    shareUrl: string;
+  }) => React.ReactNode;
+  getShareUrl?: (options: {
+    meetingID: string;
+    eventType: EventType;
+    localLink?: string;
+  }) => string;
 }
 
 export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) => React.JSX.Element;
@@ -73,20 +110,30 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
   shareButtons = [],
   eventType,
   localLink = "",
+  containerProps,
+  renderContainer,
+  renderButtons,
+  renderButton,
+  renderIcon,
+  getShareUrl,
 }) => {
-  const shareName =
-    eventType === "chat"
-      ? "chat"
-      : eventType === "broadcast"
-      ? "broadcast"
-      : "meeting";
+  const shareUrl = useMemo(() => {
+    if (getShareUrl) {
+      return getShareUrl({ meetingID, eventType, localLink });
+    }
 
-  const getShareUrl = () => {
+    const shareName =
+      eventType === "chat"
+        ? "chat"
+        : eventType === "broadcast"
+        ? "broadcast"
+        : "meeting";
+
     if (localLink && !localLink.includes("mediasfu.com")) {
       return `${localLink}/meeting/${meetingID}`;
     }
     return `https://${shareName}.mediasfu.com/${shareName}/${meetingID}`;
-  };
+  }, [eventType, getShareUrl, localLink, meetingID]);
 
   const defaultShareButtons: ShareButton[] = [
     {
@@ -94,7 +141,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       action: async () => {
         // Action for the copy button
         try {
-          await navigator.clipboard.writeText(getShareUrl());
+          await navigator.clipboard.writeText(shareUrl);
         } catch (error) {
           console.error("Failed to copy to clipboard", error);
         }
@@ -105,7 +152,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       icon: faEnvelope,
       action: () => {
         // Action for the email button
-        const emailUrl = `mailto:?subject=Join my meeting&body=Here's the link to the meeting: ${getShareUrl()}`;
+  const emailUrl = `mailto:?subject=Join my meeting&body=Here's the link to the meeting: ${shareUrl}`;
         window.open(emailUrl, "_blank");
       },
       show: true,
@@ -115,7 +162,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       action: () => {
         // Action for the Facebook button
         const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-          getShareUrl()
+          shareUrl
         )}`;
         window.open(facebookUrl, "_blank");
       },
@@ -126,7 +173,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       action: () => {
         // Action for the WhatsApp button
         const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(
-          getShareUrl()
+          shareUrl
         )}`;
         window.open(whatsappUrl, "_blank");
       },
@@ -137,7 +184,7 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       action: () => {
         // Action for the Telegram button
         const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(
-          getShareUrl()
+          shareUrl
         )}`;
         window.open(telegramUrl, "_blank");
       },
@@ -150,31 +197,127 @@ const ShareButtonsComponent: React.FC<ShareButtonsComponentOptions> = ({
       ? shareButtons.filter((button) => button.show)
       : defaultShareButtons.filter((button) => button.show);
 
-  return (
-    <div style={{ display: "flex", flexDirection: "row", margin: "10px 0" }}>
-      {filteredShareButtons.map((button, index) => (
-        <div
-          key={index}
-          onClick={button.action}
-          style={{
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 10,
-            borderRadius: 5,
-            margin: "0 5px",
-            backgroundColor: button.color || "black",
-            marginRight: index !== filteredShareButtons.length - 1 ? 10 : 0,
-            cursor: "pointer",
-          }}
-        >
-          <FontAwesomeIcon
-            icon={button.icon}
-            style={{ color: button.iconColor || "#ffffff", fontSize: 24 }}
-          />
-        </div>
-      ))}
+  const {
+    className: containerClassName,
+    style: containerStyleOverrides,
+    ...restContainerProps
+  } = containerProps ?? {};
+
+  const buttonNodes = filteredShareButtons.map((button, index) => {
+    const {
+      wrapperProps,
+      iconProps,
+      icon,
+      color,
+      iconColor,
+    } = button;
+
+    const {
+      className: wrapperClassName,
+      style: wrapperStyleOverrides,
+      onClick: wrapperOnClick,
+      ...restWrapperProps
+    } = wrapperProps ?? {};
+
+    const {
+      className: iconClassName,
+      style: iconStyleOverrides,
+      icon: iconOverride,
+      ...restIconProps
+    } = iconProps ?? {};
+
+    const iconNodeDefault = (
+      <FontAwesomeIcon
+        icon={(iconOverride as FontAwesomeIconProps["icon"]) ?? icon}
+        className={joinClassNames(undefined, iconClassName)}
+        style={{
+          color: iconColor ?? iconStyleOverrides?.color ?? "#ffffff",
+          fontSize: 24,
+          ...iconStyleOverrides,
+        }}
+        {...restIconProps}
+      />
+    );
+
+    const iconNode = renderIcon
+      ? renderIcon({
+          defaultIcon: iconNodeDefault,
+          button,
+          shareUrl,
+        })
+      : iconNodeDefault;
+
+    const defaultButton = (
+      <div
+        className={joinClassNames("share-button", wrapperClassName)}
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 10,
+          borderRadius: 5,
+          margin: "0 5px",
+          backgroundColor: color || "black",
+          marginRight: index !== filteredShareButtons.length - 1 ? 10 : 0,
+          cursor: "pointer",
+          ...wrapperStyleOverrides,
+        }}
+        onClick={async (event) => {
+          await Promise.resolve(wrapperOnClick?.(event));
+          if (!event.defaultPrevented) {
+            await Promise.resolve(button.action());
+          }
+        }}
+        {...restWrapperProps}
+      >
+        {iconNode}
+      </div>
+    );
+
+    const renderedButton = renderButton
+      ? renderButton({
+          defaultButton,
+          button,
+          index,
+          shareUrl,
+        })
+      : defaultButton;
+
+    return <React.Fragment key={index}>{renderedButton}</React.Fragment>;
+  });
+
+  const buttonsContent = renderButtons
+    ? renderButtons({
+        defaultButtons: buttonNodes,
+        buttons: filteredShareButtons,
+        shareUrl,
+      })
+    : buttonNodes;
+
+  const containerNode = (
+    <div
+      className={joinClassNames(
+        "mediasfu-shareButtonsContainer",
+        containerClassName
+      )}
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        margin: "10px 0",
+        ...containerStyleOverrides,
+      }}
+      {...restContainerProps}
+    >
+      {buttonsContent}
     </div>
   );
+
+  return renderContainer
+    ? renderContainer({
+        defaultContainer: containerNode,
+        buttons: filteredShareButtons,
+        shareUrl,
+      })
+    : containerNode;
 };
 
 export default ShareButtonsComponent;

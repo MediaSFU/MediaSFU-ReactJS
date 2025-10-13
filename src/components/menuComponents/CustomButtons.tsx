@@ -1,11 +1,19 @@
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinner, IconDefinition } from "@fortawesome/free-solid-svg-icons"; // Example icon import
+import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 import "./CustomButtons.css"; // Import CSS file for styling
+
+const joinClassNames = (
+  ...classes: Array<string | undefined | null | false>
+): string | undefined => {
+  const filtered = classes.filter(Boolean).join(" ").trim();
+  return filtered.length > 0 ? filtered : undefined;
+};
 
 // Define the type for each button object in the array
 export interface CustomButton {
-  action: () => void;
+  action?: () => void | Promise<void>;
   show: boolean;
   backgroundColor?: string;
   disabled?: boolean;
@@ -14,11 +22,35 @@ export interface CustomButton {
   text?: string;
   textStyle?: React.CSSProperties;
   customComponent?: React.ReactNode;
+  buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  contentProps?: React.HTMLAttributes<HTMLDivElement>;
+  iconProps?: Partial<FontAwesomeIconProps>;
+  /**
+   * When set to false, the wrapper renders as a non-button element so interactive custom components
+   * (for example, components that render their own buttons) are not nested inside a native button.
+   */
+  renderAsButton?: boolean;
 }
 
 // Define the prop type using an interface
 export interface CustomButtonsOptions {
   buttons: CustomButton[];
+  containerProps?: React.HTMLAttributes<HTMLDivElement>;
+  fallbackSpinner?: React.ReactNode;
+  renderContainer?: (options: {
+    defaultContainer: React.ReactNode;
+    buttons: CustomButton[];
+  }) => React.ReactNode;
+  renderButtons?: (options: {
+    defaultButtons: React.ReactNode[];
+    buttons: CustomButton[];
+  }) => React.ReactNode;
+  renderButton?: (options: {
+    defaultButton: React.ReactNode;
+    button: CustomButton;
+    index: number;
+    isVisible: boolean;
+  }) => React.ReactNode;
 }
 
 export type CustomButtonsType = (options: CustomButtonsOptions) => React.JSX.Element;
@@ -80,47 +112,227 @@ export type CustomButtonsType = (options: CustomButtonsOptions) => React.JSX.Ele
  */
 
 
-const CustomButtons: React.FC<CustomButtonsOptions> = ({ buttons }) => {
-  return (
-    <div className="mediasfu-customButtonsContainer">
-      {buttons.map((button, index) => (
-        <button
-          key={index}
-          onClick={() => {
-            button.action();
-          }}
-          className="customButton"
-          style={{
-            backgroundColor: button.show
-              ? button.backgroundColor
-              : "transparent",
-            display: button.show ? "flex" : "none",
-          }}
-          disabled={button.disabled}
-        >
-          <div className="buttonContent">
-            {button.icon ? (
-              <>
-                <FontAwesomeIcon
-                  icon={button.icon}
-                  style={{ ...styles.customButtonIcon, ...button.iconStyle }}
-                />
-                {button.text && (
-                  <span className="customButtonText" style={button.textStyle}>
-                    {button.text}
-                  </span>
-                )}
-              </>
-            ) : button.customComponent ? (
-              button.customComponent
-            ) : (
-              <FontAwesomeIcon icon={faSpinner} spin /> // Example placeholder for loading icon
+const CustomButtons: React.FC<CustomButtonsOptions> = ({
+  buttons,
+  containerProps,
+  fallbackSpinner,
+  renderContainer,
+  renderButtons,
+  renderButton,
+}) => {
+  const {
+    className: containerClassName,
+    style: containerStyleOverrides,
+    ...restContainerProps
+  } = containerProps ?? {};
+
+  const defaultSpinner =
+    fallbackSpinner ?? <FontAwesomeIcon icon={faSpinner} spin />;
+
+  const buttonNodes = buttons.map((button, index) => {
+    const {
+      buttonProps,
+      contentProps,
+      iconProps,
+      icon,
+      customComponent,
+      renderAsButton = true,
+    } = button;
+
+    const {
+      className: buttonClassName,
+      style: buttonStyleOverrides,
+      onClick: buttonOnClick,
+      onKeyDown: buttonOnKeyDown,
+      type: buttonType,
+      disabled: buttonPropsDisabled,
+      tabIndex: buttonTabIndex,
+      role: buttonRole,
+      ...restButtonProps
+    } = buttonProps ?? {};
+
+    const isVisible = button.show ?? true;
+    const isDisabled =
+      button.disabled ?? buttonPropsDisabled ?? false;
+
+    const {
+      className: contentClassName,
+      style: contentStyleOverrides,
+      ...restContentProps
+    } = contentProps ?? {};
+
+    const {
+      className: iconClassName,
+      style: iconStyleOverrides,
+      icon: iconOverride,
+      ...restIconProps
+    } = iconProps ?? {};
+
+    const resolvedIcon =
+      (iconOverride as IconDefinition | undefined) ?? icon;
+
+    const buttonContent = (
+      <div
+        className={joinClassNames("buttonContent", contentClassName)}
+        style={{ ...contentStyleOverrides }}
+        {...restContentProps}
+      >
+        {resolvedIcon ? (
+          <>
+            <FontAwesomeIcon
+              icon={resolvedIcon}
+              className={joinClassNames(undefined, iconClassName)}
+              style={{
+                ...styles.customButtonIcon,
+                ...button.iconStyle,
+                ...iconStyleOverrides,
+              }}
+              {...restIconProps}
+            />
+            {button.text && (
+              <span className="customButtonText" style={button.textStyle}>
+                {button.text}
+              </span>
             )}
-          </div>
-        </button>
-      ))}
+          </>
+        ) : customComponent ? (
+          customComponent
+        ) : (
+          defaultSpinner
+        )}
+      </div>
+    );
+
+    const baseClassName = joinClassNames("customButton", buttonClassName);
+    const baseStyle: React.CSSProperties = {
+      backgroundColor: isVisible
+        ? button.backgroundColor ?? "transparent"
+        : "transparent",
+      display: isVisible ? "flex" : "none",
+      ...buttonStyleOverrides,
+    };
+
+    const handleButtonClick = async (
+      event: React.MouseEvent<HTMLButtonElement>
+    ) => {
+      await Promise.resolve(buttonOnClick?.(event));
+      if (!event.defaultPrevented) {
+        await Promise.resolve(button.action?.());
+      }
+    };
+
+    const handleContainerClick = async (
+      event: React.MouseEvent<HTMLDivElement>
+    ) => {
+      if (buttonOnClick) {
+        await Promise.resolve(
+          (
+            buttonOnClick as unknown as React.MouseEventHandler<HTMLDivElement>
+          )(event)
+        );
+      }
+
+      if (event.defaultPrevented || isDisabled) {
+        return;
+      }
+
+      if (event.currentTarget !== event.target) {
+        return;
+      }
+
+      if (button.action) {
+        await Promise.resolve(button.action());
+      }
+    };
+
+    const handleContainerKeyDown = async (
+      event: React.KeyboardEvent<HTMLDivElement>
+    ) => {
+      if (buttonOnKeyDown) {
+        (
+          buttonOnKeyDown as unknown as React.KeyboardEventHandler<HTMLDivElement>
+        )(event);
+      }
+
+      if (event.defaultPrevented || isDisabled) {
+        return;
+      }
+
+      if ((event.key === "Enter" || event.key === " ") && button.action) {
+        event.preventDefault();
+        await Promise.resolve(button.action());
+      }
+    };
+
+    const defaultButton = renderAsButton ? (
+      <button
+        type={buttonType ?? "button"}
+        onClick={handleButtonClick}
+        onKeyDown={buttonOnKeyDown}
+        tabIndex={buttonTabIndex}
+        role={buttonRole}
+        className={baseClassName}
+        style={baseStyle}
+        disabled={isDisabled}
+        {...restButtonProps}
+      >
+        {buttonContent}
+      </button>
+    ) : (
+      <div
+        className={baseClassName}
+        style={baseStyle}
+        aria-disabled={isDisabled || undefined}
+        role={buttonRole ?? (button.action ? "button" : undefined)}
+        tabIndex={
+          buttonTabIndex ?? (button.action ? 0 : undefined)
+        }
+        onClick={
+          button.action || buttonOnClick
+            ? handleContainerClick
+            : undefined
+        }
+        onKeyDown={
+          button.action || buttonOnKeyDown ? handleContainerKeyDown : undefined
+        }
+        {...(restButtonProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
+      >
+        {buttonContent}
+      </div>
+    );
+
+    const renderedButton = renderButton
+      ? renderButton({
+          defaultButton,
+          button,
+          index,
+          isVisible,
+        })
+      : defaultButton;
+
+    return <React.Fragment key={index}>{renderedButton}</React.Fragment>;
+  });
+
+  const buttonsContent = renderButtons
+    ? renderButtons({ defaultButtons: buttonNodes, buttons })
+    : buttonNodes;
+
+  const containerNode = (
+    <div
+      className={joinClassNames(
+        "mediasfu-customButtonsContainer",
+        containerClassName
+      )}
+      style={{ ...containerStyleOverrides }}
+      {...restContainerProps}
+    >
+      {buttonsContent}
     </div>
   );
+
+  return renderContainer
+    ? renderContainer({ defaultContainer: containerNode, buttons })
+    : containerNode;
 };
 
 const styles = {

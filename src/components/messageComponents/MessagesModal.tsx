@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef } from "react";
-import MessagePanel from "./MessagePanel";
+import React, { useEffect, useMemo, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import MessagePanel from "./MessagePanel";
 import {
   sendMessage,
   SendMessageOptions,
@@ -21,9 +21,6 @@ export interface MessagesModalOptions {
   onMessagesClose: () => void;
   onSendMessagePress?: (options: SendMessageOptions) => Promise<void>;
   messages: Message[];
-  position?: string;
-  backgroundColor?: string;
-  activeTabBackgroundColor?: string;
   eventType: EventType;
   member: string;
   islevel: string;
@@ -37,81 +34,303 @@ export interface MessagesModalOptions {
   roomName: string;
   socket: Socket;
   chatSetting: string;
+  position?: string;
+  backgroundColor?: string;
+  activeTabBackgroundColor?: string;
+  title?: React.ReactNode;
+  overlayProps?: React.HTMLAttributes<HTMLDivElement>;
+  contentProps?: React.HTMLAttributes<HTMLDivElement>;
+  headerProps?: React.HTMLAttributes<HTMLDivElement>;
+  titleProps?: React.HTMLAttributes<HTMLDivElement>;
+  tabListProps?: React.HTMLAttributes<HTMLDivElement>;
+  tabButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  closeButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  closeIconComponent?: React.ReactNode;
+  bodyProps?: React.HTMLAttributes<HTMLDivElement>;
+  directPanelWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+  groupPanelWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+  emptyState?: React.ReactNode | ((context: { type: "direct" | "group" }) => React.ReactNode);
+  renderHeader?: (options: {
+    defaultHeader: React.ReactNode;
+    activeTab: "direct" | "group";
+    onClose: () => void;
+  }) => React.ReactNode;
+  renderTabs?: (options: {
+    defaultTabs: React.ReactNode;
+    activeTab: "direct" | "group";
+    switchToDirect: () => void;
+    switchToGroup: () => void;
+  }) => React.ReactNode;
+  renderTabButton?: (options: {
+    type: "direct" | "group";
+    isActive: boolean;
+    defaultButton: React.ReactNode;
+    switchTo: () => void;
+  }) => React.ReactNode;
+  renderPanels?: (options: {
+    defaultPanels: React.ReactNode;
+    activeTab: "direct" | "group";
+  }) => React.ReactNode;
+  renderBody?: (options: {
+    defaultBody: React.ReactNode;
+    activeTab: "direct" | "group";
+  }) => React.ReactNode;
+  renderContent?: (options: {
+    defaultContent: React.ReactNode;
+    activeTab: "direct" | "group";
+  }) => React.ReactNode;
 }
 
-export type MessagesModalType = (options: MessagesModalOptions) => void;
+export type MessagesModalType = (
+  options: MessagesModalOptions
+) => React.JSX.Element;
 
 /**
- * MessagesModal component displays a modal for direct and group messages.
+ * MessagesModal - Tabbed chat interface for direct and group messaging
  * 
- * @param {MessagesModalOptions} props - The properties for MessagesModal component.
- * @param {boolean} props.isMessagesModalVisible - Determines if the modal is visible.
- * @param {() => void} props.onMessagesClose - Function to close the modal.
- * @param {(options: SendMessageOptions) => Promise<void>} [props.onSendMessagePress=sendMessage] - Function to handle sending messages.
- * @param {Message[]} props.messages - Array of message objects.
- * @param {string} [props.position="topRight"] - Position of the modal on the screen.
- * @param {string} [props.backgroundColor="#f5f5f5"] - Background color of the modal.
- * @param {string} [props.activeTabBackgroundColor="#2b7ce5"] - Background color of the active tab.
- * @param {EventType} props.eventType - Type of the event (e.g., webinar, conference, broadcast, chat).
- * @param {string} props.member - Current member's username.
- * @param {string} props.islevel - Level of the user.
- * @param {CoHostResponsibility[]} props.coHostResponsibility - Array of co-host responsibilities.
- * @param {string} props.coHost - Co-host's username.
- * @param {boolean} props.startDirectMessage - Flag to start a direct message.
- * @param {Participant | null} props.directMessageDetails - Details of the direct message.
- * @param {(start: boolean) => void} props.updateStartDirectMessage - Function to update the start direct message flag.
- * @param {(participant: Participant | null) => void} props.updateDirectMessageDetails - Function to update direct message details.
- * @param {ShowAlert} [props.showAlert] - Function to show alerts.
- * @param {string} props.roomName - Name of the chat room.
- * @param {Socket} props.socket - Socket object for real-time communication.
- * @param {string} props.chatSetting - Settings for the chat.
+ * A comprehensive messaging modal with support for both direct (1-on-1) and group chat.
+ * Features tabbed navigation, message history display, and configurable chat permissions
+ * based on event settings and user roles.
  * 
- * @returns {React.JSX.Element} The rendered MessagesModal component.
+ * Features:
+ * - Dual-tab interface (Direct/Group messages)
+ * - Direct message initiation from participant list
+ * - Message history with timestamp display
+ * - Role-based chat permissions (host/co-host/participant)
+ * - Chat enable/disable based on event settings
+ * - Custom tab styling and active states
+ * - Message composition with send functionality
+ * - Empty state handling for no messages
+ * - Custom render hooks for complete UI flexibility
+ * 
+ * @component
+ * @param {MessagesModalOptions} options - Configuration options
+ * @param {boolean} options.isMessagesModalVisible - Modal visibility state
+ * @param {Function} options.onMessagesClose - Callback when modal is closed
+ * @param {Function} [options.onSendMessagePress] - Handler for sending messages (defaults to built-in)
+ * @param {Message[]} options.messages - Array of all messages (direct + group)
+ * @param {EventType} options.eventType - Event type (conference, webinar, etc.)
+ * @param {string} options.member - Current user's member ID
+ * @param {string} options.islevel - User level ('2'=host, '1'=co-host, '0'=participant)
+ * @param {CoHostResponsibility[]} options.coHostResponsibility - Co-host permissions array
+ * @param {string} options.coHost - Co-host ID
+ * @param {boolean} options.startDirectMessage - Whether to open in direct message mode
+ * @param {Participant|null} options.directMessageDetails - Participant for direct messaging
+ * @param {Function} options.updateStartDirectMessage - Update direct message mode state
+ * @param {Function} options.updateDirectMessageDetails - Update direct message participant
+ * @param {ShowAlert} [options.showAlert] - Alert display function
+ * @param {string} options.roomName - Meeting/room identifier
+ * @param {Socket} options.socket - Socket.io client instance
+ * @param {string} options.chatSetting - Chat permission setting ('allow', 'disallow')
+ * @param {string} [options.position] - Modal position on screen
+ * @param {string} [options.backgroundColor] - Modal background color
+ * @param {string} [options.activeTabBackgroundColor] - Active tab background color
+ * @param {React.ReactNode} [options.title] - Modal title content
+ * @param {object} [options.overlayProps] - HTML attributes for overlay div
+ * @param {object} [options.contentProps] - HTML attributes for content container
+ * @param {object} [options.headerProps] - HTML attributes for header section
+ * @param {object} [options.titleProps] - HTML attributes for title element
+ * @param {object} [options.tabListProps] - HTML attributes for tab list container
+ * @param {object} [options.tabButtonProps] - HTML attributes for tab buttons
+ * @param {object} [options.closeButtonProps] - HTML attributes for close button
+ * @param {React.ReactNode} [options.closeIconComponent] - Custom close icon
+ * @param {object} [options.bodyProps] - HTML attributes for body section
+ * @param {object} [options.directPanelWrapperProps] - HTML attributes for direct message panel wrapper
+ * @param {object} [options.groupPanelWrapperProps] - HTML attributes for group message panel wrapper
+ * @param {React.ReactNode|Function} [options.emptyState] - Content when no messages exist
+ * @param {Function} [options.renderHeader] - Custom header renderer
+ * @param {Function} [options.renderTabs] - Custom tabs renderer
+ * @param {Function} [options.renderTabButton] - Custom individual tab button renderer
+ * @param {Function} [options.renderPanels] - Custom message panels renderer
+ * @param {Function} [options.renderBody] - Custom body renderer
+ * @param {Function} [options.renderContent] - Custom content renderer
+ * 
+ * @returns {React.JSX.Element} Rendered messages modal
  * 
  * @example
+ * // Basic chat modal with default styling
  * ```tsx
- * import React from 'react';
+ * import React, { useState } from 'react';
  * import { MessagesModal } from 'mediasfu-reactjs';
- * import { io } from 'socket.io-client';
  * 
- * const messages = [
- *   { sender: "user1", receivers: ["user2"], message: "Hello, user2!", group: false },
- *   { sender: "user2", receivers: ["user1"], message: "Hi, user1!", group: false },
- * ];
+ * function ChatInterface({ messages, socket, roomName, member }) {
+ *   const [isVisible, setIsVisible] = useState(false);
+ *   const [startDirect, setStartDirect] = useState(false);
+ *   const [directDetails, setDirectDetails] = useState(null);
  * 
- * const App = () => {
- *   const socket = io("http://localhost:3000");
- *   const handleClose = () => console.log("Modal closed");
- *   const handleSendMessage = async (options) => console.log("Message sent", options);
- *   const handleAlert = (message, type) => console.log("Alert shown:", message, type);
+ *   return (
+ *     <>
+ *       <button onClick={() => setIsVisible(true)}>
+ *         Open Chat ({messages.length})
+ *       </button>
+ *       <MessagesModal
+ *         isMessagesModalVisible={isVisible}
+ *         onMessagesClose={() => setIsVisible(false)}
+ *         messages={messages}
+ *         eventType="conference"
+ *         member={member}
+ *         islevel="2"
+ *         coHostResponsibility={[]}
+ *         coHost=""
+ *         startDirectMessage={startDirect}
+ *         directMessageDetails={directDetails}
+ *         updateStartDirectMessage={setStartDirect}
+ *         updateDirectMessageDetails={setDirectDetails}
+ *         roomName={roomName}
+ *         socket={socket}
+ *         chatSetting="allow"
+ *         backgroundColor="#0f172a"
+ *         position="topRight"
+ *       />
+ *     </>
+ *   );
+ * }
+ * ```
  * 
+ * @example
+ * // Custom tab styling with gradient active state
+ * ```tsx
+ * import { MessagesModal } from 'mediasfu-reactjs';
+ * 
+ * function StyledChat({ messages, socket, roomName, member }) {
  *   return (
  *     <MessagesModal
  *       isMessagesModalVisible={true}
- *       onMessagesClose={handleClose}
- *       onSendMessagePress={handleSendMessage}
+ *       onMessagesClose={() => {}}
  *       messages={messages}
- *       position="topRight"
- *       backgroundColor="#f5f5f5"
- *       activeTabBackgroundColor="#2b7ce5"
  *       eventType="webinar"
- *       member="user1"
- *       islevel="1"
- *       coHostResponsibility={[{ name: "chat", value: true }, { name: "video", value: false }]}
- *       coHost="user2"
- *       startDirectMessage={true}
- *       directMessageDetails={{ username: "user2", name: "User 2" }}
- *       updateStartDirectMessage={(start) => console.log("Start direct message:", start)}
- *       updateDirectMessageDetails={(participant) => console.log("Direct message details:", participant)}
- *       showAlert={handleAlert}
- *       roomName="1234567890"
+ *       member={member}
+ *       islevel="2"
+ *       coHostResponsibility={[]}
+ *       coHost=""
+ *       startDirectMessage={false}
+ *       directMessageDetails={null}
+ *       updateStartDirectMessage={() => {}}
+ *       updateDirectMessageDetails={() => {}}
+ *       roomName={roomName}
  *       socket={socket}
- *       chatSetting="public"
+ *       chatSetting="allow"
+ *       backgroundColor="#1e3a8a"
+ *       activeTabBackgroundColor="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+ *       contentProps={{
+ *         style: {
+ *           borderRadius: 20,
+ *           border: '2px solid #3b82f6',
+ *           boxShadow: '0 20px 60px rgba(59,130,246,0.3)',
+ *         },
+ *       }}
+ *       tabButtonProps={{
+ *         style: {
+ *           borderRadius: '12px 12px 0 0',
+ *           padding: '12px 24px',
+ *           fontWeight: 600,
+ *           transition: 'all 0.2s ease',
+ *         },
+ *       }}
  *     />
  *   );
+ * }
+ * ```
+ * 
+ * @example
+ * // Custom rendering with analytics and empty states
+ * ```tsx
+ * import { MessagesModal } from 'mediasfu-reactjs';
+ * 
+ * function AnalyticsChat({ messages, socket, roomName, member }) {
+ *   return (
+ *     <MessagesModal
+ *       isMessagesModalVisible={true}
+ *       onMessagesClose={() => {}}
+ *       messages={messages}
+ *       eventType="conference"
+ *       member={member}
+ *       islevel="2"
+ *       coHostResponsibility={[]}
+ *       coHost=""
+ *       startDirectMessage={false}
+ *       directMessageDetails={null}
+ *       updateStartDirectMessage={() => {}}
+ *       updateDirectMessageDetails={() => {}}
+ *       roomName={roomName}
+ *       socket={socket}
+ *       chatSetting="allow"
+ *       onSendMessagePress={async (options) => {
+ *         analytics.track('message_sent', {
+ *           type: options.type,
+ *           length: options.message.length,
+ *         });
+ *         return sendMessage(options);
+ *       }}
+ *       emptyState={({ type }) => (
+ *         <div style={{
+ *           textAlign: 'center',
+ *           padding: 40,
+ *           color: '#9ca3af',
+ *         }}>
+ *           <h3>No {type} messages yet</h3>
+ *           <p>Start a conversation!</p>
+ *         </div>
+ *       )}
+ *       renderTabButton={({ type, isActive, defaultButton, switchTo }) => (
+ *         <button
+ *           onClick={() => {
+ *             analytics.track('chat_tab_switched', { to: type });
+ *             switchTo();
+ *           }}
+ *           style={{
+ *             background: isActive
+ *               ? 'linear-gradient(135deg, #22c55e 0%, #14532d 100%)'
+ *               : 'transparent',
+ *             color: isActive ? 'white' : '#9ca3af',
+ *             padding: '10px 20px',
+ *             borderRadius: '8px 8px 0 0',
+ *             border: 'none',
+ *             cursor: 'pointer',
+ *             fontWeight: isActive ? 700 : 400,
+ *             transition: 'all 0.2s ease',
+ *           }}
+ *         >
+ *           {type === 'direct' ? '💬 Direct' : '👥 Group'}
+ *         </button>
+ *       )}
+ *     />
+ *   );
+ * }
+ * ```
+ * 
+ * @example
+ * // Override with MediasfuGeneric uiOverrides
+ * ```tsx
+ * import { MediasfuGeneric, MessagesModal } from 'mediasfu-reactjs';
+ * 
+ * const uiOverrides = {
+ *   messagesModal: {
+ *     component: (props) => (
+ *       <MessagesModal
+ *         {...props}
+ *         backgroundColor="#0f172a"
+ *         activeTabBackgroundColor="#3b82f6"
+ *         position="topRight"
+ *         contentProps={{
+ *           style: {
+ *             maxHeight: '80vh',
+ *             borderRadius: 20,
+ *             border: '2px solid #3b82f6',
+ *           },
+ *         }}
+ *         tabListProps={{
+ *           style: {
+ *             borderBottom: '2px solid #1e3a8a',
+ *             padding: '0 16px',
+ *           },
+ *         }}
+ *       />
+ *     ),
+ *   },
  * };
  * 
- * export default App;
+ * <MediasfuGeneric uiOverrides={uiOverrides} />;
  * ```
  */
 
@@ -120,9 +339,6 @@ const MessagesModal: React.FC<MessagesModalOptions> = ({
   onMessagesClose,
   onSendMessagePress = sendMessage,
   messages,
-  position = "topRight",
-  backgroundColor = "#f5f5f5",
-  activeTabBackgroundColor = "#2b7ce5",
   eventType,
   member,
   islevel,
@@ -136,81 +352,62 @@ const MessagesModal: React.FC<MessagesModalOptions> = ({
   roomName,
   socket,
   chatSetting,
+  position = "topRight",
+  backgroundColor = "#f5f5f5",
+  activeTabBackgroundColor = "#2b7ce5",
+  title = "Messages",
+  overlayProps,
+  contentProps,
+  headerProps,
+  titleProps,
+  tabListProps,
+  tabButtonProps,
+  closeButtonProps,
+  closeIconComponent,
+  bodyProps,
+  directPanelWrapperProps,
+  groupPanelWrapperProps,
+  emptyState,
+  renderHeader,
+  renderTabs,
+  renderTabButton,
+  renderPanels,
+  renderBody,
+  renderContent,
 }) => {
-  const screenWidth = window.innerWidth;
-  let modalWidth = 0.8 * screenWidth;
-  if (modalWidth > 400) {
-    modalWidth = 400;
-  }
+  const initialTab = useMemo<"direct" | "group">(() => {
+    if (eventType === "webinar" || eventType === "conference") {
+      return "direct";
+    }
+    return "group";
+  }, [eventType]);
 
+  const [activeTab, setActiveTab] = useState<"direct" | "group">(initialTab);
+  const [focusedInput, setFocusedInput] = useState(false);
   const [directMessages, setDirectMessages] = useState<Message[]>([]);
   const [groupMessages, setGroupMessages] = useState<Message[]>([]);
-  const activeTab = useRef<string>(
-    eventType === "webinar" || eventType === "conference" ? "direct" : "group"
-  );
-  const [focusedInput, setFocusedInput] = useState<boolean>(false);
-  const [reRender, setReRender] = useState<boolean>(false);
-
-  const switchToDirectTab = () => {
-    activeTab.current = "direct";
-    setReRender(!reRender);
-  };
-
-  const switchToGroupTab = () => {
-    activeTab.current = "group";
-    setReRender(!reRender);
-  };
-
-  const modalContainerStyle: React.CSSProperties = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    display: isMessagesModalVisible ? "block" : "none",
-    zIndex: 999,
-  };
-
-  const modalContentStyle: React.CSSProperties = {
-    position: "fixed",
-    backgroundColor: backgroundColor,
-    borderRadius: 10,
-    padding: 10,
-    width: modalWidth,
-    maxWidth: modalWidth,
-    maxHeight: "75%",
-    overflowY: "auto",
-    overflowX: "hidden",
-    top: position.includes("top") ? 10 : "auto",
-    bottom: position.includes("bottom") ? 10 : "auto",
-    left: position.includes("Left") ? 10 : "auto",
-    right: position.includes("Right") ? 10 : "auto",
-  };
 
   useEffect(() => {
+    if (!isMessagesModalVisible) {
+      return;
+    }
+
     const chatValue = coHostResponsibility?.find(
       (item: { name: string }) => item.name === "chat"
     )?.value;
 
-    const populateMessages = () => {
-      const directMsgs = messages.filter(
-        (message) =>
-          !message.group &&
-          (message.sender === member ||
-            message.receivers.includes(member) ||
-            islevel === "2" ||
-            (coHost === member && chatValue === true))
-      );
-      setDirectMessages(directMsgs);
+    const directMsgs = messages.filter(
+      (message) =>
+        !message.group &&
+        (message.sender === member ||
+          message.receivers.includes(member) ||
+          islevel === "2" ||
+          (coHost === member && chatValue === true))
+    );
+    const groupMsgs = messages.filter((message) => message.group);
 
-      const groupMsgs = messages.filter((message) => message.group);
-      setGroupMessages(groupMsgs);
-    };
-
-    if (isMessagesModalVisible) {
-      populateMessages();
-    }
+    setDirectMessages(directMsgs);
+    setGroupMessages(groupMsgs);
   }, [
     coHost,
     coHostResponsibility,
@@ -223,172 +420,465 @@ const MessagesModal: React.FC<MessagesModalOptions> = ({
   useEffect(() => {
     if (startDirectMessage && directMessageDetails) {
       if (eventType === "webinar" || eventType === "conference") {
-        activeTab.current = "direct";
+        setActiveTab("direct");
         setFocusedInput(true);
       }
     } else if (eventType === "broadcast" || eventType === "chat") {
-      activeTab.current = "group";
+      setActiveTab("group");
     }
   }, [startDirectMessage, directMessageDetails, eventType]);
 
-  useEffect(() => {}, [reRender]);
+  const defaultOverlayWidth =
+    typeof window !== "undefined" ? Math.min(window.innerWidth * 0.85, 420) : 360;
 
-  return (
-    <div style={modalContainerStyle}>
-      <div style={modalContentStyle}>
+  const {
+    className: overlayClassName,
+    style: overlayStyleOverrides,
+    ...restOverlayProps
+  } = overlayProps ?? {};
+
+  const overlayClassNames = [
+    "mediasfu-messages-modal",
+    overlayClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const overlayStyle: React.CSSProperties = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: isMessagesModalVisible ? "block" : "none",
+    zIndex: 999,
+    ...overlayStyleOverrides,
+  };
+
+  const {
+    className: contentClassName,
+    style: contentStyleOverrides,
+    ...restContentProps
+  } = contentProps ?? {};
+
+  const contentClassNames = [
+    "mediasfu-messages-modal__content",
+    contentClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const contentStyle: React.CSSProperties = {
+    position: "fixed",
+    backgroundColor,
+    borderRadius: 10,
+    padding: 16,
+    width: defaultOverlayWidth,
+    maxHeight: "75%",
+    overflow: "hidden",
+    top: position.includes("top") ? 10 : "auto",
+    bottom: position.includes("bottom") ? 10 : "auto",
+    left: position.includes("Left") ? 10 : "auto",
+    right: position.includes("Right") ? 10 : "auto",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)",
+    ...contentStyleOverrides,
+  };
+
+  const {
+    className: headerClassName,
+    style: headerStyleOverrides,
+    ...restHeaderProps
+  } = headerProps ?? {};
+
+  const headerClassNames = [
+    "modal-header",
+    headerClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const headerStyle: React.CSSProperties = {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 12,
+    ...headerStyleOverrides,
+  };
+
+  const {
+    className: titleClassName,
+    style: titleStyleOverrides,
+    ...restTitleProps
+  } = titleProps ?? {};
+
+  const titleClassNames = [
+    "modal-title",
+    titleClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const titleStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    margin: 0,
+    ...titleStyleOverrides,
+  };
+
+  const {
+    className: tabListClassName,
+    style: tabListStyleOverrides,
+    ...restTabListProps
+  } = tabListProps ?? {};
+
+  const tabListClassNames = [
+    "messages-tabs",
+    tabListClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const tabListStyle: React.CSSProperties = {
+    display: "flex",
+    gap: 8,
+    ...tabListStyleOverrides,
+  };
+
+  const {
+    className: tabButtonClassName,
+    style: tabButtonStyleOverrides,
+    ...restTabButtonProps
+  } = tabButtonProps ?? {};
+
+  const baseTabButtonStyle: React.CSSProperties = {
+    padding: "6px 12px",
+    fontWeight: "bold",
+    borderRadius: 4,
+    border: "none",
+    cursor: "pointer",
+    backgroundColor: "transparent",
+  };
+
+  const {
+    className: closeButtonClassName,
+    style: closeButtonStyleOverrides,
+    onClick: closeButtonOnClick,
+    ...restCloseButtonProps
+  } = closeButtonProps ?? {};
+
+  const closeButtonClassNames = [
+    "btn-close-messages",
+    closeButtonClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const closeButtonStyle: React.CSSProperties = {
+    background: "none",
+    border: "none",
+    padding: 4,
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "black",
+    ...closeButtonStyleOverrides,
+  };
+
+  const defaultCloseIcon = closeIconComponent ?? (
+    <FontAwesomeIcon icon={faTimes} className="icon" />
+  );
+
+  const handleCloseClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    closeButtonOnClick?.(event);
+    if (!event.defaultPrevented) {
+      onMessagesClose();
+    }
+  };
+
+  const {
+    className: bodyClassName,
+    style: bodyStyleOverrides,
+    ...restBodyProps
+  } = bodyProps ?? {};
+
+  const bodyClassNames = [
+    "modal-body",
+    bodyClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const bodyStyle: React.CSSProperties = {
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+    flex: 1,
+    minHeight: 0,
+    ...bodyStyleOverrides,
+  };
+
+  const {
+    className: directPanelClassName,
+    style: directPanelStyleOverrides,
+    ...restDirectPanelProps
+  } = directPanelWrapperProps ?? {};
+
+  const directPanelClassNames = [
+    "messages-panel messages-panel--direct",
+    directPanelClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const {
+    className: groupPanelClassName,
+    style: groupPanelStyleOverrides,
+    ...restGroupPanelProps
+  } = groupPanelWrapperProps ?? {};
+
+  const groupPanelClassNames = [
+    "messages-panel messages-panel--group",
+    groupPanelClassName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim() || undefined;
+
+  const switchToDirect = () => {
+    setActiveTab("direct");
+    setFocusedInput(true);
+  };
+
+  const switchToGroup = () => {
+    setActiveTab("group");
+    setFocusedInput(false);
+  };
+
+  const buildTabButton = (type: "direct" | "group") => {
+    const isActive = activeTab === type;
+    const switchTo = type === "direct" ? switchToDirect : switchToGroup;
+
+    const defaultButton = (
+      <button
+        type="button"
+        className={tabButtonClassName}
+        style={{
+          ...baseTabButtonStyle,
+          ...(isActive && {
+            color: "#ffffff",
+            backgroundColor: activeTabBackgroundColor,
+          }),
+          ...tabButtonStyleOverrides,
+        }}
+        onClick={(event) => {
+          restTabButtonProps?.onClick?.(event);
+          if (!event.defaultPrevented) {
+            switchTo();
+          }
+        }}
+        {...restTabButtonProps}
+      >
+        {type === "direct" ? "Direct" : "Group"}
+      </button>
+    );
+
+    if (renderTabButton) {
+      return renderTabButton({
+        type,
+        isActive,
+        defaultButton,
+        switchTo,
+      });
+    }
+
+    return defaultButton;
+  };
+
+  const defaultTabs = (eventType === "webinar" || eventType === "conference")
+    ? (
         <div
-          style={{
-            ...styles.modalContent,
-            backgroundColor: backgroundColor,
-            width: modalWidth,
-          }}
+          className={tabListClassNames}
+          style={tabListStyle}
+          {...restTabListProps}
         >
-          <div
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            {eventType === "webinar" || eventType === "conference" ? (
-              <>
-                <button
-                  onClick={switchToDirectTab}
-                  style={{
-                    ...styles.tabText,
-                    ...(activeTab.current === "direct" && styles.activeTabText),
-                    ...(activeTab.current === "direct" && {
-                      backgroundColor: activeTabBackgroundColor,
-                    }),
-                  }}
-                >
-                  Direct
-                </button>
-                <button
-                  onClick={switchToGroupTab}
-                  style={{
-                    ...styles.tabText,
-                    ...(activeTab.current === "group" && styles.activeTabText),
-                    ...(activeTab.current === "group" && {
-                      backgroundColor: activeTabBackgroundColor,
-                    }),
-                  }}
-                >
-                  Group
-                </button>
-              </>
-            ) : null}
-
-            <span
-              style={{
-                ...styles.btnCloseMessages,
-                marginLeft:
-                  eventType === "webinar" || eventType === "conference"
-                    ? "30%"
-                    : "85%",
-              }}
-              onClick={onMessagesClose}
-            >
-              <FontAwesomeIcon icon={faTimes} className="icon" size="xl" />
-            </span>
-          </div>
-
-          <hr style={{ ...styles.separator }} />
-
-          <div style={styles.modalBody}>
-            {activeTab.current === "direct" &&
-              (eventType === "webinar" || eventType === "conference") && (
-                <MessagePanel
-                  messages={directMessages}
-                  messagesLength={messages.length}
-                  type="direct"
-                  onSendMessagePress={onSendMessagePress}
-                  username={member}
-                  backgroundColor={backgroundColor}
-                  focusedInput={focusedInput}
-                  showAlert={showAlert}
-                  eventType={eventType}
-                  member={member}
-                  islevel={islevel}
-                  coHostResponsibility={coHostResponsibility}
-                  coHost={coHost}
-                  directMessageDetails={directMessageDetails}
-                  updateStartDirectMessage={updateStartDirectMessage}
-                  updateDirectMessageDetails={updateDirectMessageDetails}
-                  roomName={roomName}
-                  socket={socket}
-                  chatSetting={chatSetting}
-                  startDirectMessage={startDirectMessage}
-                />
-              )}
-
-            {activeTab.current === "group" && (
-              <MessagePanel
-                messages={groupMessages}
-                messagesLength={messages.length}
-                type="group"
-                onSendMessagePress={onSendMessagePress}
-                username={member}
-                backgroundColor={backgroundColor}
-                focusedInput={false}
-                showAlert={showAlert}
-                eventType={eventType}
-                member={member}
-                islevel={islevel}
-                coHostResponsibility={coHostResponsibility}
-                coHost={coHost}
-                directMessageDetails={directMessageDetails}
-                updateStartDirectMessage={updateStartDirectMessage}
-                updateDirectMessageDetails={updateDirectMessageDetails}
-                roomName={roomName}
-                socket={socket}
-                chatSetting={chatSetting}
-                startDirectMessage={startDirectMessage}
-              />
-            )}
-          </div>
+          {buildTabButton("direct")}
+          {buildTabButton("group")}
         </div>
+      )
+    : null;
+
+  const tabsNode = renderTabs
+    ? renderTabs({
+        defaultTabs,
+        activeTab,
+        switchToDirect,
+        switchToGroup,
+      })
+    : defaultTabs;
+
+  const defaultHeader = (
+    <div className={headerClassNames} style={headerStyle} {...restHeaderProps}>
+      <div className={titleClassNames} style={titleStyle} {...restTitleProps}>
+        {title}
+      </div>
+      <button
+        type="button"
+        className={closeButtonClassNames}
+        style={closeButtonStyle}
+        onClick={handleCloseClick}
+        {...restCloseButtonProps}
+      >
+        {defaultCloseIcon}
+      </button>
+    </div>
+  );
+
+  const headerNode = renderHeader
+    ? renderHeader({
+        defaultHeader,
+        activeTab,
+        onClose: onMessagesClose,
+      })
+    : defaultHeader;
+
+  const renderPanelContent = (
+    type: "direct" | "group",
+    panelMessages: Message[],
+    panelProps: React.HTMLAttributes<HTMLDivElement>,
+    panelClassNames: string | undefined,
+    panelStyleOverrides: React.CSSProperties | undefined,
+    panelEmptyState: React.ReactNode
+  ) => (
+    <div
+      className={panelClassNames}
+      style={{
+        display: activeTab === type ? "block" : "none",
+        overflowY: "auto",
+        maxHeight: "100%",
+        ...panelStyleOverrides,
+      }}
+      {...panelProps}
+    >
+      {activeTab === type ? (
+        <>
+          {!panelMessages.length && panelEmptyState}
+          <MessagePanel
+            messages={panelMessages}
+            messagesLength={messages.length}
+            type={type}
+            onSendMessagePress={onSendMessagePress}
+            username={member}
+            backgroundColor={backgroundColor}
+            focusedInput={type === "direct" ? focusedInput : false}
+            showAlert={showAlert}
+            eventType={eventType}
+            member={member}
+            islevel={islevel}
+            coHostResponsibility={coHostResponsibility}
+            coHost={coHost}
+            directMessageDetails={directMessageDetails}
+            updateStartDirectMessage={updateStartDirectMessage}
+            updateDirectMessageDetails={updateDirectMessageDetails}
+            roomName={roomName}
+            socket={socket}
+            chatSetting={chatSetting}
+            startDirectMessage={startDirectMessage}
+          />
+        </>
+      ) : null}
+    </div>
+  );
+
+  const directEmpty = emptyState
+    ? typeof emptyState === "function"
+      ? emptyState({ type: "direct" })
+      : emptyState
+    : <div className="messages-empty">No direct messages yet.</div>;
+
+  const groupEmpty = emptyState
+    ? typeof emptyState === "function"
+      ? emptyState({ type: "group" })
+      : emptyState
+    : <div className="messages-empty">No group messages yet.</div>;
+
+  const defaultPanels = (
+    <>
+      {renderPanelContent(
+        "direct",
+        directMessages,
+        restDirectPanelProps ?? {},
+        directPanelClassNames,
+        directPanelStyleOverrides,
+        directEmpty
+      )}
+      {renderPanelContent(
+        "group",
+        groupMessages,
+        restGroupPanelProps ?? {},
+        groupPanelClassNames,
+        groupPanelStyleOverrides,
+        groupEmpty
+      )}
+    </>
+  );
+
+  const panelsNode = renderPanels
+    ? renderPanels({
+        defaultPanels,
+        activeTab,
+      })
+    : defaultPanels;
+
+  const defaultBody = (
+    <div className={bodyClassNames} style={bodyStyle} {...restBodyProps}>
+      {tabsNode}
+      <div className="messages-panels" style={{ flex: 1, minHeight: 0 }}>
+        {panelsNode}
       </div>
     </div>
   );
-};
 
-const styles = {
-  modalContent: {
-    borderRadius: 10,
-    padding: 10,
-  },
-  modalBody: {
-    marginTop: 10,
-  },
-  tabText: {
-    paddingRight: 10,
-    paddingLeft: 10,
-    paddingTop: 5,
-    paddingBottom: 5,
-    fontWeight: "bold",
-    marginRight: 10,
-    marginLeft: 10,
-  },
-  activeTabText: {
-    color: "#ffffff",
-    backgroundColor: "#2b7ce5",
-    borderRadius: 4,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: "black",
-    marginVertical: 1,
-  },
-  btnCloseMessages: {
-    padding: 5,
-    marginRight: 0,
-    paddingRight: 0,
-  },
-  icon: {
-    fontSize: 24,
-    color: "black",
-  },
+  const bodyNode = renderBody
+    ? renderBody({
+        defaultBody,
+        activeTab,
+      })
+    : defaultBody;
+
+  const defaultContent = (
+    <div className={contentClassNames} style={contentStyle} {...restContentProps}>
+      {headerNode}
+      <hr className="hr" />
+      {bodyNode}
+    </div>
+  );
+
+  const contentNode = renderContent
+    ? renderContent({
+        defaultContent,
+        activeTab,
+      })
+    : defaultContent;
+
+  return (
+    <div className={overlayClassNames} style={overlayStyle} {...restOverlayProps}>
+      {contentNode}
+    </div>
+  );
 };
 
 export default MessagesModal;

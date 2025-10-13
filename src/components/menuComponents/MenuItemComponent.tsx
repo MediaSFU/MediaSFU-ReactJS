@@ -1,12 +1,35 @@
 import React, { CSSProperties } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"; 
+import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+
+const joinClassNames = (
+  ...classes: Array<string | undefined | null | false>
+): string | undefined => {
+  const filtered = classes.filter(Boolean).join(" ").trim();
+  return filtered.length > 0 ? filtered : undefined;
+};
 
 // Define the props interface
 export interface MenuItemComponentOptions {
   icon?: IconDefinition;
   name?: string;
   onPress: () => void;
+  buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  iconProps?: Partial<FontAwesomeIconProps>;
+  textProps?: React.HTMLAttributes<HTMLSpanElement>;
+  renderButton?: (options: {
+    defaultButton: React.ReactNode;
+    iconNode: React.ReactNode;
+    textNode: React.ReactNode;
+  }) => React.ReactNode;
+  renderIcon?: (options: { defaultIcon: React.ReactNode }) => React.ReactNode;
+  renderText?: (options: { defaultText: React.ReactNode }) => React.ReactNode;
+  renderContent?: (options: {
+    defaultContent: React.ReactNode;
+    iconNode: React.ReactNode;
+    textNode: React.ReactNode;
+  }) => React.ReactNode;
 }
 
 export type MenuItemComponentType = (options: MenuItemComponentOptions) => React.JSX.Element;
@@ -42,13 +65,119 @@ export type MenuItemComponentType = (options: MenuItemComponentOptions) => React
  * ```
  */
 
-const MenuItemComponent: React.FC<MenuItemComponentOptions> = ({ icon, name, onPress }) => {
-  return (
-    <button style={styles.listItem} onClick={onPress}>
-      {icon && <FontAwesomeIcon icon={icon} style={styles.listIcon} />}
-      {name && <span style={styles.listText}>{name}</span>}
+const MenuItemComponent: React.FC<MenuItemComponentOptions> = ({
+  icon,
+  name,
+  onPress,
+  buttonProps,
+  iconProps,
+  textProps,
+  renderButton,
+  renderIcon,
+  renderText,
+  renderContent,
+}) => {
+  const {
+    className: buttonClassName,
+    style: buttonStyleOverrides,
+    onClick: buttonOnClick,
+    type: buttonType,
+    ...restButtonProps
+  } = buttonProps ?? {};
+
+  const {
+    className: iconClassName,
+    style: iconStyleOverrides,
+    icon: iconOverride,
+    ...restIconProps
+  } = iconProps ?? {};
+
+  const {
+    className: textClassName,
+    style: textStyleOverrides,
+    children: textChildren,
+    ...restTextProps
+  } = textProps ?? {};
+
+  const resolvedIcon =
+    (iconOverride as IconDefinition | undefined) ?? icon;
+
+  const iconNodeDefault = resolvedIcon ? (
+      <FontAwesomeIcon
+        icon={resolvedIcon}
+        className={joinClassNames(undefined, iconClassName)}
+        style={{
+          ...styles.listIcon,
+          ...iconStyleOverrides,
+        }}
+        {...restIconProps}
+      />
+    ) : null;
+
+  const iconNode = renderIcon
+    ? renderIcon({ defaultIcon: iconNodeDefault })
+    : iconNodeDefault;
+
+  const textNodeDefault =
+    name || textChildren ? (
+      <span
+        className={joinClassNames(undefined, textClassName)}
+        style={{
+          ...styles.listText,
+          ...textStyleOverrides,
+        }}
+        {...restTextProps}
+      >
+        {textChildren ?? name}
+      </span>
+    ) : null;
+
+  const textNode = renderText
+    ? renderText({ defaultText: textNodeDefault })
+    : textNodeDefault;
+
+  const contentDefault = (
+    <>
+      {iconNode}
+      {textNode}
+    </>
+  );
+
+  const contentNode = renderContent
+    ? renderContent({
+        defaultContent: contentDefault,
+        iconNode,
+        textNode,
+      })
+    : contentDefault;
+
+  const buttonNodeDefault = (
+    <button
+      type={buttonType ?? "button"}
+      className={joinClassNames(undefined, buttonClassName)}
+      style={{
+        ...styles.listItem,
+        ...buttonStyleOverrides,
+      }}
+      onClick={async (event) => {
+        await Promise.resolve(buttonOnClick?.(event));
+        if (!event.defaultPrevented) {
+          onPress();
+        }
+      }}
+      {...restButtonProps}
+    >
+      {contentNode}
     </button>
   );
+
+  return renderButton
+    ? renderButton({
+        defaultButton: buttonNodeDefault,
+        iconNode,
+        textNode,
+      })
+    : buttonNodeDefault;
 };
 
 const styles: { [key: string]: CSSProperties } = {

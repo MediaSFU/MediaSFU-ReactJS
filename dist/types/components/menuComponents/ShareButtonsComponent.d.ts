@@ -1,18 +1,48 @@
 import React from "react";
+import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
 import { EventType } from "../../@types/types";
 export interface ShareButton {
     icon: IconDefinition;
-    action: () => void;
+    action: () => void | Promise<void>;
     show: boolean;
     color?: string;
     iconColor?: string;
+    wrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+    iconProps?: Partial<FontAwesomeIconProps>;
 }
 export interface ShareButtonsComponentOptions {
     meetingID: string;
     shareButtons?: ShareButton[];
     eventType: EventType;
     localLink?: string;
+    containerProps?: React.HTMLAttributes<HTMLDivElement>;
+    renderContainer?: (options: {
+        defaultContainer: React.ReactNode;
+        buttons: ShareButton[];
+        shareUrl: string;
+    }) => React.ReactNode;
+    renderButtons?: (options: {
+        defaultButtons: React.ReactNode[];
+        buttons: ShareButton[];
+        shareUrl: string;
+    }) => React.ReactNode;
+    renderButton?: (options: {
+        defaultButton: React.ReactNode;
+        button: ShareButton;
+        index: number;
+        shareUrl: string;
+    }) => React.ReactNode;
+    renderIcon?: (options: {
+        defaultIcon: React.ReactNode;
+        button: ShareButton;
+        shareUrl: string;
+    }) => React.ReactNode;
+    getShareUrl?: (options: {
+        meetingID: string;
+        eventType: EventType;
+        localLink?: string;
+    }) => string;
 }
 export type ShareButtonsComponentType = (options: ShareButtonsComponentOptions) => React.JSX.Element;
 /**

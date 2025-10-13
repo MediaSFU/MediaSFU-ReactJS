@@ -33,66 +33,167 @@ export interface MediaSettingsModalOptions {
 export type MediaSettingsModalType = (options: MediaSettingsModalOptions) => React.JSX.Element;
 
 /**
- * MediaSettingsModal component provides a modal interface for users to configure media settings such as selecting video and audio input devices.
+ * MediaSettingsModal - Comprehensive device selection and media configuration interface
+ * 
+ * A feature-rich modal for managing audio/video inputs, camera switching, and virtual backgrounds.
+ * Supports device enumeration, real-time switching, front/back camera toggle (mobile), and
+ * integrates with background customization. Perfect for pre-call setup or in-call media adjustments.
+ * 
+ * Features:
+ * - Video input device selection (webcams, external cameras)
+ * - Audio input device selection (microphones, headsets)
+ * - Front/back camera switching for mobile devices
+ * - Virtual background access integration
+ * - Real-time device switching without dropping call
+ * - Device refresh capability
+ * - Selected device persistence
+ * - Responsive positioning (topRight, topLeft, bottomRight, bottomLeft)
+ * - Custom styling support
  * 
  * @component
- * @param {Object} props - The properties object.
- * @param {boolean} props.isMediaSettingsModalVisible - Determines if the media settings modal is visible.
- * @param {Function} props.onMediaSettingsClose - Callback function to close the media settings modal.
- * @param {Function} [props.switchCameraOnPress=switchVideoAlt] - Function to handle camera switch action.
- * @param {Function} [props.switchVideoOnPress=switchVideo] - Function to handle video input switch action.
- * @param {Function} [props.switchAudioOnPress=switchAudio] - Function to handle audio input switch action.
- * @param {MediaSettingsModalParameters} props.parameters - Parameters containing user default devices and available devices.
- * @param {string} [props.position='topRight'] - Position of the modal on the screen.
- * @param {string} [props.backgroundColor='#83c0e9'] - Background color of the modal.
+ * @param {MediaSettingsModalOptions} options - Configuration options
+ * @param {boolean} options.isMediaSettingsModalVisible - Modal visibility state
+ * @param {Function} options.onMediaSettingsClose - Callback when modal is closed
+ * @param {Function} [options.switchCameraOnPress=switchVideoAlt] - Camera front/back toggle handler
+ * @param {Function} [options.switchVideoOnPress=switchVideo] - Video input switch handler
+ * @param {Function} [options.switchAudioOnPress=switchAudio] - Audio input switch handler
+ * @param {MediaSettingsModalParameters} options.parameters - Device and state parameters
+ * @param {string} options.parameters.userDefaultVideoInputDevice - Currently selected video device ID
+ * @param {MediaDeviceInfo[]} options.parameters.videoInputs - Available video input devices
+ * @param {MediaDeviceInfo[]} options.parameters.audioInputs - Available audio input devices
+ * @param {string} options.parameters.userDefaultAudioInputDevice - Currently selected audio device ID
+ * @param {boolean} options.parameters.isBackgroundModalVisible - Background modal state
+ * @param {Function} options.parameters.updateIsBackgroundModalVisible - Update background modal visibility
+ * @param {Function} options.parameters.getUpdatedAllParams - Retrieve latest parameters
+ * @param {string} [options.position='topRight'] - Modal screen position
+ * @param {string} [options.backgroundColor='#83c0e9'] - Modal background color
  * 
- * @returns {React.JSX.Element} The rendered MediaSettingsModal component.
+ * @returns {React.JSX.Element} Rendered media settings modal
  * 
  * @example
+ * // Basic media settings modal
+ * ```tsx
  * import React, { useState } from 'react';
  * import { MediaSettingsModal } from 'mediasfu-reactjs';
- * import { io } from 'socket.io-client';
  * 
- * const App = () => {
- *   const socket = io("http://localhost:3000");
- *   const [isMediaModalVisible, setIsMediaModalVisible] = useState(true);
+ * function MediaControls({ parameters }) {
+ *   const [isVisible, setIsVisible] = useState(false);
  * 
- *   const handleMediaSettingsClose = () => setIsMediaModalVisible(false);
- *   const handleSwitchCamera = async (options) => console.log("Camera switched", options);
- *   const handleSwitchVideo = async (options) => console.log("Video input switched", options);
- *   const handleSwitchAudio = async (options) => console.log("Audio input switched", options);
+ *   return (
+ *     <>
+ *       <button onClick={() => setIsVisible(true)}>
+ *         Media Settings
+ *       </button>
+ *       <MediaSettingsModal
+ *         isMediaSettingsModalVisible={isVisible}
+ *         onMediaSettingsClose={() => setIsVisible(false)}
+ *         parameters={parameters}
+ *         position="topRight"
+ *         backgroundColor="#0f172a"
+ *       />
+ *     </>
+ *   );
+ * }
+ * ```
  * 
- *   const parameters = {
- *     userDefaultVideoInputDevice: "default",
- *     videoInputs: [
- *       { deviceId: "camera1", label: "Front Camera" },
- *       { deviceId: "camera2", label: "Rear Camera" }
- *     ],
- *     audioInputs: [
- *       { deviceId: "mic1", label: "Built-in Microphone" },
- *       { deviceId: "mic2", label: "External Microphone" }
- *     ],
- *     userDefaultAudioInputDevice: "default",
- *     isBackgroundModalVisible: false,
- *     updateIsBackgroundModalVisible: (visible) => console.log("Background modal visibility:", visible),
- *     getUpdatedAllParams: () => console.log("Updated all parameters"),
+ * @example
+ * // Custom styled with device analytics
+ * ```tsx
+ * import { MediaSettingsModal } from 'mediasfu-reactjs';
+ * 
+ * function AnalyticsMediaSettings({ isVisible, onClose, parameters }) {
+ *   const handleSwitchVideo = async (options) => {
+ *     analytics.track('video_device_switched', {
+ *       deviceId: options.videoPreference,
+ *       deviceLabel: parameters.videoInputs.find(d => d.deviceId === options.videoPreference)?.label,
+ *     });
+ *     return parameters.switchVideo(options);
+ *   };
+ * 
+ *   const handleSwitchAudio = async (options) => {
+ *     analytics.track('audio_device_switched', {
+ *       deviceId: options.audioPreference,
+ *       deviceLabel: parameters.audioInputs.find(d => d.deviceId === options.audioPreference)?.label,
+ *     });
+ *     return parameters.switchAudio(options);
  *   };
  * 
  *   return (
  *     <MediaSettingsModal
- *       isMediaSettingsModalVisible={isMediaModalVisible}
- *       onMediaSettingsClose={handleMediaSettingsClose}
- *       switchCameraOnPress={handleSwitchCamera}
+ *       isMediaSettingsModalVisible={isVisible}
+ *       onMediaSettingsClose={onClose}
  *       switchVideoOnPress={handleSwitchVideo}
  *       switchAudioOnPress={handleSwitchAudio}
  *       parameters={parameters}
- *       position="topRight"
- *       backgroundColor="#83c0e9"
+ *       position="bottomRight"
+ *       backgroundColor="#1e3a8a"
  *     />
  *   );
+ * }
+ * ```
+ * 
+ * @example
+ * // Branded settings with device count display
+ * ```tsx
+ * import { MediaSettingsModal } from 'mediasfu-reactjs';
+ * 
+ * function BrandedSettings({ isVisible, onClose, parameters }) {
+ *   return (
+ *     <div>
+ *       <div style={{
+ *         display: 'flex',
+ *         gap: 12,
+ *         marginBottom: 16,
+ *         padding: 12,
+ *         background: '#f8fafc',
+ *         borderRadius: 8,
+ *       }}>
+ *         <div>
+ *           <span style={{ fontWeight: 600 }}>Cameras:</span> {parameters.videoInputs.length}
+ *         </div>
+ *         <div>
+ *           <span style={{ fontWeight: 600 }}>Microphones:</span> {parameters.audioInputs.length}
+ *         </div>
+ *       </div>
+ *       <MediaSettingsModal
+ *         isMediaSettingsModalVisible={isVisible}
+ *         onMediaSettingsClose={onClose}
+ *         parameters={parameters}
+ *         position="topLeft"
+ *         backgroundColor="#7c3aed"
+ *       />
+ *     </div>
+ *   );
+ * }
+ * ```
+ * 
+ * @example
+ * // Override with MediasfuGeneric uiOverrides
+ * ```tsx
+ * import { MediasfuGeneric, MediaSettingsModal } from 'mediasfu-reactjs';
+ * 
+ * const uiOverrides = {
+ *   mediaSettingsModal: {
+ *     component: (props) => (
+ *       <MediaSettingsModal
+ *         {...props}
+ *         backgroundColor="#0f172a"
+ *         position="topRight"
+ *         switchVideoOnPress={async (options) => {
+ *           console.log('Video device switched:', options.videoPreference);
+ *           return props.switchVideoOnPress?.(options);
+ *         }}
+ *         switchAudioOnPress={async (options) => {
+ *           console.log('Audio device switched:', options.audioPreference);
+ *           return props.switchAudioOnPress?.(options);
+ *         }}
+ *       />
+ *     ),
+ *   },
  * };
  * 
- * export default App;
+ * <MediasfuGeneric uiOverrides={uiOverrides} />;
+ * ```
  */
 
 const MediaSettingsModal: React.FC<MediaSettingsModalOptions> = ({

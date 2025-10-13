@@ -35,5 +35,5 @@ export type CheckPermissionType = (options: CheckPermissionOptions) => Promise<n
  *     console.error('Error checking permission:', error);
  *   });
  */
-export declare function checkPermission({ permissionType, audioSetting, videoSetting, screenshareSetting, chatSetting }: CheckPermissionOptions): Promise<0 | 1 | 2>;
+export declare function checkPermission({ permissionType, audioSetting, videoSetting, screenshareSetting, chatSetting }: CheckPermissionOptions): Promise<1 | 0 | 2>;
 //# sourceMappingURL=checkPermission.d.ts.map

@@ -1,7 +1,7 @@
 import React from "react";
 import './MediasfuCSS.css';
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { SeedData, PreJoinPageOptions, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../../@types/types";
+import { SeedData, PreJoinPageOptions, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType, MediasfuUICustomOverrides } from "../../@types/types";
 export type MediasfuWebinarOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -29,6 +29,7 @@ export type MediasfuWebinarOptions = {
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;
     containerStyle?: React.CSSProperties;
+    uiOverrides?: MediasfuUICustomOverrides;
 };
 /**
  * MediasfuWebinar component optimized for webinars.

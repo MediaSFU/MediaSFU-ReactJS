@@ -7,6 +7,8 @@ export interface CardVideoDisplayOptions {
     videoStream: MediaStream | null;
     backgroundColor?: string;
     doMirror?: boolean;
+    containerProps?: React.HTMLAttributes<HTMLDivElement>;
+    videoProps?: React.VideoHTMLAttributes<HTMLVideoElement>;
 }
 export type CardVideoDisplayType = (options: CardVideoDisplayOptions) => React.ReactNode;
 /**

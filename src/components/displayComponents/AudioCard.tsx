@@ -1,5 +1,11 @@
 
-import React, { useState, useEffect, CSSProperties } from "react";
+import React, {
+  useState,
+  useEffect,
+  CSSProperties,
+  useMemo,
+  useCallback,
+} from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faVideo,
@@ -48,15 +54,54 @@ export interface AudioCardOptions {
   backgroundColor?: string;
   audioDecibels?: AudioDecibels;
   parameters: AudioCardParameters;
+  cardProps?: React.HTMLAttributes<HTMLDivElement>;
+  infoOverlayProps?: React.HTMLAttributes<HTMLDivElement>;
+  nameContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  nameTextProps?: React.HTMLAttributes<HTMLParagraphElement>;
+  waveformContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  waveformBarStyle?: React.CSSProperties;
+  waveformBarProps?: React.HTMLAttributes<HTMLDivElement>;
+  waveformHeights?: {
+    silent?: number;
+    active?: number;
+  };
+  waveformDurations?: number[];
+  waveformBarCount?: number;
+  renderWaveformBar?: (options: {
+    index: number;
+    isActive: boolean;
+    height: number;
+    style: React.CSSProperties;
+    props: React.HTMLAttributes<HTMLDivElement>;
+  }) => React.ReactNode;
+  controlsOverlayProps?: React.HTMLAttributes<HTMLDivElement>;
+  controlButtonProps?: {
+    audio?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+    video?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  };
+  audioEnabledIcon?: React.ReactNode;
+  audioDisabledIcon?: React.ReactNode;
+  videoEnabledIcon?: React.ReactNode;
+  videoDisabledIcon?: React.ReactNode;
+  fallbackMiniCardProps?: Partial<React.ComponentProps<typeof MiniCard>>;
+  imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
+  showWaveformWhenMuted?: boolean;
 }
 
 export type AudioCardType = (options: AudioCardOptions) => React.JSX.Element;
 
 /**
- * AudioCard component displays an audio card with various controls, participant information, and a visual waveform.
- * 
- * This component renders an interactive card with customizable styles, an image, and control buttons for audio and video functionality. The waveform reacts to audio levels, and the component manages real-time states through parameters like `audioDecibels`, `participant` information, and `coHost` responsibilities.
- * 
+ * AudioCard component displays an interactive audio card with participant information, media controls,
+ * and a real-time animated waveform representing audio levels.
+ *
+ * This component is highly customizable and supports:
+ * - Real-time audio level visualization via animated waveform bars
+ * - Media control overlays (audio/video toggle)
+ * - Participant info display with flexible positioning
+ * - Custom render hooks for waveform bars, controls, and info
+ * - Extensive styling via props and HTML attributes
+ * - Override patterns for use in MediaSFU UI components
+ *
  * @component
  * @param {AudioCardOptions} props - The properties for the AudioCard component.
  * @param {Function} [props.controlUserMedia=controlMedia] - Function to control user media actions.
@@ -81,53 +126,86 @@ export type AudioCardType = (options: AudioCardOptions) => React.JSX.Element;
  * @returns {React.JSX.Element} The rendered AudioCard component.
  * 
  * @example
+ * **Basic Usage**
  * ```tsx
  * import React from 'react';
  * import { AudioCard } from 'mediasfu-reactjs';
  *
  * function App() {
- *   const participant = { name: "John Doe", id: "123", muted: false, videoOn: true };
+ *   const participant = { name: "Alice", id: "123", muted: false, videoOn: true };
  *   const parameters = {
- *     audioDecibels: [{ name: "John Doe", averageLoudness: 128 }],
+ *     audioDecibels: [{ name: "Alice", averageLoudness: 128 }],
  *     participants: [participant],
- *     socket: {}, // Add actual socket instance here
+ *     socket: mySocket,
  *     coHostResponsibility: [],
- *     roomName: "Main Room",
+ *     roomName: "Room1",
  *     coHost: "Host123",
  *     islevel: "1",
- *     member: "member",
+ *     member: "Alice",
  *     eventType: "meeting",
  *     getUpdatedAllParams: () => parameters,
  *   };
  *
  *   return (
  *     <AudioCard
- *       name="John Doe"
+ *       name="Alice"
  *       participant={participant}
  *       parameters={parameters}
  *       audioDecibels={parameters.audioDecibels[0]}
- *       showControls={true}
- *       showInfo={true}
- *       controlsPosition="topLeft"
- *       infoPosition="topRight"
  *       backgroundColor="black"
- *       barColor="red"
+ *       barColor="cyan"
  *       textColor="white"
- *       imageSource="https://example.com/image.jpg"
+ *       imageSource="https://example.com/alice.jpg"
  *       roundedImage={true}
- *       imageStyle={{ width: "100px", height: "100px" }}
- *       customStyle={{ width: "200px", height: "200px" }}
- *       controlUserMedia={() => console.log("Control media invoked")}
- *       videoInfoComponent={<CustomVideoInfoComponent />}
- *       videoControlsComponent={<CustomVideoControlsComponent />}
  *     />
  *   );
  * }
+ * ```
  *
- * export default App;
+ * @example
+ * **Using in uiOverrides (MediasfuGeneric)**
+ * ```tsx
+ * import React from 'react';
+ * import { MediasfuGeneric, AudioCard } from 'mediasfu-reactjs';
+ *
+ * function App() {
+ *   const CustomAudioCard = (props: any) => (
+ *     <AudioCard
+ *       {...props}
+ *       barColor="purple"
+ *       textColor="yellow"
+ *       waveformBarCount={15}
+ *       renderWaveformBar={({ index, isActive, height, style, props }) => (
+ *         <div
+ *           key={index}
+ *           {...props}
+ *           style={{
+ *             ...style,
+ *             height: `${height}px`,
+ *             backgroundColor: isActive ? 'purple' : 'rgba(255,255,255,0.2)',
+ *             boxShadow: isActive ? '0 0 8px purple' : 'none',
+ *             borderRadius: 2,
+ *           }}
+ *         />
+ *       )}
+ *     />
+ *   );
+ *
+ *   return (
+ *     <MediasfuGeneric
+ *       useLocalUIMode={true}
+ *       useSeed={true}
+ *       seedData={mySeedData}
+ *       uiOverrides={{
+ *         AudioCard: CustomAudioCard
+ *       }}
+ *     />
+ *   );
+ * }
  * ```
  */
 
+const DEFAULT_WAVEFORM_DURATIONS = [474, 433, 407, 458, 400, 427, 441, 419, 487];
 
 const AudioCard: React.FC<AudioCardOptions> = ({
   controlUserMedia = controlMedia,
@@ -146,23 +224,143 @@ const AudioCard: React.FC<AudioCardOptions> = ({
   infoPosition = "topRight",
   participant,
   backgroundColor,
-  audioDecibels,
   parameters,
+  cardProps,
+  infoOverlayProps,
+  nameContainerProps,
+  nameTextProps,
+  waveformContainerProps,
+  waveformBarStyle,
+  waveformBarProps,
+  waveformHeights,
+  waveformDurations,
+  waveformBarCount,
+  renderWaveformBar,
+  controlsOverlayProps,
+  controlButtonProps,
+  audioEnabledIcon,
+  audioDisabledIcon,
+  videoEnabledIcon,
+  videoDisabledIcon,
+  fallbackMiniCardProps,
+  imageProps,
+  showWaveformWhenMuted = false,
 }) => {
-  const [waveformAnimations, setWaveformAnimations] = useState<number[]>(
-    Array.from({ length: 9 }, () => 0)
+  const durations = useMemo(() => {
+    if (waveformDurations && waveformDurations.length > 0) {
+      return waveformDurations;
+    }
+    return DEFAULT_WAVEFORM_DURATIONS;
+  }, [waveformDurations]);
+
+  const barCount = waveformBarCount ?? durations.length;
+  const [waveformAnimations, setWaveformAnimations] = useState<number[]>(() =>
+    Array.from({ length: barCount }, () => 0)
   );
   const [showWaveform, setShowWaveform] = useState(true);
-  parameters = parameters.getUpdatedAllParams();
 
+  const latestParametersSnapshot = useMemo(
+    () => parameters.getUpdatedAllParams(),
+    [parameters]
+  );
+
+  useEffect(() => {
+    setWaveformAnimations(Array.from({ length: barCount }, () => 0));
+  }, [barCount]);
+
+  const getLatestParameters = useCallback(
+    () => parameters.getUpdatedAllParams(),
+    [parameters]
+  );
+
+  const getAnimationDuration = useCallback(
+    (index: number): number => {
+      const fallback = durations[durations.length - 1] ?? 0;
+      if (durations.length === 0) {
+        return 0;
+      }
+      return durations[index] ?? fallback;
+    },
+    [durations]
+  );
+
+  const resetWaveform = useCallback(() => {
+    setWaveformAnimations(Array.from({ length: barCount }, () => 0));
+  }, [barCount]);
+
+  const animateBar = useCallback(
+    (index: number) => {
+      setWaveformAnimations((prevAnimations) => {
+        const newAnimations = [...prevAnimations];
+        if (index < newAnimations.length) {
+          newAnimations[index] = 1;
+        }
+        return newAnimations;
+      });
+
+      const duration = getAnimationDuration(index);
+
+      if (duration <= 0) {
+        setWaveformAnimations((prevAnimations) => {
+          const newAnimations = [...prevAnimations];
+          if (index < newAnimations.length) {
+            newAnimations[index] = 0;
+          }
+          return newAnimations;
+        });
+        return;
+      }
+
+      setTimeout(() => {
+        setWaveformAnimations((prevAnimations) => {
+          const newAnimations = [...prevAnimations];
+          if (index < newAnimations.length) {
+            newAnimations[index] = 0;
+          }
+          return newAnimations;
+        });
+      }, duration);
+    },
+    [getAnimationDuration]
+  );
+
+  const animateWaveform = useCallback(() => {
+    for (let index = 0; index < barCount; index += 1) {
+      animateBar(index);
+    }
+  }, [animateBar, barCount]);
+
+  useEffect(() => {
+    if (!showWaveform) {
+      resetWaveform();
+      return;
+    }
+
+    animateWaveform();
+    const animationInterval = setInterval(animateWaveform, 1000);
+
+    return () => clearInterval(animationInterval);
+  }, [animateWaveform, resetWaveform, showWaveform]);
+
+  useEffect(() => {
+    if (participant?.muted && !showWaveformWhenMuted) {
+      setShowWaveform(false);
+      resetWaveform();
+    } else {
+      setShowWaveform(true);
+    }
+  }, [participant?.muted, resetWaveform, showWaveformWhenMuted]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const { audioDecibels, participants } = parameters;
+      const { audioDecibels: latestAudioDecibels, participants } =
+        getLatestParameters();
+
       const existingEntry =
-        audioDecibels && audioDecibels.find((entry: AudioDecibels) => entry.name === name);
+        latestAudioDecibels?.find((entry: AudioDecibels) => entry.name === name) ??
+        null;
       const updatedParticipant =
-        participants && participants.find((p: Participant) => p.name === name);
+        participants?.find((p: Participant) => p.name === name) ?? null;
 
       if (
         existingEntry &&
@@ -170,130 +368,245 @@ const AudioCard: React.FC<AudioCardOptions> = ({
         updatedParticipant &&
         !updatedParticipant.muted
       ) {
-        animateWaveform();
-      } else {
-        resetWaveform();
+        if (!showWaveform) {
+          setShowWaveform(true);
+        }
+      } else if (!showWaveformWhenMuted) {
+        setShowWaveform(false);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [audioDecibels]);
+  }, [getLatestParameters, name, showWaveform, showWaveformWhenMuted]);
 
-  useEffect(() => {
-    if (participant?.muted) {
-      setShowWaveform(false);
-    } else {
-      setShowWaveform(true);
-    }
-  }, [participant?.muted]);
-
-  useEffect(() => {
-    if (showWaveform) {
-      const animationInterval = setInterval(animateWaveform, 1000);
-      return () => clearInterval(animationInterval);
-    }
-  }, [showWaveform]);
-
-  const animateBar = (index: number) => {
-    setWaveformAnimations((prevAnimations) => {
-      const newAnimations = [...prevAnimations];
-      newAnimations[index] = 1;
-      return newAnimations;
-    });
-
-    setTimeout(() => {
-      setWaveformAnimations((prevAnimations) => {
-        const newAnimations = [...prevAnimations];
-        newAnimations[index] = 0;
-        return newAnimations;
-      });
-    }, getAnimationDuration(index));
-  };
-
-  const animateWaveform = () => {
-    waveformAnimations.forEach((_, index) => {
-      setInterval(() => animateBar(index), getAnimationDuration(index) * 2);
-    });
-  };
-
-  const resetWaveform = () => {
-    setWaveformAnimations(Array.from({ length: 9 }, () => 0));
-  };
-
-  const getAnimationDuration = (index: number): number => {
-    const durations = [474, 433, 407, 458, 400, 427, 441, 419, 487];
-    return durations[index] || 0;
-  };
-
-  const toggleAudio = async () => {
+  const toggleAudio = useCallback(async () => {
     if (!participant?.muted) {
-      parameters = parameters.getUpdatedAllParams();
+      const latestParameters = getLatestParameters();
       await controlUserMedia({
         participantId: participant.id || "",
         participantName: participant.name,
         type: "audio",
-        socket: parameters.socket,
-        coHostResponsibility: parameters.coHostResponsibility,
-        roomName: parameters.roomName,
-        showAlert: parameters.showAlert,
-        coHost: parameters.coHost,
-        islevel: parameters.islevel,
-        member: parameters.member,
-        participants: parameters.participants,
+        socket: latestParameters.socket,
+        coHostResponsibility: latestParameters.coHostResponsibility,
+        roomName: latestParameters.roomName,
+        showAlert: latestParameters.showAlert,
+        coHost: latestParameters.coHost,
+        islevel: latestParameters.islevel,
+        member: latestParameters.member,
+        participants: latestParameters.participants,
       });
     }
-  };
+  }, [controlUserMedia, getLatestParameters, participant?.id, participant?.muted, participant?.name]);
 
-  const toggleVideo = async () => {
+  const toggleVideo = useCallback(async () => {
     if (participant?.videoOn) {
-      parameters = parameters.getUpdatedAllParams();
+      const latestParameters = getLatestParameters();
       await controlUserMedia({
         participantId: participant.id || "",
         participantName: participant.name,
         type: "video",
-        socket: parameters.socket,
-        coHostResponsibility: parameters.coHostResponsibility,
-        roomName: parameters.roomName,
-        showAlert: parameters.showAlert,
-        coHost: parameters.coHost,
-        islevel: parameters.islevel,
-        member: parameters.member,
-        participants: parameters.participants,
+        socket: latestParameters.socket,
+        coHostResponsibility: latestParameters.coHostResponsibility,
+        roomName: latestParameters.roomName,
+        showAlert: latestParameters.showAlert,
+        coHost: latestParameters.coHost,
+        islevel: latestParameters.islevel,
+        member: latestParameters.member,
+        participants: latestParameters.participants,
       });
     }
+  }, [controlUserMedia, getLatestParameters, participant?.id, participant?.name, participant?.videoOn]);
+
+  const {
+    style: cardStyle,
+    ...restCardProps
+  } = cardProps ?? {};
+
+  const {
+    style: infoOverlayStyle,
+    ...restInfoOverlayProps
+  } = infoOverlayProps ?? {};
+
+  const {
+    style: nameContainerStyle,
+    ...restNameContainerProps
+  } = nameContainerProps ?? {};
+
+  const {
+    style: nameTextStyle,
+    ...restNameTextProps
+  } = nameTextProps ?? {};
+
+  const {
+    style: waveformContainerStyle,
+    ...restWaveformContainerProps
+  } = waveformContainerProps ?? {};
+
+  const {
+    style: waveformBarCustomStyle,
+    ...restWaveformBarProps
+  } = waveformBarProps ?? {};
+
+  const {
+    style: controlsOverlayStyle,
+    ...restControlsOverlayProps
+  } = controlsOverlayProps ?? {};
+
+  const imagePropsResolved = imageProps ?? {};
+  const {
+    style: imagePropsStyle,
+    ...restImageProps
+  } = imagePropsResolved;
+
+  const audioButtonOptions = controlButtonProps?.audio ?? {};
+  const {
+    style: audioButtonStyle,
+    onClick: audioExternalOnClick,
+    type: audioButtonType,
+    ...restAudioButtonProps
+  } = audioButtonOptions;
+
+  const videoButtonOptions = controlButtonProps?.video ?? {};
+  const {
+    style: videoButtonStyle,
+    onClick: videoExternalOnClick,
+    type: videoButtonType,
+    ...restVideoButtonProps
+  } = videoButtonOptions;
+
+  const { silent = 1, active = 12 } = waveformHeights || {};
+
+  const handleAudioButtonClick = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      audioExternalOnClick?.(event);
+      if (event.defaultPrevented) {
+        return;
+      }
+      await toggleAudio();
+    },
+    [audioExternalOnClick, toggleAudio]
+  );
+
+  const handleVideoButtonClick = useCallback(
+    async (event: React.MouseEvent<HTMLButtonElement>) => {
+      videoExternalOnClick?.(event);
+      if (event.defaultPrevented) {
+        return;
+      }
+      await toggleVideo();
+    },
+    [toggleVideo, videoExternalOnClick]
+  );
+
+  const resolvedAudioIcon = participant?.muted
+    ? audioDisabledIcon ?? (
+        <FontAwesomeIcon icon={faMicrophoneSlash} size="sm" color="red" />
+      )
+    : audioEnabledIcon ?? (
+        <FontAwesomeIcon icon={faMicrophone} size="sm" color="green" />
+      );
+
+  const resolvedVideoIcon = participant?.videoOn
+    ? videoEnabledIcon ?? (
+        <FontAwesomeIcon icon={faVideo} size="sm" color="green" />
+      )
+    : videoDisabledIcon ?? (
+        <FontAwesomeIcon icon={faVideoSlash} size="sm" color="red" />
+      );
+
+  const defaultControls = (
+    <>
+      <button
+        {...restAudioButtonProps}
+        type={audioButtonType ?? "button"}
+        onClick={handleAudioButtonClick}
+        style={{
+          ...styles.controlButton,
+          ...(audioButtonStyle ?? {}),
+        }}
+      >
+        {resolvedAudioIcon}
+      </button>
+      <button
+        {...restVideoButtonProps}
+        type={videoButtonType ?? "button"}
+        onClick={handleVideoButtonClick}
+        style={{
+          ...styles.controlButton,
+          ...(videoButtonStyle ?? {}),
+        }}
+      >
+        {resolvedVideoIcon}
+      </button>
+    </>
+  );
+
+  const miniCardBaseProps: React.ComponentProps<typeof MiniCard> = {
+    initials: name,
+    fontSize: 20,
+    customStyle: {
+      border:
+        latestParametersSnapshot.eventType !== "broadcast"
+          ? "2px solid black"
+          : "0px solid black",
+    },
   };
 
-  const renderControls = () => {
-    if (!showControls) {
-      return null;
+  const mergedMiniCardProps: React.ComponentProps<typeof MiniCard> = {
+    ...miniCardBaseProps,
+    ...fallbackMiniCardProps,
+    customStyle: {
+      ...miniCardBaseProps.customStyle,
+      ...fallbackMiniCardProps?.customStyle,
+    },
+  };
+
+  const waveformBars = Array.from({ length: barCount }).map((_, index) => {
+    const isActive = waveformAnimations[index] === 1;
+    const barHeight = isActive ? active : silent;
+    const barStyle: CSSProperties = {
+      ...styles.bar,
+      ...(waveformBarStyle ?? {}),
+      ...(waveformBarCustomStyle ?? {}),
+      height: barHeight,
+      backgroundColor: barColor,
+    };
+
+    if (renderWaveformBar) {
+      const customBar = renderWaveformBar({
+        index,
+        isActive,
+        height: barHeight,
+        style: barStyle,
+        props: restWaveformBarProps,
+      });
+
+      if (React.isValidElement(customBar)) {
+        return React.cloneElement(customBar, { key: index });
+      }
+
+      return (
+        <React.Fragment key={index}>{customBar}</React.Fragment>
+      );
     }
 
-    return videoControlsComponent || (
-      <div style={styles.overlayControls}>
-        <button style={styles.controlButton} onClick={toggleAudio}>
-          <FontAwesomeIcon
-            icon={participant?.muted ? faMicrophoneSlash : faMicrophone}
-            size="sm"
-            color={participant?.muted ? "red" : "green"}
-          />
-        </button>
-        <button style={styles.controlButton} onClick={toggleVideo}>
-          <FontAwesomeIcon
-            icon={participant?.videoOn ? faVideo : faVideoSlash}
-            size="sm"
-            color={participant?.videoOn ? "green" : "red"}
-          />
-        </button>
-      </div>
+    return (
+      <div
+        key={index}
+        {...restWaveformBarProps}
+        style={barStyle}
+      />
     );
-  };
+  });
 
   return (
     <div
+      {...restCardProps}
       style={{
         ...styles.card,
         ...customStyle,
-        backgroundColor: backgroundColor,
+        ...(cardStyle ?? {}),
+        ...(backgroundColor ? { backgroundColor } : {}),
       }}
     >
       {imageSource ? (
@@ -301,60 +614,76 @@ const AudioCard: React.FC<AudioCardOptions> = ({
           <img
             src={imageSource}
             alt="Participant"
+            {...restImageProps}
             style={{
-              ...imageStyle,
-              borderRadius: roundedImage ? "20%" : "0",
               ...styles.backgroundImage,
+              ...(roundedImage ? { borderRadius: "20%" } : {}),
+              ...imageStyle,
+              ...(imagePropsStyle ?? {}),
             }}
           />
         </div>
       ) : (
-        <MiniCard initials={name} fontSize={20} customStyle={{
-          border: parameters.eventType !== 'broadcast' ? '2px solid black' : '0px solid black',
-        }} />
+        <MiniCard {...mergedMiniCardProps} />
       )}
 
-      {videoInfoComponent ? (
-        videoInfoComponent
-      ) : showInfo ? (
-        <div
-          style={{
-            ...getOverlayPosition({ position: infoPosition }),
-            ...(showControls ? styles.overlayWeb : styles.overlayWebAlt),
-          }}
-        >
-          <div style={styles.nameColumn}>
-            <p style={{ color: textColor, ...styles.nameText }}>{name}</p>
-          </div>
-          {showWaveform && (
-            <div style={styles.waveformWeb}>
-              {waveformAnimations.map((animation, index) => (
-                <div
-                  key={index}
+      {videoInfoComponent
+        ? videoInfoComponent
+        : showInfo && (
+            <div
+              {...restInfoOverlayProps}
+              style={{
+                ...getOverlayPosition({ position: infoPosition }),
+                ...(showControls ? styles.overlayWeb : styles.overlayWebAlt),
+                ...(infoOverlayStyle ?? {}),
+              }}
+            >
+              <div
+                {...restNameContainerProps}
+                style={{
+                  ...styles.nameColumn,
+                  ...(nameContainerStyle ?? {}),
+                }}
+              >
+                <p
+                  {...restNameTextProps}
                   style={{
-                    ...styles.bar,
-                    height: animation === 0 ? 1 : 12,
-                    backgroundColor: barColor,
+                    color: textColor,
+                    ...styles.nameText,
+                    ...(nameTextStyle ?? {}),
                   }}
-                />
-              ))}
+                >
+                  {name}
+                </p>
+              </div>
+              {showWaveform && (
+                <div
+                  {...restWaveformContainerProps}
+                  style={{
+                    ...styles.waveformWeb,
+                    ...(waveformContainerStyle ?? {}),
+                  }}
+                >
+                  {waveformBars}
+                </div>
+              )}
             </div>
           )}
-        </div>
-      ) : null}
 
-      {videoControlsComponent ? (
-        videoControlsComponent
-      ) : showControls ? (
-        <div
-          style={{
-            ...styles.overlayControls,
-            ...getOverlayPosition({ position: controlsPosition }),
-          }}
-        >
-      {renderControls()}
-        </div>
-      ) : null}
+      {videoControlsComponent
+        ? videoControlsComponent
+        : showControls && (
+            <div
+              {...restControlsOverlayProps}
+              style={{
+                ...styles.overlayControls,
+                ...getOverlayPosition({ position: controlsPosition }),
+                ...(controlsOverlayStyle ?? {}),
+              }}
+            >
+              {defaultControls}
+            </div>
+          )}
     </div>
   );
 };

@@ -1,8 +1,9 @@
 import React from "react";
 import { IconDefinition } from "@fortawesome/free-solid-svg-icons";
+import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 import "./CustomButtons.css";
 export interface CustomButton {
-    action: () => void;
+    action?: () => void | Promise<void>;
     show: boolean;
     backgroundColor?: string;
     disabled?: boolean;
@@ -11,9 +12,33 @@ export interface CustomButton {
     text?: string;
     textStyle?: React.CSSProperties;
     customComponent?: React.ReactNode;
+    buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+    contentProps?: React.HTMLAttributes<HTMLDivElement>;
+    iconProps?: Partial<FontAwesomeIconProps>;
+    /**
+     * When set to false, the wrapper renders as a non-button element so interactive custom components
+     * (for example, components that render their own buttons) are not nested inside a native button.
+     */
+    renderAsButton?: boolean;
 }
 export interface CustomButtonsOptions {
     buttons: CustomButton[];
+    containerProps?: React.HTMLAttributes<HTMLDivElement>;
+    fallbackSpinner?: React.ReactNode;
+    renderContainer?: (options: {
+        defaultContainer: React.ReactNode;
+        buttons: CustomButton[];
+    }) => React.ReactNode;
+    renderButtons?: (options: {
+        defaultButtons: React.ReactNode[];
+        buttons: CustomButton[];
+    }) => React.ReactNode;
+    renderButton?: (options: {
+        defaultButton: React.ReactNode;
+        button: CustomButton;
+        index: number;
+        isVisible: boolean;
+    }) => React.ReactNode;
 }
 export type CustomButtonsType = (options: CustomButtonsOptions) => React.JSX.Element;
 /**

@@ -8,6 +8,8 @@ export interface CardVideoDisplayOptions {
   videoStream: MediaStream | null;
   backgroundColor?: string;
   doMirror?: boolean;
+  containerProps?: React.HTMLAttributes<HTMLDivElement>;
+  videoProps?: React.VideoHTMLAttributes<HTMLVideoElement>;
 }
 
 export type CardVideoDisplayType = (options: CardVideoDisplayOptions) => React.ReactNode;
@@ -57,7 +59,9 @@ const CardVideoDisplay: React.FC<CardVideoDisplayOptions> = ({
   forceFullDisplay,
   videoStream,
   backgroundColor = 'transparent',
-  doMirror = false
+  doMirror = false,
+  containerProps,
+  videoProps,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -88,9 +92,25 @@ const CardVideoDisplay: React.FC<CardVideoDisplayOptions> = ({
     return baseStyles;
   };
 
+  const { style: containerStyleProp, ...restContainerProps } = containerProps ?? {};
+  const combinedContainerStyle = {
+    ...styles.videoContainer,
+    ...containerStyleProp,
+    backgroundColor,
+  } as React.CSSProperties;
+
+  const { style: videoStyleProp, ...restVideoProps } = videoProps ?? {};
+
   return (
-    <div style={{ ...styles.videoContainer, backgroundColor }}>
-      <video ref={videoRef} autoPlay muted playsInline style={getVideoStyle()} />
+    <div {...restContainerProps} style={combinedContainerStyle}>
+      <video
+        ref={videoRef}
+        autoPlay
+        muted
+        playsInline
+        style={{ ...getVideoStyle(), ...videoStyleProp }}
+        {...restVideoProps}
+      />
     </div>
   );
 };

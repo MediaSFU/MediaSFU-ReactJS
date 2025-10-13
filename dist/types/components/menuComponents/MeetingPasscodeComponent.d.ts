@@ -1,6 +1,26 @@
 import React from "react";
 export interface MeetingPasscodeComponentOptions {
     meetingPasscode?: string;
+    labelText?: React.ReactNode;
+    containerProps?: React.HTMLAttributes<HTMLDivElement>;
+    labelProps?: React.LabelHTMLAttributes<HTMLLabelElement>;
+    inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+    renderContainer?: (options: {
+        defaultContainer: React.ReactNode;
+        meetingPasscode: string;
+    }) => React.ReactNode;
+    renderLabel?: (options: {
+        defaultLabel: React.ReactNode;
+        meetingPasscode: string;
+    }) => React.ReactNode;
+    renderInput?: (options: {
+        defaultInput: React.ReactNode;
+        meetingPasscode: string;
+    }) => React.ReactNode;
+    renderContent?: (options: {
+        defaultContent: React.ReactNode;
+        meetingPasscode: string;
+    }) => React.ReactNode;
 }
 export type MeetingPasscodeComponentType = (options: MeetingPasscodeComponentOptions) => React.JSX.Element;
 /**

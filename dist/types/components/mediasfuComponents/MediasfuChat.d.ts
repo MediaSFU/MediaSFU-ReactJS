@@ -1,7 +1,7 @@
 import React from "react";
 import './MediasfuCSS.css';
 import { WelcomePageOptions } from "../miscComponents/WelcomePage";
-import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../../@types/types";
+import { PreJoinPageOptions, SeedData, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType, MediasfuUICustomOverrides } from "../../@types/types";
 export type MediasfuChatOptions = {
     PrejoinPage?: (options: PreJoinPageOptions | WelcomePageOptions) => React.ReactNode;
     localLink?: string;
@@ -29,6 +29,7 @@ export type MediasfuChatOptions = {
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;
     containerStyle?: React.CSSProperties;
+    uiOverrides?: MediasfuUICustomOverrides;
 };
 /**
  * MediasfuChat component optimizes the media experience for chatting events.

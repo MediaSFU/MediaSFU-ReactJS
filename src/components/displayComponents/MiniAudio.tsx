@@ -1,6 +1,14 @@
-
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getOverlayPosition } from "../../methods/utils/getOverlayPosition";
+
+const joinClassNames = (
+  ...classes: Array<string | undefined | null | false>
+): string | undefined => {
+  const filtered = classes.filter(Boolean).join(" ").trim();
+  return filtered.length > 0 ? filtered : undefined;
+};
+
+const WAVEFORM_DURATIONS = [474, 433, 407, 458, 400, 427, 441, 419, 487];
 
 export interface MiniAudioOptions {
   visible?: boolean;
@@ -14,46 +22,282 @@ export interface MiniAudioOptions {
   imageSource: string;
   roundedImage?: boolean;
   imageStyle?: React.CSSProperties;
+  wrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+  draggableContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  cardProps?: React.HTMLAttributes<HTMLDivElement>;
+  overlayProps?: React.HTMLAttributes<HTMLDivElement>;
+  waveformContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  barProps?: React.HTMLAttributes<HTMLDivElement>;
+  nameContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+  nameTextProps?: React.HTMLAttributes<HTMLSpanElement>;
+  imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
+  renderWrapper?: (options: {
+    defaultWrapper: React.ReactNode;
+    isVisible: boolean;
+  }) => React.ReactNode;
+  renderContainer?: (options: {
+    defaultContainer: React.ReactNode;
+    isDragging: boolean;
+    position: { x: number; y: number };
+  }) => React.ReactNode;
+  renderCard?: (options: {
+    defaultCard: React.ReactNode;
+    hasImage: boolean;
+  }) => React.ReactNode;
+  renderWaveform?: (options: {
+    defaultWaveform: React.ReactNode;
+    showWaveform: boolean;
+    animations: number[];
+  }) => React.ReactNode;
 }
 
 export type MiniAudioType = (options: MiniAudioOptions) => React.JSX.Element;
 
 /**
- * MiniAudio component displays an audio player with optional waveform animation and draggable functionality.
- *
+ * MiniAudio - A compact, draggable audio participant card with animated waveform visualization.
+ * 
+ * This component provides a feature-rich mini audio card for displaying audio participants with
+ * visual feedback. It includes animated waveform visualization, drag-and-drop positioning, and
+ * extensive customization options for styling and layout.
+ * 
+ * **Key Features:**
+ * - **Animated Waveform**: Nine-bar waveform animation with configurable colors and timing
+ * - **Drag-and-Drop**: Fully draggable with mouse interaction for repositioning
+ * - **Visibility Control**: Toggle visibility without unmounting component
+ * - **Image Display**: Participant avatar/image with rounded or square styling
+ * - **Overlay Positioning**: Pre-configured overlay positions via getOverlayPosition utility
+ * - **Custom Styling**: Comprehensive style customization for all elements
+ * - **Name Display**: Participant name with customizable text styling
+ * - **Waveform Toggle**: Show/hide waveform animation based on speaking state
+ * - **Color Customization**: Configurable bar and text colors
+ * - **HTML Attributes**: Granular control over wrapper, container, card, and element attributes
+ * - **Render Hooks**: Complete override capability for wrapper, container, card, and waveform
+ * - **Animation Management**: Automatic cleanup of intervals and timeouts
+ * - **SSR Compatible**: Safe handling of browser-only APIs
+ * 
  * @component
- * @param {MiniAudioOptions} props - The properties for the MiniAudio component.
- * @param {boolean} [props.visible=true] - Determines if the component is visible.
- * @param {React.CSSProperties} [props.customStyle] - Custom styles for the component.
- * @param {string} props.name - The name to display on the audio player.
- * @param {boolean} [props.showWaveform=false] - Flag to show or hide the waveform animation.
- * @param {string} [props.barColor='red'] - The color of the waveform bars.
- * @param {string} [props.textColor='white'] - The color of the text.
- * @param {React.CSSProperties} [props.nameTextStyling] - Custom styles for the name text.
- * @param {string} [props.imageSource] - The source URL for the background image.
- * @param {boolean} [props.roundedImage=false] - Flag to determine if the background image should be rounded.
- * @param {React.CSSProperties} [props.imageStyle] - Custom styles for the background image.
- * @param {string} [props.overlayPosition] - The position of the overlay.
- *
- * @returns {React.JSX.Element} The rendered MiniAudio component.
- *
+ * 
+ * @param {MiniAudioOptions} props - Configuration options for MiniAudio
+ * @param {boolean} [props.visible=true] - Controls visibility of the mini audio card
+ * @param {React.CSSProperties} [props.customStyle] - Custom inline styles for wrapper element
+ * @param {string} props.name - Participant name displayed on the card
+ * @param {boolean} [props.showWaveform=false] - Controls visibility of animated waveform (typically based on speaking state)
+ * @param {string} [props.overlayPosition] - Pre-configured overlay position ("topLeft", "topRight", "bottomLeft", "bottomRight", etc.)
+ * @param {string} [props.barColor="red"] - Color for waveform bars
+ * @param {string} [props.textColor="white"] - Color for participant name text
+ * @param {React.CSSProperties} [props.nameTextStyling] - Custom styles for name text element
+ * @param {string} props.imageSource - URL/path to participant avatar image
+ * @param {boolean} [props.roundedImage=false] - Controls whether image has rounded corners
+ * @param {React.CSSProperties} [props.imageStyle] - Custom styles for image element
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.wrapperProps] - HTML attributes for outermost wrapper
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.draggableContainerProps] - HTML attributes for draggable container
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.cardProps] - HTML attributes for card element
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.overlayProps] - HTML attributes for overlay container
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.waveformContainerProps] - HTML attributes for waveform container
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.barProps] - HTML attributes for individual waveform bars
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.nameContainerProps] - HTML attributes for name container
+ * @param {React.HTMLAttributes<HTMLSpanElement>} [props.nameTextProps] - HTML attributes for name text
+ * @param {React.ImgHTMLAttributes<HTMLImageElement>} [props.imageProps] - HTML attributes for image element
+ * @param {(options: {defaultWrapper: React.ReactNode; isVisible: boolean}) => React.ReactNode} [props.renderWrapper] - Custom render function for wrapper
+ * @param {(options: {defaultContainer: React.ReactNode; isDragging: boolean; position: {x: number; y: number}}) => React.ReactNode} [props.renderContainer] - Custom render function for draggable container
+ * @param {(options: {defaultCard: React.ReactNode; hasImage: boolean}) => React.ReactNode} [props.renderCard] - Custom render function for card
+ * @param {(options: {defaultWaveform: React.ReactNode; showWaveform: boolean; animations: number[]}) => React.ReactNode} [props.renderWaveform] - Custom render function for waveform
+ * 
+ * @returns {React.JSX.Element} The rendered mini audio component with waveform and drag support
+ * 
  * @example
+ * // Basic usage for audio participant
  * ```tsx
- * <MiniAudio
- *   visible={true}
- *   customStyle={{ backgroundColor: 'blue' }}
- *   name="Sample Audio"
- *   showWaveform={true}
- *   barColor="green"
- *   textColor="black"
- *   nameTextStyling={{ fontSize: '20px' }}
- *   imageSource="path/to/image.jpg"
- *   roundedImage={true}
- *   imageStyle={{ width: '100px' }}
- *   overlayPosition="top"
- * />
+ * import React, { useState } from 'react';
+ * import { MiniAudio } from 'mediasfu-reactjs';
+ * 
+ * const AudioParticipantCard = () => {
+ *   const [isSpeaking, setIsSpeaking] = useState(false);
+ * 
+ *   return (
+ *     <MiniAudio
+ *       visible={true}
+ *       name="Alice Johnson"
+ *       showWaveform={isSpeaking}
+ *       imageSource="/avatars/alice.jpg"
+ *       barColor="#2ecc71"
+ *       textColor="#ffffff"
+ *       overlayPosition="topRight"
+ *     />
+ *   );
+ * };
+ * ```
+ * 
+ * @example
+ * // Custom styled with rounded image
+ * ```tsx
+ * import React, { useState, useEffect } from 'react';
+ * import { MiniAudio } from 'mediasfu-reactjs';
+ * 
+ * const CustomStyledMiniAudio = () => {
+ *   const [isSpeaking, setIsSpeaking] = useState(false);
+ * 
+ *   useEffect(() => {
+ *     // Simulate speaking detection
+ *     const interval = setInterval(() => {
+ *       setIsSpeaking(prev => !prev);
+ *     }, 3000);
+ *     return () => clearInterval(interval);
+ *   }, []);
+ * 
+ *   return (
+ *     <MiniAudio
+ *       visible={true}
+ *       name="Bob Smith"
+ *       showWaveform={isSpeaking}
+ *       imageSource="/avatars/bob.jpg"
+ *       roundedImage={true}
+ *       barColor={isSpeaking ? '#e74c3c' : '#95a5a6'}
+ *       textColor="#ecf0f1"
+ *       overlayPosition="bottomLeft"
+ *       customStyle={{
+ *         border: '2px solid #3498db',
+ *         borderRadius: '12px',
+ *         boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
+ *       }}
+ *       nameTextStyling={{
+ *         fontSize: '14px',
+ *         fontWeight: 'bold',
+ *         textShadow: '1px 1px 2px rgba(0,0,0,0.5)'
+ *       }}
+ *       imageStyle={{
+ *         borderRadius: '50%',
+ *         border: '3px solid #2ecc71'
+ *       }}
+ *     />
+ *   );
+ * };
+ * ```
+ * 
+ * @example
+ * // Analytics tracking with drag monitoring
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { MiniAudio } from 'mediasfu-reactjs';
+ * 
+ * const AnalyticsMiniAudio = () => {
+ *   const [isSpeaking, setIsSpeaking] = useState(false);
+ *   const [dragCount, setDragCount] = useState(0);
+ * 
+ *   return (
+ *     <MiniAudio
+ *       visible={true}
+ *       name="Charlie Davis"
+ *       showWaveform={isSpeaking}
+ *       imageSource="/avatars/charlie.jpg"
+ *       barColor="#f39c12"
+ *       renderContainer={({ defaultContainer, isDragging, position }) => {
+ *         React.useEffect(() => {
+ *           if (isDragging) {
+ *             setDragCount(prev => prev + 1);
+ *             analytics.track('Mini Audio Dragged', {
+ *               participantName: 'Charlie Davis',
+ *               position,
+ *               totalDrags: dragCount
+ *             });
+ *           }
+ *         }, [isDragging]);
+ * 
+ *         return (
+ *           <div style={{ position: 'relative' }}>
+ *             {defaultContainer}
+ *             {isDragging && (
+ *               <div style={{
+ *                 position: 'absolute',
+ *                 top: -20,
+ *                 left: 0,
+ *                 fontSize: '12px',
+ *                 color: '#fff',
+ *                 backgroundColor: 'rgba(0,0,0,0.7)',
+ *                 padding: '2px 6px',
+ *                 borderRadius: '3px'
+ *               }}>
+ *                 Dragging...
+ *               </div>
+ *             )}
+ *           </div>
+ *         );
+ *       }}
+ *       renderWaveform={({ defaultWaveform, showWaveform, animations }) => {
+ *         React.useEffect(() => {
+ *           if (showWaveform) {
+ *             analytics.track('Waveform Displayed', {
+ *               participantName: 'Charlie Davis',
+ *               activeAnimations: animations.filter(a => a > 0).length
+ *             });
+ *           }
+ *         }, [showWaveform, animations]);
+ * 
+ *         return defaultWaveform;
+ *       }}
+ *     />
+ *   );
+ * };
+ * ```
+ * 
+ * @example
+ * // Integration with MediasfuGeneric using uiOverrides
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { MediasfuGeneric, MiniAudio } from 'mediasfu-reactjs';
+ * 
+ * const CustomMiniAudioComponent = (props) => (
+ *   <MiniAudio
+ *     {...props}
+ *     roundedImage={true}
+ *     renderCard={({ defaultCard, hasImage }) => (
+ *       <div className="custom-mini-audio-card">
+ *         <div className="card-header">
+ *           <span className="status-indicator" style={{
+ *             width: '8px',
+ *             height: '8px',
+ *             borderRadius: '50%',
+ *             backgroundColor: props.showWaveform ? '#2ecc71' : '#95a5a6',
+ *             display: 'inline-block',
+ *             marginRight: '8px'
+ *           }} />
+ *           <span className="participant-status">
+ *             {props.showWaveform ? 'Speaking' : 'Listening'}
+ *           </span>
+ *         </div>
+ *         <div className="card-content">
+ *           {defaultCard}
+ *         </div>
+ *         {hasImage && (
+ *           <div className="card-footer">
+ *             <span style={{ fontSize: '12px', color: '#95a5a6' }}>
+ *               🎤 Audio Only
+ *             </span>
+ *           </div>
+ *         )}
+ *       </div>
+ *     )}
+ *   />
+ * );
+ * 
+ * const App = () => {
+ *   const [credentials] = useState({
+ *     apiUserName: 'user123',
+ *     apiKey: 'your-api-key'
+ *   });
+ * 
+ *   return (
+ *     <MediasfuGeneric
+ *       credentials={credentials}
+ *       uiOverrides={{
+ *         MiniAudio: CustomMiniAudioComponent
+ *       }}
+ *     />
+ *   );
+ * };
  * ```
  */
+
 const MiniAudio: React.FC<MiniAudioOptions> = ({
   visible = true,
   customStyle,
@@ -66,83 +310,153 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
   imageSource,
   roundedImage = false,
   imageStyle,
+  wrapperProps,
+  draggableContainerProps,
+  cardProps,
+  overlayProps,
+  waveformContainerProps,
+  barProps,
+  nameContainerProps,
+  nameTextProps,
+  imageProps,
+  renderWrapper,
+  renderContainer,
+  renderCard,
+  renderWaveform,
 }) => {
-  const [waveformAnimations, setWaveformAnimations] = useState<number[]>(
-    Array.from({ length: 9 }, () => 0)
+  const [waveformAnimations, setWaveformAnimations] = useState<number[]>(() =>
+    Array.from({ length: WAVEFORM_DURATIONS.length }, () => 0)
   );
+  const intervalRefs = useRef<number[]>([]);
+  const timeoutRefs = useRef<number[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
-  const animateWaveform = () => {
-    const animations = waveformAnimations.map((_, index) =>
-      window.setInterval(
-        () => animateBar(index),
-        getAnimationDuration(index) * 2
-      )
-    );
-    setWaveformAnimations(animations);
-  };
-
-  useEffect(() => {
-    if (showWaveform) {
-      animateWaveform();
-    } else {
-      resetWaveform();
+  const clearIntervals = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
     }
-  }, [showWaveform]);
 
-  const animateBar = (index: number) => {
-    setWaveformAnimations((prevAnimations) => {
-      const newAnimations = [...prevAnimations];
-      newAnimations[index] = 1;
-      return newAnimations;
+    intervalRefs.current.forEach((intervalId) => {
+      window.clearInterval(intervalId);
     });
+    intervalRefs.current = [];
+  }, []);
 
-    setTimeout(() => {
+  const clearTimeouts = useCallback(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    timeoutRefs.current.forEach((timeoutId) => {
+      window.clearTimeout(timeoutId);
+    });
+    timeoutRefs.current = [];
+  }, []);
+
+  const resetWaveform = useCallback(() => {
+    setWaveformAnimations(
+      Array.from({ length: WAVEFORM_DURATIONS.length }, () => 0)
+    );
+    clearIntervals();
+    clearTimeouts();
+  }, [clearIntervals, clearTimeouts]);
+
+  const getAnimationDuration = useCallback((index: number) => {
+    return WAVEFORM_DURATIONS[index] ?? 0;
+  }, []);
+
+  const animateBar = useCallback(
+    (index: number) => {
       setWaveformAnimations((prevAnimations) => {
         const newAnimations = [...prevAnimations];
-        newAnimations[index] = 0;
+        newAnimations[index] = 1;
         return newAnimations;
       });
-    }, getAnimationDuration(index));
-  };
 
-  const resetWaveform = () => {
-    setWaveformAnimations(Array.from({ length: 9 }, () => 0));
-  };
+      if (typeof window === "undefined") {
+        return;
+      }
 
-  const getAnimationDuration = (index: number): number => {
-    const durations = [474, 433, 407, 458, 400, 427, 441, 419, 487];
-    return durations[index] || 0;
-  };
+      const timeoutId = window.setTimeout(() => {
+        setWaveformAnimations((prevAnimations) => {
+          const newAnimations = [...prevAnimations];
+          newAnimations[index] = 0;
+          return newAnimations;
+        });
+      }, getAnimationDuration(index));
 
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [position, setPosition] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number }>({
-    x: 0,
-    y: 0,
-  });
+      timeoutRefs.current.push(timeoutId);
+    },
+    [getAnimationDuration]
+  );
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    setIsDragging(true);
-    setDragOffset({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
-    });
-  };
+  useEffect(() => {
+    if (!showWaveform) {
+      resetWaveform();
+      return undefined;
+    }
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    clearIntervals();
+    clearTimeouts();
+    intervalRefs.current = Array.from(
+      { length: WAVEFORM_DURATIONS.length },
+      (_, index) =>
+        window.setInterval(
+          () => animateBar(index),
+          getAnimationDuration(index) * 2
+        )
+    );
+
+    return () => {
+      clearIntervals();
+      clearTimeouts();
+    };
+  }, [animateBar, clearIntervals, clearTimeouts, getAnimationDuration, showWaveform]);
+
+  useEffect(() => () => {
+    clearIntervals();
+    clearTimeouts();
+  }, [clearIntervals, clearTimeouts]);
+
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      setIsDragging(true);
+      setDragOffset({
+        x: e.clientX - position.x,
+        y: e.clientY - position.y,
+      });
+    },
+    [position.x, position.y]
+  );
+
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!isDragging) {
+        return;
+      }
+
       setPosition({
         x: e.clientX - dragOffset.x,
         y: e.clientY - dragOffset.y,
       });
-    }
-  };
+    },
+    [dragOffset.x, dragOffset.y, isDragging]
+  );
 
   useEffect(() => {
-    if (!isDragging) return;
+    if (!isDragging) {
+      return undefined;
+    }
+
+    if (typeof document === "undefined") {
+      return undefined;
+    }
 
     const handleMouseUpOutside = () => {
       setIsDragging(false);
@@ -156,63 +470,260 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
     };
   }, [isDragging]);
 
-  return (
-    <div style={{ display: visible ? "block" : "none" }}>
-      <div
-        style={{
-          transform: `translate(${position.x}px, ${position.y}px)`,
-          ...styles.modalContainer,
-        }}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
+  const overlayPositionStyles = useMemo(() => {
+    if (!overlayPosition) {
+      return undefined;
+    }
+
+    return getOverlayPosition({ position: overlayPosition });
+  }, [overlayPosition]);
+
+  const {
+    className: wrapperClassName,
+    style: wrapperStyleOverrides,
+    ...restWrapperProps
+  } = wrapperProps ?? {};
+
+  const wrapperClassNames = joinClassNames(
+    "mediasfu-mini-audio__wrapper",
+    wrapperClassName
+  );
+
+  const {
+    className: draggableClassName,
+    style: draggableStyleOverrides,
+    ...restDraggableProps
+  } = draggableContainerProps ?? {};
+
+  const draggableClassNames = joinClassNames(
+    "mediasfu-mini-audio__draggable",
+    draggableClassName
+  );
+
+  const draggableStyle: React.CSSProperties = {
+    transform: `translate(${position.x}px, ${position.y}px)`,
+    ...styles.modalContainer,
+    ...draggableStyleOverrides,
+  };
+
+  const {
+    className: cardClassName,
+    style: cardStyleOverrides,
+    ...restCardProps
+  } = cardProps ?? {};
+
+  const cardClassNames = joinClassNames(
+    "mediasfu-mini-audio__card",
+    cardClassName
+  );
+
+  const cardStyle: React.CSSProperties = {
+    ...styles.card,
+    ...customStyle,
+    ...cardStyleOverrides,
+  };
+
+  const {
+    className: overlayClassName,
+    style: overlayStyleOverrides,
+    ...restOverlayProps
+  } = overlayProps ?? {};
+
+  const overlayClassNames = joinClassNames(
+    "mediasfu-mini-audio__overlay",
+    overlayClassName
+  );
+
+  const overlayStyle: React.CSSProperties = {
+    ...styles.overlayWeb,
+    ...overlayPositionStyles,
+    ...overlayStyleOverrides,
+    display: showWaveform ? "grid" : "none",
+  };
+
+  const {
+    className: waveformClassName,
+    style: waveformStyleOverrides,
+    ...restWaveformProps
+  } = waveformContainerProps ?? {};
+
+  const waveformClassNames = joinClassNames(
+    "mediasfu-mini-audio__waveform",
+    waveformClassName
+  );
+
+  const waveformStyle: React.CSSProperties = {
+    ...styles.waveformWeb,
+    ...waveformStyleOverrides,
+  };
+
+  const {
+    className: barClassName,
+    style: barStyleOverrides,
+    ...restBarProps
+  } = barProps ?? {};
+
+  const barClassNames = joinClassNames(
+    "mediasfu-mini-audio__bar",
+    barClassName
+  );
+
+  const {
+    className: nameContainerClassName,
+    style: nameContainerStyleOverrides,
+    ...restNameContainerProps
+  } = nameContainerProps ?? {};
+
+  const nameContainerClassNames = joinClassNames(
+    "mediasfu-mini-audio__name-container",
+    nameContainerClassName
+  );
+
+  const nameContainerStyle: React.CSSProperties = {
+    ...styles.nameText,
+    color: textColor,
+    ...nameTextStyling,
+    ...nameContainerStyleOverrides,
+  };
+
+  const {
+    className: nameTextClassName,
+    style: nameTextStyleOverrides,
+    ...restNameTextProps
+  } = nameTextProps ?? {};
+
+  const nameTextClassNames = joinClassNames(
+    "mediasfu-mini-audio__name-text",
+    nameTextClassName
+  );
+
+  const nameTextStyle: React.CSSProperties = {
+    ...nameTextStyleOverrides,
+  };
+
+  const hasImage = Boolean(imageSource);
+
+  const imageElement = hasImage ? (
+    <img
+      src={imageSource}
+      style={{
+        ...styles.backgroundImage,
+        ...(roundedImage ? styles.roundedImage : undefined),
+        ...imageStyle,
+        ...(imageProps?.style ?? {}),
+      }}
+      alt={imageProps?.alt ?? "Background"}
+      {...imageProps}
+    />
+  ) : null;
+
+  const nameContent = (
+    <div
+      className={nameContainerClassNames}
+      style={nameContainerStyle}
+      {...restNameContainerProps}
+    >
+      <span
+        className={nameTextClassNames}
+        style={nameTextStyle}
+        {...restNameTextProps}
       >
-        <div style={{ ...styles.card, ...customStyle }}>
-          {imageSource && (
-            <img
-              src={imageSource}
-              style={{
-                ...styles.backgroundImage,
-                ...(roundedImage && styles.roundedImage),
-                ...imageStyle,
-              }}
-              alt="Background"
-            />
-          )}
-          <div>
-            <span
-              style={{
-                ...styles.nameText,
-                color: textColor,
-                ...nameTextStyling,
-              }}
-            >
-              {name}
-            </span>
-          </div>
-          <div
-            style={{
-              ...getOverlayPosition({ position: overlayPosition! }),
-              ...styles.overlayWeb,
-            }}
-          >
-            <div style={{ ...styles.waveformWeb }}>
-              {waveformAnimations.map((animation, index) => (
-                <div
-                  key={index}
-                  style={{
-                    ...styles.bar,
-                    height: animation === 0 ? 1 : 30,
-                    width: 10,
-                    backgroundColor: barColor,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
+        {name}
+      </span>
+    </div>
+  );
+
+  const bars = waveformAnimations.map((animation, index) => (
+    <div
+      key={index}
+      className={barClassNames}
+      style={{
+        ...styles.bar,
+        height: animation === 0 ? 1 : 30,
+        width: 10,
+        backgroundColor: barColor,
+        ...barStyleOverrides,
+      }}
+      {...restBarProps}
+    />
+  ));
+
+  const defaultWaveform = (
+    <div
+      className={waveformClassNames}
+      style={waveformStyle}
+      {...restWaveformProps}
+    >
+      {bars}
+    </div>
+  );
+
+  const waveformNode = renderWaveform
+    ? renderWaveform({
+        defaultWaveform,
+        showWaveform,
+        animations: waveformAnimations,
+      })
+    : defaultWaveform;
+
+  const defaultCard = (
+    <div
+      className={cardClassNames}
+      style={cardStyle}
+      {...restCardProps}
+    >
+      {imageElement}
+      {nameContent}
+      <div
+        className={overlayClassNames}
+        style={overlayStyle}
+        {...restOverlayProps}
+      >
+        {waveformNode}
       </div>
     </div>
   );
+
+  const cardNode = renderCard
+    ? renderCard({ defaultCard, hasImage })
+    : defaultCard;
+
+  const defaultContainer = (
+    <div
+      className={draggableClassNames}
+      style={draggableStyle}
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      {...restDraggableProps}
+    >
+      {cardNode}
+    </div>
+  );
+
+  const containerNode = renderContainer
+    ? renderContainer({ defaultContainer, isDragging, position })
+    : defaultContainer;
+
+  const wrapperStyle: React.CSSProperties = {
+    display: visible ? "block" : "none",
+    ...wrapperStyleOverrides,
+  };
+
+  const defaultWrapper = (
+    <div
+      className={wrapperClassNames}
+      style={wrapperStyle}
+      {...restWrapperProps}
+    >
+      {containerNode}
+    </div>
+  );
+
+  const wrapperNode = renderWrapper
+    ? renderWrapper({ defaultWrapper, isVisible: visible })
+    : defaultWrapper;
+
+  return <>{wrapperNode}</>;
 };
 
 const styles = {
@@ -262,7 +773,7 @@ const styles = {
   } as React.CSSProperties,
   waveformWeb: {
     display: "flex",
-    justifyContent: "left",
+    justifyContent: "flex-start",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.05)",
     padding: 0,

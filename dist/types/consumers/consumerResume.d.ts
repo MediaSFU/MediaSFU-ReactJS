@@ -1,3 +1,6 @@
+import type { ComponentProps, ComponentType } from "react";
+import MiniAudioPlayer from "../methods/utils/MiniAudioPlayer/MiniAudioPlayer";
+import MiniAudio from "../components/displayComponents/MiniAudio";
 import { Socket } from "socket.io-client";
 import { ReorderStreamsType, ReorderStreamsParameters, Participant, PrepopulateUserMediaType, PrepopulateUserMediaParameters, Stream, MiniAudioPlayerParameters, EventType } from "../@types/types";
 import { Consumer } from "mediasoup-client/lib/types";
@@ -29,6 +32,8 @@ export interface ConsumerResumeParameters extends ReorderStreamsParameters, Prep
     hostLabel: string;
     whiteboardStarted: boolean;
     whiteboardEnded: boolean;
+    miniAudioComponent?: ComponentType<ComponentProps<typeof MiniAudio>>;
+    miniAudioPlayerComponent?: ComponentType<ComponentProps<typeof MiniAudioPlayer>>;
     updateUpdateMainWindow: (value: boolean) => void;
     updateAllAudioStreams: (value: (Stream | Participant)[]) => void;
     updateAllVideoStreams: (value: (Stream | Participant)[]) => void;
@@ -67,7 +72,11 @@ export interface ConsumerResumeOptions {
 }
 export type ConsumerResumeType = (options: ConsumerResumeOptions) => Promise<void>;
 /**
- * Resumes the consumer by handling the provided track and updating the relevant parameters.
+ * Resumes a media consumer by handling the provided track and updating the relevant parameters.
+ *
+ * This function is a key part of the MediaSFU stream management pipeline and is a common
+ * candidate for override via `uiOverrides.consumerResume`. Use the `wrap` pattern to inject
+ * analytics, rate-limiting, or error handling without touching core logic.
  *
  * @param {ConsumerResumeOptions} options - The options for resuming the consumer.
  * @param {MediaStreamTrack} options.track - The media stream track to resume.
@@ -82,17 +91,39 @@ export type ConsumerResumeType = (options: ConsumerResumeOptions) => Promise<voi
  * @throws Will throw an error if the resumption fails or if there is an issue with the parameters.
  *
  * @example
- * const options = {
+ * // Direct usage
+ * ```tsx
+ * await consumerResume({
  *   track: mediaStreamTrack,
  *   remoteProducerId: 'producer-id',
- *   params: {
- *     id: 'consumer-id',
- *     producerId: 'producer-id',
- *     kind: 'audio', // or 'video'
- *     rtpParameters: {}, // RTP parameters
- *   },
+ *   params: { id: 'consumer-id', producerId: 'producer-id', kind: 'audio', rtpParameters: {} },
  *   consumer: consumerInstance,
- *   parameters: {
+ *   parameters: { ...allParams },
+ *   nsock: socketInstance,
+ * });
+ * ```
+ *
+ * @example
+ * // Override via uiOverrides (add analytics)
+ * ```tsx
+ * const uiOverrides: MediasfuUICustomOverrides = {
+ *   consumerResume: {
+ *     wrap: (original) => async (options) => {
+ *       const start = performance.now();
+ *       await original(options);
+ *       analytics.track('consumer_resume', {
+ *         durationMs: performance.now() - start,
+ *         consumerId: options.consumer.id,
+ *       });
+ *     },
+ *   },
+ * };
+ * ```
+ *
+ * @example
+ * // Full parameters object structure
+ * ```tsx
+ * const parameters: ConsumerResumeParameters = {
  *     nStream: null,
  *     allAudioStreams: [],
  *     allVideoStreams: [],

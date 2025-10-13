@@ -1,6 +1,53 @@
 import React from "react";
+import type { FontAwesomeIconProps } from "@fortawesome/react-fontawesome";
 export interface MeetingIdComponentOptions {
     meetingID?: string;
+    labelText?: React.ReactNode;
+    containerProps?: React.HTMLAttributes<HTMLDivElement>;
+    labelProps?: React.LabelHTMLAttributes<HTMLLabelElement>;
+    inputContainerProps?: React.HTMLAttributes<HTMLDivElement>;
+    inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+    buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+    iconProps?: Partial<FontAwesomeIconProps>;
+    copyIconColors?: {
+        default?: string;
+        copied?: string;
+    };
+    renderContainer?: (options: {
+        defaultContainer: React.ReactNode;
+        isCopied: boolean;
+        meetingID: string;
+    }) => React.ReactNode;
+    renderLabel?: (options: {
+        defaultLabel: React.ReactNode;
+        isCopied: boolean;
+        meetingID: string;
+    }) => React.ReactNode;
+    renderInput?: (options: {
+        defaultInput: React.ReactNode;
+        isCopied: boolean;
+        meetingID: string;
+    }) => React.ReactNode;
+    renderCopyButton?: (options: {
+        defaultButton: React.ReactNode;
+        isCopied: boolean;
+        meetingID: string;
+    }) => React.ReactNode;
+    renderIcon?: (options: {
+        defaultIcon: React.ReactNode;
+        isCopied: boolean;
+        meetingID: string;
+    }) => React.ReactNode;
+    renderInputGroup?: (options: {
+        defaultGroup: React.ReactNode;
+        isCopied: boolean;
+        meetingID: string;
+    }) => React.ReactNode;
+    renderContent?: (options: {
+        defaultContent: React.ReactNode;
+        isCopied: boolean;
+        meetingID: string;
+    }) => React.ReactNode;
 }
 export type MeetingIdComponentType = (options: MeetingIdComponentOptions) => React.JSX.Element;
 /**

@@ -1,12 +1,13 @@
 import React from "react";
+import { RenderRequestComponentOptions } from "./RenderRequestComponent";
 import { RespondToRequestsType } from "../../methods/requestsMethods/respondToRequests";
 import { Request } from "../../@types/types";
-import { RenderRequestComponentOptions } from "./RenderRequestComponent";
 import { Socket } from "socket.io-client";
 export interface RequestsModalParameters {
-    getUpdatedAllParams: () => {
+    getUpdatedAllParams?: () => {
         filteredRequestList: Request[];
     };
+    filteredRequestList?: Request[];
     [key: string]: any;
 }
 export interface RequestsModalOptions {
@@ -23,58 +24,285 @@ export interface RequestsModalOptions {
     backgroundColor?: string;
     position?: string;
     parameters: RequestsModalParameters;
+    title?: React.ReactNode;
+    overlayProps?: React.HTMLAttributes<HTMLDivElement>;
+    contentProps?: React.HTMLAttributes<HTMLDivElement>;
+    headerProps?: React.HTMLAttributes<HTMLDivElement>;
+    titleProps?: React.HTMLAttributes<HTMLDivElement>;
+    badgeWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+    badgeProps?: React.HTMLAttributes<HTMLSpanElement>;
+    closeButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+    closeIconComponent?: React.ReactNode;
+    bodyProps?: React.HTMLAttributes<HTMLDivElement>;
+    searchWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+    searchInputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+    requestsWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+    requestItemWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+    emptyState?: React.ReactNode | ((context: {
+        counter: number;
+    }) => React.ReactNode);
+    renderHeader?: (options: {
+        defaultHeader: React.ReactNode;
+        counter: number;
+        onClose: () => void;
+    }) => React.ReactNode;
+    renderSearch?: (options: {
+        defaultSearch: React.ReactNode;
+        onFilter: (value: string) => void;
+    }) => React.ReactNode;
+    renderRequest?: (options: {
+        request: Request;
+        index: number;
+        defaultRequest: React.ReactNode;
+        handleRespond: (action: "accepted" | "rejected") => void;
+    }) => React.ReactNode;
+    renderBody?: (options: {
+        defaultBody: React.ReactNode;
+        counter: number;
+    }) => React.ReactNode;
+    renderContent?: (options: {
+        defaultContent: React.ReactNode;
+        counter: number;
+    }) => React.ReactNode;
 }
 export type RequestsModalType = (options: RequestsModalOptions) => React.JSX.Element;
 /**
- * RequestsModal component displays a modal with a list of requests.
+ * RequestsModal - Manage participant join and feature requests
  *
- * @param {boolean} isRequestsModalVisible - Determines if the modal is visible.
- * @param {() => void} onRequestClose - Function to call when the modal is closed.
- * @param {number} requestCounter - Initial count of requests.
- * @param {(filter: string) => void} onRequestFilterChange - Function to call when the filter input changes.
- * @param {(request: Request) => void} [onRequestItemPress=respondToRequests] - Function to call when a request item is pressed.
- * @param {Request[]} requestList - Initial list of requests.
- * @param {(updatedList: Request[]) => void} updateRequestList - Function to update the request list.
- * @param {string} roomName - Name of the room.
- * @param {Socket} socket - Socket instance for real-time communication.
- * @param {React.ComponentType<RequestComponentProps>} [renderRequestComponent=RenderRequestComponent] - Component to render each request item.
- * @param {string} [backgroundColor="#83c0e9"] - Background color of the modal.
- * @param {string} [position="topRight"] - Position of the modal on the screen.
- * @param {RequestsModalParameters} parameters - Additional parameters for the modal.
+ * A comprehensive modal for hosts to review and respond to participant requests including
+ * meeting entry requests, screen share requests, and other permission requests. Provides
+ * search/filter functionality, request counters, and accept/reject actions. Perfect for
+ * managing meeting security and participant approvals.
  *
- * @returns {React.JSX.Element} The rendered RequestsModal component.
+ * Features:
+ * - Display pending requests with counter badge
+ * - Search/filter requests by participant name
+ * - Accept/reject actions for each request
+ * - Request type identification (entry, screenshare, etc.)
+ * - Real-time request list updates via socket
+ * - Empty state handling
+ * - Customizable request rendering
+ * - Extensive HTML attributes customization
+ * - Custom render hooks for header, search, requests
+ * - Responsive positioning
+ *
+ * @component
+ * @param {RequestsModalOptions} options - Configuration options
+ * @param {boolean} options.isRequestsModalVisible - Modal visibility state
+ * @param {Function} options.onRequestClose - Callback when modal is closed
+ * @param {number} options.requestCounter - Total pending requests count
+ * @param {Function} options.onRequestFilterChange - Search filter change handler
+ * @param {Function} [options.onRequestItemPress=respondToRequests] - Request action handler
+ * @param {Request[]} options.requestList - Array of all pending requests
+ * @param {Function} options.updateRequestList - Update request list state
+ * @param {string} options.roomName - Meeting/room identifier
+ * @param {Socket} options.socket - Socket.io client instance
+ * @param {React.FC} [options.renderRequestComponent=RenderRequestComponent] - Custom request item renderer
+ * @param {string} [options.backgroundColor="#83c0e9"] - Modal background color
+ * @param {string} [options.position="topRight"] - Modal screen position
+ * @param {RequestsModalParameters} options.parameters - Additional parameters
+ * @param {Function} [options.parameters.getUpdatedAllParams] - Retrieve latest parameters
+ * @param {Request[]} [options.parameters.filteredRequestList] - Filtered requests array
+ * @param {React.ReactNode} [options.title="Requests"] - Modal title
+ * @param {object} [options.overlayProps] - HTML attributes for overlay
+ * @param {object} [options.contentProps] - HTML attributes for content container
+ * @param {object} [options.headerProps] - HTML attributes for header
+ * @param {object} [options.titleProps] - HTML attributes for title
+ * @param {object} [options.badgeWrapperProps] - HTML attributes for badge wrapper
+ * @param {object} [options.badgeProps] - HTML attributes for counter badge
+ * @param {object} [options.closeButtonProps] - HTML attributes for close button
+ * @param {React.ReactNode} [options.closeIconComponent] - Custom close icon
+ * @param {object} [options.bodyProps] - HTML attributes for body
+ * @param {object} [options.searchWrapperProps] - HTML attributes for search wrapper
+ * @param {object} [options.searchInputProps] - HTML attributes for search input
+ * @param {object} [options.requestsWrapperProps] - HTML attributes for requests wrapper
+ * @param {object} [options.requestItemWrapperProps] - HTML attributes for request items
+ * @param {React.ReactNode|Function} [options.emptyState] - Empty state content or renderer
+ * @param {Function} [options.renderHeader] - Custom header renderer
+ * @param {Function} [options.renderSearch] - Custom search renderer
+ * @param {Function} [options.renderRequest] - Custom request item renderer
+ * @param {Function} [options.renderBody] - Custom body renderer
+ * @param {Function} [options.renderContent] - Custom content renderer
+ *
+ * @returns {React.JSX.Element} Rendered requests modal
  *
  * @example
+ * // Basic requests management
  * ```tsx
- * import { RequestsModal, RenderRequestComponent } from 'mediasfu-reactjs';
- * import { io } from 'socket.io-client';
+ * import React, { useState } from 'react';
+ * import { RequestsModal } from 'mediasfu-reactjs';
  *
- * // Define request list and parameters
- * const requestList = [
- *   { id: "1", name: "Request 1", icon: "fa-microphone" },
- *   { id: "2", name: "Request 2", icon: "fa-desktop" },
- * ];
- * const socket = io("http://localhost:3000");
+ * function RequestsManagement({ socket, roomName, parameters }) {
+ *   const [isVisible, setIsVisible] = useState(false);
+ *   const [requestList, setRequestList] = useState([]);
+ *   const [searchText, setSearchText] = useState('');
  *
- * const parameters = {
- *   getUpdatedAllParams: () => ({ filteredRequestList: requestList }),
+ *   return (
+ *     <>
+ *       <button onClick={() => setIsVisible(true)}>
+ *         Requests ({requestList.length})
+ *       </button>
+ *       <RequestsModal
+ *         isRequestsModalVisible={isVisible}
+ *         onRequestClose={() => setIsVisible(false)}
+ *         requestCounter={requestList.length}
+ *         onRequestFilterChange={setSearchText}
+ *         requestList={requestList}
+ *         updateRequestList={setRequestList}
+ *         roomName={roomName}
+ *         socket={socket}
+ *         parameters={parameters}
+ *         position="topRight"
+ *         backgroundColor="#0f172a"
+ *       />
+ *     </>
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * // Custom styled with request type indicators
+ * ```tsx
+ * import { RequestsModal } from 'mediasfu-reactjs';
+ *
+ * function BrandedRequests(props) {
+ *   return (
+ *     <RequestsModal
+ *       {...props}
+ *       backgroundColor="#1e3a8a"
+ *       position="topLeft"
+ *       contentProps={{
+ *         style: {
+ *           borderRadius: 20,
+ *           border: '2px solid #3b82f6',
+ *           maxHeight: '80vh',
+ *         },
+ *       }}
+ *       badgeProps={{
+ *         style: {
+ *           background: '#ef4444',
+ *           color: 'white',
+ *           borderRadius: '50%',
+ *           padding: '4px 8px',
+ *           fontSize: 12,
+ *           fontWeight: 600,
+ *         },
+ *       }}
+ *       renderRequest={({ request, index, defaultRequest, handleRespond }) => (
+ *         <div style={{
+ *           padding: 16,
+ *           background: index % 2 === 0 ? '#f8fafc' : 'white',
+ *           borderRadius: 8,
+ *           marginBottom: 8,
+ *         }}>
+ *           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+ *             <div>
+ *               <div style={{ fontWeight: 600 }}>{request.name || request.username}</div>
+ *               <div style={{ fontSize: 14, color: '#64748b' }}>
+ *                 {request.icon ? `${request.icon} ` : ''}Request to join
+ *               </div>
+ *             </div>
+ *             <div style={{ display: 'flex', gap: 8 }}>
+ *               <button
+ *                 onClick={() => handleRespond('accepted')}
+ *                 style={{
+ *                   background: '#22c55e',
+ *                   color: 'white',
+ *                   border: 'none',
+ *                   borderRadius: 8,
+ *                   padding: '8px 16px',
+ *                   cursor: 'pointer',
+ *                 }}
+ *               >
+ *                 Accept
+ *               </button>
+ *               <button
+ *                 onClick={() => handleRespond('rejected')}
+ *                 style={{
+ *                   background: '#ef4444',
+ *                   color: 'white',
+ *                   border: 'none',
+ *                   borderRadius: 8,
+ *                   padding: '8px 16px',
+ *                   cursor: 'pointer',
+ *                 }}
+ *               >
+ *                 Reject
+ *               </button>
+ *             </div>
+ *           </div>
+ *         </div>
+ *       )}
+ *     />
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * // Analytics tracking for request actions
+ * ```tsx
+ * import { RequestsModal } from 'mediasfu-reactjs';
+ *
+ * function AnalyticsRequests(props) {
+ *   const handleRequestAction = async (options) => {
+ *     analytics.track('request_action', {
+ *       action: options.action,
+ *       requestType: options.type,
+ *       participantName: options.request.name || options.request.username,
+ *     });
+ *     return props.onRequestItemPress?.(options);
+ *   };
+ *
+ *   return (
+ *     <RequestsModal
+ *       {...props}
+ *       onRequestItemPress={handleRequestAction}
+ *       renderHeader={({ defaultHeader, counter, onClose }) => (
+ *         <div>
+ *           <div style={{
+ *             padding: 12,
+ *             background: '#f8fafc',
+ *             borderRadius: 8,
+ *             marginBottom: 16,
+ *           }}>
+ *             <div style={{ fontWeight: 600 }}>
+ *               {counter} pending {counter === 1 ? 'request' : 'requests'}
+ *             </div>
+ *           </div>
+ *           {defaultHeader}
+ *         </div>
+ *       )}
+ *     />
+ *   );
+ * }
+ * ```
+ *
+ * @example
+ * // Override with MediasfuGeneric uiOverrides
+ * ```tsx
+ * import { MediasfuGeneric, RequestsModal } from 'mediasfu-reactjs';
+ *
+ * const uiOverrides = {
+ *   requestsModal: {
+ *     component: (props) => (
+ *       <RequestsModal
+ *         {...props}
+ *         backgroundColor="#0f172a"
+ *         position="topRight"
+ *         badgeProps={{
+ *           style: {
+ *             background: '#ef4444',
+ *             borderRadius: '50%',
+ *             padding: '4px 8px',
+ *             fontWeight: 600,
+ *           },
+ *         }}
+ *       />
+ *     ),
+ *   },
  * };
  *
- * // Render the RequestsModal component
- * <RequestsModal
- *   isRequestsModalVisible={true}
- *   onRequestClose={() => console.log('Requests modal closed')}
- *   requestCounter={2}
- *   onRequestFilterChange={(text) => console.log('Filter changed to:', text)}
- *   requestList={requestList}
- *   updateRequestList={(newList) => console.log("Updated request list:", newList)}
- *   roomName="Room 1"
- *   socket={socket}
- *   renderRequestComponent={RenderRequestComponent}
- *   backgroundColor="#83c0e9"
- *   position="topRight"
- *   parameters={parameters}
- * />
+ * <MediasfuGeneric uiOverrides={uiOverrides} />;
  * ```
  */
 declare const RequestsModal: React.FC<RequestsModalOptions>;

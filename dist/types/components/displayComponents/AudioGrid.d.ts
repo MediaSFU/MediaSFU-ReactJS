@@ -1,37 +1,241 @@
 import React from 'react';
 export interface AudioGridOptions {
     componentsToRender: React.ReactNode[];
+    containerProps?: React.HTMLAttributes<HTMLDivElement>;
+    itemWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
+    renderItem?: (options: {
+        component: React.ReactNode;
+        index: number;
+        defaultItem: React.ReactNode;
+    }) => React.ReactNode;
+    renderContainer?: (options: {
+        defaultContainer: React.ReactNode;
+        items: React.ReactNode[];
+    }) => React.ReactNode;
 }
 export type AudioGridType = (options: AudioGridOptions) => React.ReactNode;
 /**
- * AudioGrid component renders a grid of audio components.
+ * AudioGrid - A grid layout component for organizing audio participant components.
  *
- * This component organizes an array of React elements or components into a structured grid layout.
+ * This component provides a flexible CSS Grid-based layout system for displaying multiple audio participant
+ * components. It offers granular customization of both the grid container and individual items, with support
+ * for custom rendering of each element.
+ *
+ * **Key Features:**
+ * - **CSS Grid Layout**: Modern grid-based layout with configurable gap spacing
+ * - **Array-Based Rendering**: Accepts array of React components/elements for grid population
+ * - **High Z-Index**: Positioned above other content (z-index: 9) for visibility
+ * - **Item Customization**: Individual control over each grid item's appearance
+ * - **Container Customization**: Full control over grid container styling and attributes
+ * - **Render Hooks**: Custom rendering for both individual items and entire container
+ * - **Display Contents**: Items use display: contents to maintain grid flow
+ * - **Automatic Keys**: Handles React keys automatically for array items
+ * - **HTML Attributes**: Granular HTML attributes for container and item wrappers
+ * - **Class Management**: Smart className joining utility for clean class composition
+ * - **Flexible Styling**: Support for inline styles and CSS classes
+ * - **React Element Validation**: Proper handling of rendered items with key preservation
  *
  * @component
- * @param {AudioGridOptions} props - The properties for the AudioGrid component.
- * @param {React.ReactNode[]} props.componentsToRender - An array of React components to be rendered in the grid layout.
  *
- * @returns {React.JSX.Element} A JSX element containing the rendered grid of audio components.
+ * @param {AudioGridOptions} props - Configuration options for AudioGrid
+ * @param {React.ReactNode[]} props.componentsToRender - Array of audio components to render in grid layout
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.containerProps] - HTML attributes for grid container element
+ * @param {React.HTMLAttributes<HTMLDivElement>} [props.itemWrapperProps] - HTML attributes for individual item wrappers
+ * @param {(options: {component: React.ReactNode; index: number; defaultItem: React.ReactNode}) => React.ReactNode} [props.renderItem] - Custom render function for individual grid items
+ * @param {(options: {defaultContainer: React.ReactNode; items: React.ReactNode[]}) => React.ReactNode} [props.renderContainer] - Custom render function for grid container
+ *
+ * @returns {React.ReactNode} The rendered audio grid with all components
  *
  * @example
+ * // Basic usage with audio participant components
  * ```tsx
  * import React from 'react';
- * import { AudioGrid } from 'mediasfu-reactjs';
+ * import { AudioGrid, AudioCard } from 'mediasfu-reactjs';
  *
- * function App() {
- *   const componentsToRender = [
- *     <AudioComponent1 />,
- *     <AudioComponent2 />,
- *     <AudioComponent3 />,
+ * const AudioParticipantGrid = () => {
+ *   const participants = [
+ *     { id: '1', name: 'Alice', audioLevel: 0.8 },
+ *     { id: '2', name: 'Bob', audioLevel: 0.5 },
+ *     { id: '3', name: 'Charlie', audioLevel: 0.3 }
  *   ];
  *
- *   return (
- *     <AudioGrid componentsToRender={componentsToRender} />
- *   );
- * }
+ *   const audioComponents = participants.map(p => (
+ *     <AudioCard
+ *       key={p.id}
+ *       name={p.name}
+ *       barColor={p.audioLevel > 0.5 ? 'green' : 'gray'}
+ *       imageSource={`/avatars/${p.id}.jpg`}
+ *     />
+ *   ));
  *
- * export default App;
+ *   return (
+ *     <AudioGrid componentsToRender={audioComponents} />
+ *   );
+ * };
+ * ```
+ *
+ * @example
+ * // Custom styled grid with explicit layout
+ * ```tsx
+ * import React from 'react';
+ * import { AudioGrid, AudioCard } from 'mediasfu-reactjs';
+ *
+ * const CustomStyledAudioGrid = () => {
+ *   const participants = Array.from({ length: 6 }, (_, i) => ({
+ *     id: `participant-${i}`,
+ *     name: `User ${i + 1}`,
+ *     muted: i % 2 === 0
+ *   }));
+ *
+ *   const audioComponents = participants.map(p => (
+ *     <AudioCard
+ *       key={p.id}
+ *       name={p.name}
+ *       showWaveform={!p.muted}
+ *       imageSource={`/avatar-${p.id}.png`}
+ *       barColor={p.muted ? '#95a5a6' : '#2ecc71'}
+ *     />
+ *   ));
+ *
+ *   return (
+ *     <AudioGrid
+ *       componentsToRender={audioComponents}
+ *       containerProps={{
+ *         style: {
+ *           gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+ *           gap: '20px',
+ *           padding: '20px',
+ *           backgroundColor: '#2c3e50',
+ *           borderRadius: '8px'
+ *         }
+ *       }}
+ *       itemWrapperProps={{
+ *         style: {
+ *           transition: 'transform 0.2s ease',
+ *         },
+ *         className: 'audio-grid-item'
+ *       }}
+ *     />
+ *   );
+ * };
+ * ```
+ *
+ * @example
+ * // Analytics tracking with custom item rendering
+ * ```tsx
+ * import React, { useEffect } from 'react';
+ * import { AudioGrid, AudioCard } from 'mediasfu-reactjs';
+ *
+ * const AnalyticsAudioGrid = () => {
+ *   const participants = [
+ *     { id: '1', name: 'Alice', speaking: true },
+ *     { id: '2', name: 'Bob', speaking: false },
+ *     { id: '3', name: 'Charlie', speaking: true }
+ *   ];
+ *
+ *   const audioComponents = participants.map(p => (
+ *     <AudioCard
+ *       key={p.id}
+ *       name={p.name}
+ *       showWaveform={p.speaking}
+ *       imageSource={`/avatar-${p.id}.jpg`}
+ *     />
+ *   ));
+ *
+ *   return (
+ *     <AudioGrid
+ *       componentsToRender={audioComponents}
+ *       renderItem={({ component, index, defaultItem }) => {
+ *         useEffect(() => {
+ *           analytics.track('Audio Grid Item Rendered', {
+ *             index,
+ *             participantId: participants[index].id,
+ *             speaking: participants[index].speaking
+ *           });
+ *         }, [index]);
+ *
+ *         return (
+ *           <div
+ *             className="tracked-audio-item"
+ *             data-participant-id={participants[index].id}
+ *           >
+ *             {defaultItem}
+ *           </div>
+ *         );
+ *       }}
+ *       renderContainer={({ defaultContainer, items }) => {
+ *         useEffect(() => {
+ *           analytics.track('Audio Grid Rendered', {
+ *             participantCount: items.length,
+ *             speakingCount: participants.filter(p => p.speaking).length
+ *           });
+ *         }, [items.length]);
+ *
+ *         return (
+ *           <div className="analytics-audio-grid">
+ *             <div className="grid-header">
+ *               <span>{items.length} participants</span>
+ *             </div>
+ *             {defaultContainer}
+ *           </div>
+ *         );
+ *       }}
+ *     />
+ *   );
+ * };
+ * ```
+ *
+ * @example
+ * // Integration with MediasfuGeneric using uiOverrides
+ * ```tsx
+ * import React, { useState } from 'react';
+ * import { MediasfuGeneric, AudioGrid } from 'mediasfu-reactjs';
+ *
+ * const CustomAudioGridComponent = (props) => (
+ *   <AudioGrid
+ *     {...props}
+ *     containerProps={{
+ *       ...props.containerProps,
+ *       className: 'custom-audio-grid',
+ *       style: {
+ *         ...props.containerProps?.style,
+ *         gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+ *         gap: '16px',
+ *         padding: '16px',
+ *         backgroundColor: '#1a1a1a',
+ *         borderRadius: '12px'
+ *       }
+ *     }}
+ *     renderContainer={({ defaultContainer, items }) => (
+ *       <div className="enhanced-audio-grid-wrapper">
+ *         <div className="audio-grid-stats">
+ *           <span className="participant-count">
+ *             🎤 {items.length} {items.length === 1 ? 'participant' : 'participants'}
+ *           </span>
+ *         </div>
+ *         <div className="audio-grid-content">
+ *           {defaultContainer}
+ *         </div>
+ *       </div>
+ *     )}
+ *   />
+ * );
+ *
+ * const App = () => {
+ *   const [credentials] = useState({
+ *     apiUserName: 'user123',
+ *     apiKey: 'your-api-key'
+ *   });
+ *
+ *   return (
+ *     <MediasfuGeneric
+ *       credentials={credentials}
+ *       uiOverrides={{
+ *         AudioGrid: CustomAudioGridComponent
+ *       }}
+ *     />
+ *   );
+ * };
  * ```
  */
 declare const AudioGrid: React.FC<AudioGridOptions>;

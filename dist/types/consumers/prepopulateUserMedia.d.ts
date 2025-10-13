@@ -1,4 +1,7 @@
 import React from "react";
+import MiniCard from "../components/displayComponents/MiniCard";
+import VideoCard from "../components/displayComponents/VideoCard";
+import AudioCard from "../components/displayComponents/AudioCard";
 import { Participant, Stream, AudioCardParameters, EventType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../@types/types";
 export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     participants: Participant[];
@@ -40,6 +43,9 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     customVideoCard?: CustomVideoCardType;
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;
+    videoCardComponent?: React.ComponentType<React.ComponentProps<typeof VideoCard>>;
+    audioCardComponent?: React.ComponentType<React.ComponentProps<typeof AudioCard>>;
+    miniCardComponent?: React.ComponentType<React.ComponentProps<typeof MiniCard>>;
     getUpdatedAllParams: () => PrepopulateUserMediaParameters;
     [key: string]: any;
 }

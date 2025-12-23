@@ -3,6 +3,7 @@ import {
   CheckPermissionType, DisconnectSendTransportAudioParameters, DisconnectSendTransportAudioType, Participant,
   RequestPermissionAudioType, ResumeSendTransportAudioParameters, ResumeSendTransportAudioType, ShowAlert, StreamSuccessAudioParameters, StreamSuccessAudioType
 } from "../../@types/types";
+import { PermissionConfig } from "../permissionsMethods/updatePermissionConfig";
 
  
 export interface ClickAudioParameters extends DisconnectSendTransportAudioParameters, ResumeSendTransportAudioParameters, StreamSuccessAudioParameters {
@@ -33,11 +34,15 @@ export interface ClickAudioParameters extends DisconnectSendTransportAudioParame
   videoSetting: string;
   screenshareSetting: string;
   chatSetting: string;
+  permissionConfig?: PermissionConfig | null;
   updateRequestIntervalSeconds: number;
   participants: Participant[];
   mediaDevices: MediaDevices;
   transportCreated: boolean;
   transportCreatedAudio: boolean;
+  // Flex/Max room support
+  supportFlexRoom?: boolean;
+  supportMaxRoom?: boolean;
 
   updateAudioAlreadyOn: (status: boolean) => void;
   updateAudioRequestState: (state: string | null) => void;
@@ -177,11 +182,62 @@ export const clickAudio = async ({ parameters }: ClickAudioOptions): Promise<voi
       return;
     }
 
+    // Check supportMaxRoom/supportFlexRoom producer limit via backend
+    const supportMaxRoom = parameters.supportMaxRoom;
+    const supportFlexRoom = parameters.supportFlexRoom;
+    if ((supportMaxRoom || supportFlexRoom) && islevel !== "2") {
+      try {
+        const checkResult = await new Promise<{ allowed: boolean; reason?: string; producingCount?: number; producerLimit?: number }>((resolve) => {
+          socket.emit(
+            "checkProduce",
+            { kind: "audio" },
+            (response: { allowed: boolean; reason?: string; producingCount?: number; producerLimit?: number }) => {
+              resolve(response || { allowed: false, reason: "No response from server" });
+            }
+          );
+          // Timeout after 5 seconds
+          setTimeout(() => resolve({ allowed: true }), 5000);
+        });
+
+        if (!checkResult.allowed) {
+          showAlert?.({
+            message: checkResult.reason || `Audio producer limit reached (${checkResult.producingCount}/${checkResult.producerLimit}).`,
+            type: "danger",
+            duration: 3000,
+          });
+          return;
+        }
+      } catch (error) {
+        // On error, allow the action (fail open)
+        console.warn("Failed to check producer limit:", error);
+      }
+    }
+
+    // Check panelist focus mode - block non-panelists from unmuting if muteOthersMic is true
+    const panelistsFocused = parameters.panelistsFocused;
+    const muteOthersMic = parameters.muteOthersMic;
+    const panelists = parameters.panelists;
+    
+    if (panelistsFocused && muteOthersMic && islevel !== "2") {
+      // Check if current user is a panelist
+      const isPanelist = panelists?.some((p: { name: string }) => p.name === member) || false;
+      if (!isPanelist) {
+        showAlert?.({
+          message: "You cannot turn on your microphone. Only panelists can unmute while focus mode is active.",
+          type: "danger",
+          duration: 3000,
+        });
+        return;
+      }
+    }
+
     let response = 2;
     if (!micAction && islevel !== "2" && !youAreCoHost) {
       response = await checkPermission({
         permissionType: "audioSetting",
-        audioSetting, videoSetting, screenshareSetting, chatSetting 
+        audioSetting, videoSetting, screenshareSetting, chatSetting,
+        permissionConfig: parameters.permissionConfig,
+        participantLevel: islevel,
       });
     } else {
       response = 0;

@@ -1,6 +1,16 @@
 import { Socket } from "socket.io-client";
-import { ConsumerResumeType, ConsumerResumeParameters, Transport as TransportType } from "../@types/types";
+import { ConsumerResumeType, ConsumerResumeParameters, Transport as TransportType, Participant } from "../@types/types";
 import { Consumer, Device, Transport } from "mediasoup-client/lib/types";
+
+// Type for speaker translation state tracking
+interface SpeakerTranslationState {
+  speakerId: string;
+  speakerName: string;
+  inputLanguage: string;
+  outputLanguage: string;
+  originalProducerId: string;
+  enabled: boolean;
+}
 interface Params {
   id: string;
   producerId: string;
@@ -14,6 +24,7 @@ export interface ConnectRecvTransportParameters extends ConsumerResumeParameters
   device: Device | null;
   consumerTransports: TransportType[];
   updateConsumerTransports: (transports: TransportType[]) => void;
+  speakerTranslationStates?: Map<string, SpeakerTranslationState>;
 
   // mediasfu functions
   consumerResume: ConsumerResumeType;
@@ -137,6 +148,41 @@ export const connectRecvTransport = async ({
                     nsock,
                     consumer,
                   });
+
+                  // For audio consumers, check if the speaker has active translation
+                  // If so, immediately pause this original audio consumer
+                  // Wrap in try-catch to ensure translation issues don't break main consumer flow
+                  if (params.kind === 'audio') {
+                    try {
+                      const updatedParams = parameters.getUpdatedAllParams();
+                      const speakerTranslationStates = updatedParams.speakerTranslationStates as Map<string, SpeakerTranslationState> | undefined;
+                      const participants = updatedParams.participants as Participant[] | undefined;
+
+                      if (speakerTranslationStates && speakerTranslationStates.size > 0 && participants && participants.length > 0) {
+                        // Find which participant this audio producer belongs to
+                        const participant = participants.find(p => p.audioID === remoteProducerId);
+                        
+                        if (participant && participant.name) {
+                          // Check if this speaker has active translation
+                          const speakerState = speakerTranslationStates.get(participant.name);
+                          
+                          if (speakerState?.enabled && speakerState.originalProducerId === remoteProducerId) {
+                            // Pause the consumer locally
+                            consumer.pause();
+                            
+                            // Notify server to pause
+                            nsock.emit(
+                              'consumer-pause',
+                              { serverConsumerId: params.serverConsumerId },
+                              () => { /* Paused for translation */ }
+                            );
+                          }
+                        }
+                      }
+                    } catch {
+                      // Don't let translation check break the main consumer flow
+                    }
+                  }
                 } catch (error) {
                   // Handle error
                   console.log("consumerResume error", error);

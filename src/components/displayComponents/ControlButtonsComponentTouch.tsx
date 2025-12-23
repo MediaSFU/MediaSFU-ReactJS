@@ -57,6 +57,7 @@ export interface ControlButtonsComponentTouchOptions {
   buttonClassName?: string;
   iconWrapperProps?: React.HTMLAttributes<HTMLSpanElement>;
   textProps?: React.HTMLAttributes<HTMLSpanElement>;
+  textStyle?: React.CSSProperties;
   contentWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
   renderButton?: (options: {
     index: number;
@@ -444,6 +445,7 @@ const ControlButtonsComponentTouch: React.FC<
   buttonClassName,
   iconWrapperProps,
   textProps,
+  textStyle: globalTextStyle,
   contentWrapperProps,
   renderButton,
   renderButtonContent,
@@ -454,25 +456,35 @@ const ControlButtonsComponentTouch: React.FC<
   const getAlignmentStyle = (): React.CSSProperties => {
     const alignmentStyle: React.CSSProperties = {};
 
+    alignmentStyle.flexDirection = isVertical ? "column" : "row";
+
     if (position === "left" || position === "right" || position === "middle") {
-      alignmentStyle.justifyContent =
+      const value =
         position === "left"
           ? "flex-start"
           : position === "right"
           ? "flex-end"
           : "center";
+      if (isVertical) {
+        alignmentStyle.alignItems = value;
+      } else {
+        alignmentStyle.justifyContent = value;
+      }
     }
 
     if (location === "top" || location === "bottom" || location === "center") {
-      alignmentStyle.alignItems =
+      const value =
         location === "top"
           ? "flex-start"
           : location === "bottom"
           ? "flex-end"
           : "center";
+      if (isVertical) {
+        alignmentStyle.justifyContent = value;
+      } else {
+        alignmentStyle.alignItems = value;
+      }
     }
-
-    alignmentStyle.flexDirection = isVertical ? "column" : "row";
 
     return alignmentStyle;
   };
@@ -517,10 +529,12 @@ const ControlButtonsComponentTouch: React.FC<
   } = iconWrapperProps ?? {};
 
   const {
-    style: defaultTextStyle,
+    style: defaultTextStyleFromProps,
     className: defaultTextClassName,
     ...restDefaultTextProps
   } = textProps ?? {};
+
+  const defaultTextStyle = { ...defaultTextStyleFromProps, ...globalTextStyle };
 
   const {
     style: defaultContentWrapperStyle,
@@ -686,6 +700,7 @@ const ControlButtonsComponentTouch: React.FC<
           ...styles.buttonText,
           color: button.color || defaultTextStyle?.color || "transparent",
           ...defaultTextStyle,
+          ...globalTextStyle,
           ...perTextStyle,
         };
 

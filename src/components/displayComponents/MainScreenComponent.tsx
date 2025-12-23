@@ -15,7 +15,8 @@ export interface MainScreenComponentOptions {
   doStack: boolean;
   containerWidthFraction?: number;
   containerHeightFraction?: number;
-  updateComponentSizes: (sizes: ComponentSizes) => void;
+  sidebarWidth?: number; // Width to reserve for sidebar (subtracted from available width)
+  updateComponentSizes: (sizes: ComponentSizes, internal?: boolean) => void;  
   defaultFraction?: number;
   showControls: boolean;
   componentSizes: ComponentSizes;
@@ -284,6 +285,7 @@ const MainScreenComponent: React.FC<MainScreenComponentOptions> = ({
   doStack,
   containerWidthFraction = 1,
   containerHeightFraction = 1,
+  sidebarWidth = 0,
   updateComponentSizes,
   defaultFraction = 0.94,
   showControls,
@@ -298,7 +300,8 @@ const MainScreenComponent: React.FC<MainScreenComponentOptions> = ({
       return { width: 0, height: 0 };
     }
 
-    const width = window.innerWidth * containerWidthFraction;
+    // Subtract sidebarWidth from the available width
+    const width = (window.innerWidth * containerWidthFraction) - sidebarWidth;
     const height = showControls
       ? window.innerHeight * containerHeightFraction * defaultFraction
       : window.innerHeight * containerHeightFraction;
@@ -312,6 +315,7 @@ const MainScreenComponent: React.FC<MainScreenComponentOptions> = ({
     containerHeightFraction,
     defaultFraction,
     showControls,
+    sidebarWidth,
   ]);
 
   const [dimensions, setDimensions] = useState(() => getParentDimensions());
@@ -380,7 +384,7 @@ const MainScreenComponent: React.FC<MainScreenComponentOptions> = ({
 
   useEffect(() => {
     const sizes = calculateComponentSizes();
-    updateComponentSizes(sizes);
+    updateComponentSizes(sizes, false);
   }, [calculateComponentSizes, updateComponentSizes]);
 
   const { mainHeight, otherHeight, mainWidth, otherWidth } = componentSizes;

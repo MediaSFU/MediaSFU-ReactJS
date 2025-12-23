@@ -88,12 +88,12 @@ export async function joinConRoom(
       return;
     }
 
-    // Validate roomName starts with 's' or 'p'
-    if (!(roomName.startsWith("s") || roomName.startsWith("p"))) {
+    // Validate roomName starts with 's' or 'p' or 'd'
+    if (!(roomName.startsWith("s") || roomName.startsWith("p") || roomName.startsWith("d"))) {
       const validationError: JoinConRoomResponse = {
         success: false,
         rtpCapabilities: null,
-        reason: "Invalid roomName, must start with s or p",
+        reason: "Invalid roomName, must start with s or p or d",
       };
       reject(validationError);
       return;

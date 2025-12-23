@@ -321,7 +321,6 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
 
   useEffect(() => {
     if (stream) {
-
       let consLow = false;
       let averageLoudness = 128;
 
@@ -330,8 +329,10 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
           const receiver = consumer.rtpReceiver;
           receiver?.getStats().then((stats) => {
             stats.forEach((report) => {
-              if (report.type === "inbound-rtp" && report.kind === "audio" && report.audioLevel) {
-                averageLoudness = 127.5 + (report.audioLevel * 127.5);
+              if (report.type === "inbound-rtp" && report.kind === "audio") {
+                if (report.audioLevel) {
+                  averageLoudness = 127.5 + (report.audioLevel * 127.5);
+                }
               }
             });
           });
@@ -547,6 +548,7 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
           ref={(ref) => {
             if (ref) {
               ref.srcObject = stream;
+              ref.play().catch(() => {});
             }
           }}
         />

@@ -1,6 +1,29 @@
 import React, { useState } from 'react';
 import { EventType } from '../../@types/types';
 
+export type RecordingOptionItem = { value: string; label: string; tooltip?: string };
+
+export const recordingMediaOptionItems: RecordingOptionItem[] = [
+  { value: 'video', label: 'Record Video', tooltip: 'Record audio and video' },
+  { value: 'audio', label: 'Record Audio Only', tooltip: 'Record audio without video' },
+];
+
+export const recordingAudioOptionItems: RecordingOptionItem[] = [
+  { value: 'all', label: 'Add All', tooltip: 'Include all participant audios' },
+  { value: 'onScreen', label: 'Add All On Screen', tooltip: 'Include only on-screen audios' },
+  { value: 'host', label: 'Add Host Only', tooltip: 'Include host audio only' },
+];
+
+export const recordingVideoOptionItems: RecordingOptionItem[] = [
+  { value: 'all', label: 'Add All', tooltip: 'Include all participant videos' },
+  { value: 'mainScreen', label: 'Big Screen Only (includes screenshare)', tooltip: 'Use the main screen feed' },
+];
+
+export const recordingHlsOptionItems: RecordingOptionItem[] = [
+  { value: 'true', label: 'True', tooltip: 'Enable HLS' },
+  { value: 'false', label: 'False', tooltip: 'Disable HLS' },
+];
+
 export interface StandardPanelParameters {
   recordingMediaOptions: string;
   recordingAudioOptions: string;
@@ -110,14 +133,19 @@ const StandardPanelComponent: React.FC<StandardPanelOptions> = ({ parameters }) 
     updateRecordingAddHLS(value);
   };
 
+  const renderOption = (item: RecordingOptionItem) => (
+    <option key={item.value} value={item.value} title={item.tooltip || item.label}>
+      {item.label}
+    </option>
+  );
+
   return (
     <div>
       {/* Media Options */}
       <div>
         <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Media Options:</label>
         <select value={selectedRecordingMediaOptions} onChange={handleMediaOptionsChange}>
-          <option value="video">Record Video</option>
-          <option value="audio">Record Audio Only</option>
+          {recordingMediaOptionItems.map(renderOption)}
         </select>
       </div>
       <hr />
@@ -128,9 +156,7 @@ const StandardPanelComponent: React.FC<StandardPanelOptions> = ({ parameters }) 
           <div>
             <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Specific Audios:</label>
             <select value={selectedRecordingAudioOptions} onChange={handleAudioOptionsChange}>
-              <option value="all">Add All</option>
-              <option value="onScreen">Add All On Screen</option>
-              <option value="host">Add Host Only</option>
+              {recordingAudioOptionItems.map(renderOption)}
             </select>
           </div>
           <hr />
@@ -139,8 +165,7 @@ const StandardPanelComponent: React.FC<StandardPanelOptions> = ({ parameters }) 
           <div id="conditionalConference">
             <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Specific Videos:</label>
             <select value={selectedRecordingVideoOptions} onChange={handleVideoOptionsChange}>
-              <option value="all">Add All</option>
-              <option value="mainScreen">Big Screen Only (includes screenshare)</option>
+              {recordingVideoOptionItems.map(renderOption)}
             </select>
           </div>
           <hr />
@@ -151,8 +176,7 @@ const StandardPanelComponent: React.FC<StandardPanelOptions> = ({ parameters }) 
       <div id="addHLSPart">
         <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Add HLS:</label>
         <select value={selectedRecordingAddHLS.toString()} onChange={handleAddHLSChange}>
-          <option value="true">True</option>
-          <option value="false">False</option>
+          {recordingHlsOptionItems.map(renderOption)}
         </select>
       </div>
       <hr />

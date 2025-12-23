@@ -71,6 +71,13 @@ export const messageParticipants = ({
       updateDirectMessageDetails(participant);
       updateStartDirectMessage(true);
       updateIsMessagesModalVisible(true);
+    } else {
+      // Cannot direct message the host
+      showAlert?.({
+        message: "You cannot direct message the host",
+        type: "danger",
+        duration: 3000,
+      });
     }
   } else {
     showAlert?.({

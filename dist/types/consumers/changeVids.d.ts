@@ -37,6 +37,8 @@ export interface ChangeVidsParameters extends DispStreamsParameters {
     virtualStream: MediaStream | null;
     mainRoomsLength: number;
     memberRoom: number;
+    panelists: Participant[];
+    panelistsFocused: boolean;
     updateP_activeNames: (names: string[]) => void;
     updateActiveNames: (names: string[]) => void;
     updateDispActiveNames: (names: string[]) => void;

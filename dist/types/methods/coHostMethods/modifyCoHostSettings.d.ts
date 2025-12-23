@@ -45,5 +45,5 @@ export type ModifyCoHostSettingsType = (options: ModifyCoHostSettingsOptions) =>
  * // Sets User123 as the new co-host with specific responsibilities and emits the update event.
  * ```
  */
-export declare const modifyCoHostSettings: ({ roomName, showAlert, selectedParticipant, coHost, coHostResponsibility, updateIsCoHostModalVisible, updateCoHostResponsibility, updateCoHost, socket, }: ModifyCoHostSettingsOptions) => Promise<void>;
+export declare const modifyCoHostSettings: ({ roomName, selectedParticipant, coHost, coHostResponsibility, updateIsCoHostModalVisible, updateCoHostResponsibility, updateCoHost, socket, }: ModifyCoHostSettingsOptions) => Promise<void>;
 //# sourceMappingURL=modifyCoHostSettings.d.ts.map

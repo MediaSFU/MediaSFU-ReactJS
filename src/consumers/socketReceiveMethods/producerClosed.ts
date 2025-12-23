@@ -63,6 +63,25 @@ export const producerClosed = async ({
 }: ProducerClosedOptions): Promise<void> => {
   let { consumerTransports, closeAndResize, screenId, updateConsumerTransports } = parameters;
 
+  // Check if this is a translation producer being closed - just clean up tracking
+  // NOTE: We do NOT resume original audio here. Resumption should only happen via
+  // explicit server event (translation:speakerDisabled) because:
+  // 1. Speaker might be changing language (old closes, new comes) - don't want gap
+  // 2. Producer close doesn't mean translation is disabled
+  const activeTranslationProducerIds = parameters.activeTranslationProducerIds;
+  const isTranslationProducer = activeTranslationProducerIds?.has?.(remoteProducerId);
+  
+  if (isTranslationProducer) {
+    activeTranslationProducerIds?.delete?.(remoteProducerId);
+    
+    // Remove from translationStreams using functional updater
+    const removeTranslationStream = parameters.removeTranslationStream as ((producerId: string) => void) | undefined;
+    
+    if (removeTranslationStream) {
+      removeTranslationStream(remoteProducerId);
+    }
+  }
+
   // Handle producer closed
   const producerToClose = consumerTransports.find(
     (transportData: any) => transportData.producerId === remoteProducerId

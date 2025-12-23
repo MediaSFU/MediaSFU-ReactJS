@@ -31,6 +31,7 @@ export interface MiniCardOptions {
     defaultInitials: React.ReactNode;
     initials?: string;
   }) => React.ReactNode;
+  isDarkMode?: boolean; // Theme mode for modern card components
 }
 
 export type MiniCardType = (options: MiniCardOptions) => React.JSX.Element;
@@ -348,6 +349,11 @@ const styles = {
     borderRadius: "50%",
   } as React.CSSProperties,
   initials: {
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    height: "100%",
     textAlign: "center",
   } as React.CSSProperties,
 };

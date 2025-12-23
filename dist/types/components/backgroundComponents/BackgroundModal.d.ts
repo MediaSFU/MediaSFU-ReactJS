@@ -2,6 +2,7 @@ import React from "react";
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 import { ConnectSendTransportVideoType, CreateSendTransportType, CreateSendTransportParameters, OnScreenChangesType, DisconnectSendTransportVideoType, OnScreenChangesParameters, ShowAlert, SleepType, VidCons, ConnectSendTransportVideoParameters, DisconnectSendTransportVideoParameters } from "../../@types/types";
 import { Producer, ProducerOptions } from "mediasoup-client/lib/types";
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 export interface BackgroundModalParameters extends CreateSendTransportParameters, ConnectSendTransportVideoParameters, DisconnectSendTransportVideoParameters, OnScreenChangesParameters {
     customImage: string;
     selectedImage: string;
@@ -101,6 +102,12 @@ export interface BackgroundModalOptions {
     renderContent?: (options: {
         defaultContent: React.ReactNode;
     }) => React.ReactNode;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
 }
 export type BackgroundModalType = (props: BackgroundModalOptions) => React.JSX.Element;
 /**

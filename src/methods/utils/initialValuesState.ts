@@ -29,6 +29,7 @@ import {
 import { Device } from "mediasoup-client/lib/types";
 import { Socket } from "socket.io-client";
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
+import { PermissionConfig } from "methods/permissionsMethods";
 
 export interface InitialValuesStateType {
   roomName: string;
@@ -268,7 +269,7 @@ export interface InitialValuesStateType {
   totalReqWait: number;
   alertVisible: boolean;
   alertMessage: string;
-  alertType: "success" | "danger";
+  alertType: "success" | "danger" | "info" | "warning";
   alertDuration: number;
   progressTimerVisible: boolean;
   progressTimerValue: number;
@@ -395,6 +396,15 @@ export interface InitialValuesStateType {
   participantsActive: boolean;
   menuActive: boolean;
   commentsActive: boolean;
+
+
+
+  permissionConfig: PermissionConfig | null; // Permission configuration for the room
+  panelistsFocused: boolean; // Whether panelists are focused
+  panelistFocusChanged: boolean;
+  panelists: Participant[];
+  muteOthersMic: boolean;
+  muteOthersCamera: boolean;
 }
 
 export const initialValuesState: InitialValuesStateType = {
@@ -795,6 +805,13 @@ export const initialValuesState: InitialValuesStateType = {
   participantsActive: false,
   menuActive: false,
   commentsActive: false,
+
+  permissionConfig: null,
+  panelistsFocused: false,
+  panelistFocusChanged: false,
+  panelists: [],
+  muteOthersMic: false,
+  muteOthersCamera: false,
 };
 
 

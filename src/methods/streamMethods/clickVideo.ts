@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { CheckPermissionType, DisconnectSendTransportVideoParameters, DisconnectSendTransportVideoType, RequestPermissionCameraType, ShowAlert, StreamSuccessVideoParameters, StreamSuccessVideoType, VidCons } from "../../@types/types";
+import { PermissionConfig } from "../permissionsMethods/updatePermissionConfig";
 
 export interface ClickVideoParameters extends DisconnectSendTransportVideoParameters, StreamSuccessVideoParameters {
   checkMediaPermission: boolean;
@@ -29,7 +30,11 @@ export interface ClickVideoParameters extends DisconnectSendTransportVideoParame
   videoSetting: string;
   screenshareSetting: string;
   chatSetting: string;
+  permissionConfig?: PermissionConfig | null;
   updateRequestIntervalSeconds: number;
+  // Flex/Max room support
+  supportFlexRoom?: boolean;
+  supportMaxRoom?: boolean;
 
   showAlert?: ShowAlert;
   updateVideoAlreadyOn: (value: boolean) => void;
@@ -186,12 +191,63 @@ export const clickVideo = async ({ parameters }: ClickVideoOptions): Promise<voi
       return;
     }
 
+    // Check supportMaxRoom/supportFlexRoom producer limit via backend
+    const supportMaxRoom = parameters.supportMaxRoom;
+    const supportFlexRoom = parameters.supportFlexRoom;
+    if ((supportMaxRoom || supportFlexRoom) && islevel !== "2") {
+      try {
+        const checkResult = await new Promise<{ allowed: boolean; reason?: string; producingCount?: number; producerLimit?: number }>((resolve) => {
+          socket.emit(
+            "checkProduce",
+            { kind: "video" },
+            (response: { allowed: boolean; reason?: string; producingCount?: number; producerLimit?: number }) => {
+              resolve(response || { allowed: false, reason: "No response from server" });
+            }
+          );
+          // Timeout after 5 seconds
+          setTimeout(() => resolve({ allowed: true }), 5000);
+        });
+
+        if (!checkResult.allowed) {
+          showAlert?.({
+            message: checkResult.reason || `Video producer limit reached (${checkResult.producingCount}/${checkResult.producerLimit}).`,
+            type: "danger",
+            duration: 3000,
+          });
+          return;
+        }
+      } catch (error) {
+        // On error, allow the action (fail open)
+        console.warn("Failed to check producer limit:", error);
+      }
+    }
+
+    // Check panelist focus mode - block non-panelists from enabling camera if muteOthersCamera is true
+    const panelistsFocused = parameters.panelistsFocused;
+    const muteOthersCamera = parameters.muteOthersCamera;
+    const panelists = parameters.panelists;
+    
+    if (panelistsFocused && muteOthersCamera && islevel !== "2") {
+      // Check if current user is a panelist
+      const isPanelist = panelists?.some((p: { name: string }) => p.name === member) || false;
+      if (!isPanelist) {
+        showAlert?.({
+          message: "You cannot turn on your camera. Only panelists can enable video while focus mode is active.",
+          type: "danger",
+          duration: 3000,
+        });
+        return;
+      }
+    }
+
     let response = 2;
 
     if (!videoAction && islevel !== "2" && !youAreCoHost) {
       response = await checkPermission({
         permissionType: "videoSetting",
         audioSetting, videoSetting, screenshareSetting, chatSetting,
+        permissionConfig: parameters.permissionConfig,
+        participantLevel: islevel,
       });
     } else {
       response = 0;
@@ -236,6 +292,7 @@ export const clickVideo = async ({ parameters }: ClickVideoOptions): Promise<voi
         type: "danger",
         duration: 3000,
       });
+      return;
     } else {
       //if video permission is set to allow then turn on video
 

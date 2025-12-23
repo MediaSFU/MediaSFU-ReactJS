@@ -1,7 +1,14 @@
 import React from "react";
+// Card components - using classic versions for compatibility
 import MiniCard from "../components/displayComponents/MiniCard";
 import VideoCard from "../components/displayComponents/VideoCard";
 import AudioCard from "../components/displayComponents/AudioCard";
+
+// Modern themed card components available for custom builders
+// import { ModernMiniCard } from "../components_modern/display_components/ModernMiniCard";
+// import { ModernVideoCard } from "../components_modern/display_components/ModernVideoCard";
+// import { ModernAudioCard } from "../components_modern/display_components/ModernAudioCard";
+
 // import { RTCView } from "../methods/utils/webrtc/webrtc";
 
 import {
@@ -30,6 +37,13 @@ export interface AddVideosGridParameters
   forceFullDisplay: boolean;
   otherGridStreams: React.JSX.Element[][];
   updateOtherGridStreams: (otherGridStreams: React.JSX.Element[][]) => void;
+
+  // Self-view display mode control
+  selfViewForceFull?: boolean;
+  updateSelfViewForceFull?: (value: boolean) => Promise<void>;
+
+  // Theme support
+  isDarkModeValue?: boolean;
 
   // Custom builder hooks
   customVideoCard?: CustomVideoCardType;
@@ -192,6 +206,9 @@ export async function addVideosGrid({
     otherGridStreams,
     updateOtherGridStreams,
     updateMiniCardsGrid,
+    isDarkModeValue,
+    selfViewForceFull,
+    updateSelfViewForceFull,
     customVideoCard,
     customAudioCard,
     customMiniCard,
@@ -200,7 +217,14 @@ export async function addVideosGrid({
     miniCardComponent,
   } = parameters;
 
-  const VideoCardComponentOverride =
+  // Theme-aware colors (default to true for backward compatibility)
+    const isDarkMode = isDarkModeValue ?? true;
+    const textColorThemed = isDarkMode ? 'white' : 'black';
+    const borderColorThemed = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'black';
+    // Theme suffix for keys to force re-render when theme changes
+    const themeSuffix = isDarkMode ? '-dark' : '-light';
+
+    const VideoCardComponentOverride =
     (videoCardComponent ?? VideoCard) as React.ComponentType<React.ComponentProps<typeof VideoCard>>;
   const AudioCardComponentOverride =
     (audioCardComponent ?? AudioCard) as React.ComponentType<React.ComponentProps<typeof AudioCard>>;
@@ -230,13 +254,13 @@ export async function addVideosGrid({
       if (participant.audioID) {
         const audioCardComponent = customAudioCard
           ? React.createElement(customAudioCard as any, {
-              key: `audio-${participant.id}`,
+              key: `audio-${participant.id}${themeSuffix}`,
               name: participant.name || "",
               barColor: "red",
-              textColor: "white",
+              textColor: textColorThemed,
               customStyle: {
                 backgroundColor: "transparent",
-                border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
               },
               controlsPosition: "topLeft",
               infoPosition: "topRight",
@@ -245,16 +269,17 @@ export async function addVideosGrid({
               backgroundColor: "transparent",
               showControls: eventType !== "chat",
               participant: participant,
+              isDarkMode: isDarkMode,
             })
           : (
               <AudioCardComponentOverride
-                key={`audio-${participant.id}`}
+                key={`audio-${participant.id}${themeSuffix}`}
                 name={participant.name || ""}
                 barColor="red"
-                textColor="white"
+                textColor={textColorThemed}
                 customStyle={{
                   backgroundColor: "transparent",
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 }}
                 controlsPosition="topLeft"
                 infoPosition="topRight"
@@ -263,6 +288,7 @@ export async function addVideosGrid({
                 backgroundColor="transparent"
                 showControls={eventType !== "chat"}
                 participant={participant}
+                isDarkMode={isDarkMode}
               />
             );
 
@@ -270,23 +296,25 @@ export async function addVideosGrid({
       } else {
         const miniCardComponent = customMiniCard
           ? React.createElement(customMiniCard as any, {
-              key: `mini-${participant.id}`,
+              key: `mini-${participant.id}${themeSuffix}`,
               initials: participant.name,
               fontSize: 20,
               customStyle: {
                 backgroundColor: "transparent",
-                border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
               },
+              isDarkMode: isDarkMode,
             })
           : (
               <MiniCardComponentOverride
-                key={`mini-${participant.id}`}
+                key={`mini-${participant.id}${themeSuffix}`}
                 initials={participant.name}
                 fontSize={20}
                 customStyle={{
                   backgroundColor: "transparent",
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 }}
+                isDarkMode={isDarkMode}
               />
             );
 
@@ -302,23 +330,25 @@ export async function addVideosGrid({
         if (!videoAlreadyOn) {
           const miniCardComponent = customMiniCard
             ? React.createElement(customMiniCard as any, {
-                key: `mini-you`,
+                key: `mini-you${themeSuffix}`,
                 initials: name,
                 fontSize: 20,
                 customStyle: {
                   backgroundColor: "transparent",
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
+                isDarkMode: isDarkMode,
               })
             : (
                 <MiniCardComponentOverride
-                  key={`mini-you`}
+                  key={`mini-you${themeSuffix}`}
                   initials={name}
                   fontSize={20}
                   customStyle={{
                     backgroundColor: "transparent",
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}
+                  isDarkMode={isDarkMode}
                 />
               );
 
@@ -333,15 +363,22 @@ export async function addVideosGrid({
             name: "youyouyou",
           };
 
+          // For self-view: use selfViewForceFull to override forceFullDisplay
+          // If selfViewForceFull is true, show full view (forceFullDisplay=false)
+          // If selfViewForceFull is false, use normal forceFullDisplay
+          const selfViewForceFullDisplay = selfViewForceFull
+            ? false
+            : (eventType === "webinar" ? false : forceFullDisplay);
+
           const videoCardComponent = customVideoCard
             ? React.createElement(customVideoCard as any, {
-                key: `video-you`,
+                key: `video-you${themeSuffix}`,
                 videoStream: participant.stream || new MediaStream(),
                 remoteProducerId: participant.stream?.id || "",
                 eventType: eventType,
-                forceFullDisplay: eventType === "webinar" ? false : forceFullDisplay,
+                forceFullDisplay: selfViewForceFullDisplay,
                 customStyle: {
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
                 participant: participant,
                 backgroundColor: "transparent",
@@ -350,18 +387,22 @@ export async function addVideosGrid({
                 name: participant.name,
                 doMirror: true,
                 parameters: parameters,
+                isDarkMode: isDarkMode,
+                onToggleSelfViewFit: updateSelfViewForceFull 
+                  ? async () => {
+                      await updateSelfViewForceFull(!selfViewForceFull);
+                    }
+                  : undefined,
               })
             : (
                 <VideoCardComponentOverride
-                  key={`video-you`}
+                  key={`video-you${themeSuffix}`}
                   videoStream={participant.stream || new MediaStream()}
                   remoteProducerId={participant.stream?.id || ""}
                   eventType={eventType}
-                  forceFullDisplay={
-                    eventType === "webinar" ? false : forceFullDisplay
-                  }
+                  forceFullDisplay={selfViewForceFullDisplay}
                   customStyle={{
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}
                   participant={participant}
                   backgroundColor="transparent"
@@ -370,6 +411,13 @@ export async function addVideosGrid({
                   name={participant.name}
                   doMirror={true}
                   parameters={parameters}
+                  isDarkMode={isDarkMode}
+                  // @ts-expect-error - ModernVideoCard supports this prop but original VideoCard doesn't
+                  onToggleSelfViewFit={updateSelfViewForceFull 
+                    ? async () => {
+                        await updateSelfViewForceFull(!selfViewForceFull);
+                      }
+                    : undefined}
                 />
               );
 
@@ -382,13 +430,13 @@ export async function addVideosGrid({
         if (participant_) {
           const videoCardComponent = customVideoCard
             ? React.createElement(customVideoCard as any, {
-                key: `video-${participant_.id}`,
+                key: `video-${participant_.id}${themeSuffix}`,
                 videoStream: participant.stream || new MediaStream(),
                 remoteProducerId: remoteProducerId || "",
                 eventType: eventType,
                 forceFullDisplay: forceFullDisplay,
                 customStyle: {
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
                 participant: participant_,
                 backgroundColor: "transparent",
@@ -397,16 +445,17 @@ export async function addVideosGrid({
                 name: participant_.name || "",
                 doMirror: false,
                 parameters: parameters,
+                isDarkMode: isDarkMode,
               })
             : (
                 <VideoCardComponentOverride
-                  key={`video-${participant_.id}`}
+                  key={`video-${participant_.id}${themeSuffix}`}
                   videoStream={participant.stream || new MediaStream()}
                   remoteProducerId={remoteProducerId || ""}
                   eventType={eventType}
                   forceFullDisplay={forceFullDisplay}
                   customStyle={{
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}
                   participant={participant_}
                   backgroundColor="transparent"
@@ -415,6 +464,7 @@ export async function addVideosGrid({
                   name={participant_.name || ""}
                   doMirror={false}
                   parameters={parameters}
+                  isDarkMode={isDarkMode}
                 />
               );
 
@@ -460,13 +510,13 @@ export async function addVideosGrid({
         if (participant.audioID) {
           const audioCardComponent = customAudioCard
             ? React.createElement(customAudioCard as any, {
-                key: `audio-alt-${participant.id}`,
+                key: `audio-alt-${participant.id}${themeSuffix}`,
                 name: participant.name,
                 barColor: "red",
-                textColor: "white",
+                textColor: textColorThemed,
                 customStyle: {
                   backgroundColor: "transparent",
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
                 controlsPosition: "topLeft",
                 infoPosition: "topRight",
@@ -475,16 +525,17 @@ export async function addVideosGrid({
                 backgroundColor: "transparent",
                 showControls: eventType !== "chat",
                 participant: participant,
+                isDarkMode: isDarkMode,
               })
             : (
                 <AudioCardComponentOverride
-                  key={`audio-alt-${participant.id}`}
+                  key={`audio-alt-${participant.id}${themeSuffix}`}
                   name={participant.name}
                   barColor="red"
-                  textColor="white"
+                  textColor={textColorThemed}
                   customStyle={{
                     backgroundColor: "transparent",
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}
                   controlsPosition="topLeft"
                   infoPosition="topRight"
@@ -493,6 +544,7 @@ export async function addVideosGrid({
                   backgroundColor="transparent"
                   showControls={eventType !== "chat"}
                   participant={participant}
+                  isDarkMode={isDarkMode}
                 />
               );
 
@@ -500,23 +552,25 @@ export async function addVideosGrid({
         } else {
           const miniCardComponent = customMiniCard
             ? React.createElement(customMiniCard as any, {
-                key: `mini-alt-${participant.id}`,
+                key: `mini-alt-${participant.id}${themeSuffix}`,
                 initials: participant.name,
                 fontSize: 20,
                 customStyle: {
                   backgroundColor: "transparent",
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
+                isDarkMode: isDarkMode,
               })
             : (
                 <MiniCardComponentOverride
-                  key={`mini-alt-${participant.id}`}
+                  key={`mini-alt-${participant.id}${themeSuffix}`}
                   initials={participant.name}
                   fontSize={20}
                   customStyle={{
                     backgroundColor: "transparent",
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}
+                  isDarkMode={isDarkMode}
                 />
               );
 
@@ -529,13 +583,13 @@ export async function addVideosGrid({
         if (participant_) {
           const videoCardComponent = customVideoCard
             ? React.createElement(customVideoCard as any, {
-                key: `video-alt-${participant_.id}`,
+                key: `video-alt-${participant_.id}${themeSuffix}`,
                 videoStream: participant.stream || new MediaStream(),
                 remoteProducerId: remoteProducerId || "",
                 eventType: eventType,
                 forceFullDisplay: forceFullDisplay,
                 customStyle: {
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
                 participant: participant_,
                 backgroundColor: "transparent",
@@ -544,16 +598,17 @@ export async function addVideosGrid({
                 name: participant.name,
                 doMirror: false,
                 parameters: parameters,
+                isDarkMode: isDarkMode,
               })
             : (
                 <VideoCardComponentOverride
-                  key={`video-alt-${participant_.id}`}
+                  key={`video-alt-${participant_.id}${themeSuffix}`}
                   videoStream={participant.stream || new MediaStream()}
                   remoteProducerId={remoteProducerId || ""}
                   eventType={eventType}
                   forceFullDisplay={forceFullDisplay}
                   customStyle={{
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}
                   participant={participant_}
                   backgroundColor="transparent"
@@ -562,6 +617,7 @@ export async function addVideosGrid({
                   name={participant.name}
                   doMirror={false}
                   parameters={parameters}
+                  isDarkMode={isDarkMode}
                 />
               );
 

@@ -11,7 +11,7 @@ import { Socket } from "socket.io-client";
 export interface ConfirmExitModalOptions {
   isConfirmExitModalVisible: boolean;
   onConfirmExitClose: () => void;
-  position?: "topRight" | "topLeft" | "bottomRight" | "bottomLeft";
+  position?: "topRight" | "topLeft" | "bottomRight" | "bottomLeft" | "center";
   backgroundColor?: string;
   exitEventOnConfirm?: (options: ConfirmExitOptions) => void;
   member: string;

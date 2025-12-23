@@ -1,6 +1,7 @@
 import React from 'react';
 import { BreakoutParticipant, Participant, ShowAlert } from '../../@types/types';
 import { Socket } from 'socket.io-client';
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 export interface BreakoutRoomsModalParameters {
     participants: Participant[];
     showAlert?: ShowAlert;
@@ -89,6 +90,12 @@ export interface BreakoutRoomsModalOptions {
     renderContent?: (options: {
         defaultContent: React.ReactNode;
     }) => React.ReactNode;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
 }
 export type BreakoutRoomsModalType = (options: BreakoutRoomsModalOptions) => React.JSX.Element;
 /**

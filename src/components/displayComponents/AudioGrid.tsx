@@ -257,6 +257,7 @@ const AudioGrid: React.FC<AudioGridOptions> = ({
   renderItem,
   renderContainer,
 }) => {
+
   const {
     className: containerClassName,
     style: containerStyleOverrides,
@@ -267,7 +268,7 @@ const AudioGrid: React.FC<AudioGridOptions> = ({
 
   const containerStyle: React.CSSProperties = {
     display: 'grid',
-    gap: 12,
+    gap: 1, // Removed gap to prevent unwanted spacing in conference layout
     zIndex: 9,
     ...containerStyleOverrides,
   };

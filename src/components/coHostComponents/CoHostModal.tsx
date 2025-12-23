@@ -8,6 +8,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { modifyCoHostSettings } from '../../methods/coHostMethods/modifyCoHostSettings';
 import { CoHostResponsibility, Participant, ModifyCoHostSettingsOptions, ShowAlert } from '../../@types/types';
 import { Socket } from 'socket.io-client';
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 export interface CoHostModalOptions {
   isCoHostModalVisible: boolean;
   currentCohost?: string;
@@ -15,6 +16,12 @@ export interface CoHostModalOptions {
   coHostResponsibility: CoHostResponsibility[];
   position?: string;
   backgroundColor?: string;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Enable glassmorphism effects (modern UI) */
+  enableGlassmorphism?: boolean;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
   roomName: string;
   showAlert?: ShowAlert;
   updateCoHostResponsibility: (coHostResponsibility: CoHostResponsibility[]) => void;

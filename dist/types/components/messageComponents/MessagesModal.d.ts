@@ -2,6 +2,7 @@ import React from "react";
 import { SendMessageOptions } from "../../methods/messageMethods/sendMessage";
 import { CoHostResponsibility, EventType, Message, Participant, ShowAlert } from "../../@types/types";
 import { Socket } from "socket.io-client";
+import { ModalRenderMode } from "../menuComponents/MenuModal";
 export interface MessagesModalOptions {
     isMessagesModalVisible: boolean;
     onMessagesClose: () => void;
@@ -23,6 +24,12 @@ export interface MessagesModalOptions {
     position?: string;
     backgroundColor?: string;
     activeTabBackgroundColor?: string;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
     title?: React.ReactNode;
     overlayProps?: React.HTMLAttributes<HTMLDivElement>;
     contentProps?: React.HTMLAttributes<HTMLDivElement>;

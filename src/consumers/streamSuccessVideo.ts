@@ -286,11 +286,11 @@ export const streamSuccessVideo = async ({
         videoAlreadyOn = true;
         updateVideoAlreadyOn(videoAlreadyOn);
 
+        // Trigger auto-apply background - modal will close itself when done
         updateAutoClickBackground(true);
         updateIsBackgroundModalVisible(true);
         await sleep({ ms: 500 });
-        updateIsBackgroundModalVisible(false);
-        updateAutoClickBackground(false);
+        // Don't close modal here - let the modal's autoClickBackground flow handle completion
       } else {
         if (!transportCreated) {
           try {

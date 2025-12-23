@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { CheckPermissionType, DisconnectSendTransportAudioParameters, DisconnectSendTransportAudioType, Participant, RequestPermissionAudioType, ResumeSendTransportAudioParameters, ResumeSendTransportAudioType, ShowAlert, StreamSuccessAudioParameters, StreamSuccessAudioType } from "../../@types/types";
+import { PermissionConfig } from "../permissionsMethods/updatePermissionConfig";
 export interface ClickAudioParameters extends DisconnectSendTransportAudioParameters, ResumeSendTransportAudioParameters, StreamSuccessAudioParameters {
     checkMediaPermission: boolean;
     hasAudioPermission: boolean;
@@ -27,11 +28,14 @@ export interface ClickAudioParameters extends DisconnectSendTransportAudioParame
     videoSetting: string;
     screenshareSetting: string;
     chatSetting: string;
+    permissionConfig?: PermissionConfig | null;
     updateRequestIntervalSeconds: number;
     participants: Participant[];
     mediaDevices: MediaDevices;
     transportCreated: boolean;
     transportCreatedAudio: boolean;
+    supportFlexRoom?: boolean;
+    supportMaxRoom?: boolean;
     updateAudioAlreadyOn: (status: boolean) => void;
     updateAudioRequestState: (state: string | null) => void;
     updateAudioPaused: (status: boolean) => void;

@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { CheckPermissionType, CheckScreenShareParameters, CheckScreenShareType, ShowAlert, StopShareScreenParameters, StopShareScreenType } from "../../@types/types";
+import { PermissionConfig } from "../permissionsMethods/updatePermissionConfig";
 export interface ClickScreenShareParameters extends CheckScreenShareParameters, StopShareScreenParameters {
     showAlert?: ShowAlert;
     roomName: string;
@@ -12,6 +13,7 @@ export interface ClickScreenShareParameters extends CheckScreenShareParameters, 
     videoSetting: string;
     screenshareSetting: string;
     chatSetting: string;
+    permissionConfig?: PermissionConfig | null;
     screenAction: boolean;
     screenAlreadyOn: boolean;
     screenRequestState: string | null;

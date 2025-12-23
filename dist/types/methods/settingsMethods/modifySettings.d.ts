@@ -54,5 +54,5 @@ export type ModifySettingsType = (options: ModifySettingsOptions) => Promise<voi
  * });
  * ```
  */
-export declare const modifySettings: ({ showAlert, roomName, audioSet, videoSet, screenshareSet, chatSet, socket, updateAudioSetting, updateVideoSetting, updateScreenshareSetting, updateChatSetting, updateIsSettingsModalVisible, }: ModifySettingsOptions) => Promise<void>;
+export declare const modifySettings: ({ roomName, audioSet, videoSet, screenshareSet, chatSet, socket, updateAudioSetting, updateVideoSetting, updateScreenshareSetting, updateChatSetting, updateIsSettingsModalVisible, }: ModifySettingsOptions) => Promise<void>;
 //# sourceMappingURL=modifySettings.d.ts.map

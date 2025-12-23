@@ -1,13 +1,15 @@
 import React from "react";
 import { Socket } from "socket.io-client";
-import { ConnectSocketType } from "../../sockets/SocketManager";
-import { ShowAlert } from "../../@types/types";
+import { ConnectSocketType, ConnectLocalSocketType } from "../../sockets/SocketManager";
+import { ShowAlert, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
 export interface WelcomePageParameters {
     imgSrc?: string;
     showAlert?: ShowAlert;
     updateIsLoadingModalVisible: (visible: boolean) => void;
     connectSocket: ConnectSocketType;
+    connectLocalSocket?: ConnectLocalSocketType;
     updateSocket: (socket: Socket) => void;
+    updateLocalSocket?: (socket: Socket) => void;
     updateValidated: (validated: boolean) => void;
     updateApiUserName: (apiUserName: string) => void;
     updateApiToken: (apiToken: string) => void;
@@ -17,6 +19,16 @@ export interface WelcomePageParameters {
 }
 export interface WelcomePageOptions {
     parameters: WelcomePageParameters;
+    localLink?: string;
+    connectMediaSFU?: boolean;
+    credentials?: {
+        apiUserName: string;
+        apiKey: string;
+    };
+    returnUI?: boolean;
+    noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+    createMediaSFURoom?: CreateRoomOnMediaSFUType;
+    joinMediaSFURoom?: JoinRoomOnMediaSFUType;
 }
 export type WelcomePageType = (options: WelcomePageOptions) => React.JSX.Element;
 /**

@@ -9,6 +9,7 @@ import {
 import "./EventSettingsModal.css";
 import { Socket } from "socket.io-client";
 import { ShowAlert } from "../../@types/types";
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 
 export interface EventSettingOption {
   value: string;
@@ -102,6 +103,12 @@ export interface EventSettingsModalOptions {
   }) => React.ReactNode;
   renderFooter?: (params: { defaultFooter: React.ReactNode }) => React.ReactNode;
   renderContent?: (params: { defaultContent: React.ReactNode }) => React.ReactNode;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Enable glassmorphism effects (modern UI) */
+  enableGlassmorphism?: boolean;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
 }
 
 export type EventSettingsModalType = (options: EventSettingsModalOptions) => React.JSX.Element;

@@ -7,6 +7,7 @@ import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 import { ConnectSendTransportVideoType, CreateSendTransportType, CreateSendTransportParameters, OnScreenChangesType,
   DisconnectSendTransportVideoType, OnScreenChangesParameters, ShowAlert, SleepType, VidCons, ConnectSendTransportVideoParameters, DisconnectSendTransportVideoParameters, } from "../../@types/types";
 import { Producer, ProducerOptions } from "mediasoup-client/lib/types";
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 
 export interface BackgroundModalParameters extends CreateSendTransportParameters, ConnectSendTransportVideoParameters, DisconnectSendTransportVideoParameters, OnScreenChangesParameters {
 
@@ -115,6 +116,12 @@ export interface BackgroundModalOptions {
   renderContent?: (options: {
     defaultContent: React.ReactNode;
   }) => React.ReactNode;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Enable glassmorphism effects (modern UI) */
+  enableGlassmorphism?: boolean;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
 }
 
 // Export the type definition
@@ -948,9 +955,9 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
         clearCanvas();
       }
       saveBackgroundButtonRef.current?.classList.add("d-none");
-      saveBackgroundButtonRef.current!.disabled = true;
+      if (saveBackgroundButtonRef.current) saveBackgroundButtonRef.current.disabled = true;
       applyBackgroundButtonRef.current?.classList.remove("d-none");
-      applyBackgroundButtonRef.current!.disabled = false;
+      if (applyBackgroundButtonRef.current) applyBackgroundButtonRef.current.disabled = false;
 
       if (
         processedStream &&
@@ -958,17 +965,42 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
         keepBackground &&
         appliedBackground
       ) {
-        applyBackgroundButtonRef.current!.innerText = appliedLabel;
+        if (applyBackgroundButtonRef.current) applyBackgroundButtonRef.current.innerText = appliedLabel;
       } else {
-        applyBackgroundButtonRef.current!.innerText = previewLabel;
+        if (applyBackgroundButtonRef.current) applyBackgroundButtonRef.current.innerText = previewLabel;
       }
 
       if (autoClickBackground) {
-        applyBackground().then(async () => {
-          await saveBackground();
-          autoClickBackground = false;
-          updateAutoClickBackground(autoClickBackground);
-        });
+        // Wait for DOM refs to be ready before auto-clicking
+        const waitForRefsAndApply = async () => {
+          // Wait for refs to mount (up to 2 seconds)
+          let attempts = 0;
+          while (attempts < 20 && (!captureVideoRef.current || !videoPreviewRef.current || !mainCanvasRef.current)) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            attempts++;
+          }
+          
+          if (!captureVideoRef.current || !videoPreviewRef.current || !mainCanvasRef.current) {
+            console.error("Background modal refs not ready after waiting");
+            autoClickBackground = false;
+            updateAutoClickBackground(false);
+            onClose();
+            return;
+          }
+
+          try {
+            await applyBackground();
+            await saveBackground();
+          } catch (error) {
+            console.error("Error auto-applying background:", error);
+          } finally {
+            autoClickBackground = false;
+            updateAutoClickBackground(autoClickBackground);
+            // Close modal after auto-apply completes
+            onClose();
+          }
+        };
+        waitForRefsAndApply();
       }
     } else {
       try {
@@ -1282,10 +1314,23 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
     pauseSegmentation = false;
     updatePauseSegmentation(false);
     await selfieSegmentationPreview(doSegmentation);
+    
+    // Wait for processedStream to be set up (selfieSegmentationPreview uses setTimeout internally)
+    if (doSegmentation) {
+      let waitAttempts = 0;
+      while (!processedStream && waitAttempts < 30) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        // Re-fetch from updated params in case it was set
+        const updatedParams = parameters.getUpdatedAllParams();
+        processedStream = updatedParams.processedStream;
+        waitAttempts++;
+      }
+    }
+    
     hideLoading();
 
     applyBackgroundButtonRef.current?.classList.add("d-none");
-    applyBackgroundButtonRef.current!.disabled = true;
+    if (applyBackgroundButtonRef.current) applyBackgroundButtonRef.current.disabled = true;
 
     if (
       processedStream &&
@@ -1294,10 +1339,10 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
       appliedBackground
     ) {
       saveBackgroundButtonRef.current?.classList.add("d-none");
-      saveBackgroundButtonRef.current!.disabled = true;
+      if (saveBackgroundButtonRef.current) saveBackgroundButtonRef.current.disabled = true;
     } else {
       saveBackgroundButtonRef.current?.classList.remove("d-none");
-      saveBackgroundButtonRef.current!.disabled = false;
+      if (saveBackgroundButtonRef.current) saveBackgroundButtonRef.current.disabled = false;
     }
   };
 

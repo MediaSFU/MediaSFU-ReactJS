@@ -23,6 +23,8 @@ export interface ShareButton {
   show: boolean;
   color?: string;
   iconColor?: string;
+  /** Optional tooltip/label for the share button */
+  tooltip?: string;
   wrapperProps?: React.HTMLAttributes<HTMLDivElement>;
   iconProps?: Partial<FontAwesomeIconProps>;
 }

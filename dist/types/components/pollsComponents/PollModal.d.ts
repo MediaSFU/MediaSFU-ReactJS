@@ -1,6 +1,7 @@
 import React from "react";
 import { Poll, ShowAlert, HandleCreatePollType, HandleEndPollType, HandleVotePollType } from "../../@types/types";
 import { Socket } from "socket.io-client";
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 interface NewPollFormState {
     question: string;
     type: "" | "trueFalse" | "yesNo" | "custom";
@@ -66,6 +67,12 @@ export interface PollModalOptions {
     renderContent?: (options: {
         defaultContent: React.ReactNode;
     }) => React.ReactNode;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
 }
 export type PollModalType = (options: PollModalOptions) => React.JSX.Element;
 /**

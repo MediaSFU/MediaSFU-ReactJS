@@ -98,7 +98,6 @@ export const signalNewConsumerTransport = async ({
       { consumer: true, islevel },
       async ({ params }: { params: CreateWebRTCTransportResponse }) => {
         if (params.error) {
-          // Handle error
           return;
         }
 

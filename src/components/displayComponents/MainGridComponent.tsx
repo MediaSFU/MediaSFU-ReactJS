@@ -269,9 +269,11 @@ const MainGridComponent: React.FC<MainGridComponentOptions> = ({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    borderStyle: 'solid',
-    borderColor: '#000',
-    borderWidth: 4,
+    borderRadius: 12,
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.15)',
+    overflow: 'hidden',
+    position: 'relative',
   };
 
   return (

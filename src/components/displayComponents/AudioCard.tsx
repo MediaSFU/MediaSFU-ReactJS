@@ -86,6 +86,7 @@ export interface AudioCardOptions {
   fallbackMiniCardProps?: Partial<React.ComponentProps<typeof MiniCard>>;
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
   showWaveformWhenMuted?: boolean;
+  isDarkMode?: boolean; // Theme mode for modern card components
 }
 
 export type AudioCardType = (options: AudioCardOptions) => React.JSX.Element;

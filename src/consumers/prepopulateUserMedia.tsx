@@ -1,7 +1,14 @@
 import React from "react";
+// Card components - using classic versions for compatibility
 import MiniCard from "../components/displayComponents/MiniCard";
 import VideoCard from "../components/displayComponents/VideoCard";
 import AudioCard from "../components/displayComponents/AudioCard";
+
+// Modern themed card components available for custom builders
+// import { ModernMiniCard } from "../components_modern/display_components/ModernMiniCard";
+// import { ModernVideoCard } from "../components_modern/display_components/ModernVideoCard";
+// import { ModernAudioCard } from "../components_modern/display_components/ModernAudioCard";
+
 // import { RTCView } from "../methods/utils/webrtc/webrtc";
 import { 
   Participant, 
@@ -51,6 +58,9 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
   updateScreenForceFullDisplay: (force: boolean) => void;
   updateUpdateMainWindow: (update: boolean) => void;
   updateMainGridStream: (components: React.JSX.Element[]) => void;
+
+  // Theme support
+  isDarkModeValue?: boolean;
 
   // Custom Component Builders
   customVideoCard?: CustomVideoCardType;
@@ -217,6 +227,7 @@ export async function prepopulateUserMedia({
       updateScreenForceFullDisplay,
       updateUpdateMainWindow,
       updateMainGridStream,
+      isDarkModeValue,
       customVideoCard,
       customAudioCard,
       customMiniCard,
@@ -224,6 +235,13 @@ export async function prepopulateUserMedia({
       audioCardComponent,
       miniCardComponent,
     } = parameters;
+
+    // Theme-aware colors (default to true for backward compatibility)
+    const isDarkMode = isDarkModeValue ?? true;
+    const textColorThemed = isDarkMode ? 'white' : 'black';
+    const borderColorThemed = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'black';
+    // Theme suffix for keys to force re-render when theme changes
+    const themeSuffix = isDarkMode ? '-dark' : '-light';
 
     const VideoCardComponentOverride =
       (videoCardComponent ?? VideoCard) as React.ComponentType<React.ComponentProps<typeof VideoCard>>;
@@ -259,9 +277,11 @@ export async function prepopulateUserMedia({
       name?: string;
       doMirror?: boolean;
     }) => {
+      // Include theme suffix to force re-render when theme changes
+      const themedKey = `${key}${themeSuffix}`;
       if (customVideoCard) {
         return React.createElement(customVideoCard as any, {
-          key,
+          key: themedKey,
           videoStream: videoStream || new MediaStream(),
           remoteProducerId,
           eventType: cardEventType,
@@ -274,12 +294,13 @@ export async function prepopulateUserMedia({
           name,
           doMirror,
           parameters,
+          isDarkMode: isDarkMode,
         });
       }
 
       return (
         <VideoCardComponentOverride
-          key={key}
+          key={themedKey}
           videoStream={videoStream}
           remoteProducerId={remoteProducerId}
           eventType={cardEventType}
@@ -292,6 +313,7 @@ export async function prepopulateUserMedia({
           name={name}
           doMirror={doMirror}
           parameters={parameters}
+          isDarkMode={isDarkMode}
         />
       );
     };
@@ -300,7 +322,7 @@ export async function prepopulateUserMedia({
       key,
       name,
       barColor = "red",
-      textColor = "white",
+      textColor = textColorThemed,
       customStyle,
       roundedImage = true,
       backgroundColor = "transparent",
@@ -315,9 +337,11 @@ export async function prepopulateUserMedia({
       backgroundColor?: string;
       participant: Participant;
     }) => {
+      // Include theme suffix to force re-render when theme changes
+      const themedKey = `${key}${themeSuffix}`;
       if (customAudioCard) {
         return React.createElement(customAudioCard as any, {
-          key,
+          key: themedKey,
           name,
           barColor,
           textColor,
@@ -325,12 +349,13 @@ export async function prepopulateUserMedia({
           roundedImage,
           imageStyle: {},
           parameters,
+          isDarkMode: isDarkMode,
         });
       }
 
       return (
         <AudioCardComponentOverride
-          key={key}
+          key={themedKey}
           name={name}
           barColor={barColor}
           textColor={textColor}
@@ -342,6 +367,7 @@ export async function prepopulateUserMedia({
           showControls={false}
           backgroundColor={backgroundColor}
           participant={cardParticipant}
+          isDarkMode={isDarkMode}
         />
       );
     };
@@ -350,16 +376,18 @@ export async function prepopulateUserMedia({
       key,
       initials,
       fontSize = 20,
-      borderColor,
+      borderColor = eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
     }: {
       key: string;
       initials: string;
       fontSize?: number;
       borderColor?: string;
     }) => {
+      // Include theme suffix to force re-render when theme changes
+      const themedKey = `${key}${themeSuffix}`;
       if (customMiniCard) {
         return React.createElement(customMiniCard as any, {
-          key,
+          key: themedKey,
           initials,
           fontSize: `${fontSize}px`,
           name: initials,
@@ -369,18 +397,20 @@ export async function prepopulateUserMedia({
           roundedImage: true,
           imageStyle: {},
           parameters,
+          isDarkMode: isDarkMode,
         });
       }
 
       return (
         <MiniCardComponentOverride
-          key={key}
+          key={themedKey}
           initials={initials}
           fontSize={fontSize}
           customStyle={{
             backgroundColor: "transparent",
             border: borderColor,
           }}
+          isDarkMode={isDarkMode}
         />
       );
     };
@@ -407,6 +437,10 @@ export async function prepopulateUserMedia({
         } else {
           // Remove the main grid if not shared or started
           updateMainHeightWidth(0);
+        }
+      }else {
+        if (mainHeightWidth != 84) {
+          updateMainHeightWidth(84);
         }
       }
 
@@ -509,10 +543,10 @@ export async function prepopulateUserMedia({
               eventType,
               forceFullDisplay: annotateScreenStream && shared ? false : forceFullDisplay,
               customStyle: {
-                border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
               },
               participant: host,
-              backgroundColor: "rgba(217, 227, 234, 0.99)",
+              backgroundColor: "transparent",
               showControls: false,
               showInfo: true,
               name: host.name || "",
@@ -551,10 +585,10 @@ export async function prepopulateUserMedia({
               eventType,
               forceFullDisplay,
               customStyle: {
-                border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
               },
               participant: host,
-              backgroundColor: "rgba(217, 227, 234, 0.99)",
+              backgroundColor: "transparent",
               showControls: false,
               showInfo: true,
               name: host.name || "",
@@ -589,10 +623,10 @@ export async function prepopulateUserMedia({
                 key: host.name || name,
                 name: host.name || "",
                 barColor: "red",
-                textColor: "white",
+                textColor: textColorThemed,
                 customStyle: {
                   backgroundColor: "transparent",
-                  border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
                 roundedImage: true,
                 backgroundColor: "transparent",
@@ -619,7 +653,7 @@ export async function prepopulateUserMedia({
                 key: name,
                 initials: name,
                 fontSize: 20,
-                borderColor: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                borderColor: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
               });
 
               newComponent.push(miniCardElement);
@@ -653,10 +687,10 @@ export async function prepopulateUserMedia({
                   eventType,
                   forceFullDisplay,
                   customStyle: {
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   },
                   participant: host,
-                  backgroundColor: "rgba(217, 227, 234, 0.99)",
+                  backgroundColor: "transparent",
                   showControls: false,
                   showInfo: true,
                   name: host.name || "",
@@ -701,10 +735,10 @@ export async function prepopulateUserMedia({
                   eventType,
                   forceFullDisplay,
                   customStyle: {
-                    border: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   },
                   participant: host,
-                  backgroundColor: "rgba(217, 227, 234, 0.99)",
+                  backgroundColor: "transparent",
                   showControls: false,
                   showInfo: true,
                   name: host.name || "",
@@ -722,7 +756,7 @@ export async function prepopulateUserMedia({
                   key: name,
                   initials: name,
                   fontSize: 20,
-                  borderColor: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+                  borderColor: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 })
               );
 
@@ -750,7 +784,7 @@ export async function prepopulateUserMedia({
             key: name,
             initials: name,
             fontSize: 20,
-            borderColor: eventType !== "broadcast" ? "2px solid black" : "0px solid black",
+            borderColor: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
           })
         );
 

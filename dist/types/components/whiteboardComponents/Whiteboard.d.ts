@@ -48,6 +48,7 @@ export interface WhiteboardParameters extends OnScreenChangesParameters, Capture
     shareScreenStarted: boolean;
     targetResolution?: string;
     targetResolutionHost?: string;
+    isDarkModeValue?: boolean;
     updateShapes: (shapes: Shape[]) => void;
     updateUseImageBackground: (useImageBackground: boolean) => void;
     updateRedoStack: (redoStack: Shape[]) => void;
@@ -69,6 +70,7 @@ export interface WhiteboardOptions {
     customHeight: number;
     parameters: WhiteboardParameters;
     showAspect: boolean;
+    isDarkModeValue?: boolean;
 }
 export type WhiteboardType = (props: WhiteboardOptions) => React.JSX.Element;
 /**

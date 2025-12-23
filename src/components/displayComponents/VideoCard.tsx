@@ -60,6 +60,7 @@ export interface VideoCardOptions {
   videoDisplayProps?: Partial<CardVideoDisplayOptions>;
   extraWidgets?: React.ReactNode;
   children?: React.ReactNode;
+  isDarkMode?: boolean; // Theme mode for modern card components
 }
 
 export type VideoCardType = (options: VideoCardOptions) => React.JSX.Element;  // Define the type for the function

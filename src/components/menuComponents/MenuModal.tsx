@@ -15,6 +15,13 @@ import ShareButtonsComponent, {
 import CustomButtons, { CustomButton, CustomButtonsOptions } from "./CustomButtons";
 import { EventType } from "../../@types/types";
 
+/**
+ * Render mode for modal components.
+ * - `modal`: Traditional overlay modal with positioning, header, and close button
+ * - `sidebar`: Inline content for desktop sidebar (no overlay, no header, full width)
+ * - `inline`: Embedded content without modal wrapper (no positioning)
+ */
+export type ModalRenderMode = 'modal' | 'sidebar' | 'inline';
 
 // Define props interface
 export interface MenuModalOptions {
@@ -29,6 +36,12 @@ export interface MenuModalOptions {
   islevel: string;
   eventType: EventType;
   localLink?: string;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Callback to toggle the theme mode */
+  onToggleTheme?: (value: boolean) => void;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
   title?: React.ReactNode;
   menuIcon?: React.ReactNode;
   menuIconProps?: Partial<FontAwesomeIconProps>;

@@ -41,6 +41,9 @@ export interface ChangeVidsParameters extends DispStreamsParameters {
   virtualStream: MediaStream | null;
   mainRoomsLength: number;
   memberRoom: number;
+  // Panelist-related parameters
+  panelists: Participant[];
+  panelistsFocused: boolean;
   updateP_activeNames: (names: string[]) => void;
   updateActiveNames: (names: string[]) => void;
   updateDispActiveNames: (names: string[]) => void;
@@ -252,6 +255,8 @@ export const changeVids = async ({ screenChanged = false, parameters }: ChangeVi
     virtualStream,
     mainRoomsLength,
     memberRoom,
+    panelists,
+    panelistsFocused,
     updateP_activeNames,
     updateActiveNames,
     updateDispActiveNames,
@@ -510,6 +515,51 @@ export const changeVids = async ({ screenChanged = false, parameters }: ChangeVi
           ...non_alVideoStreams,
           ...non_alVideoStreams_muted,
         ];
+      }
+    }
+
+    // Apply panelist filtering (skip if in breakout room)
+    if (!breakOutRoomStarted || breakOutRoomEnded) {
+      if (panelistsFocused && panelists && panelists.length > 0) {
+        // When focused: show ONLY panelists + host
+        const panelistIds = new Set(panelists.map(p => p.id));
+        allStreamsPaged = allStreamsPaged.filter((stream) => {
+          // Always keep "youyou" / "youyouyou" (self)
+          if (stream.producerId === "youyou" || stream.producerId === "youyouyou") {
+            return true;
+          }
+          // Find matching participant
+          const participant = ref_participants.find(
+            (p) => p.videoID === stream.producerId || p.audioID === stream.producerId || p.name === stream.name
+          );
+          if (!participant) return false;
+          // Keep host (islevel "2")
+          if (participant.islevel === "2") return true;
+          // Keep panelists
+          return panelistIds.has(participant.id);
+        });
+      } else if (panelists && panelists.length > 0) {
+        // When not focused but panelists exist: panelists first, then others
+        const panelistIds = new Set(panelists.map(p => p.id));
+        const panelistStreams: (Stream | Participant)[] = [];
+        const otherStreams: (Stream | Participant)[] = [];
+
+        for (const stream of allStreamsPaged) {
+          // Always keep "youyou" / "youyouyou" at front
+          if (stream.producerId === "youyou" || stream.producerId === "youyouyou") {
+            panelistStreams.unshift(stream);
+            continue;
+          }
+          const participant = ref_participants.find(
+            (p) => p.videoID === stream.producerId || p.audioID === stream.producerId || p.name === stream.name
+          );
+          if (participant && (panelistIds.has(participant.id) || participant.islevel === "2")) {
+            panelistStreams.push(stream);
+          } else {
+            otherStreams.push(stream);
+          }
+        }
+        allStreamsPaged = [...panelistStreams, ...otherStreams];
       }
     }
 

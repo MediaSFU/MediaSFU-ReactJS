@@ -271,16 +271,25 @@ const MainContainerComponent: React.FC<MainContainerComponentOptions> = ({
     computeDimensions(getWindowSize())
   );
 
-  // Effect to update aspect styles on dimension changes
+  // Effect to update aspect styles on dimension changes and window resize
   useEffect(() => {
     const updateAspectStyles = () => {
       const dimensions = computeDimensions(getWindowSize());
-
       setAspectStyles(dimensions);
     };
 
     // Initial setup
     updateAspectStyles();
+
+    // Listen for resize and orientation change events
+    window.addEventListener("resize", updateAspectStyles);
+    window.addEventListener("orientationchange", updateAspectStyles);
+
+    return () => {
+      // Remove event listeners
+      window.removeEventListener("resize", updateAspectStyles);
+      window.removeEventListener("orientationchange", updateAspectStyles);
+    };
   }, [
     containerHeightFraction,
     containerWidthFraction,

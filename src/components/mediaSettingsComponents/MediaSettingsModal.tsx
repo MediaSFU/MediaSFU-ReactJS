@@ -4,6 +4,7 @@ import { faTimes, faSyncAlt, faCamera, faMicrophone, faPhotoFilm } from '@fortaw
 import { switchAudio, SwitchAudioOptions, SwitchAudioParameters } from '../../methods/streamMethods/switchAudio';
 import { switchVideo, SwitchVideoOptions, SwitchVideoParameters } from '../../methods/streamMethods/switchVideo';
 import { switchVideoAlt, SwitchVideoAltOptions, SwitchVideoAltParameters } from '../../methods/streamMethods/switchVideoAlt';
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 
 // Define the prop types using a TypeScript interface
 export interface MediaSettingsModalParameters extends SwitchAudioParameters, SwitchVideoParameters, SwitchVideoAltParameters {
@@ -28,6 +29,14 @@ export interface MediaSettingsModalOptions {
   parameters: MediaSettingsModalParameters;
   position?: 'topRight' | 'topLeft' | 'bottomRight' | 'bottomLeft';
   backgroundColor?: string;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Enable glassmorphism effects (modern UI) */
+  enableGlassmorphism?: boolean;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
+  /** Optional hook used by modern shell to route to the sidebar background picker */
+  onOpenBackgroundSidebar?: () => void;
 }
 
 export type MediaSettingsModalType = (options: MediaSettingsModalOptions) => React.JSX.Element;

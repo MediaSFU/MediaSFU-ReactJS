@@ -12,6 +12,7 @@ import ShareButtonsComponent, {
   ShareButtonsComponentOptions,
 } from "../menuComponents/ShareButtonsComponent";
 import { EventType } from "../../@types/types";
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 
 // Define the prop types for ShareEventModal
 export interface ShareEventModalOptions {
@@ -68,6 +69,12 @@ export interface ShareEventModalOptions {
     shareButtons: React.ReactNode | null;
   }) => React.ReactNode;
   renderContent?: (options: { defaultContent: React.ReactNode }) => React.ReactNode;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Enable glassmorphism effects (modern UI) */
+  enableGlassmorphism?: boolean;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
 }
 
 export type ShareEventModalType = (

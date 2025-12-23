@@ -281,13 +281,29 @@ export const consumerResume = async ({
     if (params.kind === "audio") {
       // Audio resumed
 
+      // Check if this is a translation audio producer
+      // Translation producers are tracked in activeTranslationProducerIds (a Set)
+      const activeTranslationProducerIds = (parameters as any).activeTranslationProducerIds as Set<string> | undefined;
+      const isTranslationAudio = activeTranslationProducerIds?.has(remoteProducerId) ||
+        consumer.appData?.type === "translation" ||
+        consumer.appData?.isTranslation;
+
       // Check if the participant with audioID == remoteProducerId has a valid videoID
       let participant = participants.filter(
         (p) => p.audioID === remoteProducerId
       );
       let name__ = participant.length > 0 ? participant[0].name || "" : "";
 
-      if (name__ === member) return;
+      if (name__ === member && !isTranslationAudio) return;
+
+      // For translation audio, use the speaker's name from translation metadata if available
+      if (isTranslationAudio && !name__) {
+        const translationMeta = consumer.appData?.translationMeta as { speakerName?: string; speakerId?: string; language?: string } | undefined;
+        name__ = translationMeta?.speakerName || `Translation-${remoteProducerId.slice(0, 8)}`;
+      }
+
+      // Skip if this is the member's own audio (but not translation audio)
+      if (name__ === member && !isTranslationAudio) return;
 
       //find any participants with ScreenID not null and ScreenOn == true
       let screenParticipant_alt = participants.filter(
@@ -316,7 +332,53 @@ export const consumerResume = async ({
       nStream = new MediaStream([track]);
       updateNStream(nStream);
 
-      // Create MiniAudioPlayer track
+      // For translation audio, add to translationStreams (separate array that's always rendered)
+      if (isTranslationAudio) {
+        // Get functional updater from parameters (avoids stale closure issues)
+        const addTranslationStream = (parameters as any).addTranslationStream as ((element: React.JSX.Element) => void) | undefined;
+        
+        // Create simple audio element for translation audio (no UI needed)
+        const translationTrack = (
+          <audio
+            key={`translation-${remoteProducerId}`}
+            autoPlay
+            ref={(ref) => {
+              if (ref && nStream) {
+                ref.srcObject = nStream;
+                ref.play().then(() => {
+                }).catch((err) => {
+                  console.error('[consumerResume] Translation audio play error:', err);
+                });
+              }
+            }}
+          />
+        );
+
+        // Add to translationStreams using functional update
+        if (addTranslationStream) {
+          addTranslationStream(translationTrack);
+        } else {
+          console.warn('[consumerResume] addTranslationStream is not available!');
+        }
+
+        // Add to allAudioStreams for tracking
+        allAudioStreams = [
+          ...allAudioStreams,
+          { producerId: remoteProducerId, stream: nStream },
+        ];
+        updateAllAudioStreams(allAudioStreams);
+
+        // Add to audStreamNames for tracking
+        audStreamNames = [
+          ...audStreamNames,
+          { producerId: remoteProducerId, name: name__ },
+        ];
+        updateAudStreamNames(audStreamNames);
+
+        return;
+      }
+
+      // Create MiniAudioPlayer track (for non-translation audio)
       let nTrack = (
         <MiniAudioPlayerComponentToUse
           stream={nStream}
@@ -376,6 +438,7 @@ export const consumerResume = async ({
           updateUpdateMainWindow(updateMainWindow);
         }
       } else {
+        // No participant found and not translation audio - skip
         return;
       }
 

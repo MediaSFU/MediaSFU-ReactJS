@@ -2,6 +2,7 @@ import React from 'react';
 import { SwitchAudioOptions, SwitchAudioParameters } from '../../methods/streamMethods/switchAudio';
 import { SwitchVideoOptions, SwitchVideoParameters } from '../../methods/streamMethods/switchVideo';
 import { SwitchVideoAltOptions, SwitchVideoAltParameters } from '../../methods/streamMethods/switchVideoAlt';
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 export interface MediaSettingsModalParameters extends SwitchAudioParameters, SwitchVideoParameters, SwitchVideoAltParameters {
     userDefaultVideoInputDevice: string;
     videoInputs: MediaDeviceInfo[];
@@ -20,6 +21,14 @@ export interface MediaSettingsModalOptions {
     parameters: MediaSettingsModalParameters;
     position?: 'topRight' | 'topLeft' | 'bottomRight' | 'bottomLeft';
     backgroundColor?: string;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
+    /** Optional hook used by modern shell to route to the sidebar background picker */
+    onOpenBackgroundSidebar?: () => void;
 }
 export type MediaSettingsModalType = (options: MediaSettingsModalOptions) => React.JSX.Element;
 /**

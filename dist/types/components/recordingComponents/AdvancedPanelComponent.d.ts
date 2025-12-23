@@ -1,5 +1,15 @@
 import React from "react";
 import { EventType } from "../../@types/types";
+export type AdvancedOptionItem = {
+    value: string;
+    label: string;
+    tooltip?: string;
+};
+export declare const recordingVideoTypeItems: AdvancedOptionItem[];
+export declare const recordingDisplayTypeItems: AdvancedOptionItem[];
+export declare const recordingTextPositionItems: AdvancedOptionItem[];
+export declare const recordingNameTagToggleItems: AdvancedOptionItem[];
+export declare const recordingOrientationItems: AdvancedOptionItem[];
 export interface AdvancedPanelParameters {
     recordingVideoType: string;
     recordingDisplayType: "video" | "media" | "all";

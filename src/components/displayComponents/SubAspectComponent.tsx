@@ -322,10 +322,12 @@ const SubAspectComponent: React.FC<SubAspectComponentOptions> = ({
   const combinedStyles: React.CSSProperties = {
     position: "absolute",
     bottom: 0,
+    left: 0,
     margin: 0,
     backgroundColor,
     display: showControls ? "flex" : "none",
-    ...aspectStyles,
+    width: "100%", // Always use 100% width for control buttons area
+    height: aspectStyles.height, // Only use computed height
     ...containerStyleOverrides,
   };
 

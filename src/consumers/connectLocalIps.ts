@@ -76,13 +76,15 @@ export const connectLocalIps = async ({
 
     // Connect to the remote socket using socket.io-client
     // Handle new pipe producer event
-    socket.on("new-producer", async ({ producerId, islevel }: { producerId: string; islevel: string }) => {
+    socket.on("new-producer", async ({ producerId, islevel, isTranslation, translationMeta }: { producerId: string; islevel: string; isTranslation?: boolean; translationMeta?: { speakerId: string; speakerName: string; language: string; originalProducerId?: string } }) => {
       if (newProducerMethod) {
         await newProducerMethod({
           producerId,
           islevel,
           nsock: socket,
           parameters,
+          isTranslation,
+          translationMeta,
         });
       }
     });

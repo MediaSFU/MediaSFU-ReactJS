@@ -499,7 +499,17 @@ export interface AudioDecibels {
   averageLoudness: number 
 }
 
-export type ShowAlert = (options: { message: string; type: "success" | "danger"; duration?: number }) => void;
+/** Position of the alert on screen */
+export type AlertPosition = 'top' | 'bottom' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center';
+
+export type ShowAlert = (options: {
+  message: string;
+  /** Alert semantics */
+  type: "success" | "danger" | "warning" | "info";
+  duration?: number;
+  /** Position of the alert. Use 'center' for action-triggered alerts that need attention. Default: 'top' */
+  position?: AlertPosition;
+}) => void;
 
 export interface CoHostResponsibility {
   name: string;
@@ -719,6 +729,10 @@ export interface CreateRoomOptions {
   supportSIP: boolean; // Whether to support SIP
   directionSIP: 'inbound' | 'outbound' | 'both'; // Direction of SIP
   preferPCMA: boolean; // Whether to prefer PCMA codec for SIP
+  supportTranslation: boolean; // Whether to support translation
+  translationConfigNickName: string; // Nickname for translation configuration
+  supportFlexRoom: boolean; // Whether to support flex room capacity features
+  supportMaxRoom: boolean; // Whether to support max room capacity features
 }
 
 export interface CreateMediaSFURoomOptions {
@@ -740,6 +754,10 @@ export interface CreateMediaSFURoomOptions {
   supportSIP?: boolean; // Whether to support SIP
   directionSIP?: 'inbound' | 'outbound' | 'both'; // Direction of SIP
   preferPCMA?: boolean; // Whether to prefer PCMA codec for SIP
+  supportTranslation?: boolean; // Whether to support translation
+  translationConfigNickName?: string; // Nickname for translation configuration
+  supportFlexRoom?: boolean; // Whether to support flex room capacity features
+  supportMaxRoom?: boolean; // Whether to support max room capacity features
 }
 
 export interface JoinMediaSFURoomOptions {
@@ -781,6 +799,8 @@ export interface ResponseJoinRoom {
   banned?: boolean; // Indicates whether the user is banned from the room.
   suspended?: boolean; // Indicates whether the user is suspended from the room.
   noAdmin?: boolean; // Indicates whether the room has no host in it.
+  supportFlexRoom?: boolean; // Indicates whether the room supports flex mode (2x capacity, 25% can produce).
+  supportMaxRoom?: boolean; // Indicates whether the room supports max mode (4x capacity, 5% can produce).
 }
 
 export interface AllMembersData {

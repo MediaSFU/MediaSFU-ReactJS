@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { CheckPermissionType, CheckScreenShareParameters, CheckScreenShareType, ShowAlert, StopShareScreenParameters, StopShareScreenType } from "../../@types/types";
+import { PermissionConfig } from "../permissionsMethods/updatePermissionConfig";
 
 export interface ClickScreenShareParameters extends CheckScreenShareParameters, StopShareScreenParameters {
   showAlert?: ShowAlert;
@@ -13,6 +14,7 @@ export interface ClickScreenShareParameters extends CheckScreenShareParameters, 
   videoSetting: string;
   screenshareSetting: string;
   chatSetting: string;
+  permissionConfig?: PermissionConfig | null;
   screenAction: boolean;
   screenAlreadyOn: boolean;
   screenRequestState: string | null;
@@ -116,14 +118,14 @@ export const clickScreenShare = async ({ parameters }: ClickScreenShareOptions):
   }
 
   // Check if the room is a demo room
-  if (roomName.startsWith("d")) {
-    showAlert?.({
-      message: "You cannot start screen share in a demo room.",
-      type: "danger",
-      duration: 3000,
-    });
-    return;
-  }
+  // if (roomName.startsWith("d")) {
+  //   showAlert?.({
+  //     message: "You cannot start screen share in a demo room.",
+  //     type: "danger",
+  //     duration: 3000,
+  //   });
+  //   return;
+  // }
 
   // Toggle screen sharing based on current status
   if (screenAlreadyOn) {
@@ -146,10 +148,12 @@ export const clickScreenShare = async ({ parameters }: ClickScreenShareOptions):
     if (!screenAction && islevel !== "2" && !youAreCoHost) {
       response = await checkPermission({
         permissionType: "screenshareSetting",
-          audioSetting,
-          videoSetting,
-          screenshareSetting,
-          chatSetting,
+        audioSetting,
+        videoSetting,
+        screenshareSetting,
+        chatSetting,
+        permissionConfig: parameters.permissionConfig,
+        participantLevel: islevel,
       });
     } else {
       response = 0;

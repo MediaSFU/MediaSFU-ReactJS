@@ -1,10 +1,19 @@
 import { Socket } from "socket.io-client";
 import { ConsumerResumeType, ConsumerResumeParameters, Transport as TransportType } from "../@types/types";
 import { Device, Transport } from "mediasoup-client/lib/types";
+interface SpeakerTranslationState {
+    speakerId: string;
+    speakerName: string;
+    inputLanguage: string;
+    outputLanguage: string;
+    originalProducerId: string;
+    enabled: boolean;
+}
 export interface ConnectRecvTransportParameters extends ConsumerResumeParameters {
     device: Device | null;
     consumerTransports: TransportType[];
     updateConsumerTransports: (transports: TransportType[]) => void;
+    speakerTranslationStates?: Map<string, SpeakerTranslationState>;
     consumerResume: ConsumerResumeType;
     getUpdatedAllParams: () => ConnectRecvTransportParameters;
     [key: string]: any;
@@ -51,4 +60,5 @@ export type ConnectRecvTransportType = (options: ConnectRecvTransportOptions) =>
  * ```
  */
 export declare const connectRecvTransport: ({ consumerTransport, remoteProducerId, serverConsumerTransportId, nsock, parameters, }: ConnectRecvTransportOptions) => Promise<void>;
+export {};
 //# sourceMappingURL=connectRecvTransport.d.ts.map

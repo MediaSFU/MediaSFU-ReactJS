@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen, faTimes, faPlus, faPlay, faSyncAlt, faStop, faDoorOpen, faSave, faRandom, faUsers, faHandPointer } from '@fortawesome/free-solid-svg-icons';
 import { BreakoutParticipant, Participant, ShowAlert } from '../../@types/types';
 import { Socket } from 'socket.io-client';
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 
 
 interface RoomOptions {
@@ -108,6 +109,12 @@ export interface BreakoutRoomsModalOptions {
   }) => React.ReactNode;
   renderBody?: (options: { defaultBody: React.ReactNode }) => React.ReactNode;
   renderContent?: (options: { defaultContent: React.ReactNode }) => React.ReactNode;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Enable glassmorphism effects (modern UI) */
+  enableGlassmorphism?: boolean;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
 }
 
 // Export the type definition for the function

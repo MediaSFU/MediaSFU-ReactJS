@@ -15,6 +15,7 @@ import {
   MeetingRoomParams,
   CreateMediaSFURoomOptions,
   JoinMediaSFURoomOptions,
+  EventType,
 } from "../../@types/types";
 import { checkLimitsAndMakeRequest } from "../../methods/utils/checkLimitsAndMakeRequest";
 import { createRoomOnMediaSFU } from '../../methods/utils/createRoomOnMediaSFU';
@@ -82,6 +83,16 @@ export interface PreJoinPageParameters {
   updateLink: (link: string) => void;
   updateRoomName: (roomName: string) => void;
   updateMember: (member: string) => void;
+  updateAudioPreference?: (deviceId: string) => void;
+  updateVideoPreference?: (deviceId: string) => void;
+  updateAudioOutputPreference?: (deviceId: string) => void;
+  updateIsDarkMode?: (isDarkMode: boolean) => void;
+  updateEventType?: (eventType: EventType) => void;
+  updateVirtualBackground?: (background: any) => void;
+  updateCurrentFacingMode?: (facingMode: string) => void;
+  updateKeepBackground?: (keep: boolean) => void;
+  updateAppliedBackground?: (applied: boolean) => void;
+  updateSelfieSegmentation?: (selfieSegmentation: any) => void;
 }
 
 export interface Credentials {

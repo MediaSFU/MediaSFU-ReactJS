@@ -254,12 +254,12 @@ async function joinLocalRoom
       return;
     }
 
-    // Validate roomName starts with 's' or 'p'
-    if (!(roomName.startsWith("s") || roomName.startsWith("p") || roomName.startsWith("m"))) {
+    // Validate roomName starts with 's' or 'p' or 'm' or 'd'
+    if (!(roomName.startsWith("s") || roomName.startsWith("p") || roomName.startsWith("m") || roomName.startsWith("d"))) {
       const validationError = {
         success: false,
         rtpCapabilities: null,
-        reason: "Invalid roomName, must start with s or p",
+        reason: "Invalid roomName, must start with s or p or m or d",
       };
       reject(validationError);
       return;

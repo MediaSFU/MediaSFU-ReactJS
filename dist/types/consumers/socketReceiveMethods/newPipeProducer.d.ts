@@ -1,6 +1,16 @@
 import { Socket } from 'socket.io-client';
 import { ReorderStreamsParameters, ReorderStreamsType, SignalNewConsumerTransportParameters, ConnectRecvTransportParameters, ConnectRecvTransportType, ShowAlert } from '../../@types/types';
 import { Device } from 'mediasoup-client/lib/types';
+/**
+ * Translation metadata passed with translation producers
+ */
+export interface TranslationMeta {
+    speakerId: string;
+    speakerName: string;
+    language: string;
+    originalProducerId?: string;
+    isSpeakerControlled?: boolean;
+}
 export interface NewPipeProducerParameters extends ReorderStreamsParameters, SignalNewConsumerTransportParameters, ConnectRecvTransportParameters {
     first_round: boolean;
     shareScreenStarted: boolean;
@@ -17,6 +27,32 @@ export interface NewPipeProducerParameters extends ReorderStreamsParameters, Sig
     connectRecvTransport: ConnectRecvTransportType;
     reorderStreams: ReorderStreamsType;
     getUpdatedAllParams: () => NewPipeProducerParameters;
+    startConsumingTranslation?: (producerId: string, speakerId: string, language: string, originalProducerId?: string, nsock?: Socket) => Promise<void>;
+    translationSubscriptions?: Map<string, {
+        speakerId: string;
+        language: string;
+    }>;
+    speakerTranslationStates?: Map<string, {
+        speakerId: string;
+        speakerName: string;
+        inputLanguage: string;
+        outputLanguage: string;
+        originalProducerId: string;
+        enabled: boolean;
+    }>;
+    listenerTranslationOverrides?: Map<string, {
+        speakerId: string;
+        wantOriginal: boolean;
+        preferredLanguage?: string;
+    }>;
+    listenerTranslationPreferences?: {
+        perSpeaker: Map<string, {
+            speakerId: string;
+            language: string | null;
+            wantOriginal: boolean;
+        }>;
+        globalLanguage: string | null;
+    };
     [key: string]: any;
 }
 export interface NewPipeProducerOptions {
@@ -24,6 +60,8 @@ export interface NewPipeProducerOptions {
     islevel: string;
     nsock: Socket;
     parameters: NewPipeProducerParameters;
+    isTranslation?: boolean;
+    translationMeta?: TranslationMeta;
 }
 export type NewPipeProducerType = (options: NewPipeProducerOptions) => Promise<void>;
 /**
@@ -80,5 +118,5 @@ export type NewPipeProducerType = (options: NewPipeProducerOptions) => Promise<v
  *
  * init();
  */
-export declare const newPipeProducer: ({ producerId, islevel, nsock, parameters, }: NewPipeProducerOptions) => Promise<void>;
+export declare const newPipeProducer: ({ producerId, islevel, nsock, parameters, isTranslation, translationMeta, }: NewPipeProducerOptions) => Promise<void>;
 //# sourceMappingURL=newPipeProducer.d.ts.map

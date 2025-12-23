@@ -2,6 +2,37 @@
 import React, { useEffect, useState } from "react";
 import { EventType } from "../../@types/types";
 
+export type AdvancedOptionItem = { value: string; label: string; tooltip?: string };
+
+export const recordingVideoTypeItems: AdvancedOptionItem[] = [
+  { value: "fullDisplay", label: "Full Display (no background)", tooltip: "Use the full incoming display" },
+  { value: "bestDisplay", label: "Full Video", tooltip: "Optimized full video feed" },
+  { value: "all", label: "All", tooltip: "Mix all displays" },
+];
+
+export const recordingDisplayTypeItems: AdvancedOptionItem[] = [
+  { value: "video", label: "Only Video Participants", tooltip: "Include participants with video" },
+  { value: "media", label: "Participants with media", tooltip: "Include participants with media" },
+  { value: "all", label: "All Participants", tooltip: "Include everyone" },
+];
+
+export const recordingTextPositionItems: AdvancedOptionItem[] = [
+  { value: "top", label: "Top", tooltip: "Place custom text at the top" },
+  { value: "middle", label: "Middle", tooltip: "Place custom text in the middle" },
+  { value: "bottom", label: "Bottom", tooltip: "Place custom text at the bottom" },
+];
+
+export const recordingNameTagToggleItems: AdvancedOptionItem[] = [
+  { value: "true", label: "Show", tooltip: "Display name tags" },
+  { value: "false", label: "Hide", tooltip: "Hide name tags" },
+];
+
+export const recordingOrientationItems: AdvancedOptionItem[] = [
+  { value: "landscape", label: "Landscape", tooltip: "Horizontal orientation" },
+  { value: "portrait", label: "Portrait", tooltip: "Vertical orientation" },
+  { value: "all", label: "All", tooltip: "Choose orientation automatically" },
+];
+
 export interface AdvancedPanelParameters {
   recordingVideoType: string;
   recordingDisplayType: "video" | "media" | "all";
@@ -179,6 +210,12 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({
     }
   };
 
+  const renderOption = (item: AdvancedOptionItem) => (
+    <option key={item.value} value={item.value} title={item.tooltip || item.label}>
+      {item.label}
+    </option>
+  );
+
   return (
     <div>
       {/* Video Type */}
@@ -193,9 +230,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({
             setSelectedRecordingVideoType(e.target.value);
           }}
         >
-          <option value="fullDisplay">Full Display (no background)</option>
-          <option value="bestDisplay">Full Video</option>
-          <option value="all">All</option>
+          {recordingVideoTypeItems.map(renderOption)}
         </select>
       </div>
       <hr />
@@ -209,16 +244,12 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({
           <select
             value={selectedRecordingDisplayType}
             onChange={(e) => {
-              updateRecordingDisplayType(e.target.value as "video" | "media" | "all");
-              setSelectedRecordingDisplayType(e.target.value as "video" | "media" | "all");
+              const value = e.target.value as "video" | "media" | "all";
+              updateRecordingDisplayType(value);
+              setSelectedRecordingDisplayType(value);
             }}
           >
-            <option value="video">Only Video Participants</option>
-            <option value="videoOpt">
-              Only Video Participants (optimized)
-            </option>
-            <option value="media">Participants with media</option>
-            <option value="all">All Participants</option>
+            {recordingDisplayTypeItems.map(renderOption)}
           </select>
         </div>
       )}
@@ -292,9 +323,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({
               setRecordingPosition(e.target.value);
             }}
           >
-            <option value="top">Top</option>
-            <option value="middle">Middle</option>
-            <option value="bottom">Bottom</option>
+            {recordingTextPositionItems.map(renderOption)}
           </select>
           <hr />
         </div>
@@ -341,8 +370,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({
             setSelectedRecordingNameTags(e.target.value === "true");
           }}
         >
-          <option value="true">True</option>
-          <option value="false">False</option>
+          {recordingNameTagToggleItems.map(renderOption)}
         </select>
       </div>
       <hr />
@@ -384,9 +412,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({
             setSelectedOrientationVideo(e.target.value);
           }}
         >
-          <option value="landscape">Landscape</option>
-          <option value="portrait">Portrait</option>
-          <option value="all">All</option>
+          {recordingOrientationItems.map(renderOption)}
         </select>
       </div>
       <hr />

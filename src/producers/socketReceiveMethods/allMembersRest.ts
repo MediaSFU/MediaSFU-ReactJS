@@ -22,6 +22,8 @@ export interface AllMembersRestParameters extends OnScreenChangesParameters, Con
   videoSetting: string;
   screenshareSetting: string;
   chatSetting: string;
+  islevel: string;
+  member: string;
   socket: Socket;
 
   updateParticipantsAll: (participantsAll: Participant[]) => void;
@@ -37,6 +39,7 @@ export interface AllMembersRestParameters extends OnScreenChangesParameters, Con
   updateVideoSetting: (videoSetting: string) => void;
   updateScreenshareSetting: (screenshareSetting: string) => void;
   updateChatSetting: (chatSetting: string) => void;
+  updateIslevel: (islevel: string) => void;
   updateConsume_sockets: (consume_sockets: ConsumeSocket[]) => void;
   updateRoomRecvIPs: (ips: string[]) => void;
   updateIsLoadingModalVisible: (visible: boolean) => void;
@@ -129,6 +132,8 @@ export const allMembersRest = async ({
     videoSetting,
     screenshareSetting,
     chatSetting,
+    islevel,
+    member,
     socket,
 
     updateParticipantsAll,
@@ -144,6 +149,7 @@ export const allMembersRest = async ({
     updateVideoSetting,
     updateScreenshareSetting,
     updateChatSetting,
+    updateIslevel,
     updateConsume_sockets,
     updateRoomRecvIPs,
     updateIsLoadingModalVisible,
@@ -154,6 +160,17 @@ export const allMembersRest = async ({
     sleep,
     reorderStreams,
   } = parameters;
+
+  // Sync islevel from server if different (for levels '0' and '1')
+  // Server's islevel is authoritative
+  const currentMember = members.find((m) => m.name === member);
+  if (currentMember && currentMember.islevel) {
+    const serverLevel = currentMember.islevel;
+    // Only sync for non-host levels ('0' and '1')
+    if ((serverLevel === '0' || serverLevel === '1') && islevel !== serverLevel) {
+      updateIslevel(serverLevel);
+    }
+  }
 
   // Filter out banned and suspended participants
   participantsAll = members.map((participant) => ({

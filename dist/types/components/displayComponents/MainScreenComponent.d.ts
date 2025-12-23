@@ -6,7 +6,8 @@ export interface MainScreenComponentOptions {
     doStack: boolean;
     containerWidthFraction?: number;
     containerHeightFraction?: number;
-    updateComponentSizes: (sizes: ComponentSizes) => void;
+    sidebarWidth?: number;
+    updateComponentSizes: (sizes: ComponentSizes, internal?: boolean) => void;
     defaultFraction?: number;
     showControls: boolean;
     componentSizes: ComponentSizes;

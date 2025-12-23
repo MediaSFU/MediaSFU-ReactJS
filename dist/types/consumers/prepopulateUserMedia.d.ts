@@ -40,6 +40,7 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     updateScreenForceFullDisplay: (force: boolean) => void;
     updateUpdateMainWindow: (update: boolean) => void;
     updateMainGridStream: (components: React.JSX.Element[]) => void;
+    isDarkModeValue?: boolean;
     customVideoCard?: CustomVideoCardType;
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;

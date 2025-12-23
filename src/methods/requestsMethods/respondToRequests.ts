@@ -58,7 +58,7 @@ export const respondToRequests = async ({
       )
   );
 
-  // Update the request list with the filtered list
+  // Update the request list with the filtered list 
   updateRequestList(newRequestList);
 
   // Prepare the request response

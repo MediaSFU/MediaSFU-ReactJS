@@ -1,0 +1,8496 @@
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMicrophoneSlash,
+  faVideoSlash,
+  faDesktop,
+  faPhone,
+  faUsers,
+  faBars,
+  faComments,
+  faShareAlt,
+  faSync,
+  faRecordVinyl,
+  faCog,
+  faClock,
+  faUserPlus,
+  faTools,
+  faPlayCircle,
+  faPauseCircle,
+  faSun,
+  faMoon,
+  faStopCircle,
+  faDotCircle,
+  faVideo,
+  faMicrophone,
+  faPoll,
+  faUserFriends,
+  faChalkboardTeacher,
+  faBan,
+  faTv,
+  faHandPaper,
+  faObjectUngroup,
+  faCompress,
+  faExpand,
+  // faQuestionCircle,
+  faShieldAlt,
+  faStar,
+  faGlobe,
+  faPlay,
+  faPause,
+  faStop,
+} from "@fortawesome/free-solid-svg-icons";
+import '../../components/mediasfuComponents/MediasfuCSS.css';
+
+//initial values
+import { initialValuesState } from "../../methods/utils/initialValuesState";
+
+//import components for display (samples) - Classic components still needed for some views
+import MainAspectComponent from "../../components/displayComponents/MainAspectComponent";
+import ControlButtonsComponent from "../../components/displayComponents/ControlButtonsComponent";
+import ControlButtonsAltComponent from "../../components/displayComponents/ControlButtonsAltComponent";
+import ControlButtonsComponentTouch from "../display_components/ModernControlButtonsComponentTouch";
+import OthergridComponent from "../../components/displayComponents/OtherGridComponent";
+import MainScreenComponent from "../../components/displayComponents/MainScreenComponent";
+import MainGridComponent from "../../components/displayComponents/MainGridComponent";
+import SubAspectComponent from "../../components/displayComponents/SubAspectComponent";
+import MainContainerComponent from "../../components/displayComponents/MainContainerComponent";
+import { ModernShareEventModal } from "../miscComponents/ModernShareEventModal";
+import { WelcomePageOptions } from "../../components/miscComponents/WelcomePage";
+import Whiteboard from "../../components/whiteboardComponents/Whiteboard";
+import Screenboard from "../../components/screenboardComponents/Screenboard";
+import ScreenboardModal from "../../components/screenboardComponents/ScreenboardModal";
+
+// Classic components - kept for AudioGrid (no modern version) and MiniAudio
+import AudioGrid from "../../components/displayComponents/AudioGrid";
+import MiniAudio from "../../components/displayComponents/MiniAudio";
+
+// Modern UI Components - Used as DEFAULT components for modern UI system
+// These are imported for direct use in withOverride calls, making Modern the default
+import { ModernLoadingModal } from "../display_components/ModernLoadingModal";
+import { ModernAlertComponent } from "../display_components/ModernAlertComponent";
+import { ModernMenuModal } from "../menu_components/ModernMenuModal";
+import { ModernRecordingModal } from "../recording_components/ModernRecordingModal";
+import { ModernRequestsModal } from "../requests_components/ModernRequestsModal";
+import { ModernWaitingModal } from "../waiting_components/ModernWaitingModal";
+import { ModernDisplaySettingsModal } from "../display_settings_components/ModernDisplaySettingsModal";
+import { ModernEventSettingsModal } from "../event_settings_components/ModernEventSettingsModal";
+import { ModernCoHostModal } from "../co_host_components/ModernCoHostModal";
+import { ModernParticipantsModal } from "../participants_components/ModernParticipantsModal";
+import { ModernMessagesModal } from "../message_components/ModernMessagesModal";
+import { ModernMediaSettingsModal } from "../media_settings_components/ModernMediaSettingsModal";
+import { ModernConfirmExitModal } from "../exit_components/ModernConfirmExitModal";
+import { ModernConfirmHereModal } from "../misc_components/ModernConfirmHereModal";
+import { ModernWelcomePage } from "../misc_components/ModernWelcomePage";
+import { ModernPreJoinPage } from "../misc_components/ModernPreJoinPage";
+import { ModernPollModal } from "../polls_components/ModernPollModal";
+import { ModernBackgroundModal } from "../background_components/ModernBackgroundModal";
+import { ModernBreakoutRoomsModal } from "../breakout_components/ModernBreakoutRoomsModal";
+import { ModernConfigureWhiteboardModal } from "../whiteboard_components/ModernConfigureWhiteboardModal";
+import { ModernPermissionsModal } from "../permissions_components/ModernPermissionsModal";
+import { ModernPanelistsModal } from "../panelists_components/ModernPanelistsModal";
+import { ModernPagination } from "../display_components/ModernPagination";
+import { TranslationSettingsModal } from "../translation_components/TranslationSettingsModal";
+import { ModernFlexibleGrid } from "../display_components/ModernFlexibleGrid";
+import { ModernFlexibleVideo } from "../display_components/ModernFlexibleVideo";
+import { ModernMeetingProgressTimer } from "../display_components/ModernMeetingProgressTimer";
+import { ModernVideoCard } from "../display_components/ModernVideoCard";
+import { ModernAudioCard } from "../display_components/ModernAudioCard";
+import { ModernMiniCard } from "../display_components/ModernMiniCard";
+import { ModernTooltip } from "../core/widgets/ModernTooltip";
+import { ParticipantsCounterBadge } from "../display_components/ParticipantsCounterBadge";
+
+// Re-export Modern components for external use
+export { ModernLoadingModal } from "../display_components/ModernLoadingModal";
+export { ModernAlertComponent } from "../display_components/ModernAlertComponent";
+export { ModernMenuModal } from "../menu_components/ModernMenuModal";
+export { ModernRecordingModal } from "../recording_components/ModernRecordingModal";
+export { ModernRequestsModal } from "../requests_components/ModernRequestsModal";
+export { ModernWaitingModal } from "../waiting_components/ModernWaitingModal";
+export { ModernDisplaySettingsModal } from "../display_settings_components/ModernDisplaySettingsModal";
+export { ModernEventSettingsModal } from "../event_settings_components/ModernEventSettingsModal";
+export { ModernCoHostModal } from "../co_host_components/ModernCoHostModal";
+export { ModernParticipantsModal } from "../participants_components/ModernParticipantsModal";
+export { ModernMessagesModal } from "../message_components/ModernMessagesModal";
+export { ModernMediaSettingsModal } from "../media_settings_components/ModernMediaSettingsModal";
+export { ModernConfirmExitModal } from "../exit_components/ModernConfirmExitModal";
+export { ModernConfirmHereModal } from "../misc_components/ModernConfirmHereModal";
+export { ModernWelcomePage } from "../misc_components/ModernWelcomePage";
+export { ModernPreJoinPage } from "../misc_components/ModernPreJoinPage";
+export { ModernPollModal } from "../polls_components/ModernPollModal";
+export { ModernBackgroundModal } from "../background_components/ModernBackgroundModal";
+export { ModernBreakoutRoomsModal } from "../breakout_components/ModernBreakoutRoomsModal";
+export { ModernConfigureWhiteboardModal } from "../whiteboard_components/ModernConfigureWhiteboardModal";
+export { ModernPagination } from "../display_components/ModernPagination";
+export { ModernFlexibleGrid } from "../display_components/ModernFlexibleGrid";
+export { ModernFlexibleVideo } from "../display_components/ModernFlexibleVideo";
+export { ModernMeetingProgressTimer } from "../display_components/ModernMeetingProgressTimer";
+export { ModernVideoCard } from "../display_components/ModernVideoCard";
+export { ModernAudioCard } from "../display_components/ModernAudioCard";
+export { ModernMiniCard } from "../display_components/ModernMiniCard";
+
+//import methods for control (samples)
+import { launchRecording } from "../../methods/recordingMethods/launchRecording";
+import { launchMediaSettings } from "../../methods/mediaSettingsMethods/launchMediaSettings";
+import { startRecording } from "../../methods/recordingMethods/startRecording";
+import { confirmRecording } from "../../methods/recordingMethods/confirmRecording";
+import { launchConfirmExit } from "../../methods/exitMethods/launchConfirmExit";
+
+// Import the platform-specific WebRTC module (options are for ios, android, web)
+import { mediaDevices } from "../../methods/utils/webrtc/webrtc";
+
+// mediasfu functions -- examples
+import { connectSocket, connectLocalSocket } from "../../sockets/SocketManager";
+import { joinRoomClient } from "../../ProducerClient/producerClientEmits/joinRoomClient";
+import { joinLocalRoom } from "../../producers/producerEmits/joinLocalRoom";
+import { updateRoomParametersClient } from "../../ProducerClient/producerClientEmits/updateRoomParametersClient";
+import { createDeviceClient } from "../../ProducerClient/producerClientEmits/createDeviceClient";
+
+import { switchVideoAlt } from "../../methods/streamMethods/switchVideoAlt";
+import { clickVideo } from "../../methods/streamMethods/clickVideo";
+import { clickAudio } from "../../methods/streamMethods/clickAudio";
+import { clickScreenShare } from "../../methods/streamMethods/clickScreenShare";
+import { streamSuccessVideo } from "../../consumers/streamSuccessVideo";
+import { streamSuccessAudio } from "../../consumers/streamSuccessAudio";
+import { streamSuccessScreen } from "../../consumers/streamSuccessScreen";
+import { streamSuccessAudioSwitch } from "../../consumers/streamSuccessAudioSwitch";
+import { checkPermission } from "../../consumers/checkPermission";
+import { withFunctionOverride, withOverride } from "../../components/mediasfuComponents/overrideHelpers";
+
+//mediasfu functions
+import {
+  updateMiniCardsGrid,
+  GridLayoutMeta,
+} from "../../consumers/updateMiniCardsGrid";
+import { mixStreams } from "../../consumers/mixStreams";
+import { dispStreams } from "../../consumers/dispStreams";
+import { stopShareScreen } from "../../consumers/stopShareScreen";
+import { checkScreenShare } from "../../consumers/checkScreenShare";
+import { startShareScreen } from "../../consumers/startShareScreen";
+import { requestScreenShare } from "../../consumers/requestScreenShare";
+import { reorderStreams } from "../../consumers/reorderStreams";
+import { prepopulateUserMedia } from "../../consumers/prepopulateUserMedia";
+import { getVideos } from "../../consumers/getVideos";
+import { rePort } from "../../consumers/rePort";
+import { trigger } from "../../consumers/trigger";
+import { consumerResume } from "../../consumers/consumerResume";
+import { connectSendTransportAudio } from "../../consumers/connectSendTransportAudio";
+import { connectSendTransportVideo } from "../../consumers/connectSendTransportVideo";
+import { connectSendTransportScreen } from "../../consumers/connectSendTransportScreen";
+import { processConsumerTransports } from "../../consumers/processConsumerTransports";
+import { resumePauseStreams } from "../../consumers/resumePauseStreams";
+import { readjust } from "../../consumers/readjust";
+import { checkGrid } from "../../consumers/checkGrid";
+import { getEstimate } from "../../consumers/getEstimate";
+import { calculateRowsAndColumns } from "../../consumers/calculateRowsAndColumns";
+import { addVideosGrid } from "../../consumers/addVideosGrid";
+import { onScreenChanges } from "../../consumers/onScreenChanges";
+import { sleep } from "../../methods/utils/sleep";
+import { changeVids } from "../../consumers/changeVids";
+import { compareActiveNames } from "../../consumers/compareActiveNames";
+import { compareScreenStates } from "../../consumers/compareScreenStates";
+import { createSendTransport } from "../../consumers/createSendTransport";
+import { resumeSendTransportAudio } from "../../consumers/resumeSendTransportAudio";
+import { receiveAllPipedTransports } from "../../consumers/receiveAllPipedTransports";
+import { disconnectSendTransportVideo } from "../../consumers/disconnectSendTransportVideo";
+import { disconnectSendTransportAudio } from "../../consumers/disconnectSendTransportAudio";
+import { disconnectSendTransportScreen } from "../../consumers/disconnectSendTransportScreen";
+import { connectSendTransport } from "../../consumers/connectSendTransport";
+import { getPipedProducersAlt } from "../../consumers/getPipedProducersAlt";
+import { signalNewConsumerTransport } from "../../consumers/signalNewConsumerTransport";
+import { connectRecvTransport } from "../../consumers/connectRecvTransport";
+import { reUpdateInter } from "../../consumers/reUpdateInter";
+import { updateParticipantAudioDecibels } from "../../consumers/updateParticipantAudioDecibels";
+import { closeAndResize } from "../../consumers/closeAndResize";
+import { autoAdjust } from "../../consumers/autoAdjust";
+import { switchUserVideoAlt } from "../../consumers/switchUserVideoAlt";
+import { switchUserVideo } from "../../consumers/switchUserVideo";
+import { switchUserAudio } from "../../consumers/switchUserAudio";
+import MiniAudioPlayer from "../../methods/utils/MiniAudioPlayer/MiniAudioPlayer";
+import { receiveRoomMessages } from "../../consumers/receiveRoomMessages";
+import { formatNumber } from "../../methods/utils/formatNumber";
+import { connectIps } from "../../consumers/connectIps";
+import { connectLocalIps } from "../../consumers/connectLocalIps";
+
+import { pollUpdated } from "../../methods/pollsMethods/pollUpdated";
+import { handleCreatePoll } from "../../methods/pollsMethods/handleCreatePoll";
+import { handleVotePoll } from "../../methods/pollsMethods/handleVotePoll";
+import { handleEndPoll } from "../../methods/pollsMethods/handleEndPoll";
+
+import { breakoutRoomUpdated } from "../../methods/breakoutRoomsMethods/breakoutRoomUpdated";
+
+import { startMeetingProgressTimer } from "../../methods/utils/meetingTimer/startMeetingProgressTimer";
+import { updateRecording } from "../../methods/recordingMethods/updateRecording";
+import { stopRecording } from "../../methods/recordingMethods/stopRecording";
+
+import { userWaiting } from "../../producers/socketReceiveMethods/userWaiting";
+import { personJoined } from "../../producers/socketReceiveMethods/personJoined";
+import { allWaitingRoomMembers } from "../../producers/socketReceiveMethods/allWaitingRoomMembers";
+import { roomRecordParams } from "../../producers/socketReceiveMethods/roomRecordParams";
+import { banParticipant } from "../../producers/socketReceiveMethods/banParticipant";
+import { updatedCoHost } from "../../producers/socketReceiveMethods/updatedCoHost";
+import { participantRequested } from "../../producers/socketReceiveMethods/participantRequested";
+import { screenProducerId } from "../../producers/socketReceiveMethods/screenProducerId";
+import { updateMediaSettings } from "../../producers/socketReceiveMethods/updateMediaSettings";
+import { producerMediaPaused } from "../../producers/socketReceiveMethods/producerMediaPaused";
+import { producerMediaResumed } from "../../producers/socketReceiveMethods/producerMediaResumed";
+import { producerMediaClosed } from "../../producers/socketReceiveMethods/producerMediaClosed";
+import { controlMediaHost } from "../../producers/socketReceiveMethods/controlMediaHost";
+import { meetingEnded } from "../../producers/socketReceiveMethods/meetingEnded";
+import { disconnectUserSelf } from "../../producers/socketReceiveMethods/disconnectUserSelf";
+import { receiveMessage } from "../../producers/socketReceiveMethods/receiveMessage";
+import { meetingTimeRemaining } from "../../producers/socketReceiveMethods/meetingTimeRemaining";
+import { meetingStillThere } from "../../producers/socketReceiveMethods/meetingStillThere";
+import { startRecords } from "../../producers/socketReceiveMethods/startRecords";
+import { reInitiateRecording } from "../../producers/socketReceiveMethods/reInitiateRecording";
+import { getDomains } from "../../producers/socketReceiveMethods/getDomains";
+import { updateConsumingDomains } from "../../producers/socketReceiveMethods/updateConsumingDomains";
+import { recordingNotice } from "../../producers/socketReceiveMethods/recordingNotice";
+import { timeLeftRecording } from "../../producers/socketReceiveMethods/timeLeftRecording";
+import { stoppedRecording } from "../../producers/socketReceiveMethods/stoppedRecording";
+import { hostRequestResponse } from "../../producers/socketReceiveMethods/hostRequestResponse";
+import { allMembers } from "../../producers/socketReceiveMethods/allMembers";
+import { allMembersRest } from "../../producers/socketReceiveMethods/allMembersRest";
+import { disconnect } from "../../producers/socketReceiveMethods/disconnect";
+import {
+  permissionUpdated,
+  permissionConfigUpdated,
+  PermissionUpdatedData,
+  PermissionConfigUpdatedData,
+  PermissionConfig,
+} from "../../producers/socketReceiveMethods/permissionReceiveMethods";
+import {
+  panelistsUpdated,
+  panelistFocusChanged,
+  controlMedia,
+  addedAsPanelist,
+  removedFromPanelists,
+  PanelistsUpdatedData,
+  PanelistFocusChangedData,
+  ControlMediaData,
+  AddedAsPanelistData,
+  RemovedFromPanelistsData,
+} from "../../producers/socketReceiveMethods/panelistReceiveMethods";
+import {
+  translationRoomConfig,
+  translationConfigUpdated,
+  translationLanguageSet,
+  translationSubscribed,
+  translationUnsubscribed,
+  translationChannelsAvailable,
+  translationMemberState,
+  translationError,
+  translationTranscript,
+  translationSpeakerOutputChanged,
+  TranslationRoomConfig,
+  TranslationProducerMap,
+} from "../../producers/socketReceiveMethods/translationReceiveMethods";
+import {
+  pauseOriginalProducer,
+  resumeOriginalProducer,
+  isSpeakerInMyBreakoutRoom,
+  stopConsumingTranslation,
+} from "../../consumers/translationConsumerSwitch";
+import { captureCanvasStream } from "../../methods/whiteboardMethods/captureCanvasStream";
+import { resumePauseAudioStreams } from "../../consumers/resumePauseAudioStreams";
+import { processConsumerTransportsAudio } from "../../consumers/processConsumerTransportsAudio";
+
+import { Socket } from "socket.io-client";
+import {
+  AParamsType,
+  AudioDecibels,
+  BreakoutParticipant,
+  CoHostResponsibility,
+  ComponentSizes,
+  GridSizes,
+  HParamsType,
+  MeetingRoomParams,
+  Message,
+  Participant,
+  Poll,
+  ResponseJoinRoom,
+  ResponseJoinLocalRoom,
+  ScreenParamsType,
+  ScreenState,
+  Stream,
+  UserRecordingParams,
+  VParamsType,
+  VidCons,
+  WaitingRoomParticipant,
+  WhiteboardUser,
+  Shape,
+  Request,
+  Transport as TransportType,
+  RecordParams,
+  EventType,
+  ConsumeSocket,
+  AllMembersData,
+  AllMembersRestData,
+  AllWaitingRoomMembersData,
+  UpdatedCoHostData,
+  Settings,
+  UpdateConsumingDomainsData,
+  HostRequestResponseData,
+  PollUpdatedData,
+  BreakoutRoomUpdatedData,
+  ButtonTouch,
+  CustomButton,
+  SeedData,
+  PreJoinPageOptions,
+  CreateMediaSFURoomOptions,
+  JoinMediaSFURoomOptions,
+  JoinRoomOnMediaSFUType,
+  CreateRoomOnMediaSFUType,
+} from "../../@types/types";
+import {
+  Device,
+  Producer,
+  ProducerOptions,
+  RtpCapabilities,
+  Transport,
+} from "mediasoup-client/lib/types";
+import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
+import { createResponseJoinRoom } from "../../methods/utils/createResponseJoinRoom";
+import {
+  CustomVideoCardType,
+  CustomAudioCardType,
+  CustomMiniCardType,
+  CustomPreJoinPageType,
+  CustomComponentType,
+  MediasfuUICustomOverrides,
+} from "../../@types/types";
+
+export type ModernMediasfuGenericOptions = {
+  PrejoinPage?: (
+    options: PreJoinPageOptions | WelcomePageOptions
+  ) => React.ReactNode;
+  localLink?: string;
+  connectMediaSFU?: boolean;
+  credentials?: { apiUserName: string; apiKey: string };
+  useLocalUIMode?: boolean;
+  seedData?: SeedData;
+  useSeed?: boolean;
+  imgSrc?: string;
+  sourceParameters?: { [key: string]: any };
+  updateSourceParameters?: (data: { [key: string]: any }) => void;
+  returnUI?: boolean;
+  noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
+  joinMediaSFURoom?: JoinRoomOnMediaSFUType;
+  createMediaSFURoom?: CreateRoomOnMediaSFUType;
+  
+  // Custom Component Builders
+  customVideoCard?: CustomVideoCardType;
+  customAudioCard?: CustomAudioCardType;
+  customMiniCard?: CustomMiniCardType;
+  customPreJoinPage?: CustomPreJoinPageType;
+  
+  // Custom Full UI Component
+  customComponent?: CustomComponentType;
+  
+  // Container styling override
+  containerStyle?: React.CSSProperties;
+  // UI override entry points
+  uiOverrides?: MediasfuUICustomOverrides;
+};
+
+/**
+ * MediasfuGeneric component provides and combines the generic functionalities for MediaSFU.
+ * It supports webinar, broadcast, chat, conference views with full UI override capabilities.
+ * Participants can share media (audio, video, screen share) with each other, engage in polls,
+ * breakout rooms, chat, and more—all while maintaining the ability to customize every UI surface
+ * through component overrides, function wrapping, and custom participant cards.
+ *
+ * @typedef {Object} ModernMediasfuGenericOptions
+ * @property {function} [PrejoinPage=WelcomePage] - Custom pre-join page renderer. Receives unified pre-join options for adding branding or extra forms.
+ * @property {string} [localLink=""] - Local MediaSFU server URL (Community Edition). Leave empty for MediaSFU Cloud.
+ * @property {boolean} [connectMediaSFU=true] - Toggle automatic socket/WebRTC connections. Set false for UI-only mode.
+ * @property {Object} [credentials={ apiUserName: "", apiKey: "" }] - MediaSFU Cloud API credentials. Not required for self-hosting.
+ * @property {boolean} [useLocalUIMode=false] - Run interface in local/demo mode with no remote signaling.
+ * @property {SeedData} [seedData={}] - Pre-populate UI state for demos, tests, or onboarding.
+ * @property {boolean} [useSeed=false] - Enable seed data injection.
+ * @property {string} [imgSrc="https://mediasfu.com/images/logo192.png"] - Default artwork for pre-join and modals.
+ * @property {Object} [sourceParameters={}] - Shared helper bag (devices, participants, layout handlers). Pair with updateSourceParameters.
+ * @property {function} [updateSourceParameters] - Callback receiving latest helper bundle for bridging MediaSFU logic into custom components.
+ * @property {boolean} [returnUI=true] - When false, mounts logic only (headless mode).
+ * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Pre-join data for headless mode (bypass wizard).
+ * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Custom room-join function (replace default networking).
+ * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Custom room-create function (replace default networking).
+ * @property {CustomVideoCardType} [customVideoCard] - Override participant video card renders. Add badges, CTAs, or metadata.
+ * @property {CustomAudioCardType} [customAudioCard] - Override participant audio-only card renders.
+ * @property {CustomMiniCardType} [customMiniCard] - Override participant mini-card thumbnails (PiP modes).
+ * @property {CustomPreJoinPageType} [customPreJoinPage] - Full replacement for the interactive pre-join wizard.
+ * @property {CustomComponentType} [customComponent] - Replace entire UI while retaining transports, sockets, and helpers.
+ * @property {React.CSSProperties} [containerStyle] - Inline styles for root wrapper (dashboards, split views).
+ * @property {MediasfuUICustomOverrides} [uiOverrides] - Targeted component/function overrides (layout, modals, helper wraps). See full map in docs.
+ *
+ * MediasfuGeneric component.
+ *
+ * @component
+ * @param {ModernMediasfuGenericOptions} props - Component properties.
+ * @returns {React.FC<ModernMediasfuGenericOptions>} - React functional component.
+ *
+ * @example
+ * // Basic usage with MediaSFU Cloud
+ * ```tsx
+ * <MediasfuGeneric
+ *   credentials={{ apiUserName: "user", apiKey: "key" }}
+ * />
+ * ```
+ *
+ * @example
+ * // Custom cards and UI overrides
+ * ```tsx
+ * const videoCard: CustomVideoCardType = (props) => (
+ *   <VideoCard {...props} customStyle={{ borderRadius: 20, border: "3px solid purple" }} />
+ * );
+ *
+ * const uiOverrides = useMemo<MediasfuUICustomOverrides>(() => ({
+ *   mainContainer: {
+ *     render: (props) => <div style={{ border: "4px dashed purple" }}><MainContainerComponent {...props} /></div>,
+ *   },
+ *   consumerResume: {
+ *     wrap: (original) => async (params) => {
+ *       analytics.track("consumer_resume");
+ *       return await original(params);
+ *     },
+ *   },
+ * }), []);
+ *
+ * <MediasfuGeneric
+ *   credentials={{ apiUserName: "user", apiKey: "key" }}
+ *   customVideoCard={videoCard}
+ *   uiOverrides={uiOverrides}
+ *   containerStyle={{ background: "#0f172a", borderRadius: 32 }}
+ * />
+ * ```
+ *
+ * @example
+ * // Headless mode with custom component
+ * ```tsx
+ * const CustomWorkspace: CustomComponentType = ({ parameters }) => (
+ *   <div>
+ *     <h1>Room: {parameters.roomName}</h1>
+ *     <button onClick={() => parameters.showAlert?.({ message: "Hello!", type: "success" })}>
+ *       Trigger Alert
+ *     </button>
+ *   </div>
+ * );
+ *
+ * <MediasfuGeneric
+ *   PrejoinPage={CustomPrejoinPage}
+ *   localLink="https://localhost:3000"
+ *   connectMediaSFU={true}
+ *   credentials={{ apiUserName: "user", apiKey: "key" }}
+ *   useLocalUIMode={true}
+ *   seedData={customSeedData}
+ *   useSeed={true}
+ *   imgSrc="https://example.com/logo.png"
+ *   sourceParameters={{ key: value }}
+ *   updateSourceParameters={updateSourceParameters}
+ *   returnUI={true}
+ *   noUIPreJoinOptions={customPreJoinOptions}
+ *   joinMediaSFURoom={joinRoomOnMediaSFU}
+ *   createMediaSFURoom={createRoomOnMediaSFU}
+ * />
+ * ```
+ *
+ * @description
+ * This component handles the generic functionalities for MediaSFU, including joining rooms,
+ * managing participants, and handling media streams. It uses various hooks and methods to
+ * manage state and perform actions such as joining a room, updating initial values, and
+ * handling media streams.
+ *
+ */
+
+const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
+  PrejoinPage, // No default - uses ModernPreJoinPage via withOverride
+  localLink = "",
+  connectMediaSFU = true,
+  credentials = { apiUserName: "", apiKey: "" },
+  useLocalUIMode = false,
+  seedData = {},
+  useSeed = false,
+  imgSrc = "https://mediasfu.com/images/logo192.png",
+  sourceParameters,
+  updateSourceParameters,
+  returnUI = true,
+  noUIPreJoinOptions,
+  joinMediaSFURoom,
+  createMediaSFURoom,
+  customVideoCard,
+  customAudioCard,
+  customMiniCard,
+  customPreJoinPage,
+  customComponent,
+  containerStyle,
+  uiOverrides,
+}) => {
+
+  const MainContainer = useMemo(
+    () => withOverride(uiOverrides?.mainContainer, MainContainerComponent),
+    [uiOverrides?.mainContainer]
+  );
+  const MainAspect = useMemo(
+    () => withOverride(uiOverrides?.mainAspect, MainAspectComponent),
+    [uiOverrides?.mainAspect]
+  );
+  const MainScreen = useMemo(
+    () => withOverride(uiOverrides?.mainScreen, MainScreenComponent),
+    [uiOverrides?.mainScreen]
+  );
+  const MainGrid = useMemo(
+    () => withOverride(uiOverrides?.mainGrid, MainGridComponent),
+    [uiOverrides?.mainGrid]
+  );
+  const SubAspect = useMemo(
+    () => withOverride(uiOverrides?.subAspect, SubAspectComponent),
+    [uiOverrides?.subAspect]
+  );
+  const OtherGrid = useMemo(
+    () => withOverride(uiOverrides?.otherGrid, OthergridComponent),
+    [uiOverrides?.otherGrid]
+  );
+  // Modern UI components as defaults - using Modern versions for all display components
+  const FlexibleGridPrimary = useMemo(
+    () => withOverride(uiOverrides?.flexibleGrid, ModernFlexibleGrid),
+    [uiOverrides?.flexibleGrid]
+  );
+  const FlexibleGridAlt = useMemo(
+    () => withOverride(uiOverrides?.flexibleGridAlt, ModernFlexibleGrid),
+    [uiOverrides?.flexibleGridAlt]
+  );
+  const FlexibleVideoComponent = useMemo(
+    () => withOverride(uiOverrides?.flexibleVideo, ModernFlexibleVideo),
+    [uiOverrides?.flexibleVideo]
+  );
+  const AudioGridComponent = useMemo(
+    () => withOverride(uiOverrides?.audioGrid, AudioGrid), // No modern version - kept classic
+    [uiOverrides?.audioGrid]
+  );
+  const PaginationComponent = useMemo(
+    () => withOverride(uiOverrides?.pagination, ModernPagination),
+    [uiOverrides?.pagination]
+  );
+  const ControlButtons = useMemo(
+    () => withOverride(uiOverrides?.controlButtons, ControlButtonsComponent),
+    [uiOverrides?.controlButtons]
+  );
+  const ControlButtonsAlt = useMemo(
+    () => withOverride(uiOverrides?.controlButtonsAlt, ControlButtonsAltComponent),
+    [uiOverrides?.controlButtonsAlt]
+  );
+  const ControlButtonsTouch = useMemo(
+    () => withOverride(uiOverrides?.controlButtonsTouch, ControlButtonsComponentTouch),
+    [uiOverrides?.controlButtonsTouch]
+  );
+  const WhiteboardComponent = useMemo(
+    () => withOverride(uiOverrides?.whiteboard, Whiteboard),
+    [uiOverrides?.whiteboard]
+  );
+  const ScreenboardComponent = useMemo(
+    () => withOverride(uiOverrides?.screenboard, Screenboard),
+    [uiOverrides?.screenboard]
+  );
+  const VideoCardComponentOverride = useMemo(
+    () => withOverride(uiOverrides?.videoCard, ModernVideoCard),
+    [uiOverrides?.videoCard]
+  );
+  const AudioCardComponentOverride = useMemo(
+    () => withOverride(uiOverrides?.audioCard, ModernAudioCard),
+    [uiOverrides?.audioCard]
+  );
+  const MiniCardComponentOverride = useMemo(
+    () => withOverride(uiOverrides?.miniCard, ModernMiniCard),
+    [uiOverrides?.miniCard]
+  );
+  const MiniAudioComponentOverride = useMemo(
+    () => withOverride(uiOverrides?.miniAudio, MiniAudio), // No modern version - kept classic
+    [uiOverrides?.miniAudio]
+  );
+  const MeetingProgressTimerComponentBase = useMemo(
+    () => withOverride(uiOverrides?.meetingProgressTimer, ModernMeetingProgressTimer),
+    [uiOverrides?.meetingProgressTimer]
+  );
+  const MiniAudioPlayerComponent = useMemo(
+    () => withOverride(uiOverrides?.miniAudioPlayer, MiniAudioPlayer),
+    [uiOverrides?.miniAudioPlayer]
+  );
+  const consumerResumeFn = useMemo(
+    () => withFunctionOverride(uiOverrides?.consumerResume, consumerResume),
+    [uiOverrides?.consumerResume]
+  );
+  const addVideosGridFn = useMemo(
+    () => withFunctionOverride(uiOverrides?.addVideosGrid, addVideosGrid),
+    [uiOverrides?.addVideosGrid]
+  );
+  // Modern modal components as defaults
+  const LoadingModalComponent = useMemo(
+    () => withOverride(uiOverrides?.loadingModal, ModernLoadingModal),
+    [uiOverrides?.loadingModal]
+  );
+  const AlertComponentOverride = useMemo(
+    () => withOverride(uiOverrides?.alert, ModernAlertComponent),
+    [uiOverrides?.alert]
+  );
+  const MenuModalComponent = useMemo(
+    () => withOverride(uiOverrides?.menuModal, ModernMenuModal),
+    [uiOverrides?.menuModal]
+  );
+  const EventSettingsModalComponent = useMemo(
+    () => withOverride(uiOverrides?.eventSettingsModal, ModernEventSettingsModal),
+    [uiOverrides?.eventSettingsModal]
+  );
+  const RequestsModalComponent = useMemo(
+    () => withOverride(uiOverrides?.requestsModal, ModernRequestsModal),
+    [uiOverrides?.requestsModal]
+  );
+  const WaitingRoomModalComponent = useMemo(
+    () => withOverride(uiOverrides?.waitingRoomModal, ModernWaitingModal),
+    [uiOverrides?.waitingRoomModal]
+  );
+  const CoHostModalComponent = useMemo(
+    () => withOverride(uiOverrides?.coHostModal, ModernCoHostModal),
+    [uiOverrides?.coHostModal]
+  );
+  const MediaSettingsModalComponent = useMemo(
+    () => withOverride(uiOverrides?.mediaSettingsModal, ModernMediaSettingsModal),
+    [uiOverrides?.mediaSettingsModal]
+  );
+  const ParticipantsModalComponent = useMemo(
+    () => withOverride(uiOverrides?.participantsModal, ModernParticipantsModal),
+    [uiOverrides?.participantsModal]
+  );
+  const MessagesModalComponent = useMemo(
+    () => withOverride(uiOverrides?.messagesModal, ModernMessagesModal),
+    [uiOverrides?.messagesModal]
+  );
+  const DisplaySettingsModalComponent = useMemo(
+    () => withOverride(uiOverrides?.displaySettingsModal, ModernDisplaySettingsModal),
+    [uiOverrides?.displaySettingsModal]
+  );
+  const ConfirmExitModalComponent = useMemo(
+    () => withOverride(uiOverrides?.confirmExitModal, ModernConfirmExitModal),
+    [uiOverrides?.confirmExitModal]
+  );
+  const ConfirmHereModalComponent = useMemo(
+    () => withOverride(uiOverrides?.confirmHereModal, ModernConfirmHereModal),
+    [uiOverrides?.confirmHereModal]
+  );
+  const ShareEventModalComponent = useMemo(
+    () => withOverride(uiOverrides?.shareEventModal, ModernShareEventModal),
+    [uiOverrides?.shareEventModal]
+  );
+  const RecordingModalComponent = useMemo(
+    () => withOverride(uiOverrides?.recordingModal, ModernRecordingModal),
+    [uiOverrides?.recordingModal]
+  );
+  const PollModalComponent = useMemo(
+    () => withOverride(uiOverrides?.pollModal, ModernPollModal),
+    [uiOverrides?.pollModal]
+  );
+  const BackgroundModalComponent = useMemo(
+    () => withOverride(uiOverrides?.backgroundModal, ModernBackgroundModal),
+    [uiOverrides?.backgroundModal]
+  );
+  const BreakoutRoomsModalComponent = useMemo(
+    () => withOverride(uiOverrides?.breakoutRoomsModal, ModernBreakoutRoomsModal),
+    [uiOverrides?.breakoutRoomsModal]
+  );
+  const ConfigureWhiteboardModalComponent = useMemo(
+    () => withOverride(uiOverrides?.configureWhiteboardModal, ModernConfigureWhiteboardModal),
+    [uiOverrides?.configureWhiteboardModal]
+  );
+  const ScreenboardModalComponent = useMemo(
+    () => withOverride(uiOverrides?.screenboardModal, ScreenboardModal), // No modern version
+    [uiOverrides?.screenboardModal]
+  );
+  const WelcomePageComponent = useMemo(
+    () => withOverride(uiOverrides?.welcomePage, ModernWelcomePage),
+    [uiOverrides?.welcomePage]
+  );
+  // Use PrejoinPage prop if provided, else default to ModernPreJoinPage
+  const PreJoinPageComponent = useMemo(
+    () => withOverride(uiOverrides?.preJoinPage, PrejoinPage ?? ModernPreJoinPage),
+    [uiOverrides?.preJoinPage, PrejoinPage]
+  );
+
+  const updateStatesToInitialValues = async () => {
+    const initialValues = initialValuesState as { [key: string]: any };
+    const updateFunctions = getAllParams() as unknown as {
+      [key: string]: (value: any) => void;
+    };
+
+    for (const key in initialValues) {
+      if (Object.prototype.hasOwnProperty.call(initialValues, key)) {
+        const updateFunctionName = `update${
+          key.charAt(0).toUpperCase() + key.slice(1)
+        }`;
+        const updateFunction = updateFunctions[updateFunctionName];
+
+        if (typeof updateFunction === "function") {
+          try {
+            updateFunction(initialValues[key]);
+          } catch {
+            // Do nothing
+          }
+        }
+      }
+    }
+  };
+
+  //logic to join room using socket
+  async function joinRoom(data: {
+    socket: Socket;
+    roomName: string;
+    islevel: string;
+    member: string;
+    sec: string;
+    apiUserName: string;
+  }): Promise<ResponseJoinRoom | null> {
+    const { socket, roomName, islevel, member, sec, apiUserName } = data;
+    try {
+      // Emit the joinRoom event to the server using the provided socket
+      const response = await joinRoomClient({
+        socket,
+        roomName,
+        islevel,
+        member,
+        sec,
+        apiUserName,
+      });
+      return response;
+    } catch (error) {
+      // Handle and log errors during the joinRoom process
+      console.log("error", error);
+
+      setTimeout(() => {
+        setValidated(false);
+        updateIsLoadingModalVisible(false);
+        showAlert?.({
+          message: "Failed to join the room. Please check your connection and try again.",
+          type: "danger",
+          duration: 3000,
+        });
+      }, 1000);
+     throw new Error('Failed to join the room. Please check your connection and try again.');
+    }
+  }
+
+  //validated is true if the user has entered the correct details and checked from the server
+  const [validated, setValidated] = useState<boolean>(useLocalUIMode); // Validated state as boolean
+
+  // Theme state - dark mode by default for modern UI
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const updateIsDarkMode = (value: boolean) => setIsDarkMode(value);
+
+  // Wrap timer component to pass isDarkMode
+  const MeetingProgressTimerComponent = useMemo(() => {
+    const TimerBase = MeetingProgressTimerComponentBase;
+    const WrappedTimer: React.FC<any> = (props) => <TimerBase {...props} isDarkMode={isDarkMode} />;
+    return WrappedTimer;
+  }, [MeetingProgressTimerComponentBase, isDarkMode]);
+
+  // Sidebar state for desktop layout (>=1200px)
+  type SidebarContentType = 
+    | 'none' 
+    | 'menu' 
+    | 'participants' 
+    | 'messages' 
+    | 'requests' 
+    | 'waiting' 
+    | 'coHost' 
+    | 'mediaSettings' 
+    | 'displaySettings' 
+    | 'eventSettings' 
+    | 'recording' 
+    | 'polls' 
+    | 'breakoutRooms' 
+    | 'shareEvent' 
+    | 'configureWhiteboard' 
+    | 'background'
+    | 'permissions'
+    | 'panelists'
+    | 'translation';
+  
+  const [activeSidebarContent, setActiveSidebarContent] = useState<SidebarContentType>('none');
+  const [sidebarNavigationStack, setSidebarNavigationStack] = useState<SidebarContentType[]>([]);
+
+  // Helper to determine if we should use desktop sidebar layout
+  const isBrowser = typeof window !== 'undefined';
+  const [windowWidth, setWindowWidth] = useState(isBrowser ? window.innerWidth : 0);
+  const [windowHeight, setWindowHeight] = useState(isBrowser ? window.innerHeight : 0);
+  
+  // Note: Window dimensions are updated in the main handleResize function (around line 4950)
+  // to avoid race conditions between separate resize listeners
+
+  const shouldUseSidebar = useMemo(() => {
+    const isLandscape = windowWidth > windowHeight;
+    const isWide = windowWidth >= 1200;
+    return isLandscape && isWide;
+  }, [windowWidth, windowHeight]);
+
+  // Show button labels on larger screens (576px+), not just when sidebar is available
+  const showButtonLabels = useMemo(() => {
+    return windowWidth >= 576;
+  }, [windowWidth]);
+
+  // Calculate sidebar width based on screen size
+  // Note: Caller should check sidebar visibility before using this value
+  const getSidebarWidth = useCallback((screenWidth: number): number => {
+    const calculatedWidth = screenWidth * 0.20;
+    if (calculatedWidth < 280) return 280;
+    if (calculatedWidth > 420) return 420;
+    return calculatedWidth;
+  }, []);
+
+  // Run pre-flight logic before showing sidebar content
+  // Close sidebar
+  const closeSidebar = useCallback(() => {
+    setActiveSidebarContent('none');
+    setSidebarNavigationStack([]);
+  }, []);
+
+  // Calculate sidebar width
+  const sidebarWidth = useMemo(() => {
+    if (!shouldUseSidebar || activeSidebarContent === 'none') return 0;
+    return getSidebarWidth(windowWidth);
+  }, [shouldUseSidebar, activeSidebarContent, windowWidth, getSidebarWidth]);
+
+  // Track if sidebar is visible
+  const isSidebarVisible = useMemo(() => {
+    return activeSidebarContent !== 'none' && shouldUseSidebar;
+  }, [activeSidebarContent, shouldUseSidebar]);
+
+  // Track if sidebar modal (mobile) is visible
+  const isSidebarModalVisible = useMemo(() => {
+    return activeSidebarContent !== 'none' && !shouldUseSidebar;
+  }, [activeSidebarContent, shouldUseSidebar]);
+
+  // Theme-aware colors helper
+  const themedSurfaceColor = useMemo(() => {
+    return isDarkMode 
+      ? 'rgba(15, 23, 42, 0.98)' // Dark slate 
+      : 'rgba(248, 250, 252, 0.98)'; // Light
+  }, [isDarkMode]);
+
+  // UseRef hooks with type annotations
+  const localUIMode = useRef<boolean>(useLocalUIMode); // Local UI mode (desktop or touch) as boolean
+  const socket = useRef<Socket>({} as Socket); // Socket for the media server, type Socket or null
+  const localSocket = useRef<Socket | null>(null); // Local socket for the media server, type Socket or null
+  const roomData = useRef<ResponseJoinRoom | null>(null); // Room data, type ResponseJoinRoom or null
+  const device = useRef<Device | null>(null); // Mediasoup Device, type Device or null
+
+  // String references with useRef
+  const apiUserName = useRef<string>(""); // API username, type string
+  const apiToken = useRef<string>(""); // API token, type string
+  const link = useRef<string>(""); // Link to the media server, type string
+
+  //Room Details
+  const roomName = useRef<string>(""); // Room name as string
+  const member = useRef<string>(
+    useSeed && seedData?.member ? seedData?.member : ""
+  ); // Member name as string
+  const adminPasscode = useRef<string>(""); // Admin passcode as string
+  const islevel = useRef<string>(
+    useSeed && seedData?.member
+      ? seedData.member == seedData?.host
+        ? "2"
+        : "1"
+      : "1"
+  ); // Level of the user as string
+  const coHost = useRef<string>(""); // Co-host as string
+  const coHostResponsibility = useRef<CoHostResponsibility[]>([
+    { name: "participants", value: false, dedicated: false },
+    { name: "media", value: false, dedicated: false },
+    { name: "waiting", value: false, dedicated: false },
+    { name: "chat", value: false, dedicated: false },
+  ]); // Array of co-host responsibilities
+  const youAreCoHost = useRef<boolean>(
+    coHost.current ? coHost.current == member.current : false
+  ); // True if the user is a co-host as boolean
+  const youAreHost = useRef<boolean>(islevel ? islevel.current == "2" : false); // True if the user is a host as boolean
+  const confirmedToRecord = useRef<boolean>(false); // True if the user has confirmed to record as boolean
+  const meetingDisplayType = useRef<string>("media"); // Meeting display type as string
+  const meetingVideoOptimized = useRef<boolean>(false); // True if the meeting video is optimized as boolean
+  const eventType = useRef<EventType>(
+    useSeed && seedData?.eventType ? seedData?.eventType : "webinar"
+  ); // Event type as string
+  const participants = useRef<Participant[]>(
+    useSeed && seedData?.participants ? seedData?.participants : []
+  ); // Array of participants
+  const filteredParticipants = useRef<Participant[]>(participants.current); // Filtered participants as array of Participant
+  const participantsCounter = useRef<number>(0); // Participants counter as number
+  const participantsFilter = useRef<string>(""); // Participants filter as string
+  // Media and Room Details
+  const consume_sockets = useRef<ConsumeSocket[]>([]); // Array of consume sockets
+  const rtpCapabilities = useRef<RtpCapabilities | null>(null); // RTP capabilities from MediaSoup, type RtpCapabilities or null
+  const roomRecvIPs = useRef<string[]>([]); // Receiving IPs (domains) for the room consumer as strings
+  const meetingRoomParams = useRef<MeetingRoomParams | null>(null); // Room parameters for the meeting/event room, type MeetingRoomParams or null
+  const itemPageLimit = useRef<number>(4); // Number of items to show per page in the media display as number
+  const audioOnlyRoom = useRef<boolean>(false); // True if the room is audio-only and does not support video as boolean
+  const addForBasic = useRef<boolean>(false); // True if the room supports few producers as boolean
+  const screenPageLimit = useRef<number>(4); // Number of people on the side-view of screen share as number
+  const shareScreenStarted = useRef<boolean>(false); // True if screen share has started and started remotely as boolean
+  const shared = useRef<boolean>(false); // True if screen share has started and started locally as boolean
+  const targetOrientation = useRef<string>("landscape"); // Orientation of the media to be captured as string
+  const targetResolution = useRef<string>("sd"); // Resolution of the media to be captured as string
+  const targetResolutionHost = useRef<string>("sd"); // Resolution of the host media to be captured as string
+  const vidCons = useRef<VidCons>({ width: 640, height: 360 }); // Constraints for video capture as array of VidConsType
+  const frameRate = useRef<number>(10); // Frame rate for video capture as number
+  const hParams = useRef<HParamsType>({} as HParamsType); // Host video encoding parameters, type HParamsType or null
+  const vParams = useRef<VParamsType>({} as VParamsType); // Rest of members video encoding parameters, type VParamsType or null
+  const screenParams = useRef<ScreenParamsType>({} as ScreenParamsType); // Screen share encoding parameters, type ScreenParamsType or null
+  const aParams = useRef<AParamsType>({} as AParamsType); // Audio encoding parameters, type AParamsType or null
+
+  //more room details
+  // Room Details - Recording
+  const recordingAudioPausesLimit = useRef<number>(0); // Number of pauses allowed for audio recording
+  const recordingAudioPausesCount = useRef<number>(0); // Number of pauses for audio recording
+  const recordingAudioSupport = useRef<boolean>(false); // True if the room supports audio recording
+  const recordingAudioPeopleLimit = useRef<number>(0); // Number of people allowed for audio recording
+  const recordingAudioParticipantsTimeLimit = useRef<number>(0); // Time limit for audio recording
+  const recordingVideoPausesCount = useRef<number>(0); // Number of pauses for video recording
+  const recordingVideoPausesLimit = useRef<number>(0); // Number of pauses allowed for video recording
+  const recordingVideoSupport = useRef<boolean>(false); // True if the room supports video recording
+  const recordingVideoPeopleLimit = useRef<number>(0); // Number of people allowed for video recording
+  const recordingVideoParticipantsTimeLimit = useRef<number>(0); // Time limit for video recording
+  const recordingAllParticipantsSupport = useRef<boolean>(false); // True if the room supports recording all participants
+  const recordingVideoParticipantsSupport = useRef<boolean>(false); // True if the room supports recording video participants
+  const recordingAllParticipantsFullRoomSupport = useRef<boolean>(false); // True if the room supports recording all participants in full room
+  const recordingVideoParticipantsFullRoomSupport = useRef<boolean>(false); // True if the room supports recording video participants in full room
+  const recordingPreferredOrientation = useRef<string>("landscape"); // Preferred orientation for recording
+  const recordingSupportForOtherOrientation = useRef<boolean>(false); // True if the room supports recording for other orientations
+  const recordingMultiFormatsSupport = useRef<boolean>(false); // True if the room supports recording multiple formats
+
+  // User Recording Parameters
+  const userRecordingParams = useRef<UserRecordingParams>({
+    mainSpecs: {
+      mediaOptions: "video", // 'audio', 'video',
+      audioOptions: "all", // 'all', 'onScreen', 'host'
+      videoOptions: "all", // 'all', 'mainScreen'
+      videoType: "fullDisplay", // 'all', 'bestDisplay', 'fullDisplay'
+      videoOptimized: false, // true, false
+      recordingDisplayType: "media", // 'media', 'video', 'all'
+      addHLS: false, // true, false
+    },
+    dispSpecs: {
+      nameTags: true, // true, false
+      backgroundColor: "#000000", // '#000000', '#ffffff'
+      nameTagsColor: "#ffffff", // '#000000', '#ffffff'
+      orientationVideo: "portrait", // 'landscape', 'portrait', 'all'
+    },
+  }); // User recording parameters with type UserRecordingParams
+
+  // More Room Details - Recording
+  const canRecord = useRef<boolean>(false); // True if the user can record
+  const startReport = useRef<boolean>(false); // True if the user has started recording
+  const endReport = useRef<boolean>(false); // True if the user has stopped recording
+  const recordTimerInterval = useRef<NodeJS.Timeout | null>(null); // Interval for the recording timer
+  const recordStartTime = useRef<number>(0); // Start time for the recording timer as timestamp or null
+  const recordElapsedTime = useRef<number>(0); // Elapsed time for the recording timer
+  const isTimerRunning = useRef<boolean>(false); // True if the recording timer is running
+  const canPauseResume = useRef<boolean>(false); // True if the user can pause/resume recording
+  const recordChangeSeconds = useRef<number>(15000); // Number of seconds to change the recording timer by
+  const pauseLimit = useRef<number>(0); // Number of pauses allowed for recording
+  const pauseRecordCount = useRef<number>(0); // Number of pauses for recording
+  const canLaunchRecord = useRef<boolean>(true); // True if the user can launch recording
+  const stopLaunchRecord = useRef<boolean>(false); // True if the user can stop recording
+
+  //misc variables
+  // State and references with type annotations
+  const firstAll = useRef<boolean>(false); // True if it is the first time getting all parameters
+  const updateMainWindow = useRef<boolean>(false); // Update main window
+  const first_round = useRef<boolean>(false); // True if it is the first round of screen share
+  const landScaped = useRef<boolean>(false); // True if the screen share is in landscape mode
+  const lock_screen = useRef<boolean>(false); // True if the screen is locked in place for screen share
+  const screenId = useRef<string>(""); // Screen share producer ID
+  const allVideoStreams = useRef<(Participant | Stream)[]>([]); // Array of all video streams
+  const newLimitedStreams = useRef<(Participant | Stream)[]>([]); // Array of new limited streams
+  const newLimitedStreamsIDs = useRef<string[]>([]); // Array of new limited stream IDs
+  const activeSounds = useRef<string[]>([]); // Array of active sounds
+  const screenShareIDStream = useRef<string>(""); // Screen share stream ID
+  const screenShareNameStream = useRef<string>(""); // Screen share stream name
+  const adminIDStream = useRef<string>(""); // Admin stream ID
+  const adminNameStream = useRef<string>(""); // Admin stream name
+  const youYouStream = useRef<(Participant | Stream)[]>([]); // YouYou (own) stream
+  const youYouStreamIDs = useRef<string[]>([]); // Array of YouYou (own) stream IDs
+  const localStream = useRef<MediaStream | null>(null); // Local stream
+  const recordStarted = useRef<boolean>(false); // True if recording has started
+  const recordResumed = useRef<boolean>(false); // True if recording has resumed
+  const recordPaused = useRef<boolean>(false); // True if recording has paused
+  const recordStopped = useRef<boolean>(false); // True if recording has stopped
+  const adminRestrictSetting = useRef<boolean>(false); // Admin's restrict setting
+  const videoRequestState = useRef<string | null>(null); // Video request state as string or null
+  const videoRequestTime = useRef<number>(0); // Video request time
+  const videoAction = useRef<boolean>(false); // Video action as string
+  const localStreamVideo = useRef<MediaStream | null>(null); // Local stream video
+  const userDefaultVideoInputDevice = useRef<string>(""); // User's default video input device
+  const currentFacingMode = useRef<string>("user"); // Current facing mode of the video input device
+  const prevFacingMode = useRef<string>("user"); // Previous facing mode of the video input device
+  const defVideoID = useRef<string>(""); // Default video ID
+  const allowed = useRef<boolean>(false); // True if the user is allowed to turn on their camera
+  const dispActiveNames = useRef<string[]>([]); // Display active names
+  const p_dispActiveNames = useRef<string[]>([]); // Display active names (previous)
+  const activeNames = useRef<string[]>([]); // Active names
+  const prevActiveNames = useRef<string[]>([]); // Active names (previous)
+  const p_activeNames = useRef<string[]>([]); // Active names (previous)
+  const membersReceived = useRef<boolean>(false); // True if members have been received
+  const deferScreenReceived = useRef<boolean>(false); // True if receiving the screen share has been deferred
+  const hostFirstSwitch = useRef<boolean>(false); // True if the host has switched to the main screen
+  const micAction = useRef<boolean>(false); // True if the user has requested to unmute
+  const screenAction = useRef<boolean>(false); // True if the user has requested to share their screen
+  const chatAction = useRef<boolean>(false); // True if the user has requested to chat
+  const audioRequestState = useRef<string | null>(null); // Audio request state as string or null
+  const screenRequestState = useRef<string | null>(null); // Screen request state as string or null
+  const chatRequestState = useRef<string | null>(null); // Chat request state as string or null
+  const audioRequestTime = useRef<number>(0); // Audio request time
+  const screenRequestTime = useRef<number>(0); // Screen request time
+  const chatRequestTime = useRef<number>(0); // Chat request time
+  const updateRequestIntervalSeconds = useRef<number>(240); // Update request interval in seconds
+  const oldSoundIds = useRef<string[]>([]); // Array of old sound IDs
+  const hostLabel = useRef<string>("Host"); // Host label as string
+  const mainScreenFilled = useRef<boolean>(false); // True if the main screen is filled
+  const localStreamScreen = useRef<MediaStream | null>(null); // Local stream screen
+  const [screenAlreadyOn, setScreenAlreadyOn] = useState<boolean>(false); // True if the screen is already on
+  const [chatAlreadyOn, setChatAlreadyOn] = useState<boolean>(false); // True if the chat is already on
+  const redirectURL = useRef<string>(""); // Redirect URL as string or null
+  const oldAllStreams = useRef<(Participant | Stream)[]>([]); // Array of old all streams
+  const adminVidID = useRef<string>(""); // Admin video ID as string or null
+  const streamNames = useRef<Stream[]>([]); // Array of stream names
+  const non_alVideoStreams = useRef<Participant[]>([]); // Array of non-al video streams
+  const sortAudioLoudness = useRef<boolean>(false); // True if audio loudness is sorted
+  const audioDecibels = useRef<AudioDecibels[]>([]); // Array of audio decibels
+  const mixed_alVideoStreams = useRef<(Participant | Stream)[]>([]); // Array of mixed al video streams
+  const non_alVideoStreams_muted = useRef<Participant[]>([]); // Array of non-al video streams muted
+  const paginatedStreams = useRef<(Participant | Stream)[][]>([]); // Array of paginated streams
+  const localStreamAudio = useRef<MediaStream | null>(null); // Local stream audio
+  const defAudioID = useRef<string>(""); // Default audio ID as string or null
+  const userDefaultAudioInputDevice = useRef<string>(""); // User's default audio input device
+  const userDefaultAudioOutputDevice = useRef<string>(""); // User's default audio output device
+  const prevAudioInputDevice = useRef<string>(""); // Previous audio input device
+  const prevVideoInputDevice = useRef<string>(""); // Previous video input device
+  const audioPaused = useRef<boolean>(false); // True if audio is paused
+  const mainScreenPerson = useRef<string>(""); // Main screen person as string
+  const adminOnMainScreen = useRef<boolean>(false); // True if the admin is on the main screen
+  const screenStates = useRef<ScreenState[]>([
+    {
+      mainScreenPerson: "",
+      mainScreenProducerId: "",
+      mainScreenFilled: false,
+      adminOnMainScreen: false,
+    },
+  ]); // Array of screen states
+
+  const prevScreenStates = useRef<ScreenState[]>([
+    {
+      mainScreenPerson: "",
+      mainScreenProducerId: "",
+      mainScreenFilled: false,
+      adminOnMainScreen: false,
+    },
+  ]); // Array of previous screen states
+
+  const updateDateState = useRef<number | null>(null); // Date state for updating the screen states as number or null
+  const lastUpdate = useRef<number | null>(null); // Last update time for updating the screen states as number or null
+  const nForReadjustRecord = useRef<number>(0); // Number of times for readjusting the recording
+  const fixedPageLimit = useRef<number>(4); // Fixed page limit for pagination
+  const removeAltGrid = useRef<boolean>(false); // True if the alt grid should be removed
+  const nForReadjust = useRef<number>(0); // Number of times for readjusting the recording
+  const reorderInterval = useRef<number>(30000); // Reorder interval in milliseconds
+  const fastReorderInterval = useRef<number>(10000); // Fast reorder interval in milliseconds
+  const lastReorderTime = useRef<number>(0); // Last reorder time in milliseconds
+  const audStreamNames = useRef<Stream[]>([]); // Array of audio stream names as strings
+  const currentUserPage = useRef<number>(0); // Current user page
+
+  const [mainHeightWidth, setMainHeightWidth] = useState<number>(
+    eventType.current === "webinar"
+      ? 67
+      : eventType.current === "broadcast"
+      ? 100
+      : 0
+  ); // Main height and width as number
+  const prevMainHeightWidth = useRef<number>(mainHeightWidth); // Previous main height and width
+  const prevDoPaginate = useRef<boolean>(false); // Previous doPaginate as boolean
+  const doPaginate = useRef<boolean>(false); // Do paginate as boolean
+  const shareEnded = useRef<boolean>(false); // True if the share has ended
+  const lStreams = useRef<(Participant | Stream)[]>([]); // Array of limited streams
+  const chatRefStreams = useRef<(Participant | Stream)[]>([]); // Array of chat ref streams
+
+  const [controlHeight, setControlHeight] = useState<number>(0); // Control height as number
+  const isWideScreen = useRef<boolean>(false); // True if the screen is wide
+  const isMediumScreen = useRef<boolean>(false); // True if the screen is medium
+  const isSmallScreen = useRef<boolean>(false); // True if the screen is small
+  const addGrid = useRef<boolean>(false); // True if the grid should be added
+  const addAltGrid = useRef<boolean>(false); // True if the alt grid should be added
+
+  const [gridRows, setGridRows] = useState<number>(0); // Grid rows as number
+  const [gridCols, setGridCols] = useState<number>(0); // Grid columns as number
+  const [altGridRows, setAltGridRows] = useState<number>(0); // Alt grid rows as number
+  const [altGridCols, setAltGridCols] = useState<number>(0); // Alt grid columns as number
+  const [numberPages, setNumberPages] = useState<number>(0); // Number of pages as number
+  const currentStreams = useRef<(Participant | Stream)[]>([]); // Array of current streams
+
+  const [showMiniView, setShowMiniView] = useState<boolean>(false); // True if the mini view should be shown
+  const nStream = useRef<MediaStream | null>(null); // New stream as MediaStream or null
+  const defer_receive = useRef<boolean>(false); // True if receiving the stream has been deferred
+  const allAudioStreams = useRef<(Participant | Stream)[]>([]); // Array of all audio streams
+  const remoteScreenStream = useRef<Stream[]>([]); // Array of remote screen streams
+
+  const screenProducer = useRef<Producer | null>(null); // Screen producer as Producer or null
+  const localScreenProducer = useRef<Producer | null>(null); // Local screen producer as Producer or null
+  const gotAllVids = useRef<boolean>(false); // True if all videos have been received
+  const paginationHeightWidth = useRef<number>(40); // Pagination height/width as number
+  const paginationDirection = useRef<"horizontal" | "vertical">("horizontal"); // Pagination direction as string
+
+  const gridSizes = useRef<GridSizes>({
+    gridWidth: 0,
+    gridHeight: 0,
+    altGridWidth: 0,
+    altGridHeight: 0,
+  }); // Grid sizes with type GridSizes
+
+  const screenForceFullDisplay = useRef<boolean>(false); // True if the screen should be forced to full display
+  const mainGridStream = useRef<React.JSX.Element[]>([]); // Array of main grid streams as React.JSX.Element[]
+  const [otherGridStreams, setOtherGridStreams] = useState<React.JSX.Element[][]>([
+    [],
+    [],
+  ]); // Other grid streams as 2D array of React.JSX.Element[]
+  const audioOnlyStreams = useRef<React.JSX.Element[]>([]); // Array of audio-only streams
+  const [translationStreams, setTranslationStreams] = useState<React.JSX.Element[]>([]); // Array of translation audio streams (state to trigger re-render)
+
+  const [videoInputs, setVideoInputs] = useState<MediaDeviceInfo[]>([]); // Video inputs as array of MediaDeviceInfo
+  const [audioInputs, setAudioInputs] = useState<MediaDeviceInfo[]>([]); // Audio inputs as array of MediaDeviceInfo
+  const [meetingProgressTime, setMeetingProgressTime] =
+    useState<string>("00:00:00"); // Meeting progress time as string
+  const meetingElapsedTime = useRef<number>(0); // Meeting elapsed time as number
+
+  const ref_participants = useRef<Participant[]>([]); // Array of participants as Participant[]
+
+  // All Participants - Room Details
+  const participantsAll = useRef<Participant[]>([]); // All participants as an array of Participant
+
+  //update Room Details Functions
+  const updateValidated = (value: boolean) => {
+    setValidated(value);
+  };
+
+  const updateSocket = (value: Socket) => {
+    socket.current = value;
+  };
+
+  const updateLocalSocket = (value: Socket | null) => {
+    localSocket.current = value;
+  };
+
+  const updateDevice = (value: Device | null) => {
+    device.current = value;
+  };
+
+  const updateApiUserName = (value: string) => {
+    apiUserName.current = value;
+  };
+
+  const updateApiToken = (value: string) => {
+    apiToken.current = value;
+  };
+
+  const updateLink = (value: string) => {
+    link.current = value;
+  };
+
+  const updateRoomName = (value: string) => {
+    roomName.current = value;
+  };
+
+  const updateMember = (value: string) => {
+    if (value.length > 0 && value.includes("_")) {
+      updateIslevel(value.split("_")[1]);
+      value = value.split("_")[0];
+    }
+    member.current = value;
+  };
+
+  const updateAdminPasscode = (value: string) => {
+    adminPasscode.current = value;
+  };
+
+  const updateIslevel = (value: string) => {
+    islevel.current = value;
+  };
+
+  const updateCoHost = (value: string) => {
+    coHost.current = value;
+  };
+
+  const updateCoHostResponsibility = (value: CoHostResponsibility[]) => {
+    coHostResponsibility.current = value;
+  };
+
+  const updateYouAreCoHost = (value: boolean) => {
+    youAreCoHost.current = value;
+  };
+
+  const updateYouAreHost = (value: boolean) => {
+    youAreHost.current = value;
+  };
+
+  const updateConfirmedToRecord = (value: boolean) => {
+    confirmedToRecord.current = value;
+  };
+
+  const updateMeetingDisplayType = (value: string) => {
+    meetingDisplayType.current = value;
+  };
+
+  const updateMeetingVideoOptimized = (value: boolean) => {
+    meetingVideoOptimized.current = value;
+  };
+
+  const updateEventType = (value: EventType) => {
+    eventType.current = value;
+    if (value != "none") {
+      //update the display type
+      if (value === "webinar") {
+        setMainHeightWidth(67);
+        prevMainHeightWidth.current = 67;
+      } else if (value === "broadcast") {
+        setMainHeightWidth(100);
+        prevMainHeightWidth.current = 100;
+      } else {
+        setMainHeightWidth(0);
+        prevMainHeightWidth.current = 0;
+        if (eventType.current === "conference" && mainHeightWidth === 67) {
+          setMainHeightWidth(0);
+          prevMainHeightWidth.current = 0;
+        }
+      }
+
+      try {
+
+        setTimeout(async() => {
+          if (eventType.current === "conference" && mainHeightWidth === 67) {
+             setMainHeightWidth(0);
+             prevMainHeightWidth.current = 0;
+          }
+          await onResize();
+        }, 1000);
+      } catch {
+        // Do nothing
+      }
+    }
+  };
+
+  const updateParticipants = (value: Participant[]) => {
+    participants.current = value;
+    filteredParticipants.current = value;
+    participantsCounter.current = value.length;
+  };
+
+  const updateParticipantsCounter = (value: number) => {
+    participantsCounter.current = value;
+  };
+
+  const updateParticipantsFilter = (value: string) => {
+    participantsFilter.current = value;
+  };
+
+  const updateRecordingAudioPausesLimit = (value: number) => {
+    recordingAudioPausesLimit.current = value;
+  };
+
+  const updateRecordingAudioPausesCount = (value: number) => {
+    recordingAudioPausesCount.current = value;
+  };
+
+  const updateRecordingAudioSupport = (value: boolean) => {
+    recordingAudioSupport.current = value;
+  };
+
+  const updateRecordingAudioPeopleLimit = (value: number) => {
+    recordingAudioPeopleLimit.current = value;
+  };
+
+  const updateRecordingAudioParticipantsTimeLimit = (value: number) => {
+    recordingAudioParticipantsTimeLimit.current = value;
+  };
+
+  const updateRecordingVideoPausesCount = (value: number) => {
+    recordingVideoPausesCount.current = value;
+  };
+
+  const updateRecordingVideoPausesLimit = (value: number) => {
+    recordingVideoPausesLimit.current = value;
+  };
+
+  const updateRecordingVideoSupport = (value: boolean) => {
+    recordingVideoSupport.current = value;
+  };
+
+  const updateRecordingVideoPeopleLimit = (value: number) => {
+    recordingVideoPeopleLimit.current = value;
+  };
+
+  const updateRecordingVideoParticipantsTimeLimit = (value: number) => {
+    recordingVideoParticipantsTimeLimit.current = value;
+  };
+
+  const updateRecordingAllParticipantsSupport = (value: boolean) => {
+    recordingAllParticipantsSupport.current = value;
+  };
+
+  const updateRecordingVideoParticipantsSupport = (value: boolean) => {
+    recordingVideoParticipantsSupport.current = value;
+  };
+
+  const updateRecordingAllParticipantsFullRoomSupport = (value: boolean) => {
+    recordingAllParticipantsFullRoomSupport.current = value;
+  };
+
+  const updateRecordingVideoParticipantsFullRoomSupport = (value: boolean) => {
+    recordingVideoParticipantsFullRoomSupport.current = value;
+  };
+
+  const updateRecordingPreferredOrientation = (value: string) => {
+    recordingPreferredOrientation.current = value;
+  };
+
+  const updateRecordingSupportForOtherOrientation = (value: boolean) => {
+    recordingSupportForOtherOrientation.current = value;
+  };
+
+  const updateRecordingMultiFormatsSupport = (value: boolean) => {
+    recordingMultiFormatsSupport.current = value;
+  };
+
+  const updateUserRecordingParams = (value: UserRecordingParams) => {
+    userRecordingParams.current = value;
+  };
+
+  const updateCanRecord = (value: boolean) => {
+    canRecord.current = value;
+  };
+
+  const updateStartReport = (value: boolean) => {
+    startReport.current = value;
+  };
+
+  const updateEndReport = (value: boolean) => {
+    endReport.current = value;
+  };
+
+  const updateRecordTimerInterval = (value: NodeJS.Timeout | null) => {
+    recordTimerInterval.current = value;
+  };
+
+  const updateRecordStartTime = (value: number) => {
+    recordStartTime.current = value;
+  };
+
+  const updateRecordElapsedTime = (value: number) => {
+    recordElapsedTime.current = value;
+  };
+
+  const updateIsTimerRunning = (value: boolean) => {
+    isTimerRunning.current = value;
+  };
+
+  const updateCanPauseResume = (value: boolean) => {
+    canPauseResume.current = value;
+  };
+
+  const updateRecordChangeSeconds = (value: number) => {
+    recordChangeSeconds.current = value;
+  };
+
+  const updatePauseLimit = (value: number) => {
+    pauseLimit.current = value;
+  };
+
+  const updatePauseRecordCount = (value: number) => {
+    pauseRecordCount.current = value;
+  };
+
+  const updateCanLaunchRecord = (value: boolean) => {
+    canLaunchRecord.current = value;
+  };
+
+  const updateStopLaunchRecord = (value: boolean) => {
+    stopLaunchRecord.current = value;
+  };
+
+  const updateParticipantsAll = (value: Participant[]) => {
+    participantsAll.current = value;
+  };
+
+  const updateConsume_sockets = (value: ConsumeSocket[]) => {
+    consume_sockets.current = value;
+  };
+
+  const updateRtpCapabilities = (value: RtpCapabilities | null) => {
+    rtpCapabilities.current = value;
+  };
+
+  const updateRoomRecvIPs = (value: string[]) => {
+    roomRecvIPs.current = value;
+  };
+
+  const updateMeetingRoomParams = (value: MeetingRoomParams | null) => {
+    meetingRoomParams.current = value;
+  };
+
+  const updateItemPageLimit = (value: number) => {
+    itemPageLimit.current = value;
+  };
+
+  const updateAudioOnlyRoom = (value: boolean) => {
+    audioOnlyRoom.current = value;
+  };
+
+  const updateAddForBasic = (value: boolean) => {
+    addForBasic.current = value;
+  };
+
+  const updateScreenPageLimit = (value: number) => {
+    screenPageLimit.current = value;
+  };
+
+  const updateShareScreenStarted = (value: boolean) => {
+    shareScreenStarted.current = value;
+  };
+
+  const updateShared = (value: boolean) => {
+    shared.current = value;
+    setScreenShareActive(value);
+    if (value) {
+      setTimeout(async () => {
+        window.dispatchEvent(new Event("resize"));
+      }, 2000);
+    }
+  };
+
+  const updateTargetOrientation = (value: string) => {
+    targetOrientation.current = value;
+  };
+
+  const updateTargetResolution = (value: string) => {
+    targetResolution.current = value;
+  };
+
+  const updateTargetResolutionHost = (value: string) => {
+    targetResolutionHost.current = value;
+  };
+
+  const updateVidCons = (value: VidCons) => {
+    vidCons.current = value;
+  };
+
+  const updateFrameRate = (value: number) => {
+    frameRate.current = value;
+  };
+
+  const updateHParams = (value: HParamsType) => {
+    hParams.current = value;
+  };
+
+  const updateVParams = (value: VParamsType) => {
+    vParams.current = value;
+  };
+
+  const updateScreenParams = (value: ScreenParamsType) => {
+    screenParams.current = value;
+  };
+
+  const updateAParams = (value: AParamsType) => {
+    aParams.current = value;
+  };
+
+  const updateFirstAll = (value: boolean) => {
+    firstAll.current = value;
+  };
+
+  const updateUpdateMainWindow = (value: boolean) => {
+    updateMainWindow.current = value;
+  };
+
+  const updateFirst_round = (value: boolean) => {
+    first_round.current = value;
+  };
+
+  const updateLandScaped = (value: boolean) => {
+    landScaped.current = value;
+  };
+
+  const updateLock_screen = (value: boolean) => {
+    lock_screen.current = value;
+  };
+
+  const updateScreenId = (value: string) => {
+    screenId.current = value;
+  };
+
+  const updateAllVideoStreams = (value: (Participant | Stream)[]) => {
+    allVideoStreams.current = value;
+  };
+
+  const updateNewLimitedStreams = (value: (Participant | Stream)[]) => {
+    newLimitedStreams.current = value;
+  };
+
+  const updateNewLimitedStreamsIDs = (value: string[]) => {
+    newLimitedStreamsIDs.current = value;
+  };
+
+  const updateActiveSounds = (value: string[]) => {
+    activeSounds.current = value;
+  };
+
+  const updateScreenShareIDStream = (value: string) => {
+    screenShareIDStream.current = value;
+  };
+
+  const updateScreenShareNameStream = (value: string) => {
+    screenShareNameStream.current = value;
+  };
+
+  const updateAdminIDStream = (value: string) => {
+    adminIDStream.current = value;
+  };
+
+  const updateAdminNameStream = (value: string) => {
+    adminNameStream.current = value;
+  };
+
+  const updateYouYouStream = (value: (Participant | Stream)[]) => {
+    youYouStream.current = value;
+  };
+
+  const updateYouYouStreamIDs = (value: string[]) => {
+    youYouStreamIDs.current = value;
+  };
+
+  const updateLocalStream = (value: MediaStream | null) => {
+    localStream.current = value;
+  };
+
+  const updateRecordStarted = (value: boolean) => {
+    recordStarted.current = value;
+  };
+
+  const updateRecordResumed = (value: boolean) => {
+    recordResumed.current = value;
+  };
+
+  const updateRecordPaused = (value: boolean) => {
+    recordPaused.current = value;
+  };
+
+  const updateRecordStopped = (value: boolean) => {
+    recordStopped.current = value;
+  };
+
+  const updateAdminRestrictSetting = (value: boolean) => {
+    adminRestrictSetting.current = value;
+  };
+
+  const updateVideoRequestState = (value: string | null) => {
+    videoRequestState.current = value;
+  };
+
+  const updateVideoRequestTime = (value: number) => {
+    videoRequestTime.current = value;
+  };
+
+  const updateVideoAction = (value: boolean) => {
+    videoAction.current = value;
+  };
+
+  const updateLocalStreamVideo = (value: MediaStream | null) => {
+    localStreamVideo.current = value;
+  };
+
+  const updateUserDefaultVideoInputDevice = (value: string) => {
+    userDefaultVideoInputDevice.current = value;
+  };
+
+  const updateCurrentFacingMode = (value: string) => {
+    currentFacingMode.current = value;
+  };
+
+  const updatePrevFacingMode = (value: string) => {
+    prevFacingMode.current = value;
+  };
+
+  const updateDefVideoID = (value: string) => {
+    defVideoID.current = value;
+  };
+
+  const updateAllowed = (value: boolean) => {
+    allowed.current = value;
+  };
+
+  const updateDispActiveNames = (value: string[]) => {
+    dispActiveNames.current = value;
+  };
+
+  const updateP_dispActiveNames = (value: string[]) => {
+    p_dispActiveNames.current = value;
+  };
+
+  const updateActiveNames = (value: string[]) => {
+    activeNames.current = value;
+  };
+
+  const updatePrevActiveNames = (value: string[]) => {
+    prevActiveNames.current = value;
+  };
+
+  const updateP_activeNames = (value: string[]) => {
+    p_activeNames.current = value;
+  };
+
+  const updateMembersReceived = (value: boolean) => {
+    membersReceived.current = value;
+  };
+
+  const updateDeferScreenReceived = (value: boolean) => {
+    deferScreenReceived.current = value;
+  };
+
+  const updateHostFirstSwitch = (value: boolean) => {
+    hostFirstSwitch.current = value;
+  };
+
+  const updateMicAction = (value: boolean) => {
+    micAction.current = value;
+  };
+
+  const updateScreenAction = (value: boolean) => {
+    screenAction.current = value;
+  };
+
+  const updateChatAction = (value: boolean) => {
+    chatAction.current = value;
+  };
+
+  const updateAudioRequestState = (value: string | null) => {
+    audioRequestState.current = value;
+  };
+
+  const updateScreenRequestState = (value: string | null) => {
+    screenRequestState.current = value;
+  };
+
+  const updateChatRequestState = (value: string | null) => {
+    chatRequestState.current = value;
+  };
+
+  const updateAudioRequestTime = (value: number) => {
+    audioRequestTime.current = value;
+  };
+
+  const updateScreenRequestTime = (value: number) => {
+    screenRequestTime.current = value;
+  };
+
+  const updateChatRequestTime = (value: number) => {
+    chatRequestTime.current = value;
+  };
+
+  const updateOldSoundIds = (value: string[]) => {
+    oldSoundIds.current = value;
+  };
+
+  const updatehostLabel = (value: string) => {
+    hostLabel.current = value;
+  };
+
+  const updateMainScreenFilled = (value: boolean) => {
+    mainScreenFilled.current = value;
+  };
+
+  const updateLocalStreamScreen = (value: MediaStream | null) => {
+    localStreamScreen.current = value;
+  };
+
+  const updateScreenAlreadyOn = (value: boolean) => {
+    setScreenAlreadyOn(value);
+  };
+
+  const updateChatAlreadyOn = (value: boolean) => {
+    setChatAlreadyOn(value);
+  };
+
+  const updateRedirectURL = (value: string) => {
+    redirectURL.current = value;
+  };
+
+  const updateOldAllStreams = (value: (Participant | Stream)[]) => {
+    oldAllStreams.current = value;
+  };
+
+  const updateAdminVidID = (value: string) => {
+    adminVidID.current = value;
+  };
+
+  const updateStreamNames = (value: Stream[]) => {
+    streamNames.current = value;
+  };
+
+  const updateNon_alVideoStreams = (value: Participant[]) => {
+    non_alVideoStreams.current = value;
+  };
+
+  const updateSortAudioLoudness = (value: boolean) => {
+    sortAudioLoudness.current = value;
+  };
+
+  const updateAudioDecibels = (value: AudioDecibels[]) => {
+    audioDecibels.current = value;
+  };
+
+  const updateMixed_alVideoStreams = (value: (Participant | Stream)[]) => {
+    mixed_alVideoStreams.current = value;
+  };
+
+  const updateNon_alVideoStreams_muted = (value: Participant[]) => {
+    non_alVideoStreams_muted.current = value;
+  };
+
+  const updatePaginatedStreams = (value: (Participant | Stream)[][]) => {
+    paginatedStreams.current = value;
+  };
+
+  const updateLocalStreamAudio = (value: MediaStream | null) => {
+    localStreamAudio.current = value;
+  };
+
+  const updateDefAudioID = (value: string) => {
+    defAudioID.current = value;
+  };
+
+  const updateUserDefaultAudioInputDevice = (value: string) => {
+    userDefaultAudioInputDevice.current = value;
+  };
+
+  const updateUserDefaultAudioOutputDevice = (value: string) => {
+    userDefaultAudioOutputDevice.current = value;
+  };
+
+  const updatePrevAudioInputDevice = (value: string) => {
+    prevAudioInputDevice.current = value;
+  };
+
+  const updatePrevVideoInputDevice = (value: string) => {
+    prevVideoInputDevice.current = value;
+  };
+
+  const updateAudioPaused = (value: boolean) => {
+    audioPaused.current = value;
+  };
+
+  const updateMainScreenPerson = (value: string) => {
+    mainScreenPerson.current = value;
+  };
+
+  const updateAdminOnMainScreen = (value: boolean) => {
+    adminOnMainScreen.current = value;
+  };
+
+  const updateScreenStates = (value: ScreenState[]) => {
+    screenStates.current = value;
+  };
+
+  const updatePrevScreenStates = (value: ScreenState[]) => {
+    prevScreenStates.current = value;
+  };
+
+  const updateUpdateDateState = (value: number | null) => {
+    updateDateState.current = value;
+  };
+
+  const updateLastUpdate = (value: number | null) => {
+    lastUpdate.current = value;
+  };
+
+  const updateNForReadjustRecord = (value: number) => {
+    nForReadjustRecord.current = value;
+  };
+
+  const updateFixedPageLimit = (value: number) => {
+    fixedPageLimit.current = value;
+  };
+
+  const updateRemoveAltGrid = (value: boolean) => {
+    removeAltGrid.current = value;
+  };
+
+  const updateNForReadjust = (value: number) => {
+    nForReadjust.current = value;
+  };
+
+  const updateLastReorderTime = (value: number) => {
+    lastReorderTime.current = value;
+  };
+
+  const updateAudStreamNames = (value: Stream[]) => {
+    audStreamNames.current = value;
+  };
+
+  const updateCurrentUserPage = (value: number) => {
+    currentUserPage.current = value;
+  };
+
+  const updateMainHeightWidth = (value: number) => {
+    setMainHeightWidth(value);
+  };
+
+  const updatePrevMainHeightWidth = (value: number) => {
+    prevMainHeightWidth.current = value;
+  };
+
+  const updatePrevDoPaginate = (value: boolean) => {
+    prevDoPaginate.current = value;
+  };
+
+  const updateDoPaginate = (value: boolean) => {
+    doPaginate.current = value;
+  };
+
+  const updateShareEnded = (value: boolean) => {
+    shareEnded.current = value;
+  };
+
+  const updateLStreams = (value: (Participant | Stream)[]) => {
+    lStreams.current = value;
+  };
+
+  const updateChatRefStreams = (value: (Participant | Stream)[]) => {
+    chatRefStreams.current = value;
+  };
+
+  const updateControlHeight = (value: number) => {
+    setControlHeight(value);
+  };
+
+  const updateIsWideScreen = (value: boolean) => {
+    isWideScreen.current = value;
+  };
+
+  const updateIsMediumScreen = (value: boolean) => {
+    isMediumScreen.current = value;
+  };
+
+  const updateIsSmallScreen = (value: boolean) => {
+    isSmallScreen.current = value;
+  };
+
+  const updateAddGrid = (value: boolean) => {
+    addGrid.current = value;
+  };
+
+  const updateAddAltGrid = (value: boolean) => {
+    addAltGrid.current = value;
+  };
+
+  const updateGridRows = (value: number) => {
+    setGridRows(value);
+  };
+
+  const updateGridCols = (value: number) => {
+    setGridCols(value);
+  };
+
+  const updateAltGridRows = (value: number) => {
+    setAltGridRows(value);
+  };
+
+  const updateAltGridCols = (value: number) => {
+    setAltGridCols(value);
+  };
+
+  const updateNumberPages = (value: number) => {
+    setNumberPages(value);
+  };
+
+  const updateCurrentStreams = (value: (Participant | Stream)[]) => {
+    currentStreams.current = value;
+  };
+
+  const updateShowMiniView = (value: boolean) => {
+    setShowMiniView(value);
+  };
+
+  const updateNStream = (value: MediaStream | null) => {
+    nStream.current = value;
+  };
+
+  const updateDefer_receive = (value: boolean) => {
+    defer_receive.current = value;
+  };
+
+  const updateAllAudioStreams = (value: (Participant | Stream)[]) => {
+    allAudioStreams.current = value;
+  };
+
+  const updateRemoteScreenStream = (value: Stream[]) => {
+    remoteScreenStream.current = value;
+  };
+
+  const updateScreenProducer = (value: Producer | null) => {
+    screenProducer.current = value;
+  };
+
+  const updateLocalScreenProducer = (value: Producer | null) => {
+    localScreenProducer.current = value;
+  };
+
+  const updateGotAllVids = (value: boolean) => {
+    gotAllVids.current = value;
+  };
+
+  const updatePaginationHeightWidth = (value: number) => {
+    paginationHeightWidth.current = value;
+  };
+
+  const updatePaginationDirection = (value: "horizontal" | "vertical") => {
+    paginationDirection.current = value;
+  };
+
+  const updateGridSizes = (value: GridSizes) => {
+    gridSizes.current = value;
+  };
+
+  const updateScreenForceFullDisplay = (value: boolean) => {
+    screenForceFullDisplay.current = value;
+  };
+
+  const updateMainGridStream = (value: React.JSX.Element[]) => {
+    mainGridStream.current = value;
+  };
+
+  const updateOtherGridStreams = (value: React.JSX.Element[][]) => {
+    setOtherGridStreams(value);
+  };
+
+  const updateAudioOnlyStreams = (value: React.JSX.Element[]) => {
+    audioOnlyStreams.current = value;
+  };
+
+  const updateTranslationStreams = (value: React.JSX.Element[]) => {
+    setTranslationStreams(value);
+  };
+
+  // Functional update to add a single translation stream (avoids stale closure issues)
+  const addTranslationStream = (element: React.JSX.Element) => {
+    setTranslationStreams(prev => [...prev, element]);
+  };
+
+  // Functional update to remove a translation stream by producerId
+  const removeTranslationStream = (producerId: string) => {
+    setTranslationStreams(prev => prev.filter(element => element.key !== `translation-${producerId}`));
+  };
+
+  const updateVideoInputs = (value: MediaDeviceInfo[]) => {
+    setVideoInputs(value);
+  };
+
+  const updateAudioInputs = (value: MediaDeviceInfo[]) => {
+    setAudioInputs(value);
+  };
+
+  const updateMeetingProgressTime = (value: string) => {
+    setMeetingProgressTime(value);
+  };
+
+  const updateMeetingElapsedTime = (value: number) => {
+    meetingElapsedTime.current = value;
+  };
+
+  const updateRef_participants = (value: Participant[]) => {
+    ref_participants.current = value;
+  };
+
+  // Messages
+  const messages = useRef<Message[]>(
+    useSeed && seedData?.messages ? seedData.messages : []
+  ); // Messages array of type Message[]
+
+  const startDirectMessage = useRef<boolean>(false); // Start direct message as boolean
+  const directMessageDetails = useRef<Participant | null>(null); // Direct message details, type Participant or null
+
+  const [showMessagesBadge, setShowMessagesBadge] = useState<boolean>(false); // True if the messages badge should be shown as boolean
+
+  // Event settings related variables
+  const audioSetting = useRef<string>("allow"); // User's audio setting as string
+  const videoSetting = useRef<string>("allow"); // User's video setting as string
+  const screenshareSetting = useRef<string>("allow"); // User's screenshare setting as string
+  const chatSetting = useRef<string>("allow"); // User's chat setting as string
+
+  // Display settings related variables
+  const displayOption = useRef<string>(
+    meetingDisplayType.current ? meetingDisplayType.current : "media"
+  ); // Display option as string
+
+  const autoWave = useRef<boolean>(true); // Auto wave setting as boolean
+
+  const forceFullDisplay = useRef<boolean>(
+    eventType.current === "webinar" || eventType.current === "conference"
+      ? false
+      : true
+  ); // Force full display setting as boolean
+
+  const prevForceFullDisplay = useRef<boolean>(false); // Previous force full display setting as boolean
+  const prevMeetingDisplayType = useRef<string>("video"); // Previous meeting display type as string
+
+  // Self-view display mode - allows user to toggle between cropped and full view for their own video
+  const selfViewForceFull = useRef<boolean>(true); // Self-view force full setting as boolean
+
+  // Waiting room
+  const waitingRoomFilter = useRef<string>(""); // Filter for the waiting room as string
+
+  const waitingRoomList = useRef<WaitingRoomParticipant[]>(
+    useSeed && seedData?.waitingList ? seedData.waitingList : []
+  ); // Waiting room list as array of WaitingRoomParticipant
+
+  const waitingRoomCounter = useRef<number>(0); // Waiting room counter as number
+
+  const filteredWaitingRoomList = useRef<WaitingRoomParticipant[]>(
+    waitingRoomList.current
+  ); // Filtered waiting room list as array of WaitingRoomParticipant
+
+  // Requests
+  const requestFilter = useRef<string>(""); // Filter for the requests as string
+  const requestList = useRef<Request[]>(
+    useSeed && seedData?.requests ? seedData.requests : []
+  ); // Request list as array of Request[]
+
+  const requestCounter = useRef<number>(0); // Request counter as number
+  const filteredRequestList = useRef<Request[]>(requestList.current); // Filtered request list as array of Request[]
+
+  // Total requests and waiting room
+  const totalReqWait = useRef<number>(0); // Total requests and waiting room as number
+
+  // Show Alert modal
+  const [alertVisible, setAlertVisible] = useState<boolean>(false); // True if the alert is visible as boolean
+  const [alertMessage, setAlertMessage] = useState<string>(""); // Alert message as string
+  const [alertType, setAlertType] = useState<"success" | "danger" | "info" | "warning">("info"); // Alert type with specific string values
+  const [alertDuration, setAlertDuration] = useState<number>(3000); // Alert duration in milliseconds as number
+  const [alertPosition, setAlertPosition] = useState<'top' | 'bottom' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center'>('top'); // Alert position
+  const alertTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Fallback timeout to auto-hide alerts
+
+  // Progress Timer
+  const [progressTimerVisible] = useState<boolean>(true); // True if the progress timer is visible as boolean
+  const [progressTimerValue] = useState<number>(0); // Progress timer value as number
+
+  // Menu modals
+  const [isMenuModalVisible, setIsMenuModalVisible] = useState<boolean>(false); // True if the menu modal is visible as boolean
+  const [isRecordingModalVisible, setIsRecordingModalVisible] =
+    useState<boolean>(false); // True if the recording modal is visible as boolean
+  const [isSettingsModalVisible, setIsSettingsModalVisible] =
+    useState<boolean>(false); // True if the settings modal is visible as boolean
+  const [isRequestsModalVisible, setIsRequestsModalVisible] =
+    useState<boolean>(false); // True if the requests modal is visible as boolean
+  const [isWaitingModalVisible, setIsWaitingModalVisible] =
+    useState<boolean>(false); // True if the waiting room modal is visible as boolean
+  const [isCoHostModalVisible, setIsCoHostModalVisible] =
+    useState<boolean>(false); // True if the co-host modal is visible as boolean
+  const [isMediaSettingsModalVisible, setIsMediaSettingsModalVisible] =
+    useState<boolean>(false); // True if the media settings modal is visible as boolean
+  const [isDisplaySettingsModalVisible, setIsDisplaySettingsModalVisible] =
+    useState<boolean>(false); // True if the display settings modal is visible as boolean
+
+  // Other Modals
+  const [isParticipantsModalVisible, setIsParticipantsModalVisible] =
+    useState<boolean>(false); // True if the participants modal is visible as boolean
+  const [isMessagesModalVisible, setIsMessagesModalVisible] =
+    useState<boolean>(false); // True if the messages modal is visible as boolean
+  const [isConfirmExitModalVisible, setIsConfirmExitModalVisible] =
+    useState<boolean>(false); // True if the confirm exit modal is visible as boolean
+  const [isConfirmHereModalVisible, setIsConfirmHereModalVisible] =
+    useState<boolean>(false); // True if the confirm here modal is visible as boolean
+  const [isShareEventModalVisible, setIsShareEventModalVisible] =
+    useState<boolean>(false); // True if the share event modal is visible as boolean
+  const [isLoadingModalVisible, setIsLoadingModalVisible] =
+    useState<boolean>(false); // True if the loading modal is visible as boolean
+
+  // Recording-related variables
+  const recordingMediaOptions = useRef<string>("video"); // Media type for recording as string
+  const recordingAudioOptions = useRef<string>("all"); // Audio options for recording as string
+  const recordingVideoOptions = useRef<string>("all"); // Video options for recording as string
+  const recordingVideoType = useRef<string>("fullDisplay"); // Type of video for recording as string
+  const recordingVideoOptimized = useRef<boolean>(false); // Whether video recording is optimized as boolean
+  const recordingDisplayType = useRef<"media" | "video" | "all">("media"); // Type of recording display as specific string values
+  const recordingAddHLS = useRef<boolean>(true); // Whether to add HLS for recording as boolean
+  const recordingNameTags = useRef<boolean>(true); // Whether to include name tags in recording as boolean
+
+  const [recordingBackgroundColor, setRecordingBackgroundColor] =
+    useState<string>("#83c0e9"); // Background color for recording as string
+  const [recordingNameTagsColor, setRecordingNameTagsColor] =
+    useState<string>("#ffffff"); // Name tag color for recording as string
+
+  const recordingAddText = useRef<boolean>(false); // Whether to add text to recording as boolean
+  const recordingCustomText = useRef<string>("Add Text"); // Custom text for recording as string
+  const recordingCustomTextPosition = useRef<string>("top"); // Custom text position for recording as string
+
+  const [recordingCustomTextColor, setRecordingCustomTextColor] =
+    useState<string>("#ffffff"); // Custom text color for recording as string
+
+  const recordingOrientationVideo = useRef<string>("landscape"); // Orientation for video recording as string
+  const clearedToResume = useRef<boolean>(true); // True if cleared to resume recording as boolean
+  const clearedToRecord = useRef<boolean>(true); // True if cleared to record as boolean
+  const [recordState, setRecordState] = useState<string>("green"); // Recording state with specific values
+
+  const [showRecordButtons, setShowRecordButtons] = useState<boolean>(false); // Show record buttons as boolean
+  const [recordingProgressTime, setRecordingProgressTime] =
+    useState<string>("00:00:00"); // Recording progress time as string
+  const [audioSwitching, setAudioSwitching] = useState<boolean>(false); // True if audio is switching as boolean
+  const [videoSwitching, setVideoSwitching] = useState<boolean>(false); // True if video is switching as boolean
+
+  // Media-related variables
+  const videoAlreadyOn = useRef<boolean>(false); // True if video is already on as boolean
+  const audioAlreadyOn = useRef<boolean>(false); // True if audio is already on as boolean
+
+  const initialComponentSizes: ComponentSizes = {
+    // Component sizes as ComponentSizes
+    mainHeight: 0,
+    otherHeight: 0,
+    mainWidth: 0,
+    otherWidth: 0,
+  };
+  const [componentSizes, setComponentSizes] = useState<ComponentSizes>(
+    initialComponentSizes
+  ); // Component sizes
+  const componentSizesRef = useRef<ComponentSizes>(initialComponentSizes); // Mutable reference for imperative reads
+  const primaryGridLayoutRef = useRef<GridLayoutMeta>({
+    rows: 0,
+    cols: 0,
+    actualRows: 0,
+  });
+  const altGridLayoutRef = useRef<GridLayoutMeta>({
+    rows: 0,
+    cols: 0,
+    actualRows: 0,
+  });
+
+  // Permissions-related variables
+  const [hasCameraPermission, setHasCameraPermission] =
+    useState<boolean>(false); // True if the user has camera permission
+  const [hasAudioPermission, setHasAudioPermission] = useState<boolean>(false); // True if the user has audio permission
+
+  // Transports-related variables
+  const transportCreated = useRef<boolean>(false); // True if the transport has been created
+  const localTransportCreated = useRef<boolean>(false); // True if the local transport has been created
+  const transportCreatedVideo = useRef<boolean>(false); // True if the transport has been created for video
+  const transportCreatedAudio = useRef<boolean>(false); // True if the transport has been created for audio
+  const transportCreatedScreen = useRef<boolean>(false); // True if the transport has been created for screen share
+  const producerTransport = useRef<Transport | null>(null); // Producer transport as Transport or null
+  const localProducerTransport = useRef<Transport | null>(null); // Local producer transport as Transport or null
+  const videoProducer = useRef<Producer | null>(null); // Video producer as Producer or null
+  const localVideoProducer = useRef<Producer | null>(null); // Local video producer as Producer or null
+  const params = useRef<ProducerOptions>({} as ProducerOptions); // Parameters for the producer as ProducerOptions
+  const videoParams = useRef<ProducerOptions>({} as ProducerOptions); // Parameters for the video producer as ProducerOptions
+  const audioParams = useRef<ProducerOptions>({} as ProducerOptions); // Parameters for the audio producer as ProducerOptions
+  const audioProducer = useRef<Producer | null>(null); // Audio producer as Producer or null
+  const audioLevel = useRef<number>(0); // Audio level as number, default 0 for muted
+  const localAudioProducer = useRef<Producer | null>(null); // Local audio producer as Producer or null
+  const consumerTransports = useRef<TransportType[]>([]); // Array of consumer transports
+  const consumingTransports = useRef<string[]>([]); // Array of consuming transport IDs
+
+  // Polls-related variables
+  const polls = useRef<Poll[]>(
+    useSeed && seedData?.polls ? seedData.polls : []
+  ); // Polls as array of Poll
+  const poll = useRef<Poll | null>(null); // Single poll as Poll or null
+  const [isPollModalVisible, setIsPollModalVisible] = useState<boolean>(false); // True if the poll modal should be shown
+
+  // Permissions-related variables
+  const permissionConfig = useRef<PermissionConfig | null>(null); // Permission configuration for the room
+
+  // Panelists-related variables
+  const panelists = useRef<Participant[]>([]); // List of panelists
+  const panelistsFocused = useRef<boolean>(false); // True if panelist focus mode is active
+  const muteOthersMic = useRef<boolean>(false); // True if non-panelist mics should be muted
+  const muteOthersCamera = useRef<boolean>(false); // True if non-panelist cameras should be muted
+
+  // Translation-related variables
+  const translationConfig = useRef<TranslationRoomConfig | null>(null); // Room translation configuration
+  const [translationSupported, setTranslationSupported] = useState<boolean>(false); // State to trigger re-render when translation becomes available
+  const mySpokenLanguage = useRef<string>('en'); // User's spoken language
+  const mySpokenLanguageEnabled = useRef<boolean>(false); // True if user has enabled translation of their audio
+  const myDefaultOutputLanguage = useRef<string | null>(null); // Default output language (e.g., speak French but output German)
+  const myDefaultListenLanguage = useRef<string | null>(null); // User's default listen language (null = original)
+  const listenPreferences = useRef<Map<string, string>>(new Map()); // Per-speaker listen preferences (speakerId -> language)
+  const translationProducerMap = useRef<TranslationProducerMap>({}); // Map of original producer IDs to translation producers
+  const activeTranslationProducerIds = useRef<Set<string>>(new Set()); // Set of producer IDs that are translation audio
+  const availableTranslationChannels = useRef<Map<string, { languages: string[]; originalProducerId: string }>>(new Map()); // Available translation channels per speaker
+  // Track speaker translation states (speakerId -> { outputLanguage, originalProducerId, enabled })
+  const [speakerTranslationStates, setSpeakerTranslationStates] = useState<Map<string, {
+    speakerId: string;
+    speakerName: string;
+    inputLanguage: string;
+    outputLanguage: string;
+    originalProducerId: string;
+    enabled: boolean;
+  }>>(new Map());
+  const updateSpeakerTranslationStates = setSpeakerTranslationStates; // Alias for consistency
+
+  // Listener translation preferences - allows listeners to customize what they hear
+  // Synced with server for billing tracking and routing
+  // perSpeaker: Map<speakerId, { language, wantOriginal }> - per-speaker preference
+  // globalLanguage: string | null - "I want to hear everyone in this language"
+  // Use ref for synchronous updates (so getUpdatedAllParams gets fresh value)
+  const listenerTranslationPreferencesRef = useRef<{
+    perSpeaker: Map<string, { speakerId: string; language: string | null; wantOriginal: boolean }>;
+    globalLanguage: string | null;
+  }>({
+    perSpeaker: new Map(),
+    globalLanguage: null,
+  });
+  const [, setListenerTranslationPreferences] = useState<{
+    perSpeaker: Map<string, { speakerId: string; language: string | null; wantOriginal: boolean }>;
+    globalLanguage: string | null;
+  }>({
+    perSpeaker: new Map(),
+    globalLanguage: null,
+  });
+  const updateListenerTranslationPreferences = (value: React.SetStateAction<{
+    perSpeaker: Map<string, { speakerId: string; language: string | null; wantOriginal: boolean }>;
+    globalLanguage: string | null;
+  }>) => {
+    // Update ref synchronously for immediate access in getUpdatedAllParams
+    if (typeof value === 'function') {
+      listenerTranslationPreferencesRef.current = value(listenerTranslationPreferencesRef.current);
+    } else {
+      listenerTranslationPreferencesRef.current = value;
+    }
+    // Also update state for React re-renders
+    setListenerTranslationPreferences(value);
+  };
+
+  // Legacy alias for backwards compatibility with existing code
+  const listenerTranslationOverrides = listenerTranslationPreferencesRef.current.perSpeaker;
+  const updateListenerTranslationOverrides = (updater: (prev: Map<string, { speakerId: string; wantOriginal: boolean; preferredLanguage?: string }>) => Map<string, { speakerId: string; wantOriginal: boolean; preferredLanguage?: string }>) => {
+    setListenerTranslationPreferences(prev => {
+      const newPerSpeaker = updater(prev.perSpeaker as any);
+      return { ...prev, perSpeaker: newPerSpeaker as any };
+    });
+  };
+
+  // Background-related variables
+  const customImage = useRef<string>(""); // Custom image as string or null
+  const selectedImage = useRef<string>(""); // Selected image as string or null
+  const segmentVideo = useRef<MediaStream | null>(null); // Segment video as MediaStream or null
+  const selfieSegmentation = useRef<SelfieSegmentation | null>(null); // Selfie segmentation as SelfieSegmentation or null
+  const pauseSegmentation = useRef<boolean>(false); // Pause segmentation as boolean
+  const processedStream = useRef<MediaStream | null>(null); // Processed stream as MediaStream or null
+  const keepBackground = useRef<boolean>(false); // Keep background as boolean
+  const backgroundHasChanged = useRef<boolean>(false); // Background has changed as boolean
+  const virtualStream = useRef<MediaStream | null>(null); // Virtual stream as MediaStream or null
+  const mainCanvas = useRef<HTMLCanvasElement | null>(null); // Main canvas as HTMLCanvasElement or null
+  const prevKeepBackground = useRef<boolean>(false); // Previous keep background setting as boolean
+  const appliedBackground = useRef<boolean>(false); // Applied background as boolean
+  const [isBackgroundModalVisible, setIsBackgroundModalVisible] =
+    useState<boolean>(false); // True if the background modal should be shown
+  const autoClickBackground = useRef<boolean>(false); // Auto click background as boolean
+
+  // Breakout rooms-related variables
+  const breakoutRooms = useRef<BreakoutParticipant[][]>(
+    useSeed && seedData?.breakoutRooms ? seedData.breakoutRooms : []
+  ); // Breakout rooms as array of arrays of BreakoutParticipant
+  const currentRoomIndex = useRef<number>(0); // Current room index as number
+  const canStartBreakout = useRef<boolean>(false); // True if the breakout room can be started
+  const breakOutRoomStarted = useRef<boolean>(false); // True if the breakout room has started
+  const breakOutRoomEnded = useRef<boolean>(false); // True if the breakout room has ended
+  const hostNewRoom = useRef<number>(-1); // Host new room index as number
+  const limitedBreakRoom = useRef<BreakoutParticipant[]>([]); // Limited breakout room as array of BreakoutParticipant
+  const mainRoomsLength = useRef<number>(0); // Main rooms length as number
+  const memberRoom = useRef<number>(-1); // Member room index as number
+  const [isBreakoutRoomsModalVisible, setIsBreakoutRoomsModalVisible] =
+    useState<boolean>(false); // True if the breakout rooms modal should be shown
+
+  // Whiteboard-related variables
+  const whiteboardUsers = useRef<WhiteboardUser[]>(
+    useSeed && seedData?.whiteboardUsers ? seedData.whiteboardUsers : []
+  ); // Whiteboard users as array of WhiteboardUser
+  const currentWhiteboardIndex = useRef<number | null>(null); // Current whiteboard index as number or null
+  const canStartWhiteboard = useRef<boolean>(false); // True if the whiteboard can be started
+  const whiteboardStarted = useRef<boolean>(false); // True if the whiteboard has started
+  const whiteboardEnded = useRef<boolean>(false); // True if the whiteboard has ended
+  const whiteboardLimit = useRef<number>(itemPageLimit.current); // Whiteboard limit as number
+  const [isWhiteboardModalVisible, setIsWhiteboardModalVisible] =
+    useState<boolean>(false); // True if the whiteboard modal should be shown
+  const [
+    isConfigureWhiteboardModalVisible,
+    setIsConfigureWhiteboardModalVisible,
+  ] = useState<boolean>(false); // True if the configure whiteboard modal should be shown
+  const shapes = useRef<Shape[]>([]); // Shapes as array of Shape
+  const useImageBackground = useRef<boolean>(true); // Use image background as boolean
+  const redoStack = useRef<Shape[]>([]); // Redo stack as array of Shape
+  const undoStack = useRef<string[]>([]); // Undo stack as array of strings (e.g., action IDs)
+  const canvasStream = useRef<MediaStream | null>(null); // Canvas stream as MediaStream or null
+  const canvasWhiteboard = useRef<HTMLCanvasElement | null>(null); // Canvas reference as HTMLCanvasElement or null
+
+  // Screenboard-related variables
+  const canvasScreenboard = useRef<HTMLCanvasElement | null>(null); // Canvas screenboard as HTMLCanvasElement or null
+  const processedScreenStream = useRef<MediaStream | null>(null); // Processed screen stream as MediaStream or null
+  const annotateScreenStream = useRef<boolean>(false); // Annotate screen stream as boolean
+  const mainScreenCanvas = useRef<HTMLCanvasElement | null>(null); // Main screen canvas as HTMLCanvasElement or null
+  const [isScreenboardModalVisible, setIsScreenboardModalVisible] =
+    useState<boolean>(false); // True if the screenboard modal should be shown
+
+  // Update functions
+  const updateMessages = (value: Message[]) => {
+    messages.current = value;
+  };
+
+  const updateStartDirectMessage = (value: boolean) => {
+    startDirectMessage.current = value;
+  };
+
+  const updateDirectMessageDetails = (value: Participant | null) => {
+    directMessageDetails.current = value;
+  };
+
+  const updateShowMessagesBadge = (value: boolean) => {
+    setShowMessagesBadge(value);
+  };
+
+  const updateAudioSetting = (value: string) => {
+    audioSetting.current = value;
+  };
+
+  const updateVideoSetting = (value: string) => {
+    videoSetting.current = value;
+  };
+
+  const updateScreenshareSetting = (value: string) => {
+    screenshareSetting.current = value;
+  };
+
+  const updateChatSetting = (value: string) => {
+    chatSetting.current = value;
+  };
+
+  const updateDisplayOption = (value: string) => {
+    displayOption.current = value;
+  };
+
+  const updateAutoWave = (value: boolean) => {
+    autoWave.current = value;
+  };
+
+  const updateForceFullDisplay = async (value: boolean) => {
+    forceFullDisplay.current = value;
+    await prepopulateUserMedia({
+      name: hostLabel.current,
+      parameters: {
+        ...getAllParams(),
+        ...mediaSFUFunctions(),
+      },
+    });
+  };
+
+  const updatePrevForceFullDisplay = (value: boolean) => {
+    prevForceFullDisplay.current = value;
+  };
+
+  const updateSelfViewForceFull = async(value: boolean) => {
+    selfViewForceFull.current = value;
+
+    await onResize();
+  };
+
+  const updatePrevMeetingDisplayType = (value: string) => {
+    prevMeetingDisplayType.current = value;
+  };
+
+  const updateWaitingRoomCounter = (value: number) => {
+    waitingRoomCounter.current = value;
+  };
+
+  const updateWaitingRoomFilter = (value: string) => {
+    waitingRoomFilter.current = value;
+  };
+
+  const updateWaitingRoomList = (value: WaitingRoomParticipant[]) => {
+    waitingRoomList.current = value;
+    filteredWaitingRoomList.current = value;
+    waitingRoomCounter.current = value.length;
+  };
+
+  const updateRequestCounter = (value: number) => {
+    requestCounter.current = value;
+  };
+
+  const updateRequestFilter = (value: string) => {
+    requestFilter.current = value;
+  };
+
+  const updateRequestList = (value: Request[]) => {
+    requestList.current = value;
+    filteredRequestList.current = value;
+    requestCounter.current = value.length;
+  };
+
+  const updateTotalReqWait = (value: number) => {
+    totalReqWait.current = value;
+  };
+
+  const onWaitingRoomFilterChange = (value: string) => {
+    //filter the waiting room list based on the value
+    if (value !== "" && value.length > 0) {
+      let filteredWaitingRoom = waitingRoomList.current.filter(
+        (waitingRoom) => {
+          return waitingRoom.name.toLowerCase().includes(value.toLowerCase());
+        }
+      );
+      filteredWaitingRoomList.current = filteredWaitingRoom;
+      waitingRoomCounter.current = filteredWaitingRoom.length;
+    } else {
+      filteredWaitingRoomList.current = waitingRoomList.current;
+      waitingRoomCounter.current = waitingRoomList.current.length;
+    }
+  };
+
+  const onRequestFilterChange = (value: string) => {
+    //filter the request list based on the value
+    if (value !== "" && value.length > 0) {
+      let filteredRequest = requestList.current.filter((request: Request) => {
+        return request!.name!.toLowerCase().includes(value.toLowerCase());
+      });
+      filteredRequestList.current = filteredRequest;
+      requestCounter.current = filteredRequest.length;
+    } else {
+      filteredRequestList.current = requestList.current;
+      requestCounter.current = requestList.current.length;
+    }
+  };
+
+  const onParticipantsFilterChange = (value: string) => {
+    //filter the participants list based on the value
+
+    if (value !== "" && value.length > 0) {
+      let filteredParts = participants.current.filter((participant) => {
+        return participant.name.toLowerCase().includes(value.toLowerCase());
+      });
+      filteredParticipants.current = filteredParts;
+      participantsCounter.current = filteredParts.length;
+    } else {
+      filteredParticipants.current = participants.current;
+      participantsCounter.current = participants.current.length;
+    }
+  };
+
+  const updateIsMenuModalVisible = (value: boolean) => {
+    setIsMenuModalVisible(value);
+  };
+
+  const updateIsRecordingModalVisible = (value: boolean) => {
+    setIsRecordingModalVisible(value);
+    if (value == true) {
+      updateConfirmedToRecord(false);
+    } else {
+      if (
+        clearedToRecord.current == true &&
+        clearedToResume.current == true &&
+        recordStarted.current == true
+      ) {
+        updateShowRecordButtons(true);
+      }
+    }
+  };
+
+  const updateIsSettingsModalVisible = (value: boolean) => {
+    setIsSettingsModalVisible(value);
+  };
+
+  const updateIsRequestsModalVisible = (value: boolean) => {
+    setIsRequestsModalVisible(value);
+  };
+
+  const updateIsWaitingModalVisible = (value: boolean) => {
+    setIsWaitingModalVisible(value);
+  };
+
+  const updateIsCoHostModalVisible = (value: boolean) => {
+    setIsCoHostModalVisible(value);
+  };
+
+  const updateIsMediaSettingsModalVisible = (value: boolean) => {
+    setIsMediaSettingsModalVisible(value);
+  };
+
+  const updateIsDisplaySettingsModalVisible = (value: boolean) => {
+    setIsDisplaySettingsModalVisible(value);
+  };
+
+  const updateIsParticipantsModalVisible = (value: boolean) => {
+    setIsParticipantsModalVisible(value);
+  };
+
+  const updateIsMessagesModalVisible = (value: boolean) => {
+    setIsMessagesModalVisible(value);
+    if (value) {
+      // When opening messages, also switch sidebar content to messages for modern UI
+      updateActiveSidebarContent('messages');
+    } else {
+      updateShowMessagesBadge(false);
+    }
+  };
+
+  const updateIsConfirmExitModalVisible = (value: boolean) => {
+    setIsConfirmExitModalVisible(value);
+  };
+
+  const updateIsConfirmHereModalVisible = (value: boolean) => {
+    setIsConfirmHereModalVisible(value);
+  };
+
+  const updateIsLoadingModalVisible = (value: boolean) => {
+    setIsLoadingModalVisible(value);
+  };
+
+  const updateIsShareEventModalVisible = (value: boolean) => {
+    setIsShareEventModalVisible(value);
+  };
+
+  const updateRecordingMediaOptions = (value: string) => {
+    recordingMediaOptions.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingAudioOptions = (value: string) => {
+    recordingAudioOptions.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingVideoOptions = (value: string) => {
+    recordingVideoOptions.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingVideoType = (value: string) => {
+    recordingVideoType.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingVideoOptimized = (value: boolean) => {
+    recordingVideoOptimized.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingDisplayType = (value: "media" | "video" | "all") => {
+    recordingDisplayType.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingAddHLS = (value: boolean) => {
+    recordingAddHLS.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingAddText = (value: boolean) => {
+    recordingAddText.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingCustomText = (value: string) => {
+    recordingCustomText.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingCustomTextPosition = (value: string) => {
+    recordingCustomTextPosition.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingCustomTextColor = (value: string) => {
+    setRecordingCustomTextColor(value);
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingNameTags = (value: boolean) => {
+    recordingNameTags.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingBackgroundColor = (value: string) => {
+    setRecordingBackgroundColor(value);
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingNameTagsColor = (value: string) => {
+    setRecordingNameTagsColor(value);
+    clearedToRecord.current = false;
+  };
+
+  const updateRecordingOrientationVideo = (value: string) => {
+    recordingOrientationVideo.current = value;
+    clearedToRecord.current = false;
+  };
+
+  const updateClearedToResume = (value: boolean) => {
+    clearedToResume.current = value;
+  };
+
+  const updateClearedToRecord = (value: boolean) => {
+    clearedToRecord.current = value;
+  };
+
+  const updateRecordState = (value: string) => {
+    setRecordState(value);
+  };
+
+  const updateShowRecordButtons = (value: boolean) => {
+    setShowRecordButtons(value);
+  };
+
+  const updateRecordingProgressTime = (value: string) => {
+    setRecordingProgressTime(value);
+  };
+
+  const updateAudioSwitching = (value: boolean) => {
+    setAudioSwitching(value);
+  };
+
+  const updateVideoSwitching = (value: boolean) => {
+    setVideoSwitching(value);
+  };
+
+  const updateVideoAlreadyOn = (value: boolean) => {
+    videoAlreadyOn.current = value;
+    setVideoActive(value);
+  };
+
+  const updateAudioAlreadyOn = (value: boolean) => {
+    audioAlreadyOn.current = value;
+    setMicActive(value);
+  };
+
+  const updateComponentSizes = useCallback((sizes: ComponentSizes, internal=true) => {
+    setComponentSizes((prev) => {
+      if (
+        prev.mainHeight === sizes.mainHeight &&
+        prev.otherHeight === sizes.otherHeight &&
+        prev.mainWidth === sizes.mainWidth &&
+        prev.otherWidth === sizes.otherWidth
+      ) {
+        componentSizesRef.current = prev;
+        return prev;
+      }
+
+      const nextSizes = { ...sizes };
+      componentSizesRef.current = nextSizes;
+      if (!internal) {
+        onResize();
+      }
+      return nextSizes;
+    });
+  }, []);
+
+  const updatePrimaryGridLayoutMeta = (layout: GridLayoutMeta) => {
+    primaryGridLayoutRef.current = layout;
+  };
+
+  const updateAltGridLayoutMeta = (layout: GridLayoutMeta) => {
+    altGridLayoutRef.current = layout;
+  };
+
+  const updateHasCameraPermission = (value: boolean) => {
+    setHasCameraPermission(value);
+  };
+
+  const updateHasAudioPermission = (value: boolean) => {
+    setHasAudioPermission(value);
+  };
+
+  const requestPermissionCamera = async () => {
+    return "granted";
+  };
+
+  const requestPermissionAudio = async () => {
+    // Request audio permissions
+
+    return "granted";
+  };
+
+  const updateTransportCreated = (value: boolean) => {
+    transportCreated.current = value;
+  };
+
+  const updateLocalTransportCreated = (value: boolean) => {
+    localTransportCreated.current = value;
+  };
+
+  const updateTransportCreatedVideo = (value: boolean) => {
+    transportCreatedVideo.current = value;
+  };
+
+  const updateTransportCreatedAudio = (value: boolean) => {
+    transportCreatedAudio.current = value;
+  };
+
+  const updateTransportCreatedScreen = (value: boolean) => {
+    transportCreatedScreen.current = value;
+  };
+
+  const updateProducerTransport = (value: Transport | null) => {
+    producerTransport.current = value;
+  };
+
+  const updateLocalProducerTransport = (value: Transport | null) => {
+    localProducerTransport.current = value;
+  };
+
+  const updateVideoProducer = (value: Producer | null) => {
+    videoProducer.current = value;
+  };
+
+  const updateLocalVideoProducer = (value: Producer | null) => {
+    localVideoProducer.current = value;
+  };
+
+  const updateParams = (value: ProducerOptions) => {
+    params.current = value;
+  };
+
+  const updateVideoParams = (value: ProducerOptions) => {
+    videoParams.current = value;
+  };
+
+  const updateAudioParams = (value: ProducerOptions) => {
+    audioParams.current = value;
+  };
+
+  const updateAudioProducer = (value: Producer | null) => {
+    audioProducer.current = value;
+  };
+
+  const updateAudioLevel = (value: number) => {
+    audioLevel.current = value;
+  };
+
+  const updateLocalAudioProducer = (value: Producer | null) => {
+    localAudioProducer.current = value;
+  };
+
+  const updateConsumerTransports = (value: TransportType[]) => {
+    consumerTransports.current = value;
+  };
+
+  const updateConsumingTransports = (value: string[]) => {
+    consumingTransports.current = value;
+  };
+
+  const updatePolls = (value: Poll[]) => {
+    polls.current = value;
+  };
+
+  const updatePoll = (value: Poll | null) => {
+    poll.current = value;
+  };
+
+  // Smart poll modal visible updater that uses sidebar when appropriate
+  const updateIsPollModalVisible = useCallback((value: boolean) => {
+    const isLandscape = windowWidth > windowHeight;
+    const isWide = windowWidth >= 1200;
+    const useSidebar = isLandscape && isWide;
+
+    if (value && useSidebar) {
+      setActiveSidebarContent('polls');
+    } else if (!value) {
+      setIsPollModalVisible(false);
+      if (activeSidebarContent === 'polls') {
+        setActiveSidebarContent('none');
+      }
+    } else {
+      setIsPollModalVisible(value);
+    }
+  }, [windowWidth, windowHeight, activeSidebarContent]);
+
+  const updatePermissionConfig = (value: PermissionConfig | null) => {
+    permissionConfig.current = value;
+  }
+  const updatePanelists = (value: Participant[]) => {
+    panelists.current = value;
+  }
+  const updatePanelistsFocused = (value: boolean) => {
+    panelistsFocused.current = value;
+  }
+  const updateMuteOthersMic = (value: boolean) => {
+    muteOthersMic.current = value;
+  }
+  const updateMuteOthersCamera = (value: boolean) => {
+    muteOthersCamera.current = value;
+  }
+
+  // Translation update functions
+  const updateTranslationConfig = (value: TranslationRoomConfig | null) => {
+    translationConfig.current = value;
+    // Also update state to trigger re-render for menu visibility
+    setTranslationSupported(value?.supportTranslation === true);
+  };
+  const updateMySpokenLanguage = (value: string) => {
+    mySpokenLanguage.current = value;
+  };
+  const updateMySpokenLanguageEnabled = (value: boolean) => {
+    mySpokenLanguageEnabled.current = value;
+  };
+  const updateMyDefaultOutputLanguage = (value: string | null) => {
+    myDefaultOutputLanguage.current = value;
+  };
+  const updateMyDefaultListenLanguage = (value: string | null) => {
+    myDefaultListenLanguage.current = value;
+    // Sync with listenerTranslationPreferences.globalLanguage so newPipeProducer knows to consume
+    // Update ref synchronously for immediate access
+    listenerTranslationPreferencesRef.current = {
+      ...listenerTranslationPreferencesRef.current,
+      globalLanguage: value,
+    };
+    // Also update state for React re-renders
+    setListenerTranslationPreferences(prev => ({
+      ...prev,
+      globalLanguage: value,
+    }));
+  };
+  const updateListenPreferences = (value: Map<string, string> | ((prev: Map<string, string>) => Map<string, string>)) => {
+    if (typeof value === 'function') {
+      listenPreferences.current = value(listenPreferences.current);
+    } else {
+      listenPreferences.current = value;
+    }
+  };
+  const updateTranslationProducerMap = (value: TranslationProducerMap | ((prev: TranslationProducerMap) => TranslationProducerMap)) => {
+    if (typeof value === 'function') {
+      translationProducerMap.current = value(translationProducerMap.current);
+    } else {
+      translationProducerMap.current = value;
+    }
+  };
+  const updateAvailableTranslationChannels = (speakerId: string, languages: string[], originalProducerId: string) => {
+    availableTranslationChannels.current.set(speakerId, { languages, originalProducerId });
+  };
+
+  // Update functions
+  const updateCustomImage = (value: string) => {
+    customImage.current = value;
+  };
+
+  const updateSelectedImage = (value: string) => {
+    selectedImage.current = value;
+  };
+
+  const updateSegmentVideo = (value: MediaStream | null) => {
+    segmentVideo.current = value;
+  };
+
+  const updateSelfieSegmentation = (value: SelfieSegmentation | null) => {
+    selfieSegmentation.current = value;
+  };
+
+  const updatePauseSegmentation = (value: boolean) => {
+    pauseSegmentation.current = value;
+  };
+
+  const updateProcessedStream = (value: MediaStream | null) => {
+    processedStream.current = value;
+  };
+
+  const updateKeepBackground = (value: boolean) => {
+    keepBackground.current = value;
+  };
+
+  const updateBackgroundHasChanged = (value: boolean) => {
+    backgroundHasChanged.current = value;
+  };
+
+  const updateVirtualStream = (value: MediaStream | null) => {
+    virtualStream.current = value;
+  };
+
+  const updateMainCanvas = (value: HTMLCanvasElement | null) => {
+    mainCanvas.current = value;
+  };
+
+  const updatePrevKeepBackground = (value: boolean) => {
+    prevKeepBackground.current = value;
+  };
+
+  const updateAppliedBackground = (value: boolean) => {
+    appliedBackground.current = value;
+  };
+
+  const updateIsBackgroundModalVisible = (value: boolean) => {
+    setIsBackgroundModalVisible(value);
+  };
+
+  const updateAutoClickBackground = (value: boolean) => {
+    autoClickBackground.current = value;
+  };
+
+  const updateBreakoutRooms = (value: BreakoutParticipant[][]) => {
+    breakoutRooms.current = value;
+  };
+
+  const updateCurrentRoomIndex = (value: number) => {
+    currentRoomIndex.current = value;
+  };
+
+  const updateCanStartBreakout = (value: boolean) => {
+    canStartBreakout.current = value;
+  };
+
+  const updateBreakOutRoomStarted = (value: boolean) => {
+    breakOutRoomStarted.current = value;
+  };
+
+  const updateBreakOutRoomEnded = (value: boolean) => {
+    breakOutRoomEnded.current = value;
+  };
+
+  const updateHostNewRoom = (value: number) => {
+    hostNewRoom.current = value;
+  };
+
+  const updateLimitedBreakRoom = (value: BreakoutParticipant[]) => {
+    limitedBreakRoom.current = value;
+  };
+
+  const updateMainRoomsLength = (value: number) => {
+    mainRoomsLength.current = value;
+  };
+
+  const updateMemberRoom = (value: number) => {
+    memberRoom.current = value;
+  };
+
+  const updateIsBreakoutRoomsModalVisible = (value: boolean) => {
+    setIsBreakoutRoomsModalVisible(value);
+  };
+
+  const updateWhiteboardUsers = (value: WhiteboardUser[]) => {
+    whiteboardUsers.current = value;
+  };
+
+  const updateCurrentWhiteboardIndex = (value: number | null) => {
+    currentWhiteboardIndex.current = value;
+  };
+
+  const updateCanStartWhiteboard = (value: boolean) => {
+    canStartWhiteboard.current = value;
+  };
+
+  const updateWhiteboardStarted = (value: boolean) => {
+    whiteboardStarted.current = value;
+    if (value || screenShareActive) {
+      updateMainHeightWidth(84);
+    }
+  };
+
+  const updateWhiteboardEnded = (value: boolean) => {
+    whiteboardEnded.current = value;
+  };
+
+  const updateWhiteboardLimit = (value: number) => {
+    whiteboardLimit.current = value;
+  };
+
+  const updateIsWhiteboardModalVisible = (value: boolean) => {
+    setIsWhiteboardModalVisible(value);
+  };
+
+  const updateIsConfigureWhiteboardModalVisible = (value: boolean) => {
+    setIsConfigureWhiteboardModalVisible(value);
+  };
+
+  const updateShapes = (value: Shape[]) => {
+    shapes.current = value;
+  };
+
+  const updateUseImageBackground = (value: boolean) => {
+    useImageBackground.current = value;
+  };
+
+  const updateRedoStack = (value: Shape[]) => {
+    redoStack.current = value;
+  };
+
+  const updateUndoStack = (value: string[]) => {
+    undoStack.current = value;
+  };
+
+  const updateCanvasStream = (value: MediaStream | null) => {
+    canvasStream.current = value;
+  };
+
+  const updateCanvasWhiteboard = (value: HTMLCanvasElement | null) => {
+    canvasWhiteboard.current = value;
+  };
+
+  const updateCanvasScreenboard = (value: HTMLCanvasElement | null) => {
+    canvasScreenboard.current = value;
+  };
+
+  const updateProcessedScreenStream = (value: MediaStream | null) => {
+    processedScreenStream.current = value;
+  };
+
+  const updateAnnotateScreenStream = (value: boolean) => {
+    annotateScreenStream.current = value;
+  };
+
+  const updateMainScreenCanvas = (value: HTMLCanvasElement | null) => {
+    mainScreenCanvas.current = value;
+  };
+
+  const updateIsScreenboardModalVisible = (value: boolean) => {
+    setIsScreenboardModalVisible(value);
+  };
+
+  function checkOrientation() {
+    // Check the device orientation using window.matchMedia()
+    const isPortrait = window.matchMedia("(orientation: portrait)").matches;
+
+    return isPortrait ? "portrait" : "landscape";
+  }
+
+  const getUpdatedAllParams = () => {
+    // Get all the params for the room as well as the update functions for them and Media SFU functions and return them
+    try {
+      if (sourceParameters !== null) {
+        sourceParameters = {
+          ...getAllParams(),
+          ...mediaSFUFunctions(),
+        };
+        if (updateSourceParameters){
+          updateSourceParameters(sourceParameters);
+        }
+      }
+    } catch {
+      // Do nothing
+    }
+
+    return {
+      ...getAllParams(),
+      ...mediaSFUFunctions(),
+    };
+  };
+
+  const mediaSFUFunctions = () => {
+    // Media SFU functions
+
+    return {
+      updateMiniCardsGrid,
+      updatePrimaryGridLayoutMeta,
+      updateAltGridLayoutMeta,
+      mixStreams,
+      dispStreams,
+      stopShareScreen,
+      checkScreenShare,
+      startShareScreen,
+      requestScreenShare,
+  reorderStreams,
+  prepopulateUserMedia,
+    videoCardComponent: VideoCardComponentOverride,
+    audioCardComponent: AudioCardComponentOverride,
+    miniCardComponent: MiniCardComponentOverride,
+  miniAudioComponent: MiniAudioComponentOverride,
+  miniAudioPlayerComponent: MiniAudioPlayerComponent,
+  meetingProgressTimerComponent: MeetingProgressTimerComponent,
+      getVideos,
+      rePort,
+  trigger,
+  consumerResume: consumerResumeFn,
+      connectSendTransport,
+      connectSendTransportAudio,
+      connectSendTransportVideo,
+      connectSendTransportScreen,
+      processConsumerTransports,
+      resumePauseStreams,
+      readjust,
+      checkGrid,
+      getEstimate,
+  calculateRowsAndColumns,
+  addVideosGrid: addVideosGridFn,
+      onScreenChanges,
+      sleep,
+      changeVids,
+      compareActiveNames,
+      compareScreenStates,
+      createSendTransport,
+      resumeSendTransportAudio,
+      receiveAllPipedTransports,
+      disconnectSendTransportVideo,
+      disconnectSendTransportAudio,
+      disconnectSendTransportScreen,
+      getPipedProducersAlt,
+      signalNewConsumerTransport,
+      connectRecvTransport,
+      reUpdateInter,
+      updateParticipantAudioDecibels,
+      closeAndResize,
+      autoAdjust,
+      switchUserVideoAlt,
+      switchUserVideo,
+      switchUserAudio,
+      getDomains,
+      formatNumber,
+      connectIps,
+      connectLocalIps,
+      createDeviceClient,
+
+      handleCreatePoll,
+      handleEndPoll,
+      handleVotePoll,
+
+      captureCanvasStream,
+      resumePauseAudioStreams,
+      processConsumerTransportsAudio,
+
+      checkPermission,
+      streamSuccessVideo,
+      streamSuccessAudio,
+      streamSuccessScreen,
+      streamSuccessAudioSwitch,
+      clickVideo,
+      clickAudio,
+      clickScreenShare,
+      switchVideoAlt,
+      requestPermissionCamera,
+      requestPermissionAudio,
+
+      // New methods
+      getMediaDevicesList,
+      getParticipantMedia,
+    };
+  };
+
+  const getAllParams = () => {
+    //get all the params for the room as well as the update functions for them and return them
+
+    return {
+      localUIMode: localUIMode.current, // Local UI mode
+      isDarkModeValue: isDarkMode, // Theme mode for media cards
+      videoCardComponent: VideoCardComponentOverride,
+      audioCardComponent: AudioCardComponentOverride,
+      miniCardComponent: MiniCardComponentOverride,
+      miniAudioComponent: MiniAudioComponentOverride,
+      miniAudioPlayerComponent: MiniAudioPlayerComponent,
+      meetingProgressTimerComponent: MeetingProgressTimerComponent,
+
+      //Room Details
+      roomName: roomName.current,
+      member: member.current,
+      adminPasscode: adminPasscode.current,
+      youAreCoHost: youAreCoHost.current,
+      youAreHost: youAreHost.current,
+      islevel: islevel.current,
+      confirmedToRecord: confirmedToRecord.current,
+      meetingDisplayType: meetingDisplayType.current,
+      meetingVideoOptimized: meetingVideoOptimized.current,
+      eventType: eventType.current,
+      participants: participants.current,
+      filteredParticipants: filteredParticipants.current,
+      participantsCounter: participantsCounter.current,
+      participantsFilter: participantsFilter.current,
+
+      //more room details - media
+      consume_sockets: consume_sockets.current,
+      rtpCapabilities: rtpCapabilities.current,
+      roomRecvIPs: roomRecvIPs.current,
+      meetingRoomParams: meetingRoomParams.current,
+      itemPageLimit: itemPageLimit.current,
+      audioOnlyRoom: audioOnlyRoom.current,
+      addForBasic: addForBasic.current,
+      screenPageLimit: screenPageLimit.current,
+      shareScreenStarted: shareScreenStarted.current,
+      shared: shared.current,
+      targetOrientation: targetOrientation.current,
+      targetResolution: targetResolution.current,
+      targetResolutionHost: targetResolutionHost.current,
+      vidCons: vidCons.current,
+      frameRate: frameRate.current,
+      hParams: hParams.current,
+      vParams: vParams.current,
+      screenParams: screenParams.current,
+      aParams: aParams.current,
+
+      //more room details - recording
+      recordingAudioPausesLimit: recordingAudioPausesLimit.current,
+      recordingAudioPausesCount: recordingAudioPausesCount.current,
+      recordingAudioSupport: recordingAudioSupport.current,
+      recordingAudioPeopleLimit: recordingAudioPeopleLimit.current,
+      recordingAudioParticipantsTimeLimit:
+        recordingAudioParticipantsTimeLimit.current,
+      recordingVideoPausesCount: recordingVideoPausesCount.current,
+      recordingVideoPausesLimit: recordingVideoPausesLimit.current,
+      recordingVideoSupport: recordingVideoSupport.current,
+      recordingVideoPeopleLimit: recordingVideoPeopleLimit.current,
+      recordingVideoParticipantsTimeLimit:
+        recordingVideoParticipantsTimeLimit.current,
+      recordingAllParticipantsSupport: recordingAllParticipantsSupport.current,
+      recordingVideoParticipantsSupport:
+        recordingVideoParticipantsSupport.current,
+      recordingAllParticipantsFullRoomSupport:
+        recordingAllParticipantsFullRoomSupport.current,
+      recordingVideoParticipantsFullRoomSupport:
+        recordingVideoParticipantsFullRoomSupport.current,
+      recordingPreferredOrientation: recordingPreferredOrientation.current,
+      recordingSupportForOtherOrientation:
+        recordingSupportForOtherOrientation.current,
+      recordingMultiFormatsSupport: recordingMultiFormatsSupport.current,
+
+      userRecordingParams: userRecordingParams.current,
+      canRecord: canRecord.current,
+      startReport: startReport.current,
+      endReport: endReport.current,
+      recordStartTime: recordStartTime.current,
+      recordElapsedTime: recordElapsedTime.current,
+      isTimerRunning: isTimerRunning.current,
+      canPauseResume: canPauseResume.current,
+      recordChangeSeconds: recordChangeSeconds.current,
+      pauseLimit: pauseLimit.current,
+      pauseRecordCount: pauseRecordCount.current,
+      canLaunchRecord: canLaunchRecord.current,
+      stopLaunchRecord: stopLaunchRecord.current,
+
+      participantsAll: participantsAll.current,
+
+      firstAll: firstAll.current,
+      updateMainWindow: updateMainWindow.current,
+      first_round: first_round.current,
+      landScaped: landScaped.current,
+      lock_screen: lock_screen.current,
+      screenId: screenId.current,
+      allVideoStreams: allVideoStreams.current,
+      newLimitedStreams: newLimitedStreams.current,
+      newLimitedStreamsIDs: newLimitedStreamsIDs.current,
+      activeSounds: activeSounds.current,
+      screenShareIDStream: screenShareIDStream.current,
+      screenShareNameStream: screenShareNameStream.current,
+      adminIDStream: adminIDStream.current,
+      adminNameStream: adminNameStream.current,
+      youYouStream: youYouStream.current,
+      youYouStreamIDs: youYouStreamIDs.current,
+      localStream: localStream.current,
+      recordStarted: recordStarted.current,
+      recordResumed: recordResumed.current,
+      recordPaused: recordPaused.current,
+      recordStopped: recordStopped.current,
+      adminRestrictSetting: adminRestrictSetting.current,
+      videoRequestState: videoRequestState.current,
+      videoRequestTime: videoRequestTime.current,
+      videoAction: videoAction.current,
+      localStreamVideo: localStreamVideo.current,
+      userDefaultVideoInputDevice: userDefaultVideoInputDevice.current,
+      currentFacingMode: currentFacingMode.current,
+      prevFacingMode: prevFacingMode.current,
+      defVideoID: defVideoID.current,
+      allowed: allowed.current,
+      dispActiveNames: dispActiveNames.current,
+      p_dispActiveNames: p_dispActiveNames.current,
+      activeNames: activeNames.current,
+      prevActiveNames: prevActiveNames.current,
+      p_activeNames: p_activeNames.current,
+      membersReceived: membersReceived.current,
+      deferScreenReceived: deferScreenReceived.current,
+      hostFirstSwitch: hostFirstSwitch.current,
+      micAction: micAction.current,
+      screenAction: screenAction.current,
+      chatAction: chatAction.current,
+      audioRequestState: audioRequestState.current,
+      screenRequestState: screenRequestState.current,
+      chatRequestState: chatRequestState.current,
+      audioRequestTime: audioRequestTime.current,
+      screenRequestTime: screenRequestTime.current,
+      chatRequestTime: chatRequestTime.current,
+      updateRequestIntervalSeconds: updateRequestIntervalSeconds.current,
+      oldSoundIds: oldSoundIds.current,
+      hostLabel: hostLabel.current,
+      mainScreenFilled: mainScreenFilled.current,
+      localStreamScreen: localStreamScreen.current,
+      screenAlreadyOn: screenAlreadyOn,
+      chatAlreadyOn: chatAlreadyOn,
+      redirectURL: redirectURL.current,
+      oldAllStreams: oldAllStreams.current,
+      adminVidID: adminVidID.current,
+      streamNames: streamNames.current,
+      non_alVideoStreams: non_alVideoStreams.current,
+      sortAudioLoudness: sortAudioLoudness.current,
+      audioDecibels: audioDecibels.current,
+      mixed_alVideoStreams: mixed_alVideoStreams.current,
+      non_alVideoStreams_muted: non_alVideoStreams_muted.current,
+      paginatedStreams: paginatedStreams.current,
+      localStreamAudio: localStreamAudio.current,
+      defAudioID: defAudioID.current,
+      userDefaultAudioInputDevice: userDefaultAudioInputDevice.current,
+      userDefaultAudioOutputDevice: userDefaultAudioOutputDevice.current,
+      prevAudioInputDevice: prevAudioInputDevice.current,
+      prevVideoInputDevice: prevVideoInputDevice.current,
+      audioPaused: audioPaused.current,
+      mainScreenPerson: mainScreenPerson.current,
+      adminOnMainScreen: adminOnMainScreen.current,
+      screenStates: screenStates.current,
+      prevScreenStates: prevScreenStates.current,
+      updateDateState: updateDateState.current,
+      lastUpdate: lastUpdate.current,
+      nForReadjustRecord: nForReadjustRecord.current,
+      fixedPageLimit: fixedPageLimit.current,
+      removeAltGrid: removeAltGrid.current,
+      nForReadjust: nForReadjust.current,
+      lastReorderTime: lastReorderTime.current,
+      reorderInterval: reorderInterval.current,
+      fastReorderInterval: fastReorderInterval.current,
+      audStreamNames: audStreamNames.current,
+      currentUserPage: currentUserPage.current,
+      mainHeightWidth: mainHeightWidth,
+      prevMainHeightWidth: prevMainHeightWidth.current,
+      prevDoPaginate: prevDoPaginate.current,
+      doPaginate: doPaginate.current,
+      shareEnded: shareEnded.current,
+      lStreams: lStreams.current,
+      chatRefStreams: chatRefStreams.current,
+      controlHeight: controlHeight,
+      isWideScreen: isWideScreen.current,
+      isMediumScreen: isMediumScreen.current,
+      isSmallScreen: isSmallScreen.current,
+      addGrid: addGrid.current,
+      addAltGrid: addAltGrid.current,
+      gridRows: gridRows,
+      gridCols: gridCols,
+      altGridRows: altGridRows,
+      altGridCols: altGridCols,
+      numberPages: numberPages,
+      currentStreams: currentStreams,
+      showMiniView: showMiniView,
+      nStream: nStream.current,
+      defer_receive: defer_receive.current,
+      allAudioStreams: allAudioStreams.current,
+      screenProducer: screenProducer.current,
+      remoteScreenStream: remoteScreenStream.current,
+      gotAllVids: gotAllVids.current,
+      paginationHeightWidth: paginationHeightWidth.current,
+      paginationDirection: paginationDirection.current,
+      gridSizes: gridSizes.current,
+      screenForceFullDisplay: screenForceFullDisplay.current,
+      mainGridStream: mainGridStream.current,
+      otherGridStreams: otherGridStreams,
+      audioOnlyStreams: audioOnlyStreams.current,
+      translationStreams: translationStreams,
+      addTranslationStream: addTranslationStream,
+      removeTranslationStream: removeTranslationStream,
+      videoInputs: videoInputs,
+      audioInputs: audioInputs,
+      meetingProgressTime: meetingProgressTime,
+      meetingElapsedTime: meetingElapsedTime.current,
+
+      ref_participants: ref_participants.current,
+
+      messages: messages.current,
+      startDirectMessage: startDirectMessage.current,
+      directMessageDetails: directMessageDetails.current,
+      coHost: coHost.current,
+      coHostResponsibility: coHostResponsibility.current,
+
+      //event settings
+      audioSetting: audioSetting.current,
+      videoSetting: videoSetting.current,
+      screenshareSetting: screenshareSetting.current,
+      chatSetting: chatSetting.current,
+
+      //display settings
+      autoWave: autoWave.current,
+      forceFullDisplay: forceFullDisplay.current,
+      prevForceFullDisplay: prevForceFullDisplay.current,
+      prevMeetingDisplayType: prevMeetingDisplayType.current,
+      selfViewForceFull: selfViewForceFull.current,
+
+      //waiting room
+      waitingRoomFilter: waitingRoomFilter.current,
+      waitingRoomList: waitingRoomList.current,
+      waitingRoomCounter: waitingRoomCounter.current,
+      filteredWaitingRoomList: filteredWaitingRoomList.current,
+
+      //Requests
+      requestFilter: requestFilter.current,
+      requestList: requestList.current,
+      requestCounter: requestCounter.current,
+      filteredRequestList: filteredRequestList.current,
+
+      //total requests and waiting room
+      totalReqWait: totalReqWait.current,
+
+      //alerts
+      alertVisible: alertVisible,
+      alertMessage: alertMessage,
+      alertType: alertType,
+      alertDuration: alertDuration,
+
+      //Progress Timer
+      progressTimerVisible: progressTimerVisible,
+      progressTimerValue: progressTimerValue,
+
+      //Menu modals
+      isMenuModalVisible: isMenuModalVisible,
+      isRecordingModalVisible: isRecordingModalVisible,
+      isSettingsModalVisible: isSettingsModalVisible,
+      isRequestsModalVisible: isRequestsModalVisible,
+      isWaitingModalVisible: isWaitingModalVisible,
+      isCoHostModalVisible: isCoHostModalVisible,
+      isMediaSettingsModalVisible: isMediaSettingsModalVisible,
+      isDisplaySettingsModalVisible: isDisplaySettingsModalVisible,
+
+      //Other Modals
+      isParticipantsModalVisible: isParticipantsModalVisible,
+      isMessagesModalVisible: isMessagesModalVisible,
+      isConfirmExitModalVisible: isConfirmExitModalVisible,
+      isConfirmHereModalVisible: isConfirmHereModalVisible,
+      isShareEventModalVisible: isShareEventModalVisible,
+      isLoadingModalVisible: isLoadingModalVisible,
+
+      //recording Options
+      recordingMediaOptions: recordingMediaOptions.current,
+      recordingAudioOptions: recordingAudioOptions.current,
+      recordingVideoOptions: recordingVideoOptions.current,
+      recordingVideoType: recordingVideoType.current,
+      recordingVideoOptimized: recordingVideoOptimized.current,
+      recordingDisplayType: recordingDisplayType.current,
+      recordingAddHLS: recordingAddHLS.current,
+      recordingAddText: recordingAddText.current,
+      recordingCustomText: recordingCustomText.current,
+      recordingCustomTextPosition: recordingCustomTextPosition.current,
+      recordingCustomTextColor: recordingCustomTextColor,
+      recordingNameTags: recordingNameTags.current,
+      recordingBackgroundColor: recordingBackgroundColor,
+      recordingNameTagsColor: recordingNameTagsColor,
+      recordingOrientationVideo: recordingOrientationVideo.current,
+      clearedToResume: clearedToResume.current,
+      clearedToRecord: clearedToRecord.current,
+      recordState: recordState,
+      showRecordButtons: showRecordButtons,
+      recordingProgressTime: recordingProgressTime,
+      audioSwitching: audioSwitching,
+      videoSwitching: videoSwitching,
+
+      //media states
+      videoAlreadyOn: videoAlreadyOn.current,
+      audioAlreadyOn: audioAlreadyOn.current,
+      componentSizes: componentSizesRef.current,
+
+      //permissions
+      hasCameraPermission: hasCameraPermission,
+      hasAudioPermission: hasAudioPermission,
+
+      //transports
+      transportCreated: transportCreated.current,
+      localTransportCreated: localTransportCreated.current,
+      transportCreatedVideo: transportCreatedVideo.current,
+      transportCreatedAudio: transportCreatedAudio.current,
+      transportCreatedScreen: transportCreatedScreen.current,
+      producerTransport: producerTransport.current,
+      localProducerTransport: localProducerTransport.current,
+      videoProducer: videoProducer.current,
+      localVideoProducer: localVideoProducer.current,
+      params: params.current,
+      videoParams: videoParams.current,
+      audioParams: audioParams.current,
+      audioProducer: audioProducer.current,
+      audioLevel: audioLevel.current,
+      localAudioProducer: localAudioProducer.current,
+      consumerTransports: consumerTransports.current,
+      consumingTransports: consumingTransports.current,
+
+      //polls
+      polls: polls.current,
+      poll: poll.current,
+      isPollModalVisible: isPollModalVisible,
+
+      //background
+      customImage: customImage.current,
+      selectedImage: selectedImage.current,
+      segmentVideo: segmentVideo.current,
+      selfieSegmentation: selfieSegmentation.current,
+      pauseSegmentation: pauseSegmentation.current,
+      processedStream: processedStream.current,
+      keepBackground: keepBackground.current,
+      backgroundHasChanged: backgroundHasChanged.current,
+      virtualStream: virtualStream.current,
+      mainCanvas: mainCanvas.current,
+      prevKeepBackground: prevKeepBackground.current,
+      appliedBackground: appliedBackground.current,
+      isBackgroundModalVisible: isBackgroundModalVisible,
+      autoClickBackground: autoClickBackground.current,
+
+      //breakout rooms
+      breakoutRooms: breakoutRooms.current,
+      currentRoomIndex: currentRoomIndex.current,
+      canStartBreakout: canStartBreakout.current,
+      breakOutRoomStarted: breakOutRoomStarted.current,
+      breakOutRoomEnded: breakOutRoomEnded.current,
+      hostNewRoom: hostNewRoom.current,
+      limitedBreakRoom: limitedBreakRoom.current,
+      mainRoomsLength: mainRoomsLength.current,
+      memberRoom: memberRoom.current,
+      isBreakoutRoomsModalVisible: isBreakoutRoomsModalVisible,
+
+      //whiteboard
+      whiteboardUsers: whiteboardUsers.current,
+      currentWhiteboardIndex: currentWhiteboardIndex.current,
+      canStartWhiteboard: canStartWhiteboard.current,
+      whiteboardStarted: whiteboardStarted.current,
+      whiteboardEnded: whiteboardEnded.current,
+      whiteboardLimit: whiteboardLimit.current,
+      isWhiteboardModalVisible: isWhiteboardModalVisible,
+      isConfigureWhiteboardModalVisible: isConfigureWhiteboardModalVisible,
+      shapes: shapes.current,
+      useImageBackground: useImageBackground.current,
+      redoStack: redoStack.current,
+      undoStack: undoStack.current,
+      canvasStream: canvasStream.current,
+      canvasWhiteboard: canvasWhiteboard.current,
+
+      //screenboard
+      canvasScreenboard: canvasScreenboard.current,
+      processedScreenStream: processedScreenStream.current,
+      annotateScreenStream: annotateScreenStream.current,
+      mainScreenCanvas: mainScreenCanvas.current,
+      isScreenboardModalVisible: isScreenboardModalVisible,
+      
+      permissionConfig: permissionConfig.current,
+      panelists: panelists.current,
+      panelistsFocused: panelistsFocused.current,
+      muteOthersMic: muteOthersMic.current,
+      muteOthersCamera: muteOthersCamera.current,
+
+      validated: validated,
+
+      device: device.current,
+      socket: socket.current,
+      localSocket: localSocket.current!,
+      checkMediaPermission: false,
+      onWeb: true,
+      mediaDevices: mediaDevices,
+
+      //update functions
+      //Room Details
+      updateRoomName,
+      updateMember,
+      updateAdminPasscode,
+      updateYouAreCoHost,
+      updateYouAreHost,
+      updateIslevel,
+      updateCoHost,
+      updateCoHostResponsibility,
+      updateConfirmedToRecord,
+      updateMeetingDisplayType,
+      updateMeetingVideoOptimized,
+      updateEventType,
+      updateParticipants,
+      updateParticipantsCounter,
+      updateParticipantsFilter,
+
+      //more room details - media
+      updateConsume_sockets,
+      updateRtpCapabilities,
+      updateRoomRecvIPs,
+      updateMeetingRoomParams,
+      updateItemPageLimit,
+      updateAudioOnlyRoom,
+      updateAddForBasic,
+      updateScreenPageLimit,
+      updateShareScreenStarted,
+      updateShared,
+      updateTargetOrientation,
+      updateTargetResolution,
+      updateTargetResolutionHost,
+      updateVidCons,
+      updateFrameRate,
+      updateHParams,
+      updateVParams,
+      updateScreenParams,
+      updateAParams,
+
+      //more room details - recording
+      updateRecordingAudioPausesLimit,
+      updateRecordingAudioPausesCount,
+      updateRecordingAudioSupport,
+      updateRecordingAudioPeopleLimit,
+      updateRecordingAudioParticipantsTimeLimit,
+      updateRecordingVideoPausesCount,
+      updateRecordingVideoPausesLimit,
+      updateRecordingVideoSupport,
+      updateRecordingVideoPeopleLimit,
+      updateRecordingVideoParticipantsTimeLimit,
+      updateRecordingAllParticipantsSupport,
+      updateRecordingVideoParticipantsSupport,
+      updateRecordingAllParticipantsFullRoomSupport,
+      updateRecordingVideoParticipantsFullRoomSupport,
+      updateRecordingPreferredOrientation,
+      updateRecordingSupportForOtherOrientation,
+      updateRecordingMultiFormatsSupport,
+
+      updateUserRecordingParams,
+      updateCanRecord,
+      updateStartReport,
+      updateEndReport,
+      updateRecordTimerInterval,
+      updateRecordStartTime,
+      updateRecordElapsedTime,
+      updateIsTimerRunning,
+      updateCanPauseResume,
+      updateRecordChangeSeconds,
+      updatePauseLimit,
+      updatePauseRecordCount,
+      updateCanLaunchRecord,
+      updateStopLaunchRecord,
+
+      updateParticipantsAll,
+
+      updateFirstAll,
+      updateUpdateMainWindow,
+      updateFirst_round,
+      updateLandScaped,
+      updateLock_screen,
+      updateScreenId,
+      updateAllVideoStreams,
+      updateNewLimitedStreams,
+      updateNewLimitedStreamsIDs,
+      updateActiveSounds,
+      updateScreenShareIDStream,
+      updateScreenShareNameStream,
+      updateAdminIDStream,
+      updateAdminNameStream,
+      updateYouYouStream,
+      updateYouYouStreamIDs,
+      updateLocalStream,
+      updateRecordStarted,
+      updateRecordResumed,
+      updateRecordPaused,
+      updateRecordStopped,
+      updateAdminRestrictSetting,
+      updateVideoRequestState,
+      updateVideoRequestTime,
+      updateVideoAction,
+      updateLocalStreamVideo,
+      updateUserDefaultVideoInputDevice,
+      updateCurrentFacingMode,
+      updateRef_participants,
+      updateDefVideoID,
+      updateAllowed,
+      updateDispActiveNames,
+      updateP_dispActiveNames,
+      updateActiveNames,
+      updatePrevActiveNames,
+      updateP_activeNames,
+      updateMembersReceived,
+      updateDeferScreenReceived,
+      updateHostFirstSwitch,
+      updateMicAction,
+      updateScreenAction,
+      updateChatAction,
+      updateAudioRequestState,
+      updateScreenRequestState,
+      updateChatRequestState,
+      updateAudioRequestTime,
+      updateScreenRequestTime,
+      updateChatRequestTime,
+      updateOldSoundIds,
+      updatehostLabel,
+      updateMainScreenFilled,
+      updateLocalStreamScreen,
+      updateScreenAlreadyOn,
+      updateChatAlreadyOn,
+      updateRedirectURL,
+      updateOldAllStreams,
+      updateAdminVidID,
+      updateStreamNames,
+      updateNon_alVideoStreams,
+      updateSortAudioLoudness,
+      updateAudioDecibels,
+      updateMixed_alVideoStreams,
+      updateNon_alVideoStreams_muted,
+      updatePaginatedStreams,
+      updateLocalStreamAudio,
+      updateDefAudioID,
+      updateUserDefaultAudioInputDevice,
+      updateUserDefaultAudioOutputDevice,
+      updatePrevAudioInputDevice,
+      updatePrevVideoInputDevice,
+      updateAudioPaused,
+      updateMainScreenPerson,
+      updateAdminOnMainScreen,
+      updateScreenStates,
+      updatePrevScreenStates,
+      updateUpdateDateState,
+      updateLastUpdate,
+      updateNForReadjustRecord,
+      updateFixedPageLimit,
+      updateRemoveAltGrid,
+      updateNForReadjust,
+      updateLastReorderTime,
+      updateAudStreamNames,
+      updateCurrentUserPage,
+      updatePrevFacingMode,
+      updateMainHeightWidth,
+      updatePrevMainHeightWidth,
+      updatePrevDoPaginate,
+      updateDoPaginate,
+      updateShareEnded,
+      updateLStreams,
+      updateChatRefStreams,
+      updateControlHeight,
+      updateIsWideScreen,
+      updateIsMediumScreen,
+      updateIsSmallScreen,
+      updateAddGrid,
+      updateAddAltGrid,
+      updateGridRows,
+      updateGridCols,
+      updateAltGridRows,
+      updateAltGridCols,
+      updateNumberPages,
+      updateCurrentStreams,
+      updateShowMiniView,
+      updateNStream,
+      updateDefer_receive,
+      updateAllAudioStreams,
+      updateRemoteScreenStream,
+      updateScreenProducer,
+      updateLocalScreenProducer,
+      updateGotAllVids,
+      updatePaginationHeightWidth,
+      updatePaginationDirection,
+      updateGridSizes,
+      updateScreenForceFullDisplay,
+      updateMainGridStream,
+      updateOtherGridStreams,
+      updateAudioOnlyStreams,
+      updateTranslationStreams,
+      updateVideoInputs,
+      updateAudioInputs,
+      updateMeetingProgressTime,
+      updateMeetingElapsedTime,
+
+      updateMessages,
+      updateStartDirectMessage,
+      updateDirectMessageDetails,
+      updateShowMessagesBadge,
+
+      //event settings
+      updateAudioSetting,
+      updateVideoSetting,
+      updateScreenshareSetting,
+      updateChatSetting,
+
+      //display settings
+      updateDisplayOption,
+      updateAutoWave,
+      updateForceFullDisplay,
+      updatePrevForceFullDisplay,
+      updatePrevMeetingDisplayType,
+      updateSelfViewForceFull,
+
+      //waiting room
+      updateWaitingRoomFilter,
+      updateWaitingRoomList,
+      updateWaitingRoomCounter,
+
+      //Requests
+      updateRequestFilter,
+      updateRequestList,
+      updateRequestCounter,
+
+      //total requests and waiting room
+      updateTotalReqWait,
+
+      //showAlert modal
+      updateIsMenuModalVisible,
+      updateIsRecordingModalVisible,
+      updateIsSettingsModalVisible,
+      updateIsRequestsModalVisible,
+      updateIsWaitingModalVisible,
+      updateIsCoHostModalVisible,
+      updateIsMediaSettingsModalVisible,
+      updateIsDisplaySettingsModalVisible,
+
+      //Other Modals
+      updateIsParticipantsModalVisible,
+      updateIsMessagesModalVisible,
+      updateIsConfirmExitModalVisible,
+      updateIsConfirmHereModalVisible,
+      updateIsShareEventModalVisible,
+      updateIsLoadingModalVisible,
+
+      //recording Options
+      updateRecordingMediaOptions,
+      updateRecordingAudioOptions,
+      updateRecordingVideoOptions,
+      updateRecordingVideoType,
+      updateRecordingVideoOptimized,
+      updateRecordingDisplayType,
+      updateRecordingAddHLS,
+      updateRecordingAddText,
+      updateRecordingCustomText,
+      updateRecordingCustomTextPosition,
+      updateRecordingCustomTextColor,
+      updateRecordingNameTags,
+      updateRecordingBackgroundColor,
+      updateRecordingNameTagsColor,
+      updateRecordingOrientationVideo,
+      updateClearedToResume,
+      updateClearedToRecord,
+      updateRecordState,
+      updateShowRecordButtons,
+      updateRecordingProgressTime,
+      updateAudioSwitching,
+      updateVideoSwitching,
+
+      //media states
+      updateVideoAlreadyOn,
+      updateAudioAlreadyOn,
+      updateComponentSizes,
+
+      //permissions
+      updateHasCameraPermission,
+      updateHasAudioPermission,
+
+      //transports
+      updateTransportCreated,
+      updateLocalTransportCreated,
+      updateTransportCreatedVideo,
+      updateTransportCreatedAudio,
+      updateTransportCreatedScreen,
+      updateProducerTransport,
+      updateLocalProducerTransport,
+      updateVideoProducer,
+      updateLocalVideoProducer,
+      updateParams,
+      updateVideoParams,
+      updateAudioParams,
+      updateAudioProducer,
+      updateAudioLevel,
+      updateLocalAudioProducer,
+      updateConsumerTransports,
+      updateConsumingTransports,
+
+      //polls
+      updatePolls,
+      updatePoll,
+      updateIsPollModalVisible,
+
+      //background
+      updateCustomImage,
+      updateSelectedImage,
+      updateSegmentVideo,
+      updateSelfieSegmentation,
+      updatePauseSegmentation,
+      updateProcessedStream,
+      updateKeepBackground,
+      updateBackgroundHasChanged,
+      updateVirtualStream,
+      updateMainCanvas,
+      updatePrevKeepBackground,
+      updateAppliedBackground,
+      updateIsBackgroundModalVisible,
+      updateAutoClickBackground,
+
+      //breakout rooms
+      updateBreakoutRooms,
+      updateCurrentRoomIndex,
+      updateCanStartBreakout,
+      updateBreakOutRoomStarted,
+      updateBreakOutRoomEnded,
+      updateHostNewRoom,
+      updateLimitedBreakRoom,
+      updateMainRoomsLength,
+      updateMemberRoom,
+      updateIsBreakoutRoomsModalVisible,
+
+      //whiteboard
+      updateWhiteboardUsers,
+      updateCurrentWhiteboardIndex,
+      updateCanStartWhiteboard,
+      updateWhiteboardStarted,
+      updateWhiteboardEnded,
+      updateWhiteboardLimit,
+      updateIsWhiteboardModalVisible,
+      updateIsConfigureWhiteboardModalVisible,
+      updateShapes,
+      updateUseImageBackground,
+      updateRedoStack,
+      updateUndoStack,
+      updateCanvasStream,
+      updateCanvasWhiteboard,
+
+      //screenboard
+      updateCanvasScreenboard,
+      updateProcessedScreenStream,
+      updateAnnotateScreenStream,
+      updateMainScreenCanvas,
+      updateIsScreenboardModalVisible,
+     
+      updatePermissionConfig,
+      updatePanelists,
+      updatePanelistsFocused,
+      updateMuteOthersMic,
+      updateMuteOthersCamera,
+
+      checkOrientation,
+
+      updateDevice,
+      updateSocket,
+      updateLocalSocket,
+      updateValidated,
+
+      showAlert,
+      getUpdatedAllParams,
+
+      // Translation state for new-pipe-producer consumption
+      listenPreferences: listenPreferences.current,
+      translationProducerMap: translationProducerMap.current,
+      activeTranslationProducerIds: activeTranslationProducerIds.current,
+      translationSubscriptions: new Map(
+        Array.from(listenPreferences.current.entries()).map(([speakerId, language]) => [
+          `${speakerId}_${language}`,
+          { speakerId, language }
+        ])
+      ),
+      // Speaker-controlled translation states (speaker sets output language for everyone)
+      speakerTranslationStates: speakerTranslationStates,
+      // Listener translation preferences - server-synced for billing and routing
+      // Use ref for synchronous access in getUpdatedAllParams
+      listenerTranslationPreferences: listenerTranslationPreferencesRef.current,
+      updateListenerTranslationPreferences: updateListenerTranslationPreferences,
+      // Legacy aliases for backwards compatibility
+      listenerTranslationOverrides: listenerTranslationPreferencesRef.current.perSpeaker,
+      updateListenerTranslationOverrides: updateListenerTranslationOverrides,
+      // startConsumingTranslation for new-pipe-producer flow (uses nsock from pipe)
+      startConsumingTranslation: async (
+        producerId: string,
+        speakerId: string,
+        language: string,
+        originalProducerId?: string,
+        nsock?: Socket
+      ) => {
+        
+        // FIRST: Close any existing translation consumers for this same speaker (different language)
+        // This prevents multiple translation streams playing simultaneously
+        if (originalProducerId) {
+          const existingTranslations = translationProducerMap.current[originalProducerId];
+          if (existingTranslations) {
+            const languagesToClose: string[] = [];
+            
+            for (const [existingLang, existingTranslationProducerId] of Object.entries(existingTranslations)) {
+              // Skip if it's the same language we're about to consume
+              if (existingLang.toLowerCase() === language.toLowerCase()) continue;
+              
+              // Find and close the consumer for this existing translation
+              const transportIndex = consumerTransports.current.findIndex(
+                (t) => t.producerId === existingTranslationProducerId
+              );
+              
+              if (transportIndex !== -1) {
+                const transport = consumerTransports.current[transportIndex];
+                
+                // Close consumer on server
+                if (transport.socket_ && transport.serverConsumerTransportId) {
+                  transport.socket_.emit(
+                    'consumer-close',
+                    { serverConsumerId: transport.serverConsumerTransportId },
+                    () => {}
+                  );
+                }
+                
+                // Close consumer locally
+                if (transport.consumer) {
+                  transport.consumer.close();
+                }
+                
+                // Remove from tracking
+                activeTranslationProducerIds.current.delete(existingTranslationProducerId);
+                
+                // Remove from consumer transports
+                const updatedTransports = consumerTransports.current.filter((_, i) => i !== transportIndex);
+                updateConsumerTransports(updatedTransports);
+                
+                // Mark for removal from map
+                languagesToClose.push(existingLang);
+              }
+            }
+            
+            // Clean up translationProducerMap for closed translations
+            if (languagesToClose.length > 0) {
+              updateTranslationProducerMap((prev) => {
+                const updated = { ...prev };
+                if (updated[originalProducerId]) {
+                  const langMap = { ...updated[originalProducerId] };
+                  for (const lang of languagesToClose) {
+                    delete langMap[lang];
+                  }
+                  updated[originalProducerId] = langMap;
+                }
+                return updated;
+              });
+            }
+          }
+        }
+        
+        // Track this producer ID as a translation producer so consumerResume can identify it
+        activeTranslationProducerIds.current.add(producerId);
+        
+        const targetSocket = nsock || socket.current;
+        if (!targetSocket) {
+          console.warn('[Translation] No socket available for consuming translation');
+          return;
+        }
+
+        await signalNewConsumerTransport({
+          remoteProducerId: producerId,
+          islevel: islevel.current as string,
+          nsock: targetSocket,
+          parameters: { 
+            ...getAllParams(), 
+            ...mediaSFUFunctions(),
+            // Pass translation info for consumerResume
+            activeTranslationProducerIds: activeTranslationProducerIds.current,
+          },
+        });
+        // Pause original producer if we have it
+        if (originalProducerId) {
+          // Update translation producer map to track this new translation
+          // This is important so we can find and close it if listener switches languages
+          updateTranslationProducerMap((prev) => ({
+            ...prev,
+            [originalProducerId]: {
+              ...(prev[originalProducerId] || {}),
+              [language.toLowerCase()]: producerId,
+            },
+          }));
+          
+          const breakoutParams = {
+            consumerTransports: consumerTransports.current,
+            roomName: roomName.current,
+            member: member.current,
+            updateConsumerTransports,
+            breakOutRoomStarted: breakOutRoomStarted.current,
+            breakOutRoomEnded: breakOutRoomEnded.current,
+            breakoutRooms: breakoutRooms.current,
+            limitedBreakRoom: limitedBreakRoom.current,
+            participants: participants.current,
+            islevel: islevel.current,
+            eventType: eventType.current,
+            hostNewRoom: hostNewRoom.current,
+          };
+          await pauseOriginalProducer({
+            originalProducerId,
+            speakerId,
+            parameters: breakoutParams,
+          });
+        }
+      },
+
+      // Listener preference functions - sync with server for billing and routing
+      // These replace the local-only overrides with server-synced preferences
+      
+      setListenerPreferenceForSpeaker: async (speakerId: string, language: string | null, wantOriginal: boolean = false) => {
+        // Set preference for a specific speaker (e.g., "hear PersonA in Spanish")
+        // Updates local state immediately, then syncs to server
+        const normalizedLang = language?.toLowerCase() || null;
+        
+        updateListenerTranslationPreferences((prev) => ({
+          ...prev,
+          perSpeaker: new Map(prev.perSpeaker).set(speakerId, {
+            speakerId,
+            language: normalizedLang,
+            wantOriginal,
+          }),
+        }));
+        
+        // CRITICAL: Close any existing translation consumers for this speaker that don't match the new preference
+        // This handles the case where speaker chose Dutch but listener now wants Portuguese
+        const speakerState = speakerTranslationStates.get(speakerId);
+        if (speakerState?.originalProducerId) {
+          const existingTranslations = translationProducerMap.current[speakerState.originalProducerId];
+          if (existingTranslations) {
+            for (const [existingLang, existingTranslationProducerId] of Object.entries(existingTranslations)) {
+              const shouldClose = wantOriginal || (normalizedLang && existingLang.toLowerCase() !== normalizedLang);
+              
+              if (shouldClose) {
+                const transportIndex = consumerTransports.current.findIndex(
+                  (t) => t.producerId === existingTranslationProducerId
+                );
+                
+                if (transportIndex !== -1) {
+                  const transport = consumerTransports.current[transportIndex];
+                  
+                  // Close consumer on server
+                  if (transport.socket_ && transport.serverConsumerTransportId) {
+                    transport.socket_.emit(
+                      'consumer-close',
+                      { serverConsumerId: transport.serverConsumerTransportId },
+                      () => {}
+                    );
+                  }
+                  
+                  // Close consumer locally
+                  if (transport.consumer) {
+                    transport.consumer.close();
+                  }
+                  
+                  // Remove from tracking
+                  activeTranslationProducerIds.current.delete(existingTranslationProducerId);
+                  
+                  // Remove from consumer transports
+                  consumerTransports.current.splice(transportIndex, 1);
+                  updateConsumerTransports([...consumerTransports.current]);
+                }
+              }
+            }
+          }
+          
+          // If listener wants original, also resume the original audio
+          if (wantOriginal && speakerState.originalProducerId) {
+            await resumeOriginalProducer({
+              originalProducerId: speakerState.originalProducerId,
+              speakerId,
+              parameters: { 
+                consumerTransports: consumerTransports.current,
+                updateConsumerTransports,
+                roomName: roomName.current,
+                member: member.current,
+              },
+            });
+          }
+        }
+        
+        // Sync to server for billing tracking (via worker -> parent routing)
+        const targetSocket = socket.current;
+        if (targetSocket) {
+          targetSocket.emit("translation:setListenerPreferences", {
+            roomName: roomName.current,
+            preferences: {
+              perSpeaker: { [speakerId]: { language, wantOriginal } },
+            },
+          }, (response: { success: boolean; error?: string }) => {
+            if (!response?.success) {
+              console.warn(`[Translation] Failed to sync listener preference: ${response?.error}`);
+            }
+          });
+        }
+      },
+      
+      setListenerGlobalPreference: async (language: string | null) => {
+        // Set global preference (e.g., "hear everyone in Twi")
+        const normalizedLang = language?.toLowerCase() || null;
+        
+        updateListenerTranslationPreferences((prev) => ({
+          ...prev,
+          globalLanguage: normalizedLang,
+        }));
+        
+        // CRITICAL: Close any existing translation consumers that don't match the global preference
+        // Iterate through all speakers with active translation states
+        for (const [speakerId, speakerState] of speakerTranslationStates) {
+          // Skip if there's a per-speaker preference (that takes priority)
+          const perSpeakerPref = listenerTranslationPreferencesRef.current.perSpeaker?.get(speakerId);
+          if (perSpeakerPref) continue;
+          
+          if (speakerState?.originalProducerId) {
+            const existingTranslations = translationProducerMap.current[speakerState.originalProducerId];
+            if (existingTranslations) {
+              for (const [existingLang, existingTranslationProducerId] of Object.entries(existingTranslations)) {
+                const shouldClose = normalizedLang && existingLang.toLowerCase() !== normalizedLang;
+                
+                if (shouldClose) {
+                  const transportIndex = consumerTransports.current.findIndex(
+                    (t) => t.producerId === existingTranslationProducerId
+                  );
+                  
+                  if (transportIndex !== -1) {
+                    const transport = consumerTransports.current[transportIndex];
+                    
+                    // Close consumer on server
+                    if (transport.socket_ && transport.serverConsumerTransportId) {
+                      transport.socket_.emit(
+                        'consumer-close',
+                        { serverConsumerId: transport.serverConsumerTransportId },
+                        () => {}
+                      );
+                    }
+                    
+                    // Close consumer locally
+                    if (transport.consumer) {
+                      transport.consumer.close();
+                    }
+                    
+                    // Remove from tracking
+                    activeTranslationProducerIds.current.delete(existingTranslationProducerId);
+                    
+                    // Remove from consumer transports
+                    consumerTransports.current.splice(transportIndex, 1);
+                    updateConsumerTransports([...consumerTransports.current]);
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        // Sync to server (via worker -> parent routing)
+        const targetSocket = socket.current;
+        if (targetSocket) {
+          targetSocket.emit("translation:setListenerPreferences", {
+            roomName: roomName.current,
+            preferences: {
+              global: language,
+            },
+          }, (response: { success: boolean; error?: string }) => {
+            if (!response?.success) {
+              console.warn(`[Translation] Failed to sync global preference: ${response?.error}`);
+            }
+          });
+        }
+      },
+      
+      clearListenerPreferenceForSpeaker: async (speakerId: string) => {
+        // Clear preference for a specific speaker (go back to speaker-controlled)
+        updateListenerTranslationPreferences((prev) => {
+          const newPerSpeaker = new Map(prev.perSpeaker);
+          newPerSpeaker.delete(speakerId);
+          return { ...prev, perSpeaker: newPerSpeaker };
+        });
+        
+        // Sync to server (via worker -> parent routing)
+        const targetSocket = socket.current;
+        if (targetSocket) {
+          targetSocket.emit("translation:setListenerPreferences", {
+            roomName: roomName.current,
+            preferences: {
+              perSpeaker: { [speakerId]: null }, // null means clear
+            },
+          });
+        }
+      },
+      
+      // Legacy aliases for backwards compatibility
+      setListenerOverrideToOriginal: (speakerId: string) => {
+        // Listener wants to hear original audio from this speaker
+        updateListenerTranslationOverrides((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(speakerId, {
+            speakerId,
+            wantOriginal: true,
+            preferredLanguage: undefined,
+          });
+          return newMap;
+        });
+      },
+      
+      setListenerOverrideLanguage: (speakerId: string, preferredLanguage: string) => {
+        // Listener wants a specific language from this speaker (different from speaker's output)
+        updateListenerTranslationOverrides((prev) => {
+          const newMap = new Map(prev);
+          newMap.set(speakerId, {
+            speakerId,
+            wantOriginal: false,
+            preferredLanguage,
+          });
+          return newMap;
+        });
+      },
+      
+      clearListenerOverride: (speakerId: string) => {
+        // Clear listener's override for this speaker (go back to speaker-controlled)
+        updateListenerTranslationOverrides((prev) => {
+          const newMap = new Map(prev);
+          newMap.delete(speakerId);
+          return newMap;
+        });
+      },
+
+      // Custom Component Builders
+      customVideoCard,
+      customAudioCard,
+      customMiniCard,
+      customPreJoinPage,
+    };
+  };
+
+  const showAlert = ({
+    message,
+    type,
+    duration = 3000,
+    position,
+  }: {
+    message: string;
+    type: "success" | "danger" | "info" | "warning";
+    duration?: number;
+    position?: 'top' | 'bottom' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center';
+  }) => {
+    // Show an alert message, type is 'danger', 'success', duration is in milliseconds
+    // For danger/warning alerts, default to 'center' position for better visibility
+    const effectivePosition = position ?? (type === 'danger' || type === 'warning' ? 'center' : 'top');
+    
+    // First hide any existing alert to reset the timer
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+      alertTimeoutRef.current = null;
+    }
+    setAlertVisible(false);
+    // Use setTimeout to ensure state updates before showing new alert
+    setTimeout(() => {
+      setAlertMessage(message);
+      setAlertType(type);
+      setAlertDuration(duration);
+      setAlertPosition(effectivePosition);
+      setAlertVisible(true);
+      // Fallback auto-hide in case the alert component override forgets to call onHide
+      if (duration > 0) {
+        alertTimeoutRef.current = setTimeout(() => {
+          setAlertVisible(false);
+        }, duration + 50);
+      }
+    }, 50);
+  };
+
+  useEffect(() => () => {
+    if (alertTimeoutRef.current) {
+      clearTimeout(alertTimeoutRef.current);
+    }
+  }, []);
+
+  // Run pre-flight logic before showing sidebar content
+  const updateActiveSidebarContent = useCallback((content: SidebarContentType, pushToStack = false) => {
+    if (content === 'recording') {
+      launchRecording({
+        updateIsRecordingModalVisible,
+        isRecordingModalVisible,
+        showAlert,
+        stopLaunchRecord: stopLaunchRecord.current,
+        canLaunchRecord: canLaunchRecord.current,
+        recordingAudioSupport: recordingAudioSupport.current,
+        recordingVideoSupport: recordingVideoSupport.current,
+        updateCanRecord,
+        updateClearedToRecord,
+        recordStarted: recordStarted.current,
+        recordPaused: recordPaused.current,
+        localUIMode: localUIMode.current,
+      });
+    }
+
+    if (content === 'background') {
+      setIsBackgroundModalVisible(true);
+    }
+
+    if (content === 'mediaSettings') {
+      launchMediaSettings({
+        updateIsMediaSettingsModalVisible,
+        isMediaSettingsModalVisible,
+        audioInputs,
+        videoInputs,
+        updateAudioInputs,
+        updateVideoInputs,
+        mediaDevices,
+      });
+    }
+
+    if (activeSidebarContent === content) {
+      setActiveSidebarContent('none');
+      setSidebarNavigationStack([]);
+    } else {
+      if (pushToStack && activeSidebarContent !== 'none') {
+        setSidebarNavigationStack(prev => [...prev, activeSidebarContent]);
+      } else if (!pushToStack) {
+        setSidebarNavigationStack([]);
+      }
+      setActiveSidebarContent(content);
+    }
+  }, [
+    activeSidebarContent,
+    audioInputs,
+    videoInputs,
+    updateAudioInputs,
+    updateVideoInputs,
+    updateIsMediaSettingsModalVisible,
+    isMediaSettingsModalVisible,
+    updateIsRecordingModalVisible,
+    isRecordingModalVisible,
+    showAlert,
+    updateCanRecord,
+    updateClearedToRecord,
+    setIsBackgroundModalVisible,
+  ]);
+
+  // When background is selected via sidebar navigation, show the floating modal and close the sidebar
+  // The background modal is rendered as a floating overlay outside the sidebar (like classic approach)
+  useEffect(() => {
+    if (activeSidebarContent === 'background') {
+      setIsBackgroundModalVisible(true);
+      // Close sidebar since background modal is floating, not embedded in sidebar
+      // Setting activeSidebarContent to 'none' automatically makes isSidebarVisible and isSidebarModalVisible false
+      setActiveSidebarContent('none');
+      setSidebarNavigationStack([]);
+    }
+  }, [activeSidebarContent]);
+
+  // Navigate back in sidebar stack (return to previous content like menu)
+  const sidebarNavigateBack = useCallback(() => {
+    if (sidebarNavigationStack.length > 0) {
+      const newStack = [...sidebarNavigationStack];
+      const previousContent = newStack.pop()!;
+      setSidebarNavigationStack(newStack);
+      setActiveSidebarContent(previousContent);
+    } else {
+      setActiveSidebarContent('none');
+    }
+  }, [sidebarNavigationStack]);
+
+  // Smart launch wrappers - show in sidebar on desktop, modal on mobile
+  const smartLaunchMenu = useCallback(() => {
+    updateActiveSidebarContent('menu');
+  }, [updateActiveSidebarContent]);
+
+  const smartLaunchParticipants = useCallback(() => {
+    updateActiveSidebarContent('participants');
+  }, [updateActiveSidebarContent]);
+
+  const smartLaunchMessages = useCallback(() => {
+    updateActiveSidebarContent('messages');
+  }, [updateActiveSidebarContent]);
+
+  //state variables for the control buttons
+  const [micActive, setMicActive] = useState(
+    audioAlreadyOn.current ? audioAlreadyOn.current : false
+  ); // True if the mic is active
+  const [videoActive, setVideoActive] = useState(
+    videoAlreadyOn.current ? videoAlreadyOn.current : false
+  ); // True if the video is active
+  const [screenShareActive, setScreenShareActive] = useState(false); // True if the screen share is active
+  const [endCallActive] = useState(false); // True if the end call button is active
+  const [participantsActive] = useState(false); // True if the participants button is active
+
+  const recordButton = [
+    {
+      icon: faRecordVinyl,
+      text: "Record",
+      name: "Record",
+      onPress: () => {
+        // Use sidebar for recording in Modern UI
+        updateActiveSidebarContent('recording', true);
+      },
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: true,
+    },
+  ];
+
+  const recordButtons: ButtonTouch[] = [
+    //recording state control and recording timer buttons
+    //Replace or remove any of the buttons as you wish
+
+    //Refer to ControlButtonsAltComponent for more details on how to add custom buttons
+
+    {
+      icon: faPlayCircle,
+      active: recordPaused.current === false,
+      name: recordPaused.current ? 'Resume' : 'Pause',
+      onPress: () => {
+        updateRecording({
+          parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+        });
+      },
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      alternateIcon: faPauseCircle,
+      show: true,
+    },
+    {
+      icon: faStopCircle,
+      active: false,
+      name: 'Stop',
+      onPress: () => {
+        stopRecording({
+          parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+        });
+      },
+      activeColor: "#22C55E",
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: true,
+    },
+    {
+      customComponent: (
+        <div
+          style={{
+            backgroundColor: "transparent",
+            borderWidth: 0,
+            padding: 0,
+            margin: 2,
+          }}
+          title="Recording duration"
+        >
+          <span
+            style={{
+              backgroundColor: "transparent",
+              borderWidth: 0,
+              padding: 0,
+              margin: 0,
+              color: isDarkMode ? '#FFFFFF' : '#1F2937',
+              fontWeight: 600,
+              fontSize: '14px',
+            }}
+          >
+            {recordingProgressTime}
+          </span>
+        </div>
+      ),
+      name: 'Timer',
+      show: true,
+    },
+    {
+      icon: faDotCircle,
+      active: false,
+      name: recordPaused.current ? 'Paused' : 'Recording',
+      onPress: () => console.log("Status pressed"),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: recordPaused.current === false ? "#EF4444" : "#EAB308",
+      show: true,
+    },
+    {
+      icon: faCog,
+      active: false,
+      name: !recordPaused.current ? 'Settings - Pause to enable' : 'Settings',
+      disabled: !recordPaused.current,
+      onPress: () => {
+        if (!recordPaused.current) {
+          showAlert?.({
+            message: 'Please pause recording first to access settings',
+            type: 'danger',
+            duration: 3000,
+          });
+          return;
+        }
+        launchRecording({
+          updateIsRecordingModalVisible: updateIsRecordingModalVisible,
+          isRecordingModalVisible: isRecordingModalVisible,
+          showAlert: showAlert,
+          stopLaunchRecord: stopLaunchRecord.current,
+          canLaunchRecord: canLaunchRecord.current,
+          recordingAudioSupport: recordingAudioSupport.current,
+          recordingVideoSupport: recordingVideoSupport.current,
+          updateCanRecord: updateCanRecord,
+          updateClearedToRecord: updateClearedToRecord,
+          recordStarted: recordStarted.current,
+          recordPaused: recordPaused.current,
+          localUIMode: localUIMode.current,
+        });
+      },
+      activeColor: "#22C55E",
+      inActiveColor: !recordPaused.current 
+        ? (isDarkMode ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)')
+        : (isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'),
+      show: true,
+    },
+  ];
+
+  const customMenuButtons: CustomButton[] = [
+    //buttons for the custom menu modal (as used for webinars and conferences)
+    //Replace or remove any of the buttons as you wish
+
+    //Refer to customButtons for more details on how to add custom buttons
+
+    {
+      icon: faRecordVinyl,
+      text: "Record",
+      tooltip: "Start or manage session recording to save video and audio",
+      action: () => {
+        // Action for the Record button - always use sidebar content (works for both desktop and mobile)
+        updateActiveSidebarContent('recording', true);
+      },
+      show: !showRecordButtons && islevel.current === "2",
+    },
+    // When recording is active, show the record control buttons inline (no wrapper)
+    ...(showRecordButtons && islevel.current === "2" ? [{
+      customComponent: (
+        <div style={{
+          position: 'relative',
+          backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.35)' : 'rgba(255, 255, 255, 0.35)',
+          borderRadius: 12,
+          padding: '8px 12px',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          overflowX: 'auto',
+          whiteSpace: 'nowrap',
+          maxWidth: '100%',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}>
+          <span style={{
+            position: 'absolute',
+            top: 2,
+            right: 8,
+            fontSize: '9px',
+            fontWeight: 500,
+            color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.5)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+          }}>
+            Recording Controls
+          </span>
+          <ControlButtonsAlt
+            buttons={recordButtons}
+            direction={"horizontal"}
+            showAspect={true}
+            renderButton={({ button, defaultButton }) => (
+              <ModernTooltip message={button.name || ''} position="bottom" usePortal={true}>
+                {defaultButton}
+              </ModernTooltip>
+            )}
+            renderButtonContent={({ defaultIcon }) => defaultIcon}
+          />
+        </div>
+      ),
+      show: true,
+      renderAsButton: false,
+    }] : []),
+    {
+      icon: faCog,
+      text: "Event Settings",
+      tooltip: "Configure event permissions, audio/video controls, and moderation options",
+      action: () => {
+        // Action for the Event Settings button - always use sidebar content
+        updateActiveSidebarContent('eventSettings', true);
+      },
+      show: islevel.current === "2",
+    },
+    {
+      icon: faUsers,
+      text: "Requests",
+      tooltip: "Review and manage participant requests to speak or share their screen",
+      action: () => {
+        // Action for the Requests button - always use sidebar content
+        updateActiveSidebarContent('requests', true);
+      },
+      show:
+        islevel.current === "2" ||
+        (coHostResponsibility.current &&
+          coHost.current &&
+          coHost.current === member.current &&
+          !!coHostResponsibility!.current!.find(
+            (item) => item.name === "media"
+          )!.value === true) ||
+        false,
+    },
+    {
+      icon: faClock,
+      text: "Waiting",
+      tooltip: "View and admit participants waiting to join the session",
+      action: () => {
+        // Action for the Waiting button - always use sidebar content
+        updateActiveSidebarContent('waiting', true);
+      },
+      show:
+        islevel.current === "2" ||
+        (coHostResponsibility.current &&
+          coHost.current &&
+          coHost.current === member.current &&
+          !!coHostResponsibility!.current!.find(
+            (item) => item.name === "waiting"
+          )!.value === true) ||
+        false,
+    },
+    {
+      icon: faUserPlus,
+      text: "Co-host",
+      tooltip: "Assign or manage co-hosts who can help moderate the session",
+      action: () => {
+        // Action for the Co-host button - always use sidebar content
+        updateActiveSidebarContent('coHost', true);
+      },
+      show: islevel.current === "2",
+    },
+    {
+      icon: faTools,
+      text: "Set Media",
+      tooltip: "Configure your microphone, camera, and audio output settings",
+      action: () => {
+        // Action for the Set Media button - always use sidebar content
+        updateActiveSidebarContent('mediaSettings', true);
+      },
+      show: true,
+    },
+    {
+      icon: faDesktop,
+      text: "Display",
+      tooltip: "Customize layout, grid view, and screen display preferences",
+      action: () => {
+        // Action for the Display button - always use sidebar content
+        updateActiveSidebarContent('displaySettings', true);
+      },
+      show: true,
+    },
+    {
+      icon: faPoll,
+      text: "Poll",
+      tooltip: "Create polls to gather participant feedback or vote on topics",
+      action: () => {
+        // Action for the Poll button - always use sidebar content
+        updateActiveSidebarContent('polls', true);
+      },
+      show: true,
+    },
+
+    {
+      icon: faUserFriends,
+      text: "Breakout Rooms",
+      tooltip: "Create smaller group rooms for focused discussions or activities",
+      action: () => {
+        // Action for the Breakout Rooms button - always use sidebar content
+        updateActiveSidebarContent('breakoutRooms', true);
+      },
+      show: islevel.current == "2",
+    },
+
+    {
+      icon: faChalkboardTeacher,
+      text: "Whiteboard",
+      tooltip: "Configure and launch the collaborative whiteboard for drawing and annotations",
+      action: () => {
+        // Action for the Whiteboard button - always use sidebar content
+        updateActiveSidebarContent('configureWhiteboard', true);
+      },
+      show: islevel.current == "2",
+    },
+    {
+      icon: faShieldAlt,
+      text: "Permissions",
+      tooltip: "Manage participant permission levels and configure capability settings",
+      action: () => {
+        // Action for the Permissions button - always use sidebar content
+        updateActiveSidebarContent('permissions', true);
+      },
+      show: islevel.current === "2",
+    },
+    {
+      icon: faStar,
+      text: "Panelists",
+      tooltip: "Select and manage featured panelists to focus in the main display",
+      action: () => {
+        // Action for the Panelists button - always use sidebar content
+        updateActiveSidebarContent('panelists', true);
+      },
+      show: islevel.current === "2",
+    },
+    {
+      icon: faGlobe,
+      text: "Translation",
+      tooltip: "Configure real-time translation for your spoken language and listening preferences",
+      action: () => {
+        // Action for the Translation button - always use sidebar content
+        updateActiveSidebarContent('translation', true);
+      },
+      show: translationSupported,
+    },
+  ];
+
+  const controlBroadcastButtons: ButtonTouch[] = [
+    // control buttons for broadcast
+    //Replace or remove any of the buttons as you wish
+
+    //Refer to ControlButtonsComponentTouch for more details on how to add custom buttons
+
+    // Theme toggle button
+    {
+      icon: isDarkMode ? faSun : faMoon,
+      active: true,
+      alternateIcon: isDarkMode ? faSun : faMoon,
+      name: isDarkMode ? 'Light Mode' : 'Dark Mode',
+      onPress: () => updateIsDarkMode(!isDarkMode),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: true,
+    },
+    {
+      icon: faUsers,
+      active: true,
+      alternateIcon: faUsers,
+      name: 'People',
+      onPress: () => smartLaunchParticipants(),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: islevel.current === "2",
+    },
+    {
+      icon: faShareAlt,
+      active: true,
+      alternateIcon: faShareAlt,
+      name: 'Share',
+      onPress: () => updateActiveSidebarContent('shareEvent'),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: true,
+    },
+    {
+      icon: forceFullDisplay.current ? faCompress : faExpand,
+      active: forceFullDisplay.current,
+      alternateIcon: forceFullDisplay.current ? faCompress : faExpand,
+      name: forceFullDisplay.current ? 'Exit Full Display' : 'Full Display',
+      onPress: () => updateForceFullDisplay(!forceFullDisplay.current),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: islevel.current === "2" && videoActive,
+    },
+    {
+      customComponent: (
+        <div style={{ position: "relative" }}>
+          {/* Your icon */}
+          <FontAwesomeIcon icon={faComments} size={"lg"} color={isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'} />
+          {/* Conditionally render a badge */}
+          {showMessagesBadge && (
+            <div
+              style={{
+                position: "absolute",
+                top: -2,
+                right: -2,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#EF4444",
+                  borderRadius: 12,
+                  paddingLeft: 4,
+                  paddingRight: 4,
+                  paddingTop: 4,
+                  paddingBottom: 4,
+                }}
+              >
+                <span
+                  style={{ color: "white", fontSize: 12, fontWeight: "bold" }}
+                ></span>
+              </div>
+            </div>
+          )}
+        </div>
+      ),
+      name: 'Chat',
+      onPress: () => smartLaunchMessages(),
+      show: true,
+    },
+    {
+      icon: faSync,
+      active: true,
+      alternateIcon: faSync,
+      name: 'Switch Camera',
+      onPress: () =>
+        switchVideoAlt({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: islevel.current === "2",
+    },
+    {
+      icon: faVideoSlash,
+      alternateIcon: faVideo,
+      active: videoActive,
+      name: videoActive ? 'Video Off' : 'Video On',
+      onPress: () =>
+        clickVideo({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      show: islevel.current === "2",
+      activeColor: "#22C55E",
+      inActiveColor: "#EF4444",
+    },
+    {
+      icon: faMicrophoneSlash,
+      alternateIcon: faMicrophone,
+      active: micActive,
+      name: micActive ? 'Mute' : 'Unmute',
+      onPress: () =>
+        clickAudio({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      activeColor: "#22C55E",
+      inActiveColor: "#EF4444",
+      show: islevel.current === "2",
+    },
+    {
+      icon: faPhone,
+      active: endCallActive,
+      name: 'End',
+      onPress: () =>
+        launchConfirmExit({
+          updateIsConfirmExitModalVisible: updateIsConfirmExitModalVisible,
+          isConfirmExitModalVisible: isConfirmExitModalVisible,
+        }),
+      activeColor: "#22C55E",
+      inActiveColor: "#EF4444",
+      show: true,
+    },
+    {
+      icon: faPhone,
+      active: endCallActive,
+      onPress: () => console.log("End Call pressed"), //not in use
+      activeColor: "transparent",
+      inActiveColor: "transparent",
+      backgroundColor: { default: "transparent" },
+      show: false,
+    },
+  ];
+
+  const controlChatButtons: ButtonTouch[] = [
+    {
+      icon: faShareAlt,
+      active: true,
+      alternateIcon: faShareAlt,
+      onPress: () => updateActiveSidebarContent('shareEvent'),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: true,
+    },
+    {
+      customComponent: (
+        <div style={{ position: "relative" }}>
+          {/* Your icon */}
+          <FontAwesomeIcon icon={faComments} size={"lg"} color={isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'} />
+          {/* Conditionally render a badge */}
+          {showMessagesBadge && (
+            <div
+              style={{
+                position: "absolute",
+                top: -2,
+                right: -2,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "red",
+                  borderRadius: 12,
+                  paddingLeft: 4,
+                  paddingRight: 4,
+                  paddingTop: 4,
+                  paddingBottom: 4,
+                }}
+              >
+                <span
+                  style={{ color: "white", fontSize: 12, fontWeight: "bold" }}
+                ></span>
+              </div>
+            </div>
+          )}
+        </div>
+      ),
+      onPress: () => smartLaunchMessages(),
+      show: true,
+    },
+    {
+      icon: faSync,
+      active: true,
+      alternateIcon: faSync,
+      onPress: () =>
+        switchVideoAlt({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      show: true,
+    },
+    {
+      icon: faVideoSlash,
+      alternateIcon: faVideo,
+      active: videoActive,
+      onPress: () =>
+        clickVideo({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      activeColor: "green",
+      inActiveColor: "red",
+      show: true,
+    },
+    {
+      icon: faMicrophoneSlash,
+      alternateIcon: faMicrophone,
+      active: micActive,
+      onPress: () =>
+        clickAudio({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      activeColor: "green",
+      inActiveColor: "red",
+      show: true,
+    },
+    {
+      icon: faPhone,
+      active: endCallActive,
+      onPress: () =>
+        launchConfirmExit({
+          updateIsConfirmExitModalVisible: updateIsConfirmExitModalVisible,
+          isConfirmExitModalVisible: isConfirmExitModalVisible,
+        }),
+      activeColor: "green",
+      inActiveColor: "red",
+      show: true,
+    },
+  ];
+
+  const controlButtons = [
+    // control buttons for webinar and conference events
+    //Replace or remove any of the buttons as you wish
+
+    //Refer to ControlButtonsComponent for more details on how to add custom buttons
+
+    {
+      icon: faMicrophoneSlash,
+      alternateIcon: faMicrophone,
+      active: micActive,
+      name: showButtonLabels ? (micActive ? 'Mute' : 'Unmute') : undefined,
+      tooltip: micActive 
+        ? 'Turn off your microphone to mute yourself' 
+        : 'Turn on your microphone to speak',
+      onPress: () =>
+        clickAudio({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      activeColor: "#22C55E",
+      inActiveColor: "#EF4444",
+      disabled: audioSwitching,
+      show: true,
+    },
+    {
+      icon: faVideoSlash,
+      alternateIcon: faVideo,
+      active: videoActive,
+      name: showButtonLabels ? (videoActive ? 'Video Off' : 'Video On') : undefined,
+      tooltip: videoActive 
+        ? 'Turn off your camera to hide video' 
+        : 'Turn on your camera to show video',
+      onPress: () =>
+        clickVideo({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        }),
+      activeColor: "#22C55E",
+      inActiveColor: "#EF4444",
+      disabled: videoSwitching,
+      show: true,
+    },
+    {
+      icon: faDesktop,
+      alternateIconComponent: (
+        <div style={{ position: "relative", display: "inline-block" }}>
+          {/* Desktop icon, change color based on disabled state */}
+          <FontAwesomeIcon
+            icon={faDesktop}
+            size="lg"
+            style={{ color: screenShareActive ? "#22C55E" : (isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)') }}
+          />
+
+          {/* Red Ban icon on top if disabled */}
+          {!screenShareActive && (
+            <FontAwesomeIcon
+              icon={faBan}
+              size="lg"
+              style={{
+                color: "#EF4444",
+                position: "absolute",
+                top: 0,
+                right: 0,
+              }}
+            />
+          )}
+        </div>
+      ),
+      active: true,
+      name: showButtonLabels ? (screenShareActive ? 'Stop Share' : 'Share Screen') : undefined,
+      tooltip: screenShareActive 
+        ? 'Stop sharing your screen with participants' 
+        : 'Share your screen or window with participants',
+      onPress: () => {
+        clickScreenShare({
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        });
+      },
+      activeColor: "#22C55E",
+      inActiveColor: "#EF4444",
+      disabled: false,
+      show: true,
+    },
+    {
+      icon: faPhone,
+      active: endCallActive,
+      name: showButtonLabels ? 'End' : undefined,
+      tooltip: 'Leave the meeting or end for all',
+      onPress: () =>
+        launchConfirmExit({
+          updateIsConfirmExitModalVisible: updateIsConfirmExitModalVisible,
+          isConfirmExitModalVisible: isConfirmExitModalVisible,
+        }),
+      activeColor: "#22C55E",
+      inActiveColor: "#EF4444",
+      disabled: false,
+      show: true,
+    },
+    {
+      icon: faUsers,
+      active: participantsActive,
+      name: showButtonLabels ? 'People' : undefined,
+      tooltip: 'View all participants in the meeting',
+      onPress: () => smartLaunchParticipants(),
+      activeColor: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
+      inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      disabled: false,
+      show: true,
+    },
+    {
+      customComponent: (
+        <div style={{ position: "relative" }}>
+          <FontAwesomeIcon icon={faBars} size={"lg"} color={isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'} />
+          <div
+            style={{
+              position: "absolute",
+              top: -8,
+              right: -8,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                backgroundColor: "#EF4444",
+                borderRadius: "50%",
+                padding: "4px 4px",
+                minWidth: "8px",
+                minHeight: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <span
+                style={{ color: "white", fontSize: 10, fontWeight: "bold" }}
+              >
+                {totalReqWait.current}
+              </span>
+            </div>
+          </div>
+        </div>
+      ),
+      name: showButtonLabels ? 'Menu' : undefined,
+      tooltip: 'Open menu for settings and more options',
+      onPress: () => smartLaunchMenu(),
+      show: true,
+    },
+    {
+      customComponent: (
+        <div style={{ position: "relative" }}>
+          {/* Your icon */}
+          <FontAwesomeIcon icon={faComments} size={"lg"} color={isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'} />
+          {/* Conditionally render a badge */}
+          {showMessagesBadge && (
+            <div
+              style={{
+                position: "absolute",
+                top: -6,
+                right: -6,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#EF4444",
+                  borderRadius: "50%",
+                  padding: "4px 4px",
+                  minWidth: "8px",
+                  minHeight: "8px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <span
+                  style={{
+                    color: "white",
+                    fontSize: 10,
+                    fontWeight: "bold",
+                    lineHeight: "1",
+                  }}
+                >
+                  *
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      ),
+      name: showButtonLabels ? 'Chat' : undefined,
+      tooltip: 'Open chat to send and receive messages',
+      onPress: () => smartLaunchMessages(),
+      show: true,
+    },
+    // Additional sidebar buttons - only show when shouldUseSidebar is true
+    ...(shouldUseSidebar ? [
+      // Recording controls - for hosts (when recording)
+      ...(islevel.current === '2' && recordStarted.current && !recordStopped.current ? [{
+        customComponent: (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <span style={{ color: recordPaused.current ? 'yellow' : 'red', fontSize: '14px', fontWeight: 'bold' }}>{recordingProgressTime}</span>
+                    <FontAwesomeIcon 
+                        icon={recordPaused.current ? faPlay : faPause} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            updateRecording({
+                                parameters: { ...getAllParams(), ...mediaSFUFunctions() }
+                            });
+                        }}
+                        style={{ cursor: 'pointer', fontSize: '14px', color: 'white' }}
+                        title={recordPaused.current ? "Resume" : "Pause"}
+                    />
+                    <FontAwesomeIcon 
+                        icon={faStop} 
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            stopRecording({
+                                parameters: { ...getAllParams(), ...mediaSFUFunctions() }
+                            });
+                        }}
+                        style={{ cursor: 'pointer', fontSize: '14px', color: 'red' }}
+                        title="Stop"
+                    />
+                </div>
+                {showButtonLabels && (
+                    <span style={{ fontSize: '8px', color: 'white', marginTop: '2px' }}>Recording</span>
+                )}
+            </div>
+        ),
+        name: undefined,
+        tooltip: recordPaused.current ? 'Resume recording session' : 'Recording in progress - click to manage',
+        onPress: () => updateActiveSidebarContent('recording'),
+        show: true,
+      }] : []),
+
+      // Record button - for hosts (when NOT recording)
+      ...(islevel.current === '2' && !(recordStarted.current && !recordStopped.current) ? [{
+        icon: faRecordVinyl,
+        name: showButtonLabels ? 'Record' : undefined,
+        tooltip: 'Start recording this session',
+        active: false,
+        onPress: () => updateActiveSidebarContent('recording'),
+        activeColor: '#EF4444',
+        inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+        show: true,
+      }] : []),
+      // Media Settings button
+      {
+        icon: faCog,
+        name: showButtonLabels ? 'Media' : undefined,
+        tooltip: 'Configure your microphone, camera, and audio settings',
+        onPress: () => updateActiveSidebarContent('mediaSettings'),
+        activeColor: '#22C55E',
+        inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+        show: true,
+      },
+      // Display Settings button
+      {
+        icon: faTv,
+        name: showButtonLabels ? 'Display' : undefined,
+        tooltip: 'Adjust layout, grid view, and display preferences',
+        onPress: () => updateActiveSidebarContent('displaySettings'),
+        activeColor: '#22C55E',
+        inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+        show: true,
+      },
+      // Requests button - for hosts/co-hosts
+      ...((islevel.current === '2' || youAreCoHost.current) ? [{
+        customComponent: (
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <FontAwesomeIcon icon={faHandPaper} size="lg" color={isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)'} />
+            {requestCounter.current > 0 && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: -4,
+                  right: -4,
+                  backgroundColor: '#EF4444',
+                  borderRadius: '50%',
+                  padding: '2px 4px',
+                  minWidth: '16px',
+                  minHeight: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span style={{ color: 'white', fontSize: 10, fontWeight: 'bold' }}>
+                  {requestCounter.current}
+                </span>
+              </div>
+            )}
+          </div>
+        ),
+        name: showButtonLabels ? 'Requests' : undefined,
+        tooltip: 'Manage participant requests to speak or share',
+        onPress: () => updateActiveSidebarContent('requests'),
+        show: true,
+      }] : []),
+      // Polls button - for hosts or when polls exist
+      ...((islevel.current === '2' || polls.current.length > 0) ? [{
+        icon: faPoll,
+        name: showButtonLabels ? 'Polls' : undefined,
+        tooltip: 'Create, view, or vote on polls',
+        onPress: () => updateActiveSidebarContent('polls'),
+        activeColor: '#22C55E',
+        inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+        show: true,
+      }] : []),
+      // Breakout Rooms button - for hosts
+      ...(islevel.current === '2' ? [{
+        icon: faObjectUngroup,
+        name: showButtonLabels ? 'Rooms' : undefined,
+        tooltip: 'Create and manage breakout rooms for group discussions',
+        onPress: () => updateActiveSidebarContent('breakoutRooms'),
+        activeColor: '#22C55E',
+        inActiveColor: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+        show: true,
+      }] : []),
+    ] : []),
+  ];
+
+  async function join_Room({
+    socket,
+    roomName,
+    islevel,
+    member,
+    sec,
+    apiUserName,
+    isLocal = false,
+  }: {
+    socket: Socket;
+    roomName: string;
+    islevel: string;
+    member: string;
+    sec: string;
+    apiUserName: string;
+    isLocal?: boolean;
+  }): Promise<void> {
+    //join room and get data from server
+
+    let data: ResponseJoinRoom | null;
+
+    if (!isLocal) {
+      data = await joinRoom({
+        socket,
+        roomName,
+        islevel,
+        member,
+        sec,
+        apiUserName,
+      });
+    } else {
+      const localData: ResponseJoinLocalRoom = await joinLocalRoom({
+        socket,
+        roomName,
+        islevel,
+        member,
+        sec,
+        apiUserName,
+        parameters: {
+          imgSrc,
+          showAlert,
+          updateIsLoadingModalVisible,
+          connectSocket,
+          connectLocalSocket,
+          updateSocket,
+          updateLocalSocket,
+          updateValidated,
+          updateApiUserName,
+          updateApiToken,
+          updateLink,
+          updateRoomName,
+          updateMember,
+        },
+        checkConnect:
+          localLink.length > 0 &&
+          connectMediaSFU === true &&
+          !link.current.includes("mediasfu.com"),
+        localLink,
+        joinMediaSFURoom,
+      });
+
+      data = await createResponseJoinRoom({ localRoom: localData });
+    }
+
+    async function updateAndComplete(data: ResponseJoinRoom) {
+      //update room parameters
+      try {
+        // check if roomRecvIPs is not empty
+        if (
+          !data.roomRecvIPs ||
+          (data.roomRecvIPs && data.roomRecvIPs.length == 0)
+        ) {
+          data.roomRecvIPs = ["none"];
+          if (
+            link.current !== "" &&
+            link.current.includes("mediasfu.com") &&
+            !isLocal
+          ) {
+            // Community Edition Only
+            await receiveAllPipedTransports({
+              community: true,
+              nsock: getUpdatedAllParams().socket,
+              parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+            });
+          }
+        }
+        try {
+          updateRoomParametersClient({
+            parameters: {
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+              data: data,
+            },
+          });
+        } catch {
+          // Handle error
+        }
+
+        if (data.isHost) {
+          updateIslevel("2");
+        } else {
+          // issue with isHost for local room
+          if (islevel !== "2") {
+            updateIslevel("1");
+          }
+        }
+
+        if (data.secureCode && data.secureCode != "") {
+          updateAdminPasscode(data.secureCode);
+        }
+
+        if (data.rtpCapabilities) {
+          try {
+            let device_ = await createDeviceClient({
+              rtpCapabilities: data.rtpCapabilities,
+            });
+
+            if (device_) {
+              updateDevice(device_);
+            }
+          } catch (error) {
+            console.log("error Device", error);
+          }
+        }
+      } catch (error) {
+        console.log("error updateRoomParametersClient", error);
+      }
+    }
+
+    if (data && data.success) {
+      if (
+        link.current !== "" &&
+        link.current!.includes("mediasfu.com") &&
+        isLocal
+      ) {
+        roomData.current = data;
+        return;
+      } else if (
+        link.current !== "" &&
+        link.current!.includes("mediasfu.com") &&
+        !isLocal
+      ) {
+        //update roomData
+        if (roomData.current) {
+          // updating only the recording and meeting room parameters
+          roomData.current!.recordingParams = data.recordingParams;
+          roomData.current!.meetingRoomParams = data.meetingRoomParams;
+        } else {
+          roomData.current = data;
+        }
+      } else {
+        //update roomData
+        roomData.current = data;
+        if (!link.current!.includes("mediasfu.com")) {
+          roomData.current!.meetingRoomParams = data.meetingRoomParams;
+        }
+      }
+
+      await updateAndComplete(data);
+    } else {
+      if (
+        link.current !== "" &&
+        link.current!.includes("mediasfu.com") &&
+        !isLocal
+      ) {
+        // join local room only
+        await updateAndComplete(roomData.current!);
+        return;
+      }
+
+      //might be a wrong room name or room is full or other error; check reason in data object if available
+      // updateValidated(false);
+      try {
+        if (showAlert) {
+          showAlert({ message: data!.reason!, type: "danger", duration: 3000 });
+        }
+      } catch {
+        // Handle error
+      }
+    }
+  }
+
+  async function disconnectAllSockets(
+    consume_sockets: ConsumeSocket[]
+  ): Promise<void> {
+    //function to disconnect all sockets consuming media (consume_sockets)
+
+    for (const socket of consume_sockets) {
+      try {
+        const ip = Object.keys(socket)[0];
+        if (ip && socket[ip]) {
+          // Remove all listeners before disconnecting to prevent memory leaks
+          socket[ip].removeAllListeners?.();
+          socket[ip].disconnect();
+        }
+      } catch (error) {
+        console.log(
+          `Error disconnecting socket with IP: ${Object.keys(socket)[0]}`,
+          error
+        );
+      }
+    }
+  }
+
+  // Helper function to stop all tracks in a MediaStream
+  function stopMediaStream(stream: MediaStream | null) {
+    if (stream) {
+      try {
+        stream.getTracks().forEach((track) => {
+          try {
+            track.stop();
+          } catch (e) {
+            // Ignore individual track errors
+          }
+        });
+      } catch (e) {
+        // Ignore stream errors
+      }
+    }
+  }
+
+  // Helper function to close a producer safely
+  async function closeProducer(producer: Producer | null) {
+    if (producer) {
+      try {
+        if (!producer.closed) {
+          producer.close();
+        }
+      } catch (e) {
+        // Ignore producer close errors
+      }
+    }
+  }
+
+  // Helper function to close a transport safely
+  async function closeTransport(transport: Transport | null) {
+    if (transport) {
+      try {
+        if (!transport.closed) {
+          transport.close();
+        }
+      } catch (e) {
+        // Ignore transport close errors
+      }
+    }
+  }
+
+  async function closeAndReset() {
+    //close and clean up all sockets, modals,... and reset all states to initial values
+
+    // Close sidebar if visible (Modern UI)
+    updateActiveSidebarContent('none');
+
+    // Close all modals first
+    updateIsMessagesModalVisible(false);
+    updateIsParticipantsModalVisible(false);
+    updateIsWaitingModalVisible(false);
+    updateIsRequestsModalVisible(false);
+    updateIsCoHostModalVisible(false);
+    updateIsSettingsModalVisible(false);
+    updateIsDisplaySettingsModalVisible(false);
+    updateIsMediaSettingsModalVisible(false);
+    updateIsMenuModalVisible(false);
+    updateIsShareEventModalVisible(false);
+    updateIsConfirmExitModalVisible(false);
+    updateIsConfigureWhiteboardModalVisible(false);
+    updateIsWhiteboardModalVisible(false);
+    updateIsRecordingModalVisible(false);
+    updateIsPollModalVisible(false);
+    updateIsBreakoutRoomsModalVisible(false);
+    updateIsBackgroundModalVisible(false);
+    updateIsLoadingModalVisible(false);
+    updateIsConfirmHereModalVisible(false);
+
+    // === PHASE 1: Stop all media producers ===
+    try {
+      await closeProducer(videoProducer.current);
+      await closeProducer(localVideoProducer.current);
+      await closeProducer(audioProducer.current);
+      await closeProducer(localAudioProducer.current);
+      await closeProducer(screenProducer.current);
+      await closeProducer(localScreenProducer.current);
+    } catch (e) {
+      console.log("Error closing producers:", e);
+    }
+
+    // Reset producer refs
+    videoProducer.current = null;
+    localVideoProducer.current = null;
+    audioProducer.current = null;
+    localAudioProducer.current = null;
+    screenProducer.current = null;
+    localScreenProducer.current = null;
+
+    // === PHASE 2: Close all consumer transports ===
+    try {
+      for (const transport of consumerTransports.current) {
+        try {
+          if (transport.consumerTransport && !transport.consumerTransport.closed) {
+            transport.consumerTransport.close();
+          }
+        } catch (e) {
+          // Ignore individual transport close errors
+        }
+      }
+    } catch (e) {
+      console.log("Error closing consumer transports:", e);
+    }
+    consumerTransports.current = [];
+    consumingTransports.current = [];
+
+    // === PHASE 3: Close producer transports ===
+    try {
+      await closeTransport(producerTransport.current);
+      await closeTransport(localProducerTransport.current);
+    } catch (e) {
+      console.log("Error closing producer transports:", e);
+    }
+    producerTransport.current = null;
+    localProducerTransport.current = null;
+
+    // Reset transport created flags
+    transportCreated.current = false;
+    localTransportCreated.current = false;
+    transportCreatedVideo.current = false;
+    transportCreatedAudio.current = false;
+    transportCreatedScreen.current = false;
+
+    // === PHASE 4: Stop all local media streams ===
+    stopMediaStream(localStream.current);
+    stopMediaStream(localStreamVideo.current);
+    stopMediaStream(localStreamAudio.current);
+    stopMediaStream(localStreamScreen.current);
+    stopMediaStream(segmentVideo.current);
+    stopMediaStream(processedStream.current);
+    stopMediaStream(virtualStream.current);
+    stopMediaStream(canvasStream.current);
+    stopMediaStream(processedScreenStream.current);
+
+    // Reset stream refs
+    localStream.current = null;
+    localStreamVideo.current = null;
+    localStreamAudio.current = null;
+    localStreamScreen.current = null;
+    segmentVideo.current = null;
+    processedStream.current = null;
+    virtualStream.current = null;
+    canvasStream.current = null;
+    processedScreenStream.current = null;
+
+    // === PHASE 5: Disconnect all consume sockets ===
+    await disconnectAllSockets(consume_sockets.current);
+    consume_sockets.current = [];
+
+    // === PHASE 6: Disconnect main socket(s) ===
+    try {
+      if (socket.current && socket.current.connected) {
+        socket.current.removeAllListeners?.();
+        socket.current.disconnect();
+      }
+    } catch (e) {
+      console.log("Error disconnecting main socket:", e);
+    }
+
+    try {
+      if (localSocket.current && localSocket.current.connected) {
+        localSocket.current.removeAllListeners?.();
+        localSocket.current.disconnect();
+      }
+    } catch (e) {
+      console.log("Error disconnecting local socket:", e);
+    }
+
+    // === PHASE 7: Reset device ===
+    device.current = null;
+
+    // === PHASE 8: Reset all states to initial values ===
+    await updateStatesToInitialValues();
+
+    // Reset timers and recording state
+    updateMeetingProgressTime("00:00:00");
+    updateMeetingElapsedTime(0);
+    updateRecordingProgressTime("00:00:00");
+    updateRecordElapsedTime(0);
+    updateShowRecordButtons(false);
+
+    // Reset media state flags
+    setMicActive(false);
+    setVideoActive(false);
+    setScreenShareActive(false);
+
+    // Clear any recording timer interval
+    if (recordTimerInterval.current) {
+      clearInterval(recordTimerInterval.current);
+      recordTimerInterval.current = null;
+    }
+
+    setTimeout(async function () {
+      updateValidated(false);
+      //if on web, reload the page
+      window.location.reload();
+    }, 500);
+  }
+
+  useEffect(() => {
+    //listen to changes in recording state and update the recording status indicator accordingly
+    //red - recording, yellow - paused, green - stopped (not recording)
+    if (recordStarted && !recordStopped) {
+      if (!recordPaused) {
+        setRecordState("red");
+      } else {
+        setRecordState("yellow");
+      }
+    } else {
+      setRecordState("green");
+    }
+  }, [recordStarted, recordPaused, recordStopped]);
+
+  useEffect(() => {
+    if (screenShareActive || whiteboardStarted.current) {
+      updateMainHeightWidth(84);
+    }
+  }, [screenShareActive]);
+
+  const computeDimensionsMethod = ({
+    containerWidthFraction = 1,
+    containerHeightFraction = 1,
+    mainSize,
+    doStack = true,
+    defaultFraction,
+  }: {
+    containerWidthFraction?: number;
+    containerHeightFraction?: number;
+    mainSize: number;
+    doStack?: boolean;
+    defaultFraction: number;
+  }): ComponentSizes => {
+    // Account for sidebar width when calculating parent width (like Flutter)
+    const screenWidth = window.innerWidth;
+    const currentSidebarWidth = shouldUseSidebar && activeSidebarContent !== 'none' 
+      ? getSidebarWidth(screenWidth) 
+      : 0;
+    const effectiveWidth = screenWidth - currentSidebarWidth;
+    const parentWidth = effectiveWidth * containerWidthFraction;
+    const parentHeight =
+      window.innerHeight * containerHeightFraction * defaultFraction;
+    let isWideScreen_ = parentWidth >= 768;
+    if (!isWideScreen_ && parentWidth > 1.5 * parentHeight) {
+      isWideScreen_ = true;
+    }
+
+    updateIsWideScreen(isWideScreen_);
+
+    const computeDimensions = (): ComponentSizes => {
+      if (doStack) {
+        return isWideScreen_
+          ? {
+              mainHeight: parentHeight,
+              otherHeight: parentHeight,
+              mainWidth: Math.floor((mainSize / 100) * parentWidth),
+              otherWidth: Math.floor(((100 - mainSize) / 100) * parentWidth),
+            }
+          : {
+              mainHeight: Math.floor((mainSize / 100) * parentHeight),
+              otherHeight: Math.floor(((100 - mainSize) / 100) * parentHeight),
+              mainWidth: parentWidth,
+              otherWidth: parentWidth,
+            };
+      } else {
+        return {
+          mainHeight: parentHeight,
+          otherHeight: parentHeight,
+          mainWidth: parentWidth,
+          otherWidth: parentWidth,
+        };
+      }
+    };
+
+    return computeDimensions();
+  };
+
+  const handleResize = async () => {
+    // Update window dimensions state first (single source of truth for resize)
+    const currentWidth = window.innerWidth;
+    const currentHeight = window.innerHeight;
+    setWindowWidth(currentWidth);
+    setWindowHeight(currentHeight);
+    
+    let fraction = 0.0;
+
+    if (eventType.current == "webinar" || eventType.current == "conference") {
+      fraction = Number((40 / currentHeight).toFixed(3));
+      if (fraction !== controlHeight) {
+        updateControlHeight(fraction);
+      }
+    } else {
+      // Set default control button height for portrait mode or other event types
+      fraction = Number((40 / currentHeight).toFixed(3));
+      if (fraction !== controlHeight) {
+        updateControlHeight(fraction);
+      }
+    }
+
+    let tempMainHeightWidth = mainHeightWidth;
+    if (eventType.current == "conference" && mainHeightWidth === 67) {
+       tempMainHeightWidth = 0;
+       setMainHeightWidth(0);
+    }else if (eventType.current == "broadcast" && mainHeightWidth !== 100) {
+       tempMainHeightWidth = 100;
+       setMainHeightWidth(100);
+    } else if (eventType.current == "chat" && mainHeightWidth !== 0) {
+        tempMainHeightWidth = 0;
+        setMainHeightWidth(0);
+    }
+    const { mainHeight, otherHeight, mainWidth, otherWidth } =
+      computeDimensionsMethod({
+        containerWidthFraction: 1,
+        containerHeightFraction: 1,
+        mainSize: tempMainHeightWidth,
+        doStack: true,
+        defaultFraction:
+          eventType.current == "webinar" || eventType.current == "conference"
+            ? 1 - fraction
+            : 1,
+      });
+
+    // Use the computed dimensions as needed
+    updateComponentSizes({
+      mainHeight,
+      otherHeight,
+      mainWidth,
+      otherWidth,
+    });
+
+    const orientation = checkOrientation();
+    if (orientation === "portrait") {
+      if (!isWideScreen.current) {
+        if (shareScreenStarted.current || shared.current) {
+          updateScreenForceFullDisplay(true);
+        }
+      }
+    }
+
+    //updates the main grid view
+    await prepopulateUserMedia({
+      name: hostLabel.current,
+      parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+    });
+
+    //updates the mini grid view
+    await onScreenChanges({
+      changed: true,
+      parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+    });
+  };
+
+  // Memoized resize handler to prevent unnecessary event listener re-registrations
+  const onResize = useCallback(async () => {
+    await handleResize();
+  }, []);
+
+  const getMediaDevicesList = async (kind: 'videoinput' | 'audioinput') => {
+    // Get the list of available media devices
+    try {
+      let devices = await mediaDevices.enumerateDevices();
+      let filtered = devices.filter((device: MediaDeviceInfo) => device.kind === kind);
+      return filtered;
+    } catch {
+      return [];
+    }
+  };
+
+  const getParticipantMedia = async (id: string = '', name: string, kind: string = 'video') => {
+    // Get the media stream of a participant by id or name
+    try {
+      let stream = null;
+
+      if (id && id !== '') {
+        if (kind === 'video') {
+          const videoStreamObj = allVideoStreams.current.find(
+            (obj: Participant | Stream) => obj.producerId === id,
+          );
+          if (videoStreamObj) {
+            stream = videoStreamObj.stream;
+          }
+        } else if (kind === 'audio') {
+          const audioStreamObj = allAudioStreams.current.find(
+            (obj: Participant | Stream) => obj.producerId === id,
+          );
+          if (audioStreamObj) {
+            stream = audioStreamObj.stream;
+          }
+        }
+      } else if (name && name !== '') {
+        const participant = participants.current.find(
+          (part: Participant) => part.name === name,
+        );
+        if (participant) {
+          const participantId = participant.id;
+          if (kind === 'video') {
+            const videoStreamObj = allVideoStreams.current.find(
+              (obj: Participant | Stream) => obj.producerId === participantId,
+            );
+            if (videoStreamObj) {
+              stream = videoStreamObj.stream;
+            }
+          } else if (kind === 'audio') {
+            const audioStreamObj = allAudioStreams.current.find(
+              (obj: Participant | Stream) => obj.producerId === participantId,
+            );
+            if (audioStreamObj) {
+              stream = audioStreamObj.stream;
+            }
+          }
+        }
+      }
+
+      return stream;
+    } catch {
+      return null;
+    }
+  };
+
+  useEffect(() => {
+    if (!validated) {
+      return;
+    }
+
+    const primaryMeta = primaryGridLayoutRef.current;
+    if (
+      primaryMeta.rows <= 0 ||
+      primaryMeta.cols <= 0 ||
+      primaryMeta.actualRows <= 0
+    ) {
+      return;
+    }
+
+    const syncGridSizes = async () => {
+      const parameters = {
+        ...getAllParams(),
+        ...mediaSFUFunctions(),
+        getUpdatedAllParams,
+      };
+
+      try {
+        await updateMiniCardsGrid({
+          rows: primaryMeta.rows,
+          cols: primaryMeta.cols,
+          defal: true,
+          actualRows: primaryMeta.actualRows,
+          parameters,
+        });
+
+        const altMeta = altGridLayoutRef.current;
+        if (
+          altMeta.rows > 0 &&
+          altMeta.cols > 0 &&
+          altMeta.actualRows > 0
+        ) {
+          await updateMiniCardsGrid({
+            rows: altMeta.rows,
+            cols: altMeta.cols,
+            defal: false,
+            actualRows: altMeta.actualRows,
+            parameters,
+          });
+        }
+      } catch (error) {
+        console.error(
+          "Error updating grid sizes after component resize",
+          error
+        );
+      }
+    };
+
+    syncGridSizes();
+  }, [componentSizes, validated]);
+
+  useEffect(() => {
+    // Sync initial window dimensions on mount
+    setWindowWidth(window.innerWidth);
+    setWindowHeight(window.innerHeight);
+    
+    // Add event listener for dimension changes (window resize)
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+
+    return () => {
+      // Remove event listener for dimension changes (window resize)
+      window.removeEventListener("resize", onResize);
+      window.removeEventListener("orientationchange", onResize);
+    };
+  }, [onResize]);
+
+  useEffect(() => {
+    // listen to changes in dimensions and update the main video size accordingly
+    if (!validated) {
+      return;
+    }
+
+    const resizeAndPopulate = async () => {
+      if (!lock_screen.current && !shared.current) {
+        await handleResize();
+      } else if (!first_round.current) {
+        await handleResize();
+      }
+    };
+
+    resizeAndPopulate().catch((error) => {
+      console.error("Error handling media resize", error);
+    });
+  }, [validated, mainHeightWidth]);
+
+  // Recalculate dimensions when sidebar content changes (opening/closing sidebar)
+  // Note: shouldUseSidebar changes are already handled by the main resize handler
+  // since it reads window.innerWidth directly. This useEffect only handles
+  // explicit sidebar open/close actions.
+  useEffect(() => {
+    if (!validated) return;
+    
+    const recalculateDimensions = async () => {
+      await handleResize();
+    };
+    
+    // Small delay to allow sidebar animation to complete
+    const timer = setTimeout(() => {
+      recalculateDimensions().catch(console.error);
+    }, 50);
+    
+    return () => clearTimeout(timer);
+  }, [activeSidebarContent, validated]);
+
+  // Re-populate media cards when theme changes to update card styling
+  useEffect(() => {
+    if (!validated) return;
+    
+    const repopulateForTheme = async () => {
+      // Re-populate the main grid (prepopulateUserMedia)
+      await prepopulateUserMedia({
+        name: hostLabel.current,
+        parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+      });
+      
+      // Re-populate the mini grid (onScreenChanges triggers reorderStreams)
+      await onScreenChanges({
+        changed: true,
+        parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+      });
+    };
+    
+    repopulateForTheme().catch(console.error);
+  }, [isDarkMode, validated]);
+
+  async function connect_Socket(
+    apiUserName: string,
+    token: string,
+    skipSockets: boolean = false
+  ): Promise<Socket | null> {
+    //connect socket and attach events listeners to socket
+    //Refer to https://www.mediasfu.com/documentation for full documentation of each event and its parameters as well uasage
+    const socketDefault = socket.current;
+    const socketAlt =
+      connectMediaSFU && localSocket.current && localSocket.current.id
+        ? localSocket.current
+        : socketDefault;
+
+    if (socketDefault.id) {
+      if (!skipSockets) {
+        socketDefault.on("disconnect", async () => {
+          await disconnect({
+            showAlert,
+            redirectURL: redirectURL.current,
+            onWeb: true,
+            updateValidated,
+          });
+          if (videoAlreadyOn.current) {
+            await clickVideo({
+              parameters: {
+                ...getAllParams(),
+                ...mediaSFUFunctions(),
+              },
+            });
+          }
+          if (audioAlreadyOn.current) {
+            await clickAudio({
+              parameters: {
+                ...getAllParams(),
+                ...mediaSFUFunctions(),
+              },
+            });
+          }
+
+          await closeAndReset();
+        });
+
+        socketDefault.on("allMembers", async (membersData: AllMembersData) => {
+          if (membersData) {
+            // IMMEDIATELY update speakerTranslationStates before consumers are created
+            // This allows connectRecvTransport to check this state when creating audio consumers
+            for (const participant of membersData.members) {
+              // Skip self
+              if (participant.name === member.current) continue;
+              
+              // Check if this participant has translation enabled with an output language
+              if (
+                participant.translationEnabled &&
+                participant.translationDefaultOutputLanguage &&
+                participant.translationOriginalProducerId
+              ) {
+                
+                // Update speaker translation state tracker IMMEDIATELY
+                updateSpeakerTranslationStates((prev) => {
+                  const newMap = new Map(prev);
+                  newMap.set(participant.name, {
+                    speakerId: participant.name,
+                    speakerName: participant.name,
+                    inputLanguage: participant.translationInputLanguage || "en",
+                    outputLanguage: participant.translationDefaultOutputLanguage,
+                    originalProducerId: participant.translationOriginalProducerId,
+                    enabled: true,
+                  });
+                  return newMap;
+                });
+              }
+            }
+
+            await allMembers({
+              apiUserName: apiUserName,
+              apiKey: "", //not recommended - use token instead. Use for testing/development only
+              apiToken: token,
+              members: membersData.members,
+              requestss: membersData.requests
+                ? membersData.requests
+                : requestList.current, //attend
+              coHoste: membersData.coHost ? membersData.coHost : coHost.current, //attend
+              coHostRes: membersData.coHostResponsibilities
+                ? membersData.coHostResponsibilities
+                : coHostResponsibility.current, //attend
+              parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+              consume_sockets: consume_sockets.current,
+            });
+
+            // Process translation states for existing members (new joiner scenario)
+            // After a delay to ensure consumers are set up - this is a FALLBACK
+            // The primary pause happens in connectRecvTransport when consumer is created
+            setTimeout(async () => {
+              try {
+                for (const participant of membersData.members) {
+                  // Skip self
+                  if (participant.name === member.current) continue;
+                  
+                  // Check if this participant has translation enabled with an output language
+                  if (
+                    participant.translationEnabled &&
+                    participant.translationDefaultOutputLanguage &&
+                    participant.translationOriginalProducerId
+                  ) {
+                    
+                    // Pause the original audio for this speaker (fallback in case connectRecvTransport missed it)
+                    await pauseOriginalProducer({
+                      originalProducerId: participant.translationOriginalProducerId,
+                      speakerId: participant.name,
+                      parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+                    });
+                  }
+                }
+              } catch (error) {
+                console.error("[Translation] Error processing translation states for new joiner:", error);
+              }
+            }, 2000); // Delay to allow consumers to be established
+          }
+        });
+
+        socketDefault.on(
+          "allMembersRest",
+          async (membersData: AllMembersRestData) => {
+            if (membersData) {
+              // IMMEDIATELY update speakerTranslationStates before consumers are created
+              // This allows connectRecvTransport to check this state when creating audio consumers
+              for (const participant of membersData.members) {
+                // Skip self
+                if (participant.name === member.current) continue;
+                
+                // Check if this participant has translation enabled with an output language
+                if (
+                  participant.translationEnabled &&
+                  participant.translationDefaultOutputLanguage &&
+                  participant.translationOriginalProducerId
+                ) {
+                  
+                  // Update speaker translation state tracker IMMEDIATELY
+                  updateSpeakerTranslationStates((prev) => {
+                    const newMap = new Map(prev);
+                    newMap.set(participant.name, {
+                      speakerId: participant.name,
+                      speakerName: participant.name,
+                      inputLanguage: participant.translationInputLanguage || "en",
+                      outputLanguage: participant.translationDefaultOutputLanguage,
+                      originalProducerId: participant.translationOriginalProducerId,
+                      enabled: true,
+                    });
+                    return newMap;
+                  });
+                }
+              }
+
+              await allMembersRest({
+                apiUserName: apiUserName,
+                apiKey: "", //not recommended - use token instead. Use for testing/development only
+                members: membersData.members,
+                apiToken: token,
+                settings: membersData.settings,
+                coHoste: membersData.coHost
+                  ? membersData.coHost
+                  : coHost.current, //attend
+                coHostRes: membersData.coHostResponsibilities
+                  ? membersData.coHostResponsibilities
+                  : coHostResponsibility.current, //attend
+                parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+                consume_sockets: consume_sockets.current,
+              });
+
+              // Process translation states for existing members (new joiner scenario)
+              // After a delay to ensure consumers are set up - this is a FALLBACK
+              // The primary pause happens in connectRecvTransport when consumer is created
+              setTimeout(async () => {
+                try {
+                  for (const participant of membersData.members) {
+                    // Skip self
+                    if (participant.name === member.current) continue;
+                    
+                    // Check if this participant has translation enabled with an output language
+                    if (
+                      participant.translationEnabled &&
+                      participant.translationDefaultOutputLanguage &&
+                      participant.translationOriginalProducerId
+                    ) {
+                      
+                      // Pause the original audio for this speaker (fallback in case connectRecvTransport missed it)
+                      await pauseOriginalProducer({
+                        originalProducerId: participant.translationOriginalProducerId,
+                        speakerId: participant.name,
+                        parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+                      });
+                    }
+                  }
+                } catch (error) {
+                  console.error("[Translation] Error processing translation states for new joiner (rest):", error);
+                }
+              }, 2000); // Delay to allow consumers to be established
+            }
+          }
+        );
+
+        socketDefault.on("userWaiting", async ({ name }: { name: string }) => {
+          await userWaiting({
+            name,
+            showAlert,
+            totalReqWait: totalReqWait.current,
+            updateTotalReqWait,
+          });
+        });
+
+        socketDefault.on("personJoined", async ({ name }: { name: string }) => {
+          await personJoined({
+            name,
+            showAlert,
+          });
+        });
+
+        socketDefault.on(
+          "allWaitingRoomMembers",
+          async (waiting_data: AllWaitingRoomMembersData) => {
+            await allWaitingRoomMembers({
+              waitingParticipants: waiting_data.waitingParticipants
+                ? waiting_data.waitingParticipants
+                : waiting_data.waitingParticipantss
+                ? waiting_data.waitingParticipantss
+                : waitingRoomList.current, //attend
+              updateTotalReqWait,
+              updateWaitingRoomList,
+            });
+          }
+        );
+
+        socketDefault.on("ban", async ({ name }: { name: string }) => {
+          await banParticipant({
+            name,
+            parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+          });
+        });
+
+        socketDefault.on(
+          "updatedCoHost",
+          async (cohost_data: UpdatedCoHostData) => {
+            // let { coHost, coHostResponsibilities } = cohost_data;
+            await updatedCoHost({
+              coHost: cohost_data.coHost ? cohost_data.coHost : coHost.current, //attend
+              coHostResponsibility: cohost_data.coHostResponsibilities
+                ? cohost_data.coHostResponsibilities
+                : coHostResponsibility.current, //attend
+              youAreCoHost: youAreCoHost.current,
+              updateCoHost,
+              updateCoHostResponsibility,
+              updateYouAreCoHost,
+              showAlert,
+              eventType: eventType.current,
+              islevel: islevel.current,
+              member: member.current,
+            });
+          }
+        );
+
+        socketDefault.on(
+          "participantRequested",
+          async ({ userRequest }: { userRequest: Request }) => {
+            await participantRequested({
+              userRequest,
+              requestList: requestList.current,
+              waitingRoomList: waitingRoomList.current,
+              updateTotalReqWait,
+              updateRequestList,
+            });
+          }
+        );
+
+        socketDefault.on(
+          "screenProducerId",
+          async ({ producerId }: { producerId: string }) => {
+            screenProducerId({
+              producerId,
+              screenId: screenId.current,
+              membersReceived: membersReceived.current,
+              shareScreenStarted: shareScreenStarted.current,
+              deferScreenReceived: deferScreenReceived.current,
+              participants: participants.current,
+              updateScreenId,
+              updateShareScreenStarted,
+              updateDeferScreenReceived,
+            });
+          }
+        );
+
+        socketDefault.on(
+          "updateMediaSettings",
+          async ({ settings }: { settings: Settings }) => {
+            updateMediaSettings({
+              settings,
+              updateAudioSetting,
+              updateVideoSetting,
+              updateScreenshareSetting,
+              updateChatSetting,
+            });
+          }
+        );
+
+        socketDefault.on(
+          "producer-media-paused",
+          async ({
+            producerId,
+            kind,
+            name,
+          }: {
+            producerId: string;
+            kind: "audio";
+            name: string;
+          }) => {
+            await producerMediaPaused({
+              producerId,
+              kind,
+              name,
+              parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+            });
+          }
+        );
+
+        socketDefault.on(
+          "producer-media-resumed",
+          async ({ kind, name }: { kind: "audio"; name: string }) => {
+            await producerMediaResumed({
+              kind,
+              name,
+              parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+            });
+          }
+        );
+
+        socketDefault.on(
+          "producer-media-closed",
+          async ({
+            producerId,
+            kind,
+          }: {
+            producerId: string;
+            kind: "video" | "audio" | "screenshare" | "screen";
+          }) => {
+            if (producerId && kind) {
+              await producerMediaClosed({
+                producerId,
+                kind,
+                parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+              });
+            }
+          }
+        );
+
+        socketDefault.on(
+          "controlMediaHost",
+          async ({
+            type,
+          }: {
+            type: "video" | "audio" | "screenshare" | "chat" | "all";
+          }) => {
+            await controlMediaHost({
+              type,
+              parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+            });
+          }
+        );
+
+        socketDefault.on("meetingEnded", async function () {
+          await meetingEnded({
+            showAlert,
+            redirectURL: redirectURL.current,
+            onWeb: true,
+            eventType: eventType.current,
+            updateValidated,
+          });
+
+          if (videoAlreadyOn.current) {
+            await clickVideo({
+              parameters: {
+                ...getAllParams(),
+                ...mediaSFUFunctions(),
+              },
+            });
+          }
+          if (audioAlreadyOn.current) {
+            await clickAudio({
+              parameters: {
+                ...getAllParams(),
+                ...mediaSFUFunctions(),
+              },
+            });
+          }
+
+          await closeAndReset();
+        });
+
+        socketDefault.on("disconnectUserSelf", async function () {
+          await disconnectUserSelf({
+            socket: socketDefault,
+            member: member.current,
+            roomName: roomName.current,
+          });
+        });
+
+        socketDefault.on(
+          "receiveMessage",
+          async ({ message }: { message: Message }) => {
+            await receiveMessage({
+              message,
+              messages: messages.current,
+              participantsAll: participants.current,
+              member: member.current,
+              eventType: eventType.current,
+              islevel: islevel.current,
+              coHost: coHost.current,
+              updateMessages,
+              updateShowMessagesBadge,
+            });
+          }
+        );
+
+        socketDefault.on(
+          "meetingTimeRemaining",
+          async ({ timeRemaining }: { timeRemaining: number }) => {
+            await meetingTimeRemaining({
+              timeRemaining,
+              showAlert,
+              eventType: eventType.current,
+            });
+          }
+        );
+
+        socketDefault.on("meetingStillThere", async () => {
+          await meetingStillThere({
+            updateIsConfirmHereModalVisible,
+          });
+        });
+
+        socketDefault.on(
+          "updateConsumingDomains",
+          async ({ domains, alt_domains }: UpdateConsumingDomainsData) => {
+            await updateConsumingDomains({
+              domains,
+              alt_domains,
+              apiUserName,
+              apiKey: "", //not recommended - use token instead. Use for testing/development only
+              apiToken: token,
+              parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+            });
+          }
+        );
+
+        socketDefault.on(
+          "hostRequestResponse",
+          ({ requestResponse }: HostRequestResponseData) => {
+            hostRequestResponse({
+              requestResponse,
+              showAlert,
+              requestList: requestList.current,
+              updateRequestList,
+              updateMicAction,
+              updateVideoAction,
+              updateScreenAction,
+              updateChatAction,
+              updateAudioRequestState,
+              updateVideoRequestState,
+              updateScreenRequestState,
+              updateChatRequestState,
+              updateAudioRequestTime,
+              updateVideoRequestTime,
+              updateScreenRequestTime,
+              updateChatRequestTime,
+              updateRequestIntervalSeconds:
+                updateRequestIntervalSeconds.current,
+            });
+          }
+        );
+
+        socketDefault.on("pollUpdated", async (data: PollUpdatedData) => {
+          try {
+            await pollUpdated({
+              data,
+              polls: polls.current,
+              poll: poll.current!,
+              member: member.current,
+              islevel: islevel.current,
+              showAlert,
+              updatePolls,
+              updatePoll,
+              updateIsPollModalVisible,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on(
+          "breakoutRoomUpdated",
+          async (data: BreakoutRoomUpdatedData) => {
+            try {
+              await breakoutRoomUpdated({
+                data,
+                parameters: {
+                  ...getAllParams(),
+                  ...mediaSFUFunctions(),
+                },
+              });
+            } catch {
+              //console.log('error breakoutRoomUpdated', error);
+            }
+          }
+        );
+
+        // Permissions socket listeners
+        socketDefault.on("permissionUpdated", async (data: PermissionUpdatedData) => {
+          try {
+            await permissionUpdated({
+              data,
+              showAlert,
+              updateIslevel
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("permissionConfigUpdated", async (data: PermissionConfigUpdatedData) => {
+          try {
+            await permissionConfigUpdated({
+              data,
+              updatePermissionConfig
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        // Panelists socket listeners
+        socketDefault.on("panelistsUpdated", async (data: PanelistsUpdatedData) => {
+          try {
+            await panelistsUpdated({
+              data,
+              updatePanelists
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("panelistFocusChanged", async (data: PanelistFocusChangedData) => {
+          try {
+            await panelistFocusChanged({
+              data,
+              updatePanelistsFocused,
+              updateMuteOthersMic,
+              updateMuteOthersCamera,
+              updatePanelists,
+              // Pass current values for comparison to detect changes
+              currentPanelistsFocused: panelistsFocused.current,
+              currentPanelists: panelists.current,
+              // Trigger screen rerender if focus/panelists changed
+              onScreenChanges: async () => {
+                await onScreenChanges({
+                  changed: true,
+                  parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+                });
+              },
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("controlMedia", async (data: ControlMediaData) => {
+          try {
+            await controlMedia({
+              data,
+              showAlert,
+              clickAudio: () => clickAudio({ parameters: { ...getAllParams(), ...mediaSFUFunctions() } }),
+              clickVideo: () => clickVideo({ parameters: { ...getAllParams(), ...mediaSFUFunctions() } }),
+              audioAlreadyOn: audioAlreadyOn.current,
+              videoAlreadyOn: videoAlreadyOn.current,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("addedAsPanelist", async (data: AddedAsPanelistData) => {
+          try {
+            await addedAsPanelist({
+              data,
+              showAlert,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("removedFromPanelists", async (data: RemovedFromPanelistsData) => {
+          try {
+            await removedFromPanelists({
+              data,
+              showAlert,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        // Translation socket listeners
+        socketDefault.on("translation:roomConfig", async (data: { config: TranslationRoomConfig }) => {
+          try {
+            await translationRoomConfig({
+              data,
+              updateTranslationConfig,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("translation:configUpdated", async (data: { config: TranslationRoomConfig }) => {
+          try {
+            await translationConfigUpdated({
+              data,
+              updateTranslationConfig,
+              showAlert,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("translation:languageSet", async (data: { success: boolean; language: string; enabled: boolean; error?: string }) => {
+          try {
+            await translationLanguageSet({
+              data,
+              updateMySpokenLanguage,
+              updateMySpokenLanguageEnabled,
+              showAlert,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("translation:subscribed", async (data: { speakerId: string; speakerName?: string; language: string; channelCreated: boolean; producerId?: string; originalProducerId?: string }) => {
+          try {
+            // Check if speaker is in our breakout room
+            const breakoutParams = {
+              consumerTransports: consumerTransports.current,
+              roomName: roomName.current,
+              member: member.current,
+              updateConsumerTransports,
+              breakOutRoomStarted: breakOutRoomStarted.current,
+              breakOutRoomEnded: breakOutRoomEnded.current,
+              breakoutRooms: breakoutRooms.current,
+              limitedBreakRoom: limitedBreakRoom.current,
+              participants: participants.current,
+              islevel: islevel.current,
+              eventType: eventType.current,
+              hostNewRoom: hostNewRoom.current,
+            };
+
+            const shouldConsume = isSpeakerInMyBreakoutRoom(data.speakerId, breakoutParams);
+
+            await translationSubscribed({
+              data,
+              updateListenPreferences,
+              updateTranslationProducerMap,
+              showAlert,
+              // If producer is already ready, start consuming immediately
+              startConsumingTranslation: (shouldConsume && data.producerId) ? async (producerId: string) => {
+                await signalNewConsumerTransport({
+                  remoteProducerId: producerId,
+                  islevel: islevel.current as string,
+                  nsock: socket.current!,
+                  parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+                });
+                // Pause original producer if we have it
+                if (data.originalProducerId) {
+                  await pauseOriginalProducer({
+                    originalProducerId: data.originalProducerId,
+                    speakerId: data.speakerId,
+                    parameters: breakoutParams,
+                  });
+                }
+              } : undefined,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("translation:unsubscribed", async (data: { speakerId: string; language: string; channelClosed: boolean }) => {
+          try {
+            // Build breakout params for checking room membership
+            const breakoutParams = {
+              consumerTransports: consumerTransports.current,
+              roomName: roomName.current,
+              member: member.current,
+              updateConsumerTransports,
+              // Breakout room state
+              breakOutRoomStarted: breakOutRoomStarted.current,
+              breakOutRoomEnded: breakOutRoomEnded.current,
+              breakoutRooms: breakoutRooms.current,
+              limitedBreakRoom: limitedBreakRoom.current,
+              participants: participants.current,
+              islevel: islevel.current,
+              eventType: eventType.current,
+              hostNewRoom: hostNewRoom.current,
+            };
+
+            await translationUnsubscribed({
+              data,
+              updateListenPreferences,
+              // Stop consuming the translation producer
+              stopConsumingTranslation: async (speakerId: string, language: string) => {
+                const originalProducerId = await stopConsumingTranslation({
+                  speakerId,
+                  language,
+                  translationProducerMap: translationProducerMap.current,
+                  parameters: breakoutParams,
+                });
+                
+                // Resume the original audio producer if we found it
+                if (originalProducerId) {
+                  await resumeOriginalProducer({
+                    originalProducerId,
+                    speakerId,
+                    parameters: breakoutParams,
+                  });
+                  
+                  // Also remove from translation producer map
+                  updateTranslationProducerMap((prev) => {
+                    const next = { ...prev };
+                    if (next[originalProducerId]) {
+                      const remaining = { ...next[originalProducerId] };
+                      delete remaining[language];
+                      if (Object.keys(remaining).length === 0) {
+                        delete next[originalProducerId];
+                      } else {
+                        next[originalProducerId] = remaining;
+                      }
+                    }
+                    return next;
+                  });
+                }
+              },
+            });
+          } catch (error) {
+            console.error('[Translation] Error handling unsubscribed:', error);
+          }
+        });
+
+        socketDefault.on("translation:channelsAvailable", async (data: { speakerId: string; languages: string[]; originalProducerId: string }) => {
+          try {
+            await translationChannelsAvailable({
+              data,
+              updateAvailableTranslationChannels,
+              myDefaultListenLanguage: myDefaultListenLanguage.current,
+              socket: socket.current,
+              roomName: roomName.current,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("translation:memberState", async (data: { memberId: string; memberName?: string; state: { speaking?: { enabled: boolean; inputLanguage: string; originalProducerId: string }; listening?: { [speakerId: string]: { language: string; producerId: string | null } } } }) => {
+          try {
+            await translationMemberState({
+              data,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        socketDefault.on("translation:error", async (data: { error: string; code?: string }) => {
+          try {
+            await translationError({
+              data,
+              showAlert,
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        /**
+         * Handle when a speaker explicitly disables their translation
+         * This is the authoritative signal to resume original audio
+         */
+        socketDefault.on("translation:speakerDisabled", async (data: { speakerId: string; speakerName?: string }) => {
+          try {
+
+            // Build breakout params for resuming original audio
+            const breakoutParams = {
+              consumerTransports: consumerTransports.current,
+              roomName: roomName.current,
+              member: member.current,
+              updateConsumerTransports,
+              breakOutRoomStarted: breakOutRoomStarted.current,
+              breakOutRoomEnded: breakOutRoomEnded.current,
+              breakoutRooms: breakoutRooms.current,
+              limitedBreakRoom: limitedBreakRoom.current,
+              participants: participants.current,
+              islevel: islevel.current,
+              eventType: eventType.current,
+              hostNewRoom: hostNewRoom.current,
+            };
+
+            // Skip if speaker is not in our breakout room
+            if (!isSpeakerInMyBreakoutRoom(data.speakerId, breakoutParams)) {
+              return;
+            }
+
+            // Find the original producer for this speaker from translation state
+            const speakerState = speakerTranslationStates.get(data.speakerId);
+            const originalProducerId = speakerState?.originalProducerId;
+
+            // Resume original audio
+            if (originalProducerId) {
+              await resumeOriginalProducer({
+                originalProducerId,
+                speakerId: data.speakerId,
+                parameters: breakoutParams,
+              });
+              
+              // Clean up any translation producers for this speaker's original producer
+              const translationMap = translationProducerMap.current;
+              if (translationMap && translationMap[originalProducerId]) {
+                for (const translationProducerId of Object.values(translationMap[originalProducerId])) {
+                  activeTranslationProducerIds.current?.delete?.(translationProducerId);
+                }
+              }
+            }
+            
+            // Clean up speaker translation state
+            updateSpeakerTranslationStates((prev) => {
+              const next = new Map(prev);
+              next.delete(data.speakerId);
+              return next;
+            });
+
+            // Clean up translation producer map
+            if (originalProducerId) {
+              updateTranslationProducerMap((prev) => {
+                const next = { ...prev };
+                delete next[originalProducerId];
+                return next;
+              });
+            }
+          } catch (error) {
+            console.error('[Translation] Error handling speakerDisabled:', error);
+          }
+        });
+
+        /**
+         * Handle translation transcript for live captions/subtitles
+         * Backend emits the translated text for display
+         */
+        socketDefault.on("translation:transcript", async (data: { speakerId: string; speakerName: string; language: string; originalText: string; translatedText: string; sourceLang: string; detectedLanguage?: string | null; timestamp: number }) => {
+          try {
+            await translationTranscript({
+              data,
+              // Optional: update a transcript state for subtitle display
+              // updateTranscripts,
+              // Optional: callback for custom handling
+              onTranscriptReceived: () => {
+                // Transcript received for subtitle display
+              },
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        /**
+         * Handle speaker output language change
+         * When a speaker sets an output language, ALL consumers must:
+         * 1. Pause their consumer of the speaker's original audio
+         * 2. Wait for translation producer to arrive via new-pipe-producer
+         * 3. Consume the translation producer instead
+         * 
+         * This is NOT optional - the speaker decides what everyone hears.
+         */
+        socketDefault.on("translation:speakerOutputChanged", async (data: { speakerId: string; speakerName: string; inputLanguage: string; outputLanguage: string | null; originalProducerId: string; enabled: boolean }) => {
+          try {
+            // Build breakout params for checking room membership
+            const breakoutParams = {
+              consumerTransports: consumerTransports.current,
+              roomName: roomName.current,
+              member: member.current,
+              updateConsumerTransports,
+              breakOutRoomStarted: breakOutRoomStarted.current,
+              breakOutRoomEnded: breakOutRoomEnded.current,
+              breakoutRooms: breakoutRooms.current,
+              limitedBreakRoom: limitedBreakRoom.current,
+              participants: participants.current,
+              islevel: islevel.current,
+              eventType: eventType.current,
+              hostNewRoom: hostNewRoom.current,
+            };
+
+            // Skip if speaker is not in our breakout room
+            if (!isSpeakerInMyBreakoutRoom(data.speakerId, breakoutParams)) {
+              return;
+            }
+
+            // Check if this listener has an override for this speaker
+            const listenerOverride = listenerTranslationOverrides.get(data.speakerId) || null;
+
+            await translationSpeakerOutputChanged({
+              data,
+              pauseOriginalProducer: async (originalProducerId: string, speakerId: string) => {
+                await pauseOriginalProducer({
+                  originalProducerId,
+                  speakerId,
+                  parameters: breakoutParams,
+                });
+              },
+              resumeOriginalProducer: async (originalProducerId: string, speakerId: string) => {
+                await resumeOriginalProducer({
+                  originalProducerId,
+                  speakerId,
+                  parameters: breakoutParams,
+                });
+              },
+              stopConsumingTranslationForSpeaker: async () => {
+                // Find and close all translation consumers for this speaker
+                // Look through translationProducerMap to find any translation producers for this speaker
+                const producerMapCurrent = translationProducerMap.current;
+                
+                for (const [originalProducerId, langMap] of Object.entries(producerMapCurrent)) {
+                  for (const [, translationProducerId] of Object.entries(langMap)) {
+                    // Find the consumer transport for this translation producer
+                    const transportIndex = consumerTransports.current.findIndex(
+                      (t) => t.producerId === translationProducerId
+                    );
+                    
+                    if (transportIndex !== -1) {
+                      const transport = consumerTransports.current[transportIndex];
+                      
+                      // Close consumer on server
+                      if (transport.socket_ && transport.serverConsumerTransportId) {
+                        transport.socket_.emit(
+                          'consumer-close',
+                          { serverConsumerId: transport.serverConsumerTransportId },
+                          () => {}
+                        );
+                      }
+                      
+                      // Close consumer locally
+                      if (transport.consumer) {
+                        transport.consumer.close();
+                      }
+                      
+                      // Remove from tracking
+                      activeTranslationProducerIds.current.delete(translationProducerId);
+                      
+                      // Remove from consumerTransports
+                      consumerTransports.current.splice(transportIndex, 1);
+                      updateConsumerTransports([...consumerTransports.current]);
+                    }
+                  }
+                  
+                  // Clear the translation producer map entry
+                  delete producerMapCurrent[originalProducerId];
+                }
+                
+                // Update the ref
+                translationProducerMap.current = { ...producerMapCurrent };
+              },
+              showAlert,
+              listenerOverride,
+            });
+
+            // Update the speaker translation state tracker
+            updateSpeakerTranslationStates((prev) => {
+              const newMap = new Map(prev);
+              if (data.enabled && data.outputLanguage) {
+                newMap.set(data.speakerId, {
+                  speakerId: data.speakerId,
+                  speakerName: data.speakerName,
+                  inputLanguage: data.inputLanguage,
+                  outputLanguage: data.outputLanguage,
+                  originalProducerId: data.originalProducerId,
+                  enabled: true,
+                });
+              } else {
+                // Remove from tracking when disabled
+                newMap.delete(data.speakerId);
+              }
+              return newMap;
+            });
+          } catch {
+            // Handle error
+          }
+        });
+
+        /**
+         * Handle listener preference updates from server
+         * This syncs preference changes made by other instances or from server-side logic
+         */
+        socketDefault.on("updateListenerPreferences", (data: { 
+          roomName: string; 
+          listenerId: string; 
+          preferences: { 
+            perSpeaker: Record<string, { language: string | null; wantOriginal: boolean }>; 
+            globalLanguage: string | null;
+          };
+        }) => {
+          // Only update if it's for this client
+          if (data.listenerId === socket.current?.id) {
+            updateListenerTranslationPreferences({
+              perSpeaker: new Map(Object.entries(data.preferences.perSpeaker || {}).map(([key, val]) => [
+                key,
+                { speakerId: key, language: val.language, wantOriginal: val.wantOriginal }
+              ])),
+              globalLanguage: data.preferences.globalLanguage,
+            });
+          }
+        });
+
+      }
+
+      if (skipSockets) {
+        // try remove all listeners related to recoding on  socketDefault and socketAlt
+        const events = [
+          "roomRecordParams",
+          "startRecords",
+          "reInitiateRecording",
+          "RecordingNotice",
+          "timeLeftRecording",
+          "stoppedRecording",
+        ];
+        events.forEach((event) => {
+          socketDefault.off(event);
+          socketAlt.off(event);
+        });
+      }
+
+      socketAlt.on(
+        "roomRecordParams",
+        async ({ recordParams }: { recordParams: RecordParams }) => {
+          await roomRecordParams({
+            recordParams,
+            parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+          });
+        }
+      );
+
+      socketAlt.on("startRecords", async () => {
+        await startRecords({
+          roomName: roomName.current,
+          member: member.current,
+          socket: socketAlt,
+        });
+      });
+
+      socketAlt.on("reInitiateRecording", async () => {
+        await reInitiateRecording({
+          roomName: roomName.current,
+          member: member.current,
+          socket: socketAlt,
+          adminRestrictSetting: adminRestrictSetting.current,
+        });
+      });
+
+      socketAlt.on(
+        "RecordingNotice",
+        async ({ state, userRecordingParam, pauseCount, timeDone }) => {
+          await recordingNotice({
+            state,
+            userRecordingParam,
+            pauseCount,
+            timeDone,
+            parameters: {
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+            },
+          });
+        }
+      );
+
+      socketAlt.on(
+        "timeLeftRecording",
+        async ({ timeLeft }: { timeLeft: number }) => {
+          timeLeftRecording({
+            timeLeft,
+            showAlert,
+          });
+        }
+      );
+
+      socketAlt.on(
+        "stoppedRecording",
+        async ({ state, reason }: { state: string; reason: string }) => {
+          await stoppedRecording({
+            state,
+            reason,
+            showAlert,
+          });
+        }
+      );
+
+      if (localLink !== "" && socketDefault && !skipSockets) {
+        await join_Room({
+          socket: socketDefault,
+          roomName: roomName.current,
+          islevel: islevel.current,
+          member: member.current,
+          sec: token,
+          apiUserName: apiUserName,
+          isLocal: true,
+        });
+      }
+
+      // there might be change in localSoscket for Community Edition
+      let localChanged = false;
+      localChanged =
+        localSocket.current && localSocket.current.id != socketAlt.id
+          ? true
+          : false;
+
+      if (!skipSockets && localChanged) {
+        // call the connect socket method again
+        await connect_Socket(apiUserName, token, true); // skipSocket = true
+        await sleep({ ms: 1000 });
+        updateIsLoadingModalVisible(false);
+        return socketDefault;
+      } else {
+        if (link.current !== "" && link.current!.includes("mediasfu.com")) {
+          // token might be different for local room
+          const token = apiToken.current;
+          await join_Room({
+            socket:
+              connectMediaSFU && socketAlt && socketAlt.id
+                ? socketAlt
+                : socketDefault,
+            roomName: roomName.current,
+            islevel: islevel.current,
+            member: member.current,
+            sec: token,
+            apiUserName: apiUserName,
+          });
+        }
+
+        await receiveRoomMessages({
+          socket: socketDefault,
+          roomName: roomName.current,
+          updateMessages,
+        });
+
+        if (!skipSockets) {
+          await prepopulateUserMedia({
+            name: hostLabel.current,
+            parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+          });
+        }
+
+        return socketDefault;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  useEffect(() => {
+    //update allVideoStreams
+    updateAllVideoStreams([
+      { producerId: "youyou", stream: undefined, id: "youyou", name: "youyou" },
+    ]);
+
+    //update StreamNames
+    updateStreamNames([{ id: "youyou", name: "youyou", producerId: "" }]);
+
+    //if socket is connected, join the room
+    const connectAndAddSocketMethods = async () => {
+      const _socket = await connect_Socket(
+        apiUserName.current,
+        apiToken.current
+      );
+      updateSocket(_socket!);
+    };
+
+    if (validated) {
+      try {
+        if (localUIMode.current === false) {
+          updateIsLoadingModalVisible(true);
+          connectAndAddSocketMethods();
+        } else {
+          updateIsLoadingModalVisible(false);
+        }
+      } catch (error) {
+        console.log("error connectAndaAddSocketMethods", error);
+      }
+
+      startMeetingProgressTimer({
+        startTime: Date.now() / 1000,
+        parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+      });
+      
+      try {
+        if (sourceParameters !== null) {
+          sourceParameters = {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          };
+          if (updateSourceParameters){
+            updateSourceParameters(sourceParameters);
+          }
+        }
+      } catch {
+        console.log("error updateSourceParameters");
+      }
+  
+    }
+  }, [validated]);
+
+  // Render sidebar content based on active content type
+  // Uses renderMode='sidebar' for modals to render inline without modal overlay
+  const renderSidebarContent = useCallback(() => {
+    const baseProps = {
+      isDarkMode,
+      renderMode: 'sidebar' as const,
+    };
+
+    const shouldShowMenuHeader = shouldUseSidebar ? sidebarNavigationStack.length === 0 : false;
+
+    let sidebarBodyContent: React.ReactNode = null;
+
+    switch (activeSidebarContent) {
+      case 'menu':
+        sidebarBodyContent = (
+          <MenuModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isVisible={true}
+            onClose={closeSidebar}
+            customButtons={customMenuButtons}
+            roomName={roomName.current}
+            adminPasscode={adminPasscode.current}
+            islevel={islevel.current}
+            eventType={eventType.current}
+            localLink={localLink}
+            onToggleTheme={updateIsDarkMode}
+            renderHeader={({ defaultHeader }) => (shouldShowMenuHeader ? defaultHeader : null)}
+          />
+        );
+        break;
+      case 'participants':
+        sidebarBodyContent = (
+          <ParticipantsModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isParticipantsModalVisible={isParticipantsModalVisible}
+            onParticipantsClose={closeSidebar}
+            participantsCounter={participantsCounter.current}
+            onParticipantsFilterChange={onParticipantsFilterChange}
+            parameters={{
+              updateParticipants: updateParticipants,
+              updateIsParticipantsModalVisible: updateIsParticipantsModalVisible,
+              updateDirectMessageDetails,
+              updateStartDirectMessage,
+              updateIsMessagesModalVisible,
+              showAlert: showAlert,
+              filteredParticipants: filteredParticipants.current,
+              participants: filteredParticipants.current,
+              roomName: roomName.current,
+              islevel: islevel.current,
+              member: member.current,
+              coHostResponsibility: coHostResponsibility.current,
+              coHost: coHost.current,
+              eventType: eventType.current,
+              startDirectMessage: startDirectMessage.current,
+              directMessageDetails: directMessageDetails.current,
+              socket: socket.current,
+              getUpdatedAllParams: getAllParams,
+            }}
+          />
+        );
+        break;
+      case 'messages':
+        sidebarBodyContent = (
+          <MessagesModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isMessagesModalVisible={true}
+            onMessagesClose={closeSidebar}
+            messages={messages.current}
+            eventType={eventType.current}
+            member={member.current}
+            islevel={islevel.current}
+            coHostResponsibility={coHostResponsibility.current}
+            coHost={coHost.current}
+            startDirectMessage={startDirectMessage.current}
+            directMessageDetails={directMessageDetails.current}
+            updateStartDirectMessage={updateStartDirectMessage}
+            updateDirectMessageDetails={updateDirectMessageDetails}
+            showAlert={showAlert}
+            roomName={roomName.current}
+            socket={socket.current}
+            chatSetting={chatSetting.current}
+          />
+        );
+        break;
+      case 'requests':
+        sidebarBodyContent = (
+          <RequestsModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isRequestsModalVisible={true}
+            onRequestClose={closeSidebar}
+            requestCounter={requestCounter.current}
+            onRequestFilterChange={onRequestFilterChange}
+            updateRequestList={updateRequestList}
+            requestList={filteredRequestList.current}
+            roomName={roomName.current}
+            socket={socket.current}
+            parameters={{
+              updateRequestCounter: updateRequestCounter,
+              updateRequestFilter: updateRequestFilter,
+              updateRequestList: updateRequestList,
+              getUpdatedAllParams,
+            }}
+          />
+        );
+        break;
+      case 'waiting':
+        sidebarBodyContent = (
+          <WaitingRoomModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isWaitingModalVisible={true}
+            onWaitingRoomClose={closeSidebar}
+            waitingRoomCounter={waitingRoomCounter.current}
+            onWaitingRoomFilterChange={onWaitingRoomFilterChange}
+            waitingRoomList={filteredWaitingRoomList.current}
+            updateWaitingList={updateWaitingRoomList}
+            roomName={roomName.current}
+            socket={socket.current}
+            parameters={{
+              filteredWaitingRoomList: filteredWaitingRoomList.current,
+              getUpdatedAllParams,
+            }}
+          />
+        );
+        break;
+      case 'coHost':
+        sidebarBodyContent = (
+          <CoHostModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isCoHostModalVisible={true}
+            updateIsCoHostModalVisible={updateIsCoHostModalVisible}
+            onCoHostClose={closeSidebar}
+            coHostResponsibility={coHostResponsibility.current}
+            participants={participants.current}
+            currentCohost={coHost.current}
+            roomName={roomName.current}
+            showAlert={showAlert}
+            updateCoHostResponsibility={updateCoHostResponsibility}
+            updateCoHost={updateCoHost}
+            socket={socket.current}
+          />
+        );
+        break;
+      case 'mediaSettings':
+        sidebarBodyContent = (
+          <MediaSettingsModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isMediaSettingsModalVisible={true}
+            onMediaSettingsClose={closeSidebar}
+            onOpenBackgroundSidebar={() => updateActiveSidebarContent('background', true)}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+            }}
+          />
+        );
+        break;
+      case 'displaySettings':
+        sidebarBodyContent = (
+          <DisplaySettingsModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isDisplaySettingsModalVisible={true}
+            onDisplaySettingsClose={closeSidebar}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+            }}
+          />
+        );
+        break;
+      case 'eventSettings':
+        sidebarBodyContent = (
+          <EventSettingsModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isEventSettingsModalVisible={true}
+            updateIsSettingsModalVisible={updateIsSettingsModalVisible}
+            onEventSettingsClose={closeSidebar}
+            audioSetting={audioSetting.current}
+            videoSetting={videoSetting.current}
+            screenshareSetting={screenshareSetting.current}
+            chatSetting={chatSetting.current}
+            updateAudioSetting={updateAudioSetting}
+            updateVideoSetting={updateVideoSetting}
+            updateScreenshareSetting={updateScreenshareSetting}
+            updateChatSetting={updateChatSetting}
+            roomName={roomName.current}
+            socket={socket.current}
+          />
+        );
+        break;
+      case 'recording':
+        sidebarBodyContent = (
+          <RecordingModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isRecordingModalVisible={true}
+            onClose={closeSidebar}
+            startRecording={startRecording}
+            confirmRecording={confirmRecording}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+            }}
+          />
+        );
+        break;
+      case 'polls':
+        sidebarBodyContent = (
+          <PollModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isPollModalVisible={true}
+            onClose={closeSidebar}
+            member={member.current}
+            islevel={islevel.current}
+            polls={polls.current}
+            poll={poll.current}
+            socket={socket.current}
+            roomName={roomName.current}
+            showAlert={showAlert}
+            updateIsPollModalVisible={setIsPollModalVisible}
+            handleCreatePoll={handleCreatePoll}
+            handleEndPoll={handleEndPoll}
+            handleVotePoll={handleVotePoll}
+          />
+        );
+        break;
+      case 'breakoutRooms':
+        sidebarBodyContent = (
+          <BreakoutRoomsModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isVisible={true}
+            onBreakoutRoomsClose={closeSidebar}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+            }}
+          />
+        );
+        break;
+      case 'shareEvent':
+        sidebarBodyContent = (
+          <ShareEventModalComponent
+            {...baseProps}
+            isShareEventModalVisible={isShareEventModalVisible}
+            onShareEventClose={closeSidebar}
+            roomName={roomName.current}
+            islevel={islevel.current}
+            adminPasscode={adminPasscode.current}
+            eventType={eventType.current}
+            localLink={localLink}
+          />
+        );
+        break;
+      case 'configureWhiteboard':
+        sidebarBodyContent = (
+          <ConfigureWhiteboardModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isVisible={true}
+            onConfigureWhiteboardClose={closeSidebar}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+            }}
+          />
+        );
+        break;
+      case 'permissions':
+        sidebarBodyContent = (
+          <ModernPermissionsModal
+            {...baseProps}
+            isPermissionsModalVisible={true}
+            onPermissionsClose={closeSidebar}
+            parameters={{
+              participants: participants.current,
+              member: member.current,
+              islevel: islevel.current,
+              socket: socket.current,
+              roomName: roomName.current,
+              showAlert,
+              permissionConfig: permissionConfig.current ?? undefined,
+              updatePermissionConfig: (config: PermissionConfig) => {
+                permissionConfig.current = config;
+              },
+              // Event settings for initial values when permissionConfig is not set
+              audioSetting: audioSetting.current,
+              videoSetting: videoSetting.current,
+              screenshareSetting: screenshareSetting.current,
+              chatSetting: chatSetting.current,
+              getUpdatedAllParams: () => ({
+                participants: participants.current,
+                member: member.current,
+                islevel: islevel.current,
+                socket: socket.current,
+                roomName: roomName.current,
+                showAlert,
+                permissionConfig: permissionConfig.current ?? undefined,
+                updatePermissionConfig: (config: PermissionConfig) => {
+                  permissionConfig.current = config;
+                },
+                audioSetting: audioSetting.current,
+                videoSetting: videoSetting.current,
+                screenshareSetting: screenshareSetting.current,
+                chatSetting: chatSetting.current,
+                getUpdatedAllParams: () => ({} as any),
+              }),
+            }}
+            backgroundColor={themedSurfaceColor}
+          />
+        );
+        break;
+      case 'panelists':
+        sidebarBodyContent = (
+          <ModernPanelistsModal
+            {...baseProps}
+            isPanelistsModalVisible={true}
+            onPanelistsClose={closeSidebar}
+            parameters={{
+              participants: participants.current,
+              panelists: panelists.current,
+              member: member.current,
+              islevel: islevel.current,
+              socket: socket.current,
+              roomName: roomName.current,
+              showAlert,
+              itemPageLimit: itemPageLimit.current,
+              panelistsFocused: panelistsFocused.current,
+              updatePanelists: (panelistList: Participant[]) => {
+                panelists.current = panelistList;
+              },
+              updatePanelistsFocused: (focused: boolean) => {
+                panelistsFocused.current = focused;
+              },
+              getUpdatedAllParams: () => ({
+                participants: participants.current,
+                panelists: panelists.current,
+                member: member.current,
+                islevel: islevel.current,
+                socket: socket.current,
+                roomName: roomName.current,
+                showAlert,
+                itemPageLimit: itemPageLimit.current,
+                panelistsFocused: panelistsFocused.current,
+                updatePanelists: (panelistList: Participant[]) => {
+                  panelists.current = panelistList;
+                },
+                updatePanelistsFocused: (focused: boolean) => {
+                  panelistsFocused.current = focused;
+                },
+                getUpdatedAllParams: () => ({} as any),
+              }),
+            }}
+            backgroundColor={themedSurfaceColor}
+          />
+        );
+        break;
+      case 'translation':
+        sidebarBodyContent = (
+          <TranslationSettingsModal
+            isVisible={true}
+            onClose={closeSidebar}
+            translationConfig={translationConfig.current}
+            member={member.current}
+            islevel={islevel.current}
+            audioProducerId={audioProducer.current?.id || null}
+            participants={participants.current}
+            mySpokenLanguage={mySpokenLanguage.current}
+            mySpokenLanguageEnabled={mySpokenLanguageEnabled.current}
+            myDefaultOutputLanguage={myDefaultOutputLanguage.current}
+            myDefaultListenLanguage={myDefaultListenLanguage.current}
+            listenPreferences={listenPreferences.current}
+            updateMySpokenLanguage={updateMySpokenLanguage}
+            updateMySpokenLanguageEnabled={updateMySpokenLanguageEnabled}
+            updateMyDefaultOutputLanguage={updateMyDefaultOutputLanguage}
+            updateMyDefaultListenLanguage={updateMyDefaultListenLanguage}
+            updateListenPreferences={updateListenPreferences}
+            socket={socket.current}
+            roomName={roomName.current}
+            showAlert={showAlert}
+            isDarkMode={isDarkMode}
+            renderMode="sidebar"
+          />
+        );
+        break;
+      default:
+        sidebarBodyContent = null;
+    }
+
+    return sidebarBodyContent;
+  }, [
+    activeSidebarContent, isDarkMode, themedSurfaceColor, closeSidebar,
+    isBackgroundModalVisible,
+    customMenuButtons, roomName, adminPasscode, islevel, eventType, localLink,
+    participantsCounter, filteredParticipants, messages, coHostResponsibility,
+    coHost, startDirectMessage, directMessageDetails, chatSetting,
+    requestCounter, filteredRequestList, waitingRoomCounter, filteredWaitingRoomList,
+    participants, audioSetting, videoSetting, screenshareSetting,
+    polls, poll, member,
+    getAllParams, mediaSFUFunctions, onParticipantsFilterChange, onRequestFilterChange,
+    onWaitingRoomFilterChange, showAlert, socket,
+    updateParticipants, updateIsParticipantsModalVisible,
+    updateDirectMessageDetails, updateStartDirectMessage, updateIsMessagesModalVisible,
+    updateRequestCounter, updateRequestFilter, updateRequestList,
+    updateWaitingRoomList, updateIsCoHostModalVisible, updateCoHostResponsibility,
+    updateCoHost, updateIsSettingsModalVisible, updateAudioSetting, updateVideoSetting,
+    updateScreenshareSetting, updateChatSetting,
+    handleCreatePoll, handleEndPoll, handleVotePoll,
+    startRecording, confirmRecording, updateIsDarkMode, setIsPollModalVisible,
+    shouldUseSidebar, sidebarNavigationStack.length,
+  ]);
+
+  // Render sidebar header with optional back button and title
+  const renderSidebarHeader = useCallback(() => {
+    // Only show back button when there's navigation history (e.g., launched from menu)
+    // Don't show title/close button here - modals render their own header
+    if (sidebarNavigationStack.length === 0) {
+      return null;
+    }
+    
+    return (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+          backgroundColor: isDarkMode 
+            ? 'rgba(15, 23, 42, 0.5)' 
+            : 'rgba(248, 250, 252, 0.5)',
+        }}
+      >
+        {/* Back button to return to previous content (e.g., menu) */}
+        <button
+          onClick={sidebarNavigateBack}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '8px 12px',
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: '#22c55e',
+            fontSize: '15px',
+            fontWeight: 500,
+            borderRadius: '8px',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = isDarkMode 
+              ? 'rgba(255,255,255,0.05)' 
+              : 'rgba(0,0,0,0.03)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'transparent';
+          }}
+        >
+          <span style={{ fontSize: '16px' }}>←</span>
+          Back to Menu
+        </button>
+        {/* Spacer to push close button to right */}
+        <div style={{ flex: 1 }} />
+        {/* Close button */}
+        <button
+          onClick={closeSidebar}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '32px',
+            height: '32px',
+            borderRadius: '50%',
+            border: 'none',
+            backgroundColor: isDarkMode 
+              ? 'rgba(255,255,255,0.1)' 
+              : 'rgba(0,0,0,0.08)',
+            color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 300,
+            transition: 'background-color 0.15s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = isDarkMode 
+              ? 'rgba(255,255,255,0.15)' 
+              : 'rgba(0,0,0,0.12)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = isDarkMode 
+              ? 'rgba(255,255,255,0.1)' 
+              : 'rgba(0,0,0,0.08)';
+          }}
+        >
+          ×
+        </button>
+      </div>
+    );
+  }, [activeSidebarContent, sidebarNavigationStack.length, isDarkMode, sidebarNavigateBack, closeSidebar]);
+
+  return (
+    <div
+      className="MediaSFU"
+      style={{
+        height: "100vh",
+        width: "100vw",
+        maxWidth: "100vw",
+        maxHeight: "100vh",
+        overflow: "hidden",
+        ...containerStyle,
+      }}
+    >
+      {customComponent && validated ? (
+        React.createElement(customComponent, {
+          parameters: {
+            ...getAllParams(),
+            ...mediaSFUFunctions(),
+          },
+        })
+      ) : !validated ? (
+        customPreJoinPage ? (
+          React.createElement(
+            customPreJoinPage,
+            {
+              localLink: localLink,
+              connectMediaSFU: connectMediaSFU,
+              parameters: {
+                imgSrc,
+                showAlert,
+                updateIsLoadingModalVisible,
+                connectSocket,
+                connectLocalSocket,
+                updateSocket,
+                updateLocalSocket,
+                updateValidated,
+                updateApiUserName,
+                updateApiToken,
+                updateLink,
+                updateRoomName,
+                updateMember,
+                updateSelfieSegmentation,
+              },
+              credentials: credentials,
+              returnUI: returnUI,
+              noUIPreJoinOptions: noUIPreJoinOptions,
+              createMediaSFURoom: createMediaSFURoom,
+              joinMediaSFURoom: joinMediaSFURoom,
+            }
+          )
+        ) : uiOverrides?.welcomePage ? (
+          <WelcomePageComponent
+            parameters={{
+              imgSrc,
+              showAlert,
+              updateIsLoadingModalVisible,
+              connectSocket,
+              updateSocket,
+              updateValidated,
+              updateApiUserName,
+              updateApiToken,
+              updateLink,
+              updateRoomName,
+              updateMember,
+            }}
+          />
+        ) : (
+          <PreJoinPageComponent
+            parameters={{
+              imgSrc,
+              showAlert,
+              updateIsLoadingModalVisible,
+              connectSocket,
+              connectLocalSocket,
+              updateSocket,
+              updateLocalSocket,
+              updateValidated,
+              updateApiUserName,
+              updateApiToken,
+              updateLink,
+              updateRoomName,
+              updateMember,
+              updateAudioPreference: updateUserDefaultAudioInputDevice,
+              updateVideoPreference: updateUserDefaultVideoInputDevice,
+              updateAudioOutputPreference: updateUserDefaultAudioOutputDevice,
+              updateIsDarkMode: updateIsDarkMode,
+              updateEventType: updateEventType,
+              updateVirtualBackground: updateSelectedImage,
+              updateCurrentFacingMode: updateCurrentFacingMode,
+              updateKeepBackground: updateKeepBackground,
+              updateAppliedBackground: updateAppliedBackground,
+              updateSelfieSegmentation: updateSelfieSegmentation,
+            }}
+            credentials={credentials}
+            localLink={localLink}
+            connectMediaSFU={connectMediaSFU}
+            returnUI={returnUI}
+            noUIPreJoinOptions={noUIPreJoinOptions}
+            joinMediaSFURoom={joinMediaSFURoom}
+            createMediaSFURoom={createMediaSFURoom}
+          />
+        )
+      ) : returnUI ? (
+  <MainContainer>
+          {/* Main aspect component contains all but the control buttons (as used for webinar and conference) */}
+          <MainAspect
+            backgroundColor={themedSurfaceColor}
+            defaultFraction={1 - controlHeight}
+            updateIsWideScreen={updateIsWideScreen}
+            updateIsMediumScreen={updateIsMediumScreen}
+            updateIsSmallScreen={updateIsSmallScreen}
+            showControls={
+              eventType.current == "webinar" ||
+              eventType.current == "conference"
+            }
+            containerProps={{
+              style: {
+                display: 'flex',
+                flexDirection: 'row',
+                flex: 1,
+                minWidth: 0, // Allow flex shrinking
+                width: 'auto', // Override fixed width calculation
+              }
+            }}
+          >
+            {/* MainScreenComponent contains the main grid view and the minor grid view */}
+            <MainScreen
+              doStack={true}
+              mainSize={mainHeightWidth}
+              updateComponentSizes={updateComponentSizes}
+              defaultFraction={1 - controlHeight}
+              componentSizes={componentSizes}
+              sidebarWidth={shouldUseSidebar && isSidebarVisible ? sidebarWidth : 0}
+              showControls={
+                eventType.current == "webinar" ||
+                eventType.current == "conference"
+              }
+              containerProps={{
+                style: {
+                  flex: 1,
+                  minWidth: 0, // Allow shrinking
+                }
+              }}
+            >
+              {/* MainGridComponent shows the main grid view - not used at all in chat event type  and conference event type when screenshare is not active*/}
+              {/* MainGridComponent becomes the dominant grid view in broadcast and webinar event types */}
+              {/* MainGridComponent becomes the dominant grid view in conference event type when screenshare is active */}
+
+              <MainGrid
+                height={componentSizes.mainHeight}
+                width={componentSizes.mainWidth}
+                backgroundColor={themedSurfaceColor}
+                mainSize={mainHeightWidth}
+                showAspect={mainHeightWidth > 0 ? true : false}
+                timeBackgroundColor={recordState}
+                meetingProgressTime={meetingProgressTime}
+                timerComponent={MeetingProgressTimerComponent}
+              >
+                <FlexibleVideoComponent
+                  customWidth={componentSizes.mainWidth}
+                  customHeight={componentSizes.mainHeight}
+                  rows={1}
+                  columns={1}
+                  componentsToRender={
+                    mainGridStream.current ? mainGridStream.current : []
+                  }
+                  showAspect={
+                    mainGridStream.current.length > 0 &&
+                    !(whiteboardStarted.current && !whiteboardEnded.current)
+                  }
+                  localStreamScreen={localStreamScreen.current!}
+                  annotateScreenStream={annotateScreenStream.current}
+                  isDarkMode={isDarkMode}
+                  Screenboard={
+                    shared.current && (
+                      <ScreenboardComponent
+                        customWidth={componentSizes.mainWidth}
+                        customHeight={componentSizes.mainHeight}
+                        parameters={{
+                          ...getAllParams(),
+                          ...mediaSFUFunctions(),
+                        }}
+                        showAspect={shared.current}
+                      />
+                    )
+                  }
+                />
+
+                <WhiteboardComponent
+                  customWidth={componentSizes.mainWidth}
+                  customHeight={componentSizes.mainHeight}
+                  parameters={{
+                    ...getAllParams(),
+                    ...mediaSFUFunctions(),
+                  }}
+                  showAspect={
+                    whiteboardStarted.current && !whiteboardEnded.current
+                  }
+                />
+
+                <ControlButtonsTouch
+                  buttons={controlBroadcastButtons}
+                  position={"right"}
+                  location={"bottom"}
+                  direction={"vertical"}
+                  showAspect={eventType.current == "broadcast"}
+                />
+
+                {/* Button to launch recording modal */}
+                <ControlButtonsTouch
+                  buttons={recordButton}
+                  direction={"horizontal"}
+                  showAspect={
+                    eventType.current == "broadcast" &&
+                    !showRecordButtons &&
+                    islevel.current == "2"
+                  }
+                  location="bottom"
+                  position="middle"
+                />
+
+                {/* Buttons to control recording */}
+                <ControlButtonsTouch
+                  buttons={recordButtons}
+                  direction={"horizontal"}
+                  showAspect={
+                    eventType.current == "broadcast" &&
+                    showRecordButtons &&
+                    islevel.current == "2"
+                  }
+                  location="bottom"
+                  position="middle"
+                />
+
+                {/* Participants counter badge */}
+                <ParticipantsCounterBadge
+                  participantsCount={participantsCounter.current}
+                  position="bottomLeft"
+                  showBadge={mainHeightWidth > 0}
+                  isDarkMode={isDarkMode}
+                />
+              </MainGrid>
+
+              {/* OthergridComponent shows the minor grid view - not used at all in broadcast event type */}
+              {/* OthergridComponent becomes the dominant grid view in conference (the main grid only gets re-introduced during screenshare) and chat event types */}
+              <OtherGrid
+                height={componentSizes.otherHeight}
+                width={componentSizes.otherWidth}
+                backgroundColor={themedSurfaceColor}
+                showAspect={mainHeightWidth == 100 ? false : true}
+                timeBackgroundColor={recordState}
+                showTimer={mainHeightWidth == 0 ? true : false}
+                meetingProgressTime={meetingProgressTime}
+                timerComponent={MeetingProgressTimerComponent}
+              >
+                {/* Pagination is only used in conference and webinar event types */}
+                <div
+                  style={{
+                    width:
+                      paginationDirection.current === "horizontal"
+                        ? componentSizes.otherWidth
+                        : paginationHeightWidth.current,
+                    height:
+                      paginationDirection.current === "horizontal"
+                        ? paginationHeightWidth.current
+                        : componentSizes.otherHeight,
+                    padding: 0,
+                    margin: 0,
+                    display: doPaginate.current ? "flex" : "none",
+                    flexDirection:
+                      paginationDirection.current === "horizontal"
+                        ? "row"
+                        : "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  {/* Render Pagination component */}
+                  <PaginationComponent
+                    totalPages={numberPages}
+                    currentUserPage={currentUserPage.current}
+                    showAspect={doPaginate.current}
+                    paginationHeight={paginationHeightWidth.current}
+                    direction={paginationDirection.current!}
+                    parameters={{ ...getAllParams(), ...mediaSFUFunctions() }}
+                  />
+                </div>
+
+                {/* AudioGrid contains all the audio only streams */}
+                {/* If broadcasting and there are audio only streams (just one), the audio only streams are displayed in the main grid view */}
+                {/* If webinar and you are the host, the audio only streams (just one), are displayed in the main grid view */}
+                <AudioGridComponent
+                  componentsToRender={[
+                    ...(audioOnlyStreams.current || []),
+                    ...(translationStreams || [])
+                  ]}
+                />
+
+                <ControlButtonsTouch
+                  buttons={controlChatButtons}
+                  position={"right"}
+                  location={"bottom"}
+                  direction={"vertical"}
+                  showAspect={eventType.current == "chat"}
+                />
+
+                <FlexibleGridPrimary
+                  customWidth={gridSizes.current.gridWidth!}
+                  customHeight={gridSizes.current.gridHeight!}
+                  rows={gridRows}
+                  columns={gridCols}
+                  componentsToRender={otherGridStreams[0]}
+                  backgroundColor={themedSurfaceColor}
+                />
+
+                <FlexibleGridAlt
+                  customWidth={gridSizes.current.altGridWidth!}
+                  customHeight={gridSizes.current.altGridHeight!}
+                  rows={altGridRows}
+                  columns={altGridCols}
+                  componentsToRender={otherGridStreams[1]}
+                  backgroundColor={themedSurfaceColor}
+                />
+
+                {/* Participants counter badge for OtherGrid (conference mode) */}
+                <ParticipantsCounterBadge
+                  participantsCount={participantsCounter.current}
+                  position="topRight"
+                  showBadge={mainHeightWidth === 0}
+                  isDarkMode={isDarkMode}
+                />
+              </OtherGrid>
+            </MainScreen>
+            
+            {/* Desktop sidebar panel - only shows when shouldUseSidebar is true */}
+            {shouldUseSidebar && (
+              <div
+                style={{
+                  width: isSidebarVisible ? sidebarWidth : 0,
+                  height: '100%',
+                  overflow: 'hidden',
+                  transition: 'width 300ms ease-in-out',
+                  backgroundColor: isSidebarVisible 
+                    ? (isDarkMode ? 'rgba(30, 41, 59, 0.98)' : 'rgba(241, 245, 249, 0.98)')
+                    : 'transparent',
+                  borderLeft: isSidebarVisible 
+                    ? `1px solid ${isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'}` 
+                    : 'none',
+                  boxShadow: isSidebarVisible 
+                    ? '-2px 0 8px rgba(0,0,0,0.1)' 
+                    : 'none',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  flexShrink: 0,
+                }}
+              >
+                <div
+                  style={{
+                    width: sidebarWidth,
+                    height: '100%',
+                    display: isSidebarVisible ? 'flex' : 'none',
+                    flexDirection: 'column',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {renderSidebarHeader()}
+                  <div style={{ flex: 1, overflow: 'auto' }}>
+                    {renderSidebarContent()}
+                  </div>
+                </div>
+              </div>
+            )}
+          </MainAspect>
+
+          {/* SubAspectComponent is used for webinar and conference events only to display fixed control buttons */}
+          <SubAspect
+            backgroundColor={themedSurfaceColor}
+            showControls={
+              eventType.current == "webinar" ||
+              eventType.current == "conference"
+            }
+            defaultFractionSub={controlHeight}
+          >
+            <ControlButtons
+              buttons={controlButtons}
+              buttonColor={isDarkMode ? "white" : "black"} // Theme-aware button color
+              buttonBackgroundColor={{
+                default: "transparent",
+                pressed: "transparent",
+              }} // Set background color options
+              alignment="space-between"
+              vertical={false}
+              buttonsContainerStyle={{
+                marginTop: 2,
+                marginBottom: 2,
+                backgroundColor: "transparent",
+              }} // Set styles for the buttons container
+              renderButton={({ defaultButton, button, index }) => {
+                const tooltipText = (button as any).tooltip || (button as any).name || '';
+                if (tooltipText) {
+                  return (
+                    <ModernTooltip 
+                      key={index} 
+                      message={tooltipText} 
+                      isDarkMode={isDarkMode}
+                      position="top"
+                    >
+                      {defaultButton}
+                    </ModernTooltip>
+                  );
+                }
+                return defaultButton;
+              }}
+            />
+          </SubAspect>
+  </MainContainer>
+      ) : (
+        <> </>
+      )}
+
+      {returnUI && !customComponent && (
+        <>
+          {/* ConfirmExitModal - always render (not a sidebar content type) */}
+          <ConfirmExitModalComponent
+            backgroundColor={themedSurfaceColor}
+            isConfirmExitModalVisible={isConfirmExitModalVisible}
+            onConfirmExitClose={() => updateIsConfirmExitModalVisible(false)}
+            member={member.current}
+            roomName={roomName.current}
+            socket={socket.current}
+            islevel={islevel.current}
+          />
+
+          {/* ConfirmHereModal - always render with backdrop (not a sidebar content type) */}
+          <ConfirmHereModalComponent
+            backgroundColor={themedSurfaceColor}
+            isConfirmHereModalVisible={isConfirmHereModalVisible}
+            onConfirmHereClose={() => updateIsConfirmHereModalVisible(false)}
+            member={member.current}
+            roomName={roomName.current}
+            socket={socket.current}
+          />
+
+          {/* Screenboard modal - always render (not a sidebar content type) */}
+          <ScreenboardModalComponent
+            backgroundColor={themedSurfaceColor}
+            isVisible={isScreenboardModalVisible}
+            onClose={() => updateIsScreenboardModalVisible(false)}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+            }}
+          />
+
+          {/* Background modal - always mounted as floating overlay (like classic approach) */}
+          {/* This ensures segmentation DOM nodes persist and auto-apply from streamSuccessVideo works */}
+          <BackgroundModalComponent
+            isDarkMode={isDarkMode}
+            backgroundColor={themedSurfaceColor}
+            isVisible={isBackgroundModalVisible}
+            onClose={() => setIsBackgroundModalVisible(false)}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+              selfieSegmentation: selfieSegmentation.current,
+            }}
+          />
+
+          {/* Alert - always render, positioned based on context */}
+          <AlertComponentOverride
+            visible={alertVisible}
+            message={alertMessage}
+            type={alertType}
+            duration={alertDuration}
+            onHide={() => setAlertVisible(false)}
+            textColor={"#ffffff"}
+            position={alertPosition}
+            {...{ isDarkMode } as any}
+          />
+
+          {/* Loading modal - always render with backdrop */}
+          <LoadingModalComponent
+            isVisible={isLoadingModalVisible}
+            backgroundColor={themedSurfaceColor}
+            displayColor={isDarkMode ? "white" : "black"}
+          />
+        </>
+      )}
+
+      {/* Mobile sidebar modal - slide-in overlay for screens < 1200px */}
+      {/* Only render when validated (in a meeting) to prevent showing blank sidebar slot after reset */}
+      {validated && !shouldUseSidebar && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            display: isSidebarModalVisible ? 'flex' : 'none',
+            flexDirection: 'column',
+            pointerEvents: 'none', // Allow clicking through to page content
+          }}
+        >
+          {/* Sidebar panel - detached right bar without backdrop */}
+          <div
+            style={{
+              position: 'relative',
+              width: Math.min(windowWidth * 0.85, 400),
+              minWidth: 280,
+              height: '100%',
+              backgroundColor: isDarkMode 
+                ? 'rgba(30, 41, 59, 0.98)' 
+                : 'rgba(241, 245, 249, 0.98)',
+              boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.25)',
+              borderLeft: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)'}`,
+              display: 'flex',
+              flexDirection: 'column',
+              overflow: 'hidden',
+              animation: 'slideInRight 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+              pointerEvents: 'auto', // Re-enable pointer events for sidebar content
+            }}
+          >
+            {/* Mobile sidebar header - only show when back navigation is available */}
+            {/* Menu and other modals have their own headers, so we only show this for navigation */}
+            {sidebarNavigationStack.length > 0 && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 16px',
+                  borderBottom: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+                  backgroundColor: isDarkMode 
+                    ? 'rgba(15, 23, 42, 0.5)' 
+                    : 'rgba(248, 250, 252, 0.5)',
+                }}
+              >
+                {/* Back button or title */}
+                {/* Back button - always shown since this header only renders when navigation stack exists */}
+                <button
+                  onClick={sidebarNavigateBack}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 12px',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: '#22c55e',
+                    fontSize: '15px',
+                    fontWeight: 500,
+                    borderRadius: '8px',
+                  }}
+                >
+                  <span style={{ fontSize: '16px' }}>←</span>
+                  Back
+                </button>
+                {/* Close button */}
+                <button
+                  onClick={closeSidebar}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    border: 'none',
+                    backgroundColor: isDarkMode 
+                      ? 'rgba(255,255,255,0.1)' 
+                      : 'rgba(0,0,0,0.08)',
+                    color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    fontWeight: 300,
+                    transition: 'background-color 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = isDarkMode 
+                      ? 'rgba(255,255,255,0.15)' 
+                      : 'rgba(0,0,0,0.12)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isDarkMode 
+                      ? 'rgba(255,255,255,0.1)' 
+                      : 'rgba(0,0,0,0.08)';
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            )}
+            <div style={{ flex: 1, overflow: 'auto' }}>
+              {renderSidebarContent()}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* CSS animation for mobile sidebar */}
+      <style>
+        {`
+          @keyframes slideInRight {
+            from {
+              transform: translateX(100%);
+            }
+            to {
+              transform: translateX(0);
+            }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
+export default ModernMediasfuGeneric;

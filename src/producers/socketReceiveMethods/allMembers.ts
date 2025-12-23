@@ -55,6 +55,7 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
   hostFirstSwitch: boolean;
   waitingRoomList: WaitingRoomParticipant[];
   islevel: string;
+  member: string;
   socket: Socket;
 
   updateParticipantsAll: (participantsAll: Participant[]) => void;
@@ -67,6 +68,7 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
   updateDeferScreenReceived: (deferScreenReceived: boolean) => void;
   updateShareScreenStarted: (shareScreenStarted: boolean) => void;
   updateHostFirstSwitch: (hostFirstSwitch: boolean) => void;
+  updateIslevel: (islevel: string) => void;
   updateConsume_sockets: (sockets: ConsumeSocket[]) => void;
   updateRoomRecvIPs: (ips: string[]) => void;
   updateIsLoadingModalVisible: (visible: boolean) => void;
@@ -131,6 +133,7 @@ export const allMembers = async ({
     hostFirstSwitch,
     waitingRoomList,
     islevel,
+    member,
     socket,
 
     updateParticipantsAll,
@@ -143,6 +146,7 @@ export const allMembers = async ({
     updateDeferScreenReceived,
     updateShareScreenStarted,
     updateHostFirstSwitch,
+    updateIslevel,
     updateConsume_sockets,
     updateRoomRecvIPs,
     updateIsLoadingModalVisible,
@@ -154,6 +158,17 @@ export const allMembers = async ({
     sleep,
     reorderStreams,
   } = parameters;
+
+  // Sync islevel from server if different (for levels '0' and '1')
+  // Server's islevel is authoritative
+  const currentMember = members.find((m) => m.name === member);
+  if (currentMember && currentMember.islevel) {
+    const serverLevel = currentMember.islevel;
+    // Only sync for non-host levels ('0' and '1')
+    if ((serverLevel === '0' || serverLevel === '1') && islevel !== serverLevel) {
+      updateIslevel(serverLevel);
+    }
+  }
 
   participantsAll = members.map(({ isBanned, isSuspended, name, audioID, videoID }) => ({
     isBanned,

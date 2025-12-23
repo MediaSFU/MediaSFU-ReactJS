@@ -1,12 +1,28 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "private": false,
   "main": "dist/main.js",
   "module": "dist/main.js",
+  "types": "dist/types/main.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/main.d.ts",
+      "import": "./dist/main.js",
+      "require": "./dist/main.js",
+      "default": "./dist/main.js"
+    },
+    "./dist/main.css": "./dist/main.css",
+    "./package.json": "./package.json"
+  },
+  "sideEffects": [
+    "**/*.css",
+    "./src/utils/injectCriticalStyles.ts",
+    "./dist/main.js"
+  ],
   "author": "MediaSFU",
   "license": "MIT",
-  "description": "MediaSFU Prebuilt ReactJS SDK",
+  "description": "MediaSFU Prebuilt ReactJS SDK - Compatible with React 18 & 19, TypeScript & JavaScript",
   "repository": {
     "type": "git",
     "url": "https://github.com/MediaSFU/MediaSFU-ReactJS"
@@ -18,12 +34,16 @@
   },
   "files": [
     "dist/",
-    "README.md"
+    "README.md",
+    "README_DETAILED.md"
   ],
-  "types": "dist/types/main.d.ts",
   "keywords": [
     "mediasfu",
     "react",
+    "react18",
+    "react19",
+    "typescript",
+    "javascript",
     "prebuilt",
     "webRTC",
     "video",
@@ -35,6 +55,14 @@
     "cloud recording",
     "meeting",
     "conference",
+    "conferencing",
+    "broadcasting",
+    "webinar",
+    "recording",
+    "streaming",
+    "websocket",
+    "communication",
+    "real-time",
     "web",
     "sdk",
     "reactjs",
@@ -49,17 +77,22 @@
     "mediasfu-reactjs-prebuilt"
   ],
   "peerDependencies": {
-    "@fortawesome/fontawesome-svg-core": "^6.6.0",
-    "@fortawesome/free-brands-svg-icons": "^6.6.0",
-    "@fortawesome/free-solid-svg-icons": "^6.6.0",
-    "@fortawesome/react-fontawesome": "^0.2.2",
-    "@mediapipe/selfie_segmentation": "0.1.1675465747",
-    "bootstrap": "^5.3.3",
-    "mediasoup-client": "^3.16.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "socket.io-client": "4.8.0",
-    "universal-cookie": "^7.2.0"
+    "@fortawesome/fontawesome-svg-core": "^6.0.0 || ^7.0.0",
+    "@fortawesome/free-brands-svg-icons": "^6.0.0 || ^7.0.0",
+    "@fortawesome/free-solid-svg-icons": "^6.0.0 || ^7.0.0",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@mediapipe/selfie_segmentation": ">=0.1.0",
+    "bootstrap": "^5.0.0",
+    "mediasoup-client": "^3.7.0",
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "socket.io-client": "^4.0.0",
+    "universal-cookie": "^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@mediapipe/selfie_segmentation": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@babel/core": "^7.23.9",
@@ -74,8 +107,8 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
-    "@types/react": "^19.1.10",
-    "@types/react-dom": "^19.1.7",
+    "@types/react": "^18.3.27",
+    "@types/react-dom": "^18.3.7",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "ajv": "^7.2.4",
@@ -86,9 +119,13 @@
     "file-loader": "^6.2.0",
     "fork-ts-checker-webpack-plugin": "^9.0.2",
     "image-webpack-loader": "^8.1.0",
+    "js-cookie": "^3.0.5",
     "mediasoup-client": "^3.16.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "mini-css-extract-plugin": "^2.9.4",
+    "moment": "^2.30.1",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-refresh": "^0.14.2",
     "react-scripts": "5.0.1",
     "socket.io-client": "4.8.0",
@@ -108,10 +145,6 @@
     "react-scripts": {
       "typescript": "$typescript"
     },
-    "react": "$react",
-    "react-dom": "$react-dom",
-    "@types/react": "$@types/react",
-    "@types/react-dom": "$@types/react-dom",
     "eslint": "$eslint",
     "webpack": "$webpack"
   },
@@ -124,7 +157,9 @@
     "buildnpm": "rm -rf dist && webpack --config webpack.config.js --mode production && tsc --emitDeclarationOnly -p tsconfig.json",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
     "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
-    "build-docs": "typedoc"
+    "build-docs": "typedoc",
+    "prepublishOnly": "npm run buildnpm",
+    "prepack": "npm run buildnpm"
   },
   "eslintConfig": {
     "extends": [

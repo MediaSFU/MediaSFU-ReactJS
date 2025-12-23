@@ -315,7 +315,7 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
   cardProps,
   overlayProps,
   waveformContainerProps,
-  barProps,
+  // barProps,
   nameContainerProps,
   nameTextProps,
   imageProps,
@@ -557,16 +557,16 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
     ...waveformStyleOverrides,
   };
 
-  const {
-    className: barClassName,
-    style: barStyleOverrides,
-    ...restBarProps
-  } = barProps ?? {};
+  // const {
+  //   className: barClassName,
+  //   // style: barStyleOverrides,
+  //   // ...restBarProps
+  // } = barProps ?? {};
 
-  const barClassNames = joinClassNames(
-    "mediasfu-mini-audio__bar",
-    barClassName
-  );
+  // const barClassNames = joinClassNames(
+  //   "mediasfu-mini-audio__bar",
+  //   barClassName
+  // );
 
   const {
     className: nameContainerClassName,
@@ -603,6 +603,26 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
 
   const hasImage = Boolean(imageSource);
 
+  // Pulsing ring animation for voice activity
+  const pulsingRings = showWaveform ? (
+    <>
+      <div
+        style={{
+          ...styles.bar,
+          borderColor: barColor,
+          animationDelay: "0s",
+        }}
+      />
+      <div
+        style={{
+          ...styles.bar,
+          borderColor: barColor,
+          animationDelay: "0.5s",
+        }}
+      />
+    </>
+  ) : null;
+
   const imageElement = hasImage ? (
     <img
       src={imageSource}
@@ -633,28 +653,14 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
     </div>
   );
 
-  const bars = waveformAnimations.map((animation, index) => (
-    <div
-      key={index}
-      className={barClassNames}
-      style={{
-        ...styles.bar,
-        height: animation === 0 ? 1 : 30,
-        width: 10,
-        backgroundColor: barColor,
-        ...barStyleOverrides,
-      }}
-      {...restBarProps}
-    />
-  ));
-
   const defaultWaveform = (
     <div
       className={waveformClassNames}
       style={waveformStyle}
       {...restWaveformProps}
     >
-      {bars}
+      {pulsingRings}
+      {imageElement}
     </div>
   );
 
@@ -672,8 +678,7 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
       style={cardStyle}
       {...restCardProps}
     >
-      {imageElement}
-      {nameContent}
+      {/* Avatar with pulsing voice activity ring */}
       <div
         className={overlayClassNames}
         style={overlayStyle}
@@ -681,6 +686,28 @@ const MiniAudio: React.FC<MiniAudioOptions> = ({
       >
         {waveformNode}
       </div>
+      {/* Name at bottom */}
+      {nameContent}
+      
+      {/* CSS Animation for pulsing rings */}
+      <style>
+        {`
+          @keyframes miniAudioPulse {
+            0% {
+              transform: scale(1);
+              opacity: 0.6;
+            }
+            50% {
+              transform: scale(1.15);
+              opacity: 0.3;
+            }
+            100% {
+              transform: scale(1.3);
+              opacity: 0;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 
@@ -737,7 +764,7 @@ const styles = {
     height: 100,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 45, 33, 0.5)",
+    backgroundColor: "transparent",
     zIndex: 8,
     elevation: 8,
   } as React.CSSProperties,
@@ -746,57 +773,87 @@ const styles = {
     height: "100%",
     margin: 0,
     padding: 0,
-    backgroundColor: "#2c678f",
+    background: "linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98))",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    borderRadius: 12,
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05) inset",
+    overflow: "hidden",
+    position: "relative",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
   } as React.CSSProperties,
   overlayWeb: {
     position: "absolute",
-    minWidth: "100%",
-    height: "100%",
-    maxHeight: "100%",
-    display: "grid",
-    gridTemplateColumns: "1fr 12fr 1fr",
-    gridGap: "3px",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 24,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   } as React.CSSProperties,
   nameText: {
-    fontSize: 20,
-    color: "white",
-    fontWeight: "bold",
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.95)",
+    fontWeight: 600,
     justifyContent: "center",
     alignItems: "center",
-    alignSelf: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    background: "linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4))",
+    backdropFilter: "blur(4px)",
     width: "100%",
     display: "flex",
-    paddingTop: 5,
-    paddingBottom: 5,
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingLeft: 4,
+    paddingRight: 4,
     textAlign: "center",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    borderBottomLeftRadius: 12,
+    borderBottomRightRadius: 12,
+    textShadow: "0 1px 2px rgba(0, 0, 0, 0.5)",
+    letterSpacing: "0.2px",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   } as React.CSSProperties,
   waveformWeb: {
     display: "flex",
-    justifyContent: "flex-start",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.05)",
-    padding: 0,
-    flexDirection: "row",
-  } as React.CSSProperties,
-  bar: {
-    flex: 1,
-    opacity: 0.35,
-    marginRight: "0.5px",
-  } as React.CSSProperties,
-  backgroundImage: {
-    position: "absolute",
+    justifyContent: "center",
     width: 70,
     height: 70,
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "center",
-    top: "40%",
-    left: "50%",
-    transform: "translate(-35px, -10px)",
+    borderRadius: "50%",
+    position: "relative",
+  } as React.CSSProperties,
+  bar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: "50%",
+    border: "2px solid",
+    opacity: 0.6,
+    animation: "miniAudioPulse 1.5s ease-in-out infinite",
+  } as React.CSSProperties,
+  backgroundImage: {
+    width: 52,
+    height: 52,
+    borderRadius: "50%",
+    objectFit: "cover",
+    border: "2px solid rgba(255, 255, 255, 0.2)",
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+    position: "relative",
+    zIndex: 1,
   } as React.CSSProperties,
   roundedImage: {
-    borderRadius: 20,
+    borderRadius: "50%",
   } as React.CSSProperties,
 };
 

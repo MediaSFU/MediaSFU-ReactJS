@@ -1,18 +1,25 @@
 /**
- * AppUnique
+ * MediaSFU Modern UI Component Configuration and Usage Guide
  *
- * A toggle-driven cookbook that mirrors the guidance in `App.tsx`, while showcasing
- * the newer UI override hooks, custom cards, and fully custom render paths in one place.
+ * This file demonstrates how to use the Modern MediaSFU UI components
+ * with glassmorphic design, matching the Flutter main_modern.dart example.
  *
- * Adjust the booleans and selectors below to switch between common deployment scenarios
- * (Cloud, Community Edition, Hybrid), UI strategies (prebuilt UI, no-UI, or fully custom),
- * and customization layers (card builders, component overrides, container styling).
+ * The Modern UI includes:
+ * - Glassmorphic control bars and modals
+ * - Dark mode by default with enableGlassmorphism option
+ * - Animated transitions and blur effects
+ * - Modern card components for video/audio/mini displays
  *
- * Every configuration block is wrapped in a clearly named toggle so you can enable/disable
- * a feature by flipping a single value or commenting it out. The component is intentionally
- * verbose to double as living documentation that developers can copy, trim, or expand.
+ * All the same functionality as MediasfuGeneric but with
+ * the new modern UI components.
  */
-import React from "react";
-declare const AppUnique: React.FC;
-export default AppUnique;
+import React from 'react';
+/**
+ * The main application component for MediaSFU Modern UI.
+ *
+ * This component initializes the necessary credentials and configuration for the MediaSFU application
+ * using the Modern UI components with glassmorphic design.
+ */
+declare const AppModern: React.FC;
+export default AppModern;
 //# sourceMappingURL=App.d.ts.map

@@ -15,6 +15,9 @@ export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, 
     forceFullDisplay: boolean;
     otherGridStreams: React.JSX.Element[][];
     updateOtherGridStreams: (otherGridStreams: React.JSX.Element[][]) => void;
+    selfViewForceFull?: boolean;
+    updateSelfViewForceFull?: (value: boolean) => Promise<void>;
+    isDarkModeValue?: boolean;
     customVideoCard?: CustomVideoCardType;
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;

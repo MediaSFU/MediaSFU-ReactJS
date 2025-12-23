@@ -1,8 +1,18 @@
 import { Socket } from "socket.io-client";
 import { SignalNewConsumerTransportParameters, SignalNewConsumerTransportType } from '../@types/types';
-export interface GetPipedProducersAltParameters extends SignalNewConsumerTransportParameters {
+export interface GetPipedProducersAltParameters extends Omit<SignalNewConsumerTransportParameters, 'getUpdatedAllParams'> {
     member: string;
+    listenerTranslationPreferences?: {
+        perSpeaker: Map<string, {
+            speakerId: string;
+            language: string | null;
+            wantOriginal: boolean;
+        }>;
+        globalLanguage: string | null;
+    };
     signalNewConsumerTransport: SignalNewConsumerTransportType;
+    startConsumingTranslation?: (producerId: string, speakerId: string, language: string, originalProducerId?: string, nsock?: Socket) => Promise<void>;
+    getUpdatedAllParams?: () => GetPipedProducersAltParameters;
     [key: string]: any;
 }
 export interface GetPipedProducersAltOptions {
@@ -14,6 +24,7 @@ export interface GetPipedProducersAltOptions {
 export type GetPipedProducersAltType = (options: GetPipedProducersAltOptions) => Promise<void>;
 /**
  * Retrieves piped producers and signals new consumer transport for each retrieved producer.
+ * Filters out translation producers that the listener hasn't requested.
  *
  * @param {GetPipedProducersAltOptions} options - The options for retrieving piped producers.
  * @param {boolean} options.community - A flag indicating if the room is a community edition room.

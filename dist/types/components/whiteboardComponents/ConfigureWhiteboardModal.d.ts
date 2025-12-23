@@ -1,6 +1,7 @@
 import React from "react";
 import { Socket } from "socket.io-client";
 import { CaptureCanvasStreamParameters, CaptureCanvasStreamType, EventType, OnScreenChangesParameters, OnScreenChangesType, Participant, PrepopulateUserMediaParameters, PrepopulateUserMediaType, RePortParameters, RePortType, ShowAlert, WhiteboardUser } from "../../@types/types";
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 export interface ConfigureWhiteboardModalParameters extends OnScreenChangesParameters, CaptureCanvasStreamParameters, PrepopulateUserMediaParameters, RePortParameters {
     participants: Participant[];
     showAlert?: ShowAlert;
@@ -141,6 +142,12 @@ export interface ConfigureWhiteboardModalOptions {
         isEditing: boolean;
         canStartWhiteboard: boolean;
     }) => React.ReactNode;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
 }
 export type ConfigureWhiteboardModalType = (options: ConfigureWhiteboardModalOptions) => React.JSX.Element;
 /**

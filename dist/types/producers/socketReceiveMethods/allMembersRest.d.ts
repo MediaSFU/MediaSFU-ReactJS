@@ -19,6 +19,8 @@ export interface AllMembersRestParameters extends OnScreenChangesParameters, Con
     videoSetting: string;
     screenshareSetting: string;
     chatSetting: string;
+    islevel: string;
+    member: string;
     socket: Socket;
     updateParticipantsAll: (participantsAll: Participant[]) => void;
     updateParticipants: (participants: Participant[]) => void;
@@ -33,6 +35,7 @@ export interface AllMembersRestParameters extends OnScreenChangesParameters, Con
     updateVideoSetting: (videoSetting: string) => void;
     updateScreenshareSetting: (screenshareSetting: string) => void;
     updateChatSetting: (chatSetting: string) => void;
+    updateIslevel: (islevel: string) => void;
     updateConsume_sockets: (consume_sockets: ConsumeSocket[]) => void;
     updateRoomRecvIPs: (ips: string[]) => void;
     updateIsLoadingModalVisible: (visible: boolean) => void;

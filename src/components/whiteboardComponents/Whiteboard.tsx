@@ -1,14 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faTimes, faUndo, faRedo, faEraser, faShapes, faMousePointer, faHandPaper, faTextHeight,
   faFont, faPencilAlt, faPaintBrush, faTrash, faSave, faSearch, faSearchMinus, faSearchPlus,
-  faChevronLeft, faUpload, faChevronRight
+  faChevronLeft, faUpload
 } from '@fortawesome/free-solid-svg-icons';
 import './Whiteboard.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { CaptureCanvasStreamParameters, CaptureCanvasStreamType, OnScreenChangesParameters, OnScreenChangesType, Participant, ShowAlert, WhiteboardUser } from '../../@types/types';
 import { Socket } from 'socket.io-client';
+import { ModernTooltip } from '../../components_modern/core/widgets/ModernTooltip';
 
 export interface Shape {
   type: string;
@@ -53,6 +54,7 @@ export interface WhiteboardParameters extends OnScreenChangesParameters, Capture
   shareScreenStarted: boolean;
   targetResolution?: string;
   targetResolutionHost?: string;
+  isDarkModeValue?: boolean;
 
   updateShapes: (shapes: Shape[]) => void;
   updateUseImageBackground: (useImageBackground: boolean) => void;
@@ -79,6 +81,7 @@ export interface WhiteboardOptions {
   customHeight: number;
   parameters: WhiteboardParameters;
   showAspect: boolean;
+  isDarkModeValue?: boolean;
 }
 
 export type WhiteboardType = (props: WhiteboardOptions) => React.JSX.Element;
@@ -265,7 +268,13 @@ export type WhiteboardType = (props: WhiteboardOptions) => React.JSX.Element;
  * ```
  */
 
-const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, parameters, showAspect }) => {
+const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, parameters, showAspect, isDarkModeValue }) => {
+  // Use prop if provided, else fall back to parameters, else default to true (dark)
+  // Using useMemo to ensure reactivity when parameters.isDarkModeValue changes
+  const isDarkMode = useMemo(() => {
+    return isDarkModeValue ?? parameters.isDarkModeValue ?? true;
+  }, [isDarkModeValue, parameters.isDarkModeValue]);
+
   let {
     socket,
     showAlert,
@@ -1711,108 +1720,193 @@ const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, pa
     toolbarVisible.current = !toolbarVisible.current;
   };
 
+  // Modern styling for toolbar buttons - gray background with black icons
+  const toolBtnStyle: React.CSSProperties = {
+    backgroundColor: 'rgba(229, 231, 235, 0.95)',
+    border: '1px solid rgba(0,0,0,0.08)',
+    borderRadius: '6px',
+    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+    padding: '6px 10px',
+    fontSize: '14px',
+    color: '#1f2937',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'all 0.2s ease',
+  };
+
   return (
-    <div id="witehboard-interface" style={{ position: 'relative', display: showAspect ? 'block' : 'none', justifyContent: 'center', alignItems: 'center', border: '2px solid #000', backgroundColor: '#f0f0f0', width: customWidth, height: customHeight }}>
-      <div id="whiteboardContent" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', overflow: 'auto' }}>
-        <button id="toolbarToggle" className="btn btnBoard btn-primary" style={{ position: 'absolute', top: '5px', left: '65px', zIndex: 1000 }} onClick={toggleToolbar}>
-          <FontAwesomeIcon icon={toolbarVisible.current ? faChevronLeft : faChevronRight} />
-        </button>
+    <div id="witehboard-interface" style={{ position: 'relative', display: showAspect ? 'block' : 'none', justifyContent: 'center', alignItems: 'center', border: `1px solid ${isDarkMode ? 'rgba(100, 116, 139, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`, backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(248, 250, 252, 0.98)', borderRadius: '8px', width: customWidth, height: customHeight }}>
+      <div id="whiteboardContent" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', overflow: 'auto', backgroundColor: 'transparent' }}>
         {toolbarVisible.current && (
-          <div className="toolbar mb-3" id="toolbar" style={{ position: 'absolute', top: '5px', left: '110px', zIndex: 1000, backgroundColor: 'transparent' }}>
-            <div className="btn-group" role="group">
-              <button className="btn btnBoard btn-secondary dropdown-toggle" id="drawMode" onClick={() => handleDropdownClick('drawMode')}>
-                <FontAwesomeIcon icon={faPencilAlt} />
+          <div className="toolbar mb-3" id="toolbar" style={{ 
+            position: 'absolute', 
+            top: '5px', 
+            left: '140px', 
+            zIndex: 1000, 
+            backgroundColor: isDarkMode ? 'rgba(30, 41, 59, 0.85)' : 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(12px)',
+            borderRadius: '12px',
+            padding: '6px 10px',
+            boxShadow: isDarkMode ? '0 4px 20px rgba(0,0,0,0.25)' : '0 4px 20px rgba(0,0,0,0.1)',
+            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}>
+            <ModernTooltip message="Draw (line thickness)" position="bottom" isDarkMode={isDarkMode}>
+              <div className="btn-group" role="group">
+                <button className="btn btnBoard btn-secondary dropdown-toggle" id="drawMode" onClick={() => handleDropdownClick('drawMode')} style={toolBtnStyle}>
+                  <FontAwesomeIcon icon={faPencilAlt} />
+                </button>
+                {dropdownOpen.current === 'drawMode' && dropdownItems([{ label: 'XX-Small (3px)', value: 3 }, { label: 'X-Small (6px)', value: 6 }, { label: 'Small (12px)', value: 12 }, { label: 'Medium (18px)', value: 18 }, { label: 'Large (24px)', value: 24 }, { label: 'X-Large (36px)', value: 36 }], 'draw', updateLineThickness)}
+              </div>
+            </ModernTooltip>
+            <ModernTooltip message="Freehand brush" position="bottom" isDarkMode={isDarkMode}>
+              <div className="btn-group" role="group">
+                <button className="btn btnBoard btn-secondary dropdown-toggle" id="freehandMode" onClick={() => handleDropdownClick('freehandMode')} style={toolBtnStyle}>
+                  <FontAwesomeIcon icon={faPaintBrush} />
+                </button>
+                {dropdownOpen.current === 'freehandMode' && dropdownItems([{ label: 'X-Small (5px)', value: 5 }, { label: 'Small (10px)', value: 10 }, { label: 'Medium (20px)', value: 20 }, { label: 'Large (40px)', value: 40 }, { label: 'X-Large (60px)', value: 60 }], 'freehand', updateBrushThickness)}
+              </div>
+            </ModernTooltip>
+            <ModernTooltip message="Shapes" position="bottom" isDarkMode={isDarkMode}>
+              <div className="btn-group" role="group">
+                <button className="btn btnBoard btn-secondary dropdown-toggle" id="shapeMode" onClick={() => handleDropdownClick('shapeMode')} style={toolBtnStyle}>
+                  <FontAwesomeIcon icon={faShapes} />
+                </button>
+                {dropdownOpen.current === 'shapeMode' && dropdownItems([
+                  { label: <img src="https://mediasfu.com/images/svg/square.svg" alt="Square" className="shape-icon" />, value: 'square' },
+                  { label: <img src="https://mediasfu.com/images/svg/rectangle.svg" alt="Rectangle" className="shape-icon" />, value: 'rectangle' },
+                  { label: <img src="https://mediasfu.com/images/svg/circle.svg" alt="Circle" className="shape-icon" />, value: 'circle' },
+                  { label: <img src="https://mediasfu.com/images/svg/triangle.svg" alt="Triangle" className="shape-icon" />, value: 'triangle' },
+                  { label: <img src="https://mediasfu.com/images/svg/hexagon.svg" alt="Hexagon" className="shape-icon" />, value: 'hexagon' },
+                  { label: <img src="https://mediasfu.com/images/svg/pentagon.svg" alt="Pentagon" className="shape-icon" />, value: 'pentagon' },
+                  { label: <img src="https://mediasfu.com/images/svg/rhombus.svg" alt="Rhombus" className="shape-icon" />, value: 'rhombus' },
+                  { label: <img src="https://mediasfu.com/images/svg/octagon.svg" alt="Octagon" className="shape-icon" />, value: 'octagon' },
+                  { label: <img src="https://mediasfu.com/images/svg/parallelogram.svg" alt="Parallelogram" className="shape-icon" />, value: 'parallelogram' },
+                  { label: <img src="https://mediasfu.com/images/svg/oval.svg" alt="Oval" className="shape-icon" />, value: 'oval' }
+                ], 'shape', updateShape)}
+              </div>
+            </ModernTooltip>
+            <ModernTooltip message="Select / Move" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-secondary" id="selectMode" onClick={() => changeMode('select')} style={toolBtnStyle}>
+                <FontAwesomeIcon icon={faMousePointer} />
               </button>
-              {dropdownOpen.current === 'drawMode' && dropdownItems([{ label: 'XX-Small (3px)', value: 3 }, { label: 'X-Small (6px)', value: 6 }, { label: 'Small (12px)', value: 12 }, { label: 'Medium (18px)', value: 18 }, { label: 'Large (24px)', value: 24 }, { label: 'X-Large (36px)', value: 36 }], 'draw', updateLineThickness)}
-            </div>
-            <div className="btn-group" role="group">
-              <button className="btn btnBoard btn-secondary dropdown-toggle" id="freehandMode" onClick={() => handleDropdownClick('freehandMode')}>
-                <FontAwesomeIcon icon={faPaintBrush} />
+            </ModernTooltip>
+            <ModernTooltip message="Eraser" position="bottom" isDarkMode={isDarkMode}>
+              <div className="btn-group" role="group">
+                <button className="btn btnBoard btn-danger dropdown-toggle" id="eraseMode" onClick={() => handleDropdownClick('eraseMode')} style={{ ...toolBtnStyle, background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}>
+                  <FontAwesomeIcon icon={faEraser} />
+                </button>
+                {dropdownOpen.current === 'eraseMode' && dropdownItems([{ label: 'X-Small (5px)', value: 5 }, { label: 'Small (10px)', value: 10 }, { label: 'Medium (20px)', value: 20 }, { label: 'Large (30px)', value: 30 }, { label: 'X-Large (60px)', value: 60 }], 'erase', updateEraserThickness)}
+              </div>
+            </ModernTooltip>
+            <ModernTooltip message="Pan canvas" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-info" id="panMode" onClick={() => changeMode('pan')} style={{ ...toolBtnStyle, background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}>
+                <FontAwesomeIcon icon={faHandPaper} />
               </button>
-              {dropdownOpen.current === 'freehandMode' && dropdownItems([{ label: 'X-Small (5px)', value: 5 }, { label: 'Small (10px)', value: 10 }, { label: 'Medium (20px)', value: 20 }, { label: 'Large (40px)', value: 40 }, { label: 'X-Large (60px)', value: 60 }], 'freehand', updateBrushThickness)}
-            </div>
-            <div className="btn-group" role="group">
-              <button className="btn btnBoard btn-secondary dropdown-toggle" id="shapeMode" onClick={() => handleDropdownClick('shapeMode')}>
-                <FontAwesomeIcon icon={faShapes} />
+            </ModernTooltip>
+            <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+            <ModernTooltip message="Zoom in" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-success" id="zoomIn" onClick={(e) => zoomCanvas(1.2, e)} style={{ ...toolBtnStyle, background: 'linear-gradient(135deg, #10B981, #059669)' }}>
+                <FontAwesomeIcon icon={faSearchPlus} />
               </button>
-              {dropdownOpen.current === 'shapeMode' && dropdownItems([
-                { label: <img src="https://mediasfu.com/images/svg/square.svg" alt="Square" className="shape-icon" />, value: 'square' },
-                { label: <img src="https://mediasfu.com/images/svg/rectangle.svg" alt="Rectangle" className="shape-icon" />, value: 'rectangle' },
-                { label: <img src="https://mediasfu.com/images/svg/circle.svg" alt="Circle" className="shape-icon" />, value: 'circle' },
-                { label: <img src="https://mediasfu.com/images/svg/triangle.svg" alt="Triangle" className="shape-icon" />, value: 'triangle' },
-                { label: <img src="https://mediasfu.com/images/svg/hexagon.svg" alt="Hexagon" className="shape-icon" />, value: 'hexagon' },
-                { label: <img src="https://mediasfu.com/images/svg/pentagon.svg" alt="Pentagon" className="shape-icon" />, value: 'pentagon' },
-                { label: <img src="https://mediasfu.com/images/svg/rhombus.svg" alt="Rhombus" className="shape-icon" />, value: 'rhombus' },
-                { label: <img src="https://mediasfu.com/images/svg/octagon.svg" alt="Octagon" className="shape-icon" />, value: 'octagon' },
-                { label: <img src="https://mediasfu.com/images/svg/parallelogram.svg" alt="Parallelogram" className="shape-icon" />, value: 'parallelogram' },
-                { label: <img src="https://mediasfu.com/images/svg/oval.svg" alt="Oval" className="shape-icon" />, value: 'oval' }
-              ], 'shape', updateShape)}
-            </div>
-            <button className="btn btnBoard btn-secondary" id="selectMode" onClick={() => changeMode('select')}>
-              <FontAwesomeIcon icon={faMousePointer} />
-            </button>
-            <div className="btn-group" role="group">
-              <button className="btn btnBoard btn-danger dropdown-toggle" id="eraseMode" onClick={() => handleDropdownClick('eraseMode')}>
-                <FontAwesomeIcon icon={faEraser} />
+            </ModernTooltip>
+            <ModernTooltip message="Reset zoom" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-success" id="zoomReset" onClick={(e) => zoomCanvas(10, e)} style={{ ...toolBtnStyle, background: 'linear-gradient(135deg, #10B981, #059669)' }}>
+                <FontAwesomeIcon icon={faSearch} />
               </button>
-              {dropdownOpen.current === 'eraseMode' && dropdownItems([{ label: 'X-Small (5px)', value: 5 }, { label: 'Small (10px)', value: 10 }, { label: 'Medium (20px)', value: 20 }, { label: 'Large (30px)', value: 30 }, { label: 'X-Large (60px)', value: 60 }], 'erase', updateEraserThickness)}
-            </div>
-            <button className="btn btnBoard btn-info" id="panMode" onClick={() => changeMode('pan')}>
-              <FontAwesomeIcon icon={faHandPaper} />
-            </button>
-            <button className="btn btnBoard btn-success" id="zoomIn" onClick={(e) => zoomCanvas(1.2, e)}>
-              <FontAwesomeIcon icon={faSearchPlus} />
-            </button>
-            <button className="btn btnBoard btn-success" id="zoomReset" onClick={(e) => zoomCanvas(10, e)}>
-              <FontAwesomeIcon icon={faSearch} />
-            </button>
-            <button className="btn btnBoard btn-success" id="zoomOut" onClick={(e) => zoomCanvas(0.8, e)}>
-              <FontAwesomeIcon icon={faSearchMinus} />
-            </button>
-            <div className="btn-group" role="group">
-              <button className="btn btnBoard btn-secondary dropdown-toggle" id="addText" onClick={() => handleDropdownClick('addText')}>
-                <FontAwesomeIcon icon={faFont} />
+            </ModernTooltip>
+            <ModernTooltip message="Zoom out" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-success" id="zoomOut" onClick={(e) => zoomCanvas(0.8, e)} style={{ ...toolBtnStyle, background: 'linear-gradient(135deg, #10B981, #059669)' }}>
+                <FontAwesomeIcon icon={faSearchMinus} />
               </button>
-              {dropdownOpen.current === 'addText' && dropdownItems([{ label: 'Arial', value: 'Arial' }, { label: 'Times New Roman', value: 'Times New Roman' }, { label: 'Courier New', value: 'Courier New' }, { label: 'Verdana', value: 'Verdana' }], 'text', updateFont)}
-            </div>
-            <div className="btn-group" role="group">
-              <button className="btn btnBoard btn-secondary dropdown-toggle" id="fontSize" onClick={() => handleDropdownClick('fontSize')}>
-                <FontAwesomeIcon icon={faTextHeight} />
+            </ModernTooltip>
+            <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+            <ModernTooltip message="Add text (font)" position="bottom" isDarkMode={isDarkMode}>
+              <div className="btn-group" role="group">
+                <button className="btn btnBoard btn-secondary dropdown-toggle" id="addText" onClick={() => handleDropdownClick('addText')} style={toolBtnStyle}>
+                  <FontAwesomeIcon icon={faFont} />
+                </button>
+                {dropdownOpen.current === 'addText' && dropdownItems([{ label: 'Arial', value: 'Arial' }, { label: 'Times New Roman', value: 'Times New Roman' }, { label: 'Courier New', value: 'Courier New' }, { label: 'Verdana', value: 'Verdana' }], 'text', updateFont)}
+              </div>
+            </ModernTooltip>
+            <ModernTooltip message="Font size" position="bottom" isDarkMode={isDarkMode}>
+              <div className="btn-group" role="group">
+                <button className="btn btnBoard btn-secondary dropdown-toggle" id="fontSize" onClick={() => handleDropdownClick('fontSize')} style={toolBtnStyle}>
+                  <FontAwesomeIcon icon={faTextHeight} />
+                </button>
+                {dropdownOpen.current === 'fontSize' && dropdownItems([{ label: 'X-Small (5px)', value: 5 }, { label: 'Small (10px)', value: 10 }, { label: 'Medium (20px)', value: 20 }, { label: 'Large (40px)', value: 40 }, { label: 'X-Large (60px)', value: 60 }], '', updateFontSize)}
+              </div>
+            </ModernTooltip>
+            <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+            <ModernTooltip message="Undo" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-secondary" id="undo" onClick={undo} style={toolBtnStyle}>
+                <FontAwesomeIcon icon={faUndo} />
               </button>
-              {dropdownOpen.current === 'fontSize' && dropdownItems([{ label: 'X-Small (5px)', value: 5 }, { label: 'Small (10px)', value: 10 }, { label: 'Medium (20px)', value: 20 }, { label: 'Large (40px)', value: 40 }, { label: 'X-Large (60px)', value: 60 }], '', updateFontSize)}
-            </div>
-            <button className="btn btnBoard btn-secondary" id="undo" onClick={undo}>
-              <FontAwesomeIcon icon={faUndo} />
-            </button>
-            <button className="btn btnBoard btn-secondary" id="redo" onClick={redo}>
-              <FontAwesomeIcon icon={faRedo} />
-            </button>
-            <button className="btn btnBoard btn-secondary" id="save" onClick={saveCanvas}>
-              <FontAwesomeIcon icon={faSave} />
-            </button>
-            <button className="btn btnBoard btn-danger" id="delete" onClick={() => deleteShape()}>
-              <FontAwesomeIcon icon={faTrash} />
-            </button>
-            <button className="btn btnBoard btn-secondary" id="clearCanvas" onClick={() => clearCanvas()}>
-              <FontAwesomeIcon icon={faTimes} />
-            </button>
-            <button id="toggleBackground" ref={toggleBackgroundRef} className="btn btnBoard btn-secondary" onClick={() => toggleBackground()}>
-              <img src="https://mediasfu.com/images/svg/graph.jpg" alt="Background" className="toggle-icon" id="backgroundIcon" />
-            </button>
+            </ModernTooltip>
+            <ModernTooltip message="Redo" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-secondary" id="redo" onClick={redo} style={toolBtnStyle}>
+                <FontAwesomeIcon icon={faRedo} />
+              </button>
+            </ModernTooltip>
+            <ModernTooltip message="Save canvas" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-secondary" id="save" onClick={saveCanvas} style={toolBtnStyle}>
+                <FontAwesomeIcon icon={faSave} />
+              </button>
+            </ModernTooltip>
+            <ModernTooltip message="Delete selected" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-danger" id="delete" onClick={() => deleteShape()} style={{ ...toolBtnStyle, background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}>
+                <FontAwesomeIcon icon={faTrash} />
+              </button>
+            </ModernTooltip>
+            <ModernTooltip message="Clear canvas" position="bottom" isDarkMode={isDarkMode}>
+              <button className="btn btnBoard btn-secondary" id="clearCanvas" onClick={() => clearCanvas()} style={toolBtnStyle}>
+                <FontAwesomeIcon icon={faTimes} />
+              </button>
+            </ModernTooltip>
+            <ModernTooltip message="Toggle grid background" position="bottom" isDarkMode={isDarkMode}>
+              <button id="toggleBackground" ref={toggleBackgroundRef} className="btn btnBoard btn-secondary" onClick={() => toggleBackground()} style={toolBtnStyle}>
+                <img src="https://mediasfu.com/images/svg/graph.jpg" alt="Background" className="toggle-icon" id="backgroundIcon" style={{ width: 20, height: 20, borderRadius: 4 }} />
+              </button>
+            </ModernTooltip>
             <input type="file" id="uploadBoardImage" accept="image/*" style={{ display: 'none' }} onChange={(e) => uploadImage(e)} />
-            <label htmlFor="uploadBoardImage" className="btn btnBoard btn-primary">
-              <FontAwesomeIcon icon={faUpload} />
-            </label>
-            <input type="color" id="colorPicker" className="btn" value={color.current} onChange={(e) => { color.current = e.target.value }} />
-            <select id="lineTypePicker" className="custom-select" style={{ width: 'auto' }} onChange={(e) => { lineType.current = e.target.value; }}>
-              <option value="solid">Solid</option>
-              <option value="dashed">Dashed</option>
-              <option value="dotted">Dotted</option>
-              <option value="dashDot">Dash-Dot</option>
-            </select>
+            <ModernTooltip message="Upload image" position="bottom" isDarkMode={isDarkMode}>
+              <label htmlFor="uploadBoardImage" className="btn btnBoard btn-primary" style={{ ...toolBtnStyle, background: 'linear-gradient(135deg, #3B82F6, #2563EB)', cursor: 'pointer', margin: 0 }}>
+                <FontAwesomeIcon icon={faUpload} />
+              </label>
+            </ModernTooltip>
+            <ModernTooltip message="Color picker" position="bottom" isDarkMode={isDarkMode}>
+              <input type="color" id="colorPicker" className="btn" value={color.current} onChange={(e) => { color.current = e.target.value }} style={{ width: 32, height: 32, padding: 2, borderRadius: 6, border: '2px solid rgba(255,255,255,0.2)', cursor: 'pointer' }} />
+            </ModernTooltip>
+            <ModernTooltip message="Line style" position="bottom" isDarkMode={isDarkMode}>
+              <select id="lineTypePicker" className="custom-select" style={{ width: 'auto', height: 32, fontSize: 12, borderRadius: 6, background: 'rgba(255,255,255,0.1)', color: '#fff', border: '1px solid rgba(255,255,255,0.2)' }} onChange={(e) => { lineType.current = e.target.value; }}>
+                <option value="solid" style={{ color: '#000' }}>Solid</option>
+                <option value="dashed" style={{ color: '#000' }}>Dashed</option>
+                <option value="dotted" style={{ color: '#000' }}>Dotted</option>
+                <option value="dashDot" style={{ color: '#000' }}>Dash-Dot</option>
+              </select>
+            </ModernTooltip>
+            <div style={{ width: 1, height: 24, background: 'rgba(255,255,255,0.2)', margin: '0 4px' }} />
+            <ModernTooltip message={toolbarVisible.current ? 'Collapse toolbar' : 'Expand toolbar'} position="bottom" isDarkMode={isDarkMode}>
+              <button id="toolbarToggle" className="btn btnBoard" onClick={toggleToolbar} style={{ ...toolBtnStyle, backgroundColor: 'rgba(59, 130, 246, 0.9)', color: '#fff' }}>
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </button>
+            </ModernTooltip>
           </div>
         )}
-        <canvas id="whiteboardCanvas" width="1280" height="720" style={{ border: '2px solid red' }} ref={canvasRef}></canvas>
+        {!toolbarVisible.current && (
+          <div style={{ position: 'absolute', top: '8px', right: '8px', zIndex: 1000 }}>
+            <ModernTooltip message="Expand toolbar" position="left" isDarkMode={isDarkMode}>
+              <button id="toolbarToggle" className="btn btnBoard" style={{ ...toolBtnStyle, backgroundColor: 'rgba(59, 130, 246, 0.9)', color: '#fff' }} onClick={toggleToolbar}>
+                <FontAwesomeIcon icon={faChevronLeft} />
+              </button>
+            </ModernTooltip>
+          </div>
+        )}
+        <canvas id="whiteboardCanvas" width="1280" height="720" style={{ border: `1px solid ${isDarkMode ? 'rgba(100, 116, 139, 0.3)' : 'rgba(0, 0, 0, 0.15)'}` }} ref={canvasRef}></canvas>
         <textarea id="textInput" className="form-control" ref={textInputRef} style={{ display: 'none', position: 'absolute' }}></textarea>
         <a href="# " ref={downloadLinkRef} style={{ display: 'none' }}>Download</a>
         <canvas ref={tempCanvasRef} style={{ display: 'none' }}></canvas>

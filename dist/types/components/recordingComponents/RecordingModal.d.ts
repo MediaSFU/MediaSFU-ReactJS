@@ -1,5 +1,6 @@
 import React from "react";
 import { EventType, ConfirmRecordingType, StartRecordingType, ConfirmRecordingParameters, StartRecordingParameters } from "../../@types/types";
+import { ModalRenderMode } from "../menuComponents/MenuModal";
 export interface RecordingModalParameters extends ConfirmRecordingParameters, StartRecordingParameters {
     recordPaused: boolean;
     recordingVideoType: string;
@@ -39,6 +40,12 @@ export interface RecordingModalOptions {
     onClose: () => void;
     backgroundColor?: string;
     position?: string;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
     confirmRecording: ConfirmRecordingType;
     startRecording: StartRecordingType;
     parameters: RecordingModalParameters;

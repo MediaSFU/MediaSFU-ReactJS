@@ -11,10 +11,11 @@ const joinClassNames = (
 export interface AlertComponentOptions {
   visible: boolean;
   message: string;
-  type?: 'success' | 'danger';
+  type?: 'success' | 'danger' | 'info' | 'warning';
   duration?: number;
   onHide?: () => void;
   textColor?: string;
+  position?: 'top' | 'bottom' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center'; // Position for modern alert
   overlayProps?: React.HTMLAttributes<HTMLDivElement>;
   containerProps?: React.HTMLAttributes<HTMLDivElement>;
   messageProps?: React.HTMLAttributes<HTMLParagraphElement>;
@@ -221,7 +222,7 @@ const AlertComponent: React.FC<AlertComponentOptions> = ({
   renderMessage,
   renderContent,
 }) => {
-  const [alertType, setAlertType] = useState<'success' | 'danger'>(type);
+  const [alertType, setAlertType] = useState<'success' | 'danger' | 'info' | 'warning'>(type);
 
   useEffect(() => {
     if (type) {

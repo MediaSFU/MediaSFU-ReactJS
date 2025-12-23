@@ -213,6 +213,10 @@ import { hostRequestResponse } from "../../producers/socketReceiveMethods/hostRe
 import { allMembers } from "../../producers/socketReceiveMethods/allMembers";
 import { allMembersRest } from "../../producers/socketReceiveMethods/allMembersRest";
 import { disconnect } from "../../producers/socketReceiveMethods/disconnect";
+import {
+  PermissionConfig,
+} from "../../producers/socketReceiveMethods/permissionReceiveMethods";
+
 
 import { captureCanvasStream } from "../../methods/whiteboardMethods/captureCanvasStream";
 import { resumePauseAudioStreams } from "../../consumers/resumePauseAudioStreams";
@@ -1857,7 +1861,7 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
   // Show Alert modal
   const [alertVisible, setAlertVisible] = useState<boolean>(false); // True if the alert is visible as boolean
   const [alertMessage, setAlertMessage] = useState<string>(""); // Alert message as string
-  const [alertType, setAlertType] = useState<"success" | "danger">("success"); // Alert type with specific string values
+  const [alertType, setAlertType] = useState<"success" | "danger" | "info" | "warning">("info"); // Alert type with specific string values
   const [alertDuration, setAlertDuration] = useState<number>(3000); // Alert duration in milliseconds as number
 
   // Progress Timer
@@ -1984,6 +1988,15 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
   ); // Polls as array of Poll
   const poll = useRef<Poll | null>(null); // Single poll as Poll or null
   const [isPollModalVisible, setIsPollModalVisible] = useState<boolean>(false); // True if the poll modal should be shown
+
+  // Permissions-related variables
+  const permissionConfig = useRef<PermissionConfig | null>(null); // Permission configuration for the room
+
+  // Panelists-related variables
+  const panelists = useRef<Participant[]>([]); // List of panelists
+  const panelistsFocused = useRef<boolean>(false); // True if panelist focus mode is active
+  const muteOthersMic = useRef<boolean>(false); // True if non-panelist mics should be muted
+  const muteOthersCamera = useRef<boolean>(false); // True if non-panelist cameras should be muted
 
   // Background-related variables
   const customImage = useRef<string>(""); // Custom image as string or null
@@ -2483,6 +2496,22 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
   const updateIsPollModalVisible = (value: boolean) => {
     setIsPollModalVisible(value);
   };
+
+    const updatePermissionConfig = (value: PermissionConfig | null) => {
+      permissionConfig.current = value;
+    }
+    const updatePanelists = (value: Participant[]) => {
+      panelists.current = value;
+    }
+    const updatePanelistsFocused = (value: boolean) => {
+      panelistsFocused.current = value;
+    }
+    const updateMuteOthersMic = (value: boolean) => {
+      muteOthersMic.current = value;
+    }
+    const updateMuteOthersCamera = (value: boolean) => {
+      muteOthersCamera.current = value;
+    }
 
   // Update functions
   const updateCustomImage = (value: string) => {
@@ -3159,6 +3188,12 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
       annotateScreenStream: annotateScreenStream.current,
       mainScreenCanvas: mainScreenCanvas.current,
       isScreenboardModalVisible: isScreenboardModalVisible,
+      
+      permissionConfig: permissionConfig.current,
+      panelists: panelists.current,
+      panelistsFocused: panelistsFocused.current,
+      muteOthersMic: muteOthersMic.current,
+      muteOthersCamera: muteOthersCamera.current,
 
       validated: validated,
 
@@ -3523,6 +3558,12 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
       updateAnnotateScreenStream,
       updateMainScreenCanvas,
       updateIsScreenboardModalVisible,
+     
+      updatePermissionConfig,
+      updatePanelists,
+      updatePanelistsFocused,
+      updateMuteOthersMic,
+      updateMuteOthersCamera,
 
       checkOrientation,
 
@@ -3548,7 +3589,7 @@ const MediasfuGeneric: React.FC<MediasfuGenericOptions> = ({
     duration = 3000,
   }: {
     message: string;
-    type: "success" | "danger";
+    type: "success" | "danger" | "info" | "warning";
     duration?: number;
   }) => {
     // Show an alert message, type is 'danger', 'success', duration is in milliseconds

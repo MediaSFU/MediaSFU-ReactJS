@@ -3,6 +3,7 @@ import { AParamsType, CoHostResponsibility, EventType, HParamsType, Participant,
 import { Device } from "mediasoup-client/lib/types";
 import { Socket } from "socket.io-client";
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
+import { PermissionConfig } from "methods/permissionsMethods";
 export interface InitialValuesStateType {
     roomName: string;
     member: string;
@@ -231,7 +232,7 @@ export interface InitialValuesStateType {
     totalReqWait: number;
     alertVisible: boolean;
     alertMessage: string;
-    alertType: "success" | "danger";
+    alertType: "success" | "danger" | "info" | "warning";
     alertDuration: number;
     progressTimerVisible: boolean;
     progressTimerValue: number;
@@ -345,6 +346,12 @@ export interface InitialValuesStateType {
     participantsActive: boolean;
     menuActive: boolean;
     commentsActive: boolean;
+    permissionConfig: PermissionConfig | null;
+    panelistsFocused: boolean;
+    panelistFocusChanged: boolean;
+    panelists: Participant[];
+    muteOthersMic: boolean;
+    muteOthersCamera: boolean;
 }
 export declare const initialValuesState: InitialValuesStateType;
 //# sourceMappingURL=initialValuesState.d.ts.map

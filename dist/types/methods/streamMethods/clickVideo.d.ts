@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { CheckPermissionType, DisconnectSendTransportVideoParameters, DisconnectSendTransportVideoType, RequestPermissionCameraType, ShowAlert, StreamSuccessVideoParameters, StreamSuccessVideoType, VidCons } from "../../@types/types";
+import { PermissionConfig } from "../permissionsMethods/updatePermissionConfig";
 export interface ClickVideoParameters extends DisconnectSendTransportVideoParameters, StreamSuccessVideoParameters {
     checkMediaPermission: boolean;
     hasCameraPermission: boolean;
@@ -28,7 +29,10 @@ export interface ClickVideoParameters extends DisconnectSendTransportVideoParame
     videoSetting: string;
     screenshareSetting: string;
     chatSetting: string;
+    permissionConfig?: PermissionConfig | null;
     updateRequestIntervalSeconds: number;
+    supportFlexRoom?: boolean;
+    supportMaxRoom?: boolean;
     showAlert?: ShowAlert;
     updateVideoAlreadyOn: (value: boolean) => void;
     updateVideoRequestState: (state: string) => void;

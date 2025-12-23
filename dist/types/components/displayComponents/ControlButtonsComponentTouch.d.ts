@@ -54,6 +54,7 @@ export interface ControlButtonsComponentTouchOptions {
     buttonClassName?: string;
     iconWrapperProps?: React.HTMLAttributes<HTMLSpanElement>;
     textProps?: React.HTMLAttributes<HTMLSpanElement>;
+    textStyle?: React.CSSProperties;
     contentWrapperProps?: React.HTMLAttributes<HTMLDivElement>;
     renderButton?: (options: {
         index: number;

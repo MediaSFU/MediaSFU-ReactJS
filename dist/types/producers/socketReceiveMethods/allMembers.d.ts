@@ -48,6 +48,7 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
     hostFirstSwitch: boolean;
     waitingRoomList: WaitingRoomParticipant[];
     islevel: string;
+    member: string;
     socket: Socket;
     updateParticipantsAll: (participantsAll: Participant[]) => void;
     updateParticipants: (participants: Participant[]) => void;
@@ -59,6 +60,7 @@ export interface AllMembersParameters extends ReorderStreamsParameters, ConnectI
     updateDeferScreenReceived: (deferScreenReceived: boolean) => void;
     updateShareScreenStarted: (shareScreenStarted: boolean) => void;
     updateHostFirstSwitch: (hostFirstSwitch: boolean) => void;
+    updateIslevel: (islevel: string) => void;
     updateConsume_sockets: (sockets: ConsumeSocket[]) => void;
     updateRoomRecvIPs: (ips: string[]) => void;
     updateIsLoadingModalVisible: (visible: boolean) => void;

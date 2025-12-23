@@ -1,5 +1,14 @@
 import React from 'react';
 import { EventType } from '../../@types/types';
+export type RecordingOptionItem = {
+    value: string;
+    label: string;
+    tooltip?: string;
+};
+export declare const recordingMediaOptionItems: RecordingOptionItem[];
+export declare const recordingAudioOptionItems: RecordingOptionItem[];
+export declare const recordingVideoOptionItems: RecordingOptionItem[];
+export declare const recordingHlsOptionItems: RecordingOptionItem[];
 export interface StandardPanelParameters {
     recordingMediaOptions: string;
     recordingAudioOptions: string;

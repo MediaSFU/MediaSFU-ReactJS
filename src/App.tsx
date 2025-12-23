@@ -1,1513 +1,418 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-// /* eslint-disable @typescript-eslint/no-unused-vars */
-// /* eslint-disable react/prop-types */
-// /**
-//  * MediaSFU Component Configuration and Usage Guide
-//  *
-//  * The following code and comments will guide you through:
-//  * 1. Configuring the MediaSFU component with different server and credential setups.
-//  * 2. Handling API credentials securely depending on whether you use MediaSFU Cloud or your own MediaSFU CE server.
-//  * 3. Rendering custom UIs by disabling the default MediaSFU UI.
-//  * 4. Using custom "create room" and "join room" functions for secure, flexible integration.
-//  * 5. NEW: Using customComponent for complete UI replacement
-//  * 6. NEW: Using custom video/audio/mini cards for display customization
-//  * 7. NEW: Using containerStyle for CSS customization
-//  *
-//  * Note: All guide instructions are provided as code comments. They will not render to the user directly.
-//  */
-
-// import React, { useState } from 'react';
-// // MediaSFU view components (if you choose to use them)
-// import MediasfuGeneric from './components/mediasfuComponents/MediasfuGeneric';
-// import MediasfuBroadcast from './components/mediasfuComponents/MediasfuBroadcast';
-// import MediasfuChat from './components/mediasfuComponents/MediasfuChat';
-// import MediasfuWebinar from './components/mediasfuComponents/MediasfuWebinar';
-// import MediasfuConference from './components/mediasfuComponents/MediasfuConference';
-
-// // Pre-Join Page component (if you choose to use it)
-// import PreJoinPage from './components/miscComponents/PreJoinPage';
-
-// // Import custom "create" and "join" room functions
-// import { createRoomOnMediaSFU } from './methods/utils/createRoomOnMediaSFU';
-// import { joinRoomOnMediaSFU } from './methods/utils/joinRoomOnMediaSFU';
-// import { CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, CustomComponentType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from './@types/types';
-
-// // Example Custom Components for demonstration
-// const CustomMainComponent: CustomComponentType = ({ parameters }) => {
-//   // This completely replaces the entire MediaSFU UI
-//   // You have access to all MediaSFU parameters and functions
-//   const { participants, roomName, islevel, showAlert } = parameters;
-
-//   return (
-//     <div style={{
-//       height: '100vh',
-//       display: 'flex',
-//       flexDirection: 'column',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       backgroundColor: '#f0f0f0',
-//       fontFamily: 'Arial, sans-serif'
-//     }}>
-//       <h1 style={{ color: '#333', marginBottom: '20px' }}>My Custom MediaSFU Interface</h1>
-//       <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' }}>
-//         <p><strong>Room:</strong> {roomName}</p>
-//         <p><strong>Your Level:</strong> {islevel}</p>
-//         <p><strong>Participants:</strong> {participants?.length || 0}</p>
-//         <button
-//           onClick={() => showAlert?.({ message: 'Hello from custom UI!', type: 'success' })}
-//           style={{
-//             padding: '10px 20px',
-//             backgroundColor: '#007bff',
-//             color: 'white',
-//             border: 'none',
-//             borderRadius: '4px',
-//             cursor: 'pointer',
-//             marginTop: '10px'
-//           }}
-//         >
-//           Show Alert
-//         </button>
-//       </div>
-//       <p style={{ marginTop: '20px', color: '#666' }}>
-//         This is a completely custom UI that replaces the entire MediaSFU interface.
-//         You have full control over the layout and functionality.
-//       </p>
-//     </div>
-//   );
-// };
-
-// // Example Custom Video Card
-// const CustomVideoCard: CustomVideoCardType = ({ participant, stream, width, height, name, backgroundColor }) => {
-//   return (
-//     <div style={{
-//       width: width || '100%',
-//       height: height || '100%',
-//       border: '3px solid #007bff',
-//       borderRadius: '15px',
-//       overflow: 'hidden',
-//       position: 'relative',
-//       backgroundColor: backgroundColor || '#000'
-//     }}>
-//       {/* Video element using the stream */}
-//       {stream && (
-//         <video
-//           ref={(video) => {
-//             if (video && stream) {
-//               video.srcObject = stream;
-//               video.play().catch(() => {});
-//             }
-//           }}
-//           style={{
-//             width: '100%',
-//             height: '100%',
-//             objectFit: 'cover'
-//           }}
-//           autoPlay
-//           muted={participant?.muted || false}
-//           playsInline
-//         />
-//       )}
-//       <div style={{
-//         position: 'absolute',
-//         bottom: '10px',
-//         left: '10px',
-//         background: 'rgba(0, 123, 255, 0.8)',
-//         color: 'white',
-//         padding: '5px 10px',
-//         borderRadius: '20px',
-//         fontSize: '12px',
-//         fontWeight: 'bold'
-//       }}>
-//         🎥 {name || participant.name}
-//       </div>
-//     </div>
-//   );
-// };
-
-// // Example Custom Audio Card
-// const CustomAudioCard: CustomAudioCardType = ({ name, barColor, textColor, imageSource, roundedImage, imageStyle }) => {
-//   return (
-//     <div style={{
-//       width: '100%',
-//       height: '100%',
-//       border: `2px solid ${barColor ? '#28a745' : '#ccc'}`,
-//       borderRadius: roundedImage ? '50%' : '8px',
-//       display: 'flex',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       backgroundColor: '#e8f5e8',
-//       flexDirection: 'column',
-//       ...imageStyle
-//     }}>
-//       {imageSource ? (
-//         <img
-//           src={imageSource}
-//           alt={name}
-//           style={{
-//             width: '30px',
-//             height: '30px',
-//             borderRadius: roundedImage ? '50%' : '4px',
-//             marginBottom: '5px'
-//           }}
-//         />
-//       ) : (
-//         <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎵</div>
-//       )}
-//       <div style={{
-//         fontSize: '12px',
-//         fontWeight: 'bold',
-//         color: textColor || '#28a745'
-//       }}>
-//         {name}
-//       </div>
-//     </div>
-//   );
-// };
-
-// // Example Custom Mini Card
-// const CustomMiniCard: CustomMiniCardType = ({ name, initials, fontSize, imageSource, roundedImage, imageStyle, showVideoIcon, showAudioIcon }) => {
-//   return (
-//     <div style={{
-//       width: '100%',
-//       height: '100%',
-//       border: '2px solid #ffc107',
-//       borderRadius: roundedImage ? '50%' : '8px',
-//       display: 'flex',
-//       alignItems: 'center',
-//       justifyContent: 'center',
-//       backgroundColor: '#fff8dc',
-//       fontSize: fontSize || '10px',
-//       fontWeight: 'bold',
-//       color: '#856404',
-//       flexDirection: 'column',
-//       ...imageStyle
-//     }}>
-//       {imageSource ? (
-//         <img
-//           src={imageSource}
-//           alt={name}
-//           style={{
-//             width: '20px',
-//             height: '20px',
-//             borderRadius: roundedImage ? '50%' : '2px',
-//             marginBottom: '2px'
-//           }}
-//         />
-//       ) : (
-//         <div>⭐ {initials}</div>
-//       )}
-//       <div style={{ fontSize: '8px', marginTop: '2px' }}>{name}</div>
-//       {showVideoIcon && <span style={{ fontSize: '8px' }}>📹</span>}
-//       {showAudioIcon && <span style={{ fontSize: '8px' }}>🎤</span>}
-//     </div>
-//   );
-// };
-
-// /**
-//  * App Component
-//  *
-//  * This component demonstrates how to:
-//  * - Configure credentials for MediaSFU Cloud and/or Community Edition (CE).
-//  * - Use MediaSFU with or without a custom server.
-//  * - Integrate a pre-join page.
-//  * - Return no UI and manage state through sourceParameters, allowing a fully custom frontend.
-//  *
-//  * Basic instructions:
-//  * 1. Set `localLink` to your CE server if you have one, or leave it blank to use MediaSFU Cloud.
-//  * 2. Set `connectMediaSFU` to determine whether you're connecting to MediaSFU Cloud services.
-//  * 3. Provide credentials if using MediaSFU Cloud (dummy credentials are acceptable in certain scenarios).
-//  * 4. If you prefer a custom UI, set `returnUI` to false and handle all interactions via `sourceParameters` and `updateSourceParameters`.
-//  * 5. For secure production usage, consider using custom `createMediaSFURoom` and `joinMediaSFURoom` functions to forward requests through your backend.
-//  */
-
-// const App = () => {
-//   // =========================================================
-//   //                API CREDENTIALS CONFIGURATION
-//   // =========================================================
-//   //
-//   // Scenario A: Not using MediaSFU Cloud at all.
-//   // - No credentials needed. Just set localLink to your CE server.
-//   // Example:
-//   /*
-//   const credentials = {};
-//   const localLink = 'http://your-ce-server.com'; //http://localhost:3000
-//   const connectMediaSFU = localLink.trim() !== '';
-//   */
-
-//   // Scenario B: Using MediaSFU CE + MediaSFU Cloud for Egress only.
-//   // - Use dummy credentials (8 chars for userName, 64 chars for apiKey).
-//   // - Your CE backend will forward requests with your real credentials.
-//   /*
-//   const credentials = {
-//     apiUserName: 'dummyUsr',
-//     apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
-//   };
-//   const localLink = 'http://your-ce-server.com'; //http://localhost:3000
-//   const connectMediaSFU = localLink.trim() !== '';
-//   */
-
-//   // Scenario C: Using MediaSFU Cloud without your own server.
-//   // - For development, use your actual or dummy credentials.
-//   // - In production, securely handle credentials server-side and use custom room functions.
-//   const credentials = {
-//     apiUserName: 'yourDevUser', // 8 chars recommended for dummy
-//     apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // 64 chars
-//   };
-//   const localLink = ''; // Leave empty if not using your own server
-//   const connectMediaSFU = true; // Set to true if using MediaSFU Cloud since localLink is empty
-
-//   // =========================================================
-//   //                    UI RENDERING OPTIONS
-//   // =========================================================
-//   //
-//   // If you want a fully custom UI (e.g., a custom layout inspired by WhatsApp):
-//   // 1. Set `returnUI = false` to prevent the default MediaSFU UI from rendering.
-//   // 2. Provide `noUIPreJoinOptions` to simulate what would have been entered on a pre-join page.
-//   // 3. Use `sourceParameters` and `updateSourceParameters` to access and update state/actions.
-//   // 4. No need for any of the above if you're using the default MediaSFU UI.
-//   //
-//   // Example noUIPreJoinOptions:
-//   const noUIPreJoinOptions: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions = {
-//     action: 'create',
-//     capacity: 10,
-//     duration: 15,
-//     eventType: 'broadcast',
-//     userName: 'Prince',
-//   };
-
-//   // Example for joining a room:
-//   // const noUIPreJoinOptions: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions = {
-//   //   action: 'join',
-//   //   userName: 'Prince',
-//   //   meetingID: 'yourMeetingID'
-//   // };
-
-//   const returnUI = true; // Set to false for custom UI, true for default MediaSFU UI
-
-//   const [sourceParameters, setSourceParameters] = useState<{ [key: string]: any }>({});
-//   const updateSourceParameters = (data: { [key: string]: any }) => {
-//     setSourceParameters(data);
-//   };
-
-//   // =========================================================
-//   //              NEW: CUSTOMIZATION OPTIONS
-//   // =========================================================
-//   //
-//   // MediaSFU now supports three levels of customization:
-//   //
-//   // 1. **Custom Cards**: Replace individual video/audio/mini cards with your own components
-//   //    - customVideoCard: Custom component for rendering video participants
-//   //    - customAudioCard: Custom component for rendering audio-only participants
-//   //    - customMiniCard: Custom component for rendering minimized participants
-//   //
-//   // 2. **Custom Component**: Completely replace the entire MediaSFU UI
-//   //    - customComponent: Your own React component that receives all MediaSFU parameters
-//   //    - When used, all default UI (including modals) is replaced with your component
-//   //
-//   // 3. **Container Styling**: Customize the root container styles
-//   //    - containerStyle: React.CSSProperties object to override default container styling
-//   //
-//   // Examples:
-//   //   customVideoCard={MyVideoComponent}     // Custom video rendering
-//   //   customAudioCard={MyAudioComponent}     // Custom audio-only rendering
-
-//   // =========================================================
-//   //                CUSTOM ROOM FUNCTIONS (OPTIONAL)
-//   // =========================================================
-//   //
-//   // To securely forward requests to MediaSFU:
-//   // - Implement custom `createMediaSFURoom` and `joinMediaSFURoom` functions.
-//   // - These functions send requests to your server, which then communicates with MediaSFU Cloud.
-//   //
-//   // Already imported `createRoomOnMediaSFU` and `joinRoomOnMediaSFU` are examples.
-//   //
-//   // If using MediaSFU CE backend, ensure your server endpoints:
-//   // - Validate dummy credentials.
-//   // - Forward requests to mediasfu.com with real credentials.
-
-//   // =========================================================
-//   //              CHOOSE A USE CASE / COMPONENT
-//   // =========================================================
-//   //
-//   // Multiple components are available depending on your event type:
-//   // MediasfuBroadcast, MediasfuChat, MediasfuWebinar, MediasfuConference
-//   //
-//   // By default, we'll use MediasfuGeneric with custom settings.
-
-//   // =========================================================
-//   //                    RENDER COMPONENT
-//   // =========================================================
-//   //
-//   // The MediasfuGeneric component is used by default.
-//   // You can replace it with any other component based on your event type.
-//   // Example: <MediasfuBroadcast ... />
-//   // Example: <MediasfuChat ... />
-//   // Example: <MediasfuWebinar ... />
-//   // Example: <MediasfuConference ... />
-//   //
-//   // The PreJoinPage component is displayed if `returnUI` is true.
-//   // If `returnUI` is false, `noUIPreJoinOptions` is used as a substitute.
-//   // You can also use `sourceParameters` to interact with MediaSFU functionalities directly.
-//   // Avoid using `useLocalUIMode` or `useSeed` in new implementations.
-//   // Ensure that real credentials are not exposed in the frontend.
-//   // Use HTTPS and secure backend endpoints for production.
-
-//   // Example of MediaSFU CE with no MediaSFU Cloud
-//   // return (
-//   //   <MediasfuGeneric
-//   //     PrejoinPage={PreJoinPage}
-//   //     localLink={localLink}
-//   //     />
-//   // );
-
-//   // Example of MediaSFU CE + MediaSFU Cloud for Egress only
-//   // return (
-//   //   <MediasfuGeneric
-//   //     PrejoinPage={PreJoinPage}
-//   //     credentials={credentials}
-//   //     localLink={localLink}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     />
-//   // );
-
-//   // Example of MediaSFU Cloud only
-//   // return (
-//   //   <MediasfuGeneric
-//   //     PrejoinPage={PreJoinPage}
-//   //     credentials={credentials}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     />
-//   // );
-
-//   // Example of MediaSFU CE + MediaSFU Cloud for Egress only with custom UI
-//   // return (
-//   //   <MediasfuGeneric
-//   //     PrejoinPage={PreJoinPage}
-//   //     credentials={credentials}
-//   //     localLink={localLink}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     returnUI={false}
-//   //     noUIPreJoinOptions={noUIPreJoinOptions}
-//   //     sourceParameters={sourceParameters}
-//   //     updateSourceParameters={updateSourceParameters}
-//   //     createMediaSFURoom={createRoomOnMediaSFU}
-//   //     joinMediaSFURoom={joinRoomOnMediaSFU}
-//   //   />
-
-//   // Example of MediaSFU Cloud only with custom UI
-//   // return (
-//   //   <MediasfuGeneric
-//   //     PrejoinPage={PreJoinPage}
-//   //     credentials={credentials}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     returnUI={false}
-//   //     noUIPreJoinOptions={noUIPreJoinOptions}
-//   //     sourceParameters={sourceParameters}
-//   //     updateSourceParameters={updateSourceParameters}
-//   //     createMediaSFURoom={createRoomOnMediaSFU}
-//   //     joinMediaSFURoom={joinRoomOnMediaSFU}
-//   //   />
-
-//   // Example of using MediaSFU CE only with custom UI
-//   // return (
-//   //   <MediasfuGeneric
-//   //     PrejoinPage={PreJoinPage}
-//   //     localLink={localLink}
-//   //     connectMediaSFU={false}
-//   //     returnUI={false}
-//   //     noUIPreJoinOptions={noUIPreJoinOptions}
-//   //     sourceParameters={sourceParameters}
-//   //     updateSourceParameters={updateSourceParameters}
-//   //   />
-
-// //   customAudioCard={CustomAudioCard}  // Custom audio card component
-//   //   customMiniCard={CustomMiniCard}    // Custom mini card component
-//   //   customComponent={CustomMainComponent} // Complete UI replacement
-//   //   containerStyle={{ backgroundColor: '#f5f5f5' }} // Custom container styling
-//   //   />
-
-//   // =========================================================
-//   //                    RENDERING EXAMPLES
-//   // =========================================================
-//   //
-//   // Choose one of the following examples based on your needs:
-
-//   // Example 1: Standard MediaSFU with default UI
-//   return (
-//     <MediasfuGeneric
-//       PrejoinPage={(options) => <PreJoinPage {...options} />}
-//       credentials={credentials}
-//       localLink={localLink}
-//       connectMediaSFU={connectMediaSFU}
-//       returnUI={returnUI}
-//       noUIPreJoinOptions={!returnUI ? noUIPreJoinOptions : undefined}
-//       sourceParameters={!returnUI ? sourceParameters : undefined}
-//       updateSourceParameters={!returnUI ? updateSourceParameters : undefined}
-//       createMediaSFURoom={createRoomOnMediaSFU}
-//       joinMediaSFURoom={joinRoomOnMediaSFU}
-//     />
-//   );
-
-//   // Example 2: Custom Video/Audio/Mini Cards (Uncomment to use)
-//   // return (
-//   //   <MediasfuGeneric
-//   //     PrejoinPage={(options) => <PreJoinPage {...options} />}
-//   //     credentials={credentials}
-//   //     localLink={localLink}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     customVideoCard={CustomVideoCard}
-//   //     customAudioCard={CustomAudioCard}
-//   //     customMiniCard={CustomMiniCard}
-//   //     containerStyle={{
-//   //       backgroundColor: '#f8f9fa',
-//   //       fontFamily: 'Arial, sans-serif'
-//   //     }}
-//   //     createMediaSFURoom={createRoomOnMediaSFU}
-//   //     joinMediaSFURoom={joinRoomOnMediaSFU}
-//   //   />
-//   // );
-
-//   // Example 3: Complete Custom UI Replacement (Uncomment to use)
-//   // return (
-//   //   <MediasfuGeneric
-//   //     credentials={credentials}
-//   //     localLink={localLink}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     customComponent={CustomMainComponent}
-//   //     createMediaSFURoom={createRoomOnMediaSFU}
-//   //     joinMediaSFURoom={joinRoomOnMediaSFU}
-//   //   />
-//   // );
-
-//   // Example 4: No UI Mode with Custom Backend (Uncomment to use)
-//   // return (
-//   //   <MediasfuGeneric
-//   //     credentials={credentials}
-//   //     localLink={localLink}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     returnUI={false}
-//   //     noUIPreJoinOptions={noUIPreJoinOptions}
-//   //     sourceParameters={sourceParameters}
-//   //     updateSourceParameters={updateSourceParameters}
-//   //     createMediaSFURoom={createRoomOnMediaSFU}
-//   //     joinMediaSFURoom={joinRoomOnMediaSFU}
-//   //   />
-//   // );
-
-//   // Example 5: Different Event Types (Uncomment to use)
-//   // return (
-//   //   <MediasfuWebinar
-//   //     credentials={credentials}
-//   //     localLink={localLink}
-//   //     connectMediaSFU={connectMediaSFU}
-//   //     customVideoCard={CustomVideoCard}
-//   //     customAudioCard={CustomAudioCard}
-//   //     customMiniCard={CustomMiniCard}
-//   //     createMediaSFURoom={createRoomOnMediaSFU}
-//   //     joinMediaSFURoom={joinRoomOnMediaSFU}
-//   //   />
-//   // );
-// };
-
-// export default App;
-
-// /**
-//  * =========================================================
-//  *                     ADDITIONAL NOTES
-//  * =========================================================
-//  *
-//  * Handling Core Methods:
-//  * Once `sourceParameters` is populated, you can call core methods like `clickVideo` or `clickAudio` directly:
-//  * Example:
-//  * sourceParameters.clickVideo({ ...sourceParameters });
-//  * sourceParameters.clickAudio({ ...sourceParameters });
-//  *
-//  * This allows your custom UI to directly interact with MediaSFU functionalities.
-//  *
-//  * Deprecated Features (Seed Data):
-//  * The seed data generation feature is deprecated. Avoid using `useLocalUIMode` or `useSeed` in new implementations.
-//  *
-//  * Security Considerations:
-//  * - Do not expose real credentials in your frontend code in production.
-//  * - Use HTTPS and secure backend endpoints.
-//  * - Validate inputs and handle errors gracefully.
-//  *
-//  * Example CE Backend Setup:
-//  * If using MediaSFU CE + MediaSFU Cloud, your backend might look like this:
-//  *
-//  * app.post("/createRoom", async (req, res) => {
-//  *   // Validate incoming dummy credentials
-//  *   // Forward request to mediasfu.com with real credentials
-//  * });
-//  *
-//  * app.post("/joinRoom", async (req, res) => {
-//  *   // Validate incoming dummy credentials
-//  *   // Forward request to mediasfu.com with real credentials
-//  * });
-//  *
-//  * By doing so, you keep real credentials secure on your server.
-//  *
-//  * End of Guide.
-//  */
-
-// /**
-//  * =======================
-//  * ====== EXTRA NOTES ======
-//  * =======================
-//  *
-//  * ### Handling Core Methods
-//  * With `sourceParameters`, you can access core methods such as `clickVideo` and `clickAudio`:
-//  *
-//  * ```typescript
-//  * sourceParameters.clickVideo({ ...sourceParameters });
-//  * sourceParameters.clickAudio({ ...sourceParameters });
-//  * ```
-//  *
-//  * This allows your custom UI to interact with MediaSFU's functionalities seamlessly.
-//  *
-//  * ### Seed Data (Deprecated)
-//  * The seed data functionality is deprecated and maintained only for legacy purposes.
-//  * It is recommended to avoid using it in new implementations.
-//  *
-//  * ### Security Considerations
-//  * - **Protect API Credentials:** Ensure that API credentials are not exposed in the frontend. Use environment variables and secure backend services to handle sensitive information.
-//  * - **Use HTTPS:** Always use HTTPS to secure data transmission between the client and server.
-//  * - **Validate Inputs:** Implement proper validation and error handling on both client and server sides to prevent malicious inputs.
-//  *
-//  * ### Custom Backend Example for MediaSFU CE
-//  * Below is an example of how to set up custom backend endpoints for creating and joining rooms using MediaSFU CE:
-//  *
-//  * ```javascript
-//  * // Endpoint for `createRoom`
-//  * app.post("/createRoom", async (req, res) => {
-//  *   try {
-//  *     const payload = req.body;
-//  *     const [apiUserName, apiKey] = req.headers.authorization
-//  *       .replace("Bearer ", "")
-//  *       .split(":");
-//  *
-//  *     // Verify temporary credentials
-//  *     if (!apiUserName || !apiKey || !verifyCredentials(apiUserName, apiKey)) {
-//  *       return res.status(401).json({ error: "Invalid or expired credentials" });
-//  *     }
-//  *
-//  *     const response = await fetch("https://mediasfu.com/v1/rooms/", {
-//  *       method: "POST",
-//  *       headers: {
-//  *         "Content-Type": "application/json",
-//  *         Authorization: `Bearer ${actualApiUserName}:${actualApiKey}`,
-//  *       },
-//  *       body: JSON.stringify(payload),
-//  *     });
-//  *
-//  *     const result = await response.json();
-//  *     res.status(response.status).json(result);
-//  *   } catch (error) {
-//  *     console.error("Error creating room:", error);
-//  *     res.status(500).json({ error: "Internal server error" });
-//  *   }
-//  * });
-//  *
-//  * // Endpoint for `joinRoom`
-//  * app.post("/joinRoom", async (req, res) => {
-//  *   try {
-//  *     const payload = req.body;
-//  *     const [apiUserName, apiKey] = req.headers.authorization
-//  *       .replace("Bearer ", "")
-//  *       .split(":");
-//  *
-//  *     // Verify temporary credentials
-//  *     if (!apiUserName || !apiKey || !verifyCredentials(apiUserName, apiKey)) {
-//  *       return res.status(401).json({ error: "Invalid or expired credentials" });
-//  *     }
-//  *
-//  *     const response = await fetch("https://mediasfu.com/v1/rooms", {
-//  *       method: "POST",
-//  *       headers: {
-//  *         "Content-Type": "application/json",
-//  *         Authorization: `Bearer ${actualApiUserName}:${actualApiKey}`,
-//  *       },
-//  *       body: JSON.stringify(payload),
-//  *     });
-//  *
-//  *     const result = await response.json();
-//  *     res.status(response.status).json(result);
-//  *   } catch (error) {
-//  *     console.error("Error joining room:", error);
-//  *     res.status(500).json({ error: "Internal server error" });
-//  *   }
-//  * });
-//  * ```
-//  *
-//  * ### Custom Room Function Implementation
-//  * Below are examples of how to implement custom functions for creating and joining rooms securely:
-//  *
-//  * ```typescript
-//  * import { CreateJoinRoomError, CreateJoinRoomResponse, CreateJoinRoomType, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from '../../@types/types';
-//  *
-//  *
-//  * Async function to create a room on MediaSFU.
-//  *
-//  * @param {object} options - The options for creating a room.
-//  * @param {CreateMediaSFURoomOptions} options.payload - The payload for the API request.
-//  * @param {string} options.apiUserName - The API username.
-//  * @param {string} options.apiKey - The API key.
-//  * @param {string} options.localLink - The local link.
-//  * @returns {Promise<{ data: CreateJoinRoomResponse | CreateJoinRoomError | null; success: boolean; }>} The response from the API.
-//  * export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
-//  *     payload,
-//  *     apiUserName,
-//  *     apiKey,
-//  *     localLink = '',
-//  * }) => {
-//  *     try {
-//  *         let finalLink = 'https://mediasfu.com/v1/rooms/';
-//  *
-//  *         // Update finalLink if using a local server
-//  *         if (localLink) {
-//  *             finalLink = `${localLink}/createRoom`;
-//  *         }
-//  *
-//  *         const response = await fetch(finalLink, {
-//  *             method: 'POST',
-//  *             headers: {
-//  *                 'Content-Type': 'application/json',
-//  *                 Authorization: `Bearer ${apiUserName}:${apiKey}`,
-//  *             },
-//  *             body: JSON.stringify(payload),
-//  *         });
-//  *
-//  *         if (!response.ok) {
-//  *             throw new Error(`HTTP error! Status: ${response.status}`);
-//  *         }
-//  *
-//  *         const data: CreateJoinRoomResponse = await response.json();
-//  *         return { data, success: true };
-//  *     } catch (error) {
-//  *         const errorMessage = (error as Error).message || 'unknown error';
-//  *         return {
-//  *             data: { error: `Unable to create room, ${errorMessage}` },
-//  *             success: false,
-//  *         };
-//  *     }
-//  * };
-//  *
-// *
-// *  Async function to join a room on MediaSFU.
-// *
-// *  @param {object} options - The options for joining a room.
-// *  @param {JoinMediaSFURoomOptions} options.payload - The payload for the API request.
-// *  @param {string} options.apiUserName - The API username.
-// *  @param {string} options.apiKey - The API key.
-// *  @param {string} options.localLink - The local link.
-// *  @returns {Promise<{ data: CreateJoinRoomResponse | CreateJoinRoomError | null; success: boolean; }>} The response from the API.
-// *
-// * export const joinRoomOnMediaSFU: JoinRoomOnMediaSFUType = async ({
-// *     payload,
-// *     apiUserName,
-// *     apiKey,
-// *     localLink = '',
-// * }) => {
-// *     try {
-// *         let finalLink = 'https://mediasfu.com/v1/rooms/join';
-// *
-// *         // Update finalLink if using a local server
-// *         if (localLink) {
-// *             finalLink = `${localLink}/joinRoom`;
-// *         }
-// *
-// *         const response = await fetch(finalLink, {
-// *             method: 'POST',
-// *             headers: {
-// *                 'Content-Type': 'application/json',
-// *                 Authorization: `Bearer ${apiUserName}:${apiKey}`,
-// *             },
-// *             body: JSON.stringify(payload),
-// *         });
-// *
-// *         if (!response.ok) {
-// *             throw new Error(`HTTP error! Status: ${response.status}`);
-// *         }
-// *
-// *         const data: CreateJoinRoomResponse = await response.json();
-// *         return { data, success: true };
-// *     } catch (error) {
-// *         const errorMessage = (error as Error).message || 'unknown error';
-// *         return {
-// *             data: { error: `Unable to join room, ${errorMessage}` },
-// *             success: false,
-// *         };
-// *     }
-// * };
-// * ```
-// *
-// * ### Example Usage of Core Methods
-// * Core methods like `clickVideo` and `clickAudio` can now be accessed through `sourceParameters`:
-// *
-// * ```typescript
-// * // Example of toggling video
-// * sourceParameters.clickVideo({ ...sourceParameters });
-// *
-// * // Example of toggling audio
-// * sourceParameters.clickAudio({ ...sourceParameters });
-// * ```
-// *
-// * These methods allow your custom UI to interact with MediaSFU's functionalities seamlessly.
-// *
-// * ========================
-// * ====== END OF GUIDE ======
-// * ========================
-// */
-
-
-
-//------------------------------------- End of Basic Usage Parts ------------------------------------//
-//------------------------------------- End of Basic Usage Parts ------------------------------------//
-
-
-
-//------------------------------------- Start of Cookbook Parts -------------------------------------//
-//------------------------------------- Start of Cookbook Parts -------------------------------------//
-//------------------------------------- AppUnique.tsx duplicates this part as well-------------------//
-
-
-
-/* eslint-disable react/prop-types */
 /**
- * AppUnique
+ * MediaSFU Modern UI Component Configuration and Usage Guide
  *
- * A toggle-driven cookbook that mirrors the guidance in `App.tsx`, while showcasing
- * the newer UI override hooks, custom cards, and fully custom render paths in one place.
+ * This file demonstrates how to use the Modern MediaSFU UI components
+ * with glassmorphic design, matching the Flutter main_modern.dart example.
  *
- * Adjust the booleans and selectors below to switch between common deployment scenarios
- * (Cloud, Community Edition, Hybrid), UI strategies (prebuilt UI, no-UI, or fully custom),
- * and customization layers (card builders, component overrides, container styling).
+ * The Modern UI includes:
+ * - Glassmorphic control bars and modals
+ * - Dark mode by default with enableGlassmorphism option
+ * - Animated transitions and blur effects
+ * - Modern card components for video/audio/mini displays
  *
- * Every configuration block is wrapped in a clearly named toggle so you can enable/disable
- * a feature by flipping a single value or commenting it out. The component is intentionally
- * verbose to double as living documentation that developers can copy, trim, or expand.
+ * All the same functionality as MediasfuGeneric but with
+ * the new modern UI components.
  */
 
-import React, { useMemo, useState } from "react";
-import MediasfuGeneric, {
-  MediasfuGenericOptions,
-} from "./components/mediasfuComponents/MediasfuGeneric";
-import MediasfuBroadcast from "./components/mediasfuComponents/MediasfuBroadcast";
-import MediasfuChat from "./components/mediasfuComponents/MediasfuChat";
-import MediasfuWebinar from "./components/mediasfuComponents/MediasfuWebinar";
-import MediasfuConference from "./components/mediasfuComponents/MediasfuConference";
-import PreJoinPage from "./components/miscComponents/PreJoinPage";
-import MainContainerComponent from "./components/displayComponents/MainContainerComponent";
-import Pagination from "./components/displayComponents/Pagination";
-import AlertComponent from "./components/displayComponents/AlertComponent";
-import MenuModal from "./components/menuComponents/MenuModal";
-import ParticipantsModal from "./components/participantsComponents/ParticipantsModal";
-import ConfirmExitModal from "./components/exitComponents/ConfirmExitModal";
-import ScreenboardModal from "./components/screenboardComponents/ScreenboardModal";
-import VideoCard from "./components/displayComponents/VideoCard";
-import AudioCard from "./components/displayComponents/AudioCard";
-import MiniCard from "./components/displayComponents/MiniCard";
-import { createRoomOnMediaSFU } from "./methods/utils/createRoomOnMediaSFU";
-import { joinRoomOnMediaSFU } from "./methods/utils/joinRoomOnMediaSFU";
+import React, { useState, useCallback, useRef } from 'react';
+
+// Modern MediaSFU component
+import ModernMediasfuGeneric from './components_modern/mediasfu_components/ModernMediasfuGeneric';
+
+// Pre-Join Page component
+import PreJoinPage from './components/miscComponents/PreJoinPage';
+import { ModernPreJoinPage } from './components_modern/misc_components/ModernPreJoinPage';
+
+// Import types
 import {
   CreateMediaSFURoomOptions,
   JoinMediaSFURoomOptions,
-  CustomVideoCardType,
-  CustomAudioCardType,
-  CustomMiniCardType,
-  CustomComponentType,
-  MediasfuUICustomOverrides,
-  Participant,
-} from "./@types/types";
+  PreJoinPageOptions,
+  WelcomePageOptions,
+} from './@types/types';
 
-// -----------------------------------------------------------------------------
-// Toggle Section
-// -----------------------------------------------------------------------------
-type ConnectionScenario = "cloud" | "hybrid" | "ce";
-type ExperienceKey =
-  | "generic"
-  | "broadcast"
-  | "webinar"
-  | "conference"
-  | "chat";
+// Import custom room functions
+import { createRoomOnMediaSFU } from './methods/utils/createRoomOnMediaSFU';
+import { joinRoomOnMediaSFU } from './methods/utils/joinRoomOnMediaSFU';
 
-// Switch deployment target: 'cloud' | 'hybrid' | 'ce'
-const connectionScenario: ConnectionScenario = "cloud";
+// Utilities for seed data (optional - for testing)
+import { generateRandomParticipants } from './methods/utils/generateRandomParticipants';
+import { generateRandomMessages } from './methods/utils/generateRandomMessages';
+import { generateRandomRequestList } from './methods/utils/generateRandomRequestList';
+import { generateRandomWaitingRoomList } from './methods/utils/generateRandomWaitingRoomList';
 
-// Select which prebuilt experience to render by default
-// Options: 'generic', 'broadcast', 'webinar', 'conference', 'chat'
-const selectedExperience: ExperienceKey = "generic";
-
-// UI strategy toggles
-const showPrebuiltUI = true; // Set false to bypass the default UI entirely
-const enableFullCustomUI = false; // Set true to mount the CustomWorkspace instead of MediaSFU UI
-const enableNoUIPreJoin = !showPrebuiltUI || enableFullCustomUI; // auto-calculated helper
-
-// Layered customization toggles
-const enableCardBuilders = true; // Enables custom video/audio/mini card components
-const enableUICoreOverrides = false; // Enables layout-centric overrides via uiOverrides
-const enableModalOverrides = true; // Enables modal overrides via uiOverrides
-const enableContainerStyling = true; // Applies a custom containerStyle
-const enableBackendProxyHooks = true; // Hooks create/join calls through helper functions
-
-const connectionPresets: Record<
-  ConnectionScenario,
-  {
-    credentials?: { apiUserName: string; apiKey: string };
-    localLink: string;
-    connectMediaSFU: boolean;
-  }
-> = {
-  cloud: {
-    credentials: {
-      apiUserName: "yourDevUser",
-      apiKey:
-        "yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    },
-    localLink: "",
-    connectMediaSFU: true,
-  },
-  hybrid: {
-    credentials: {
-      apiUserName: "dummyUsr",
-      apiKey:
-        "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    },
-    localLink: "http://localhost:3000",
-    connectMediaSFU: true,
-  },
-  ce: {
-    credentials: undefined,
-    localLink: "http://localhost:3000",
-    connectMediaSFU: false,
-  },
-};
-
-const experienceComponentMap: Record<
-  ExperienceKey,
-  React.ComponentType<MediasfuGenericOptions>
-> = {
-  generic: MediasfuGeneric,
-  broadcast: MediasfuBroadcast,
-  webinar: MediasfuWebinar,
-  conference: MediasfuConference,
-  chat: MediasfuChat,
-};
-
-// -----------------------------------------------------------------------------
-// Demo Custom Components (Cards + Full UI)
-// -----------------------------------------------------------------------------
-const ShowcaseVideoCard: CustomVideoCardType = ({
-  customStyle,
-  containerProps,
-  infoOverlayProps,
-  controlsOverlayProps,
-  backgroundColor,
-  name,
-  participant,
-  videoStream,
-  ...rest
-}) => {
-  return (
-    <VideoCard
-      {...rest}
-      name={name}
-      participant={participant}
-      videoStream={videoStream}
-      backgroundColor={backgroundColor}
-      customStyle={{
-        borderRadius: 20,
-        border: `3px solid #4c1d95`,
-        overflow: "hidden",
-        boxShadow: "0 28px 65px rgba(76, 29, 149, 0.35)",
-        backgroundColor: backgroundColor ?? "#0f172a",
-        ...customStyle,
-      }}
-      containerProps={{
-        ...(containerProps ?? {}),
-        style: {
-          background:
-            "linear-gradient(140deg, rgba(15, 23, 42, 0.78), rgba(30, 64, 175, 0.45))",
-          borderRadius: 26,
-          ...(containerProps?.style ?? {}),
-        },
-      }}
-      infoOverlayProps={{
-        ...(infoOverlayProps ?? {}),
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "6px 16px",
-          borderRadius: 999,
-          background: "rgba(79, 70, 229, 0.9)",
-          color: "#f8fafc",
-          fontWeight: 600,
-          letterSpacing: 0.35,
-          ...(infoOverlayProps?.style ?? {}),
-        },
-      }}
-      controlsOverlayProps={{
-        ...(controlsOverlayProps ?? {}),
-        style: {
-          background: "rgba(15, 23, 42, 0.55)",
-          borderRadius: 16,
-          backdropFilter: "blur(8px)",
-          ...(controlsOverlayProps?.style ?? {}),
-        },
-      }}
-    />
-  );
-};
-
-const ShowcaseAudioCard: CustomAudioCardType = ({
-  customStyle,
-  cardProps,
-  nameContainerProps,
-  nameTextProps,
-  barColor,
-  ...rest
-}) => {
-  const accent = barColor ?? "#22c55e";
-
-  return (
-    <AudioCard
-      {...rest}
-      barColor={accent}
-      customStyle={{
-        borderRadius: 22,
-        border: `2px solid ${accent}`,
-        background:
-          "linear-gradient(135deg, rgba(34, 197, 94, 0.12), rgba(21, 128, 61, 0.45))",
-        boxShadow: "0 18px 40px rgba(21, 128, 61, 0.25)",
-        ...customStyle,
-      }}
-      cardProps={{
-        ...(cardProps ?? {}),
-        style: {
-          padding: 18,
-          gap: 14,
-          ...(cardProps?.style ?? {}),
-        },
-      }}
-      nameContainerProps={{
-        ...(nameContainerProps ?? {}),
-        style: {
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          ...(nameContainerProps?.style ?? {}),
-        },
-      }}
-      nameTextProps={{
-        ...(nameTextProps ?? {}),
-        style: {
-          fontSize: 16,
-          fontWeight: 600,
-          color: "#14532d",
-          ...(nameTextProps?.style ?? {}),
-        },
-      }}
-    />
-  );
-};
-
-const ShowcaseMiniCard: CustomMiniCardType = ({
-  customStyle,
-  initials,
-  fontSize,
-  renderContainer,
-  ...rest
-}) => {
-  const decorateContainer = ({
-    defaultContainer,
-  }: {
-    defaultContainer: React.ReactNode;
-    isImage: boolean;
-  }) => (
-    <div
-      style={{
-        display: "grid",
-        gap: 6,
-        justifyItems: "center",
-        alignItems: "center",
-        height: "100%",
-        width: "100%",
-      }}
-    >
-      {defaultContainer}
-    </div>
-  );
-
-  const combinedRenderContainer = (options: {
-    defaultContainer: React.ReactNode;
-    isImage: boolean;
-  }) => {
-    const decorated = decorateContainer(options);
-    return renderContainer
-      ? renderContainer({
-          defaultContainer: decorated,
-          isImage: options.isImage,
-        })
-      : decorated;
-  };
-
-  return (
-    <MiniCard
-      {...rest}
-      initials={initials}
-      fontSize={fontSize ?? 16}
-      customStyle={{
-        borderRadius: 16,
-        border: "2px dashed #f59e0b",
-        background: "#fff7ed",
-        color: "#b45309",
-        fontWeight: 600,
-        textTransform: "uppercase",
-        letterSpacing: 1,
-        padding: 12,
-        display: "grid",
-        placeItems: "center",
-        gap: 6,
-        width: "100%",
-        height: "100%",
-        minHeight: "100%",
-        boxSizing: "border-box",
-        ...customStyle,
-      }}
-      renderContainer={combinedRenderContainer}
-    />
-  );
-};
-
-const CustomWorkspace: CustomComponentType = ({ parameters }) => {
-  const {
-    roomName,
-    participants,
-    islevel,
-    meetingID,
-    showAlert,
-    toggleMenuModal,
-  } = parameters;
-
+/**
+ * A custom pre-join page widget that can be used instead of the default MediaSFU pre-join page.
+ *
+ * This component displays a personalized welcome message and includes a button to proceed to the session.
+ *
+ * **Note:** Ensure this component is passed to ModernMediasfuGeneric only when you intend to use a custom pre-join page.
+ */
+const MyCustomPreJoinPage: React.FC<{
+  options?: PreJoinPageOptions | WelcomePageOptions;
+  credentials: { apiUserName: string; apiKey: string };
+}> = ({ options, credentials }) => {
   return (
     <div
       style={{
-        display: "grid",
-        gridTemplateColumns: "minmax(260px, 320px) 1fr",
-        gridTemplateRows: "auto 1fr",
-        height: "100vh",
-        background: "#0f172a",
-        color: "#f1f5f9",
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        backgroundColor: '#1A1A2E',
+        color: 'white',
       }}
     >
-      <header
+      {/* App Bar */}
+      <div
         style={{
-          gridColumn: "1 / -1",
-          padding: "24px 32px",
-          borderBottom: "1px solid rgba(148, 163, 184, 0.3)",
+          padding: '16px 24px',
+          borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          backgroundColor: 'rgba(26, 26, 46, 0.8)',
         }}
       >
-        <h1 style={{ fontSize: 28, marginBottom: 8 }}>Custom Workspace</h1>
-        <p style={{ margin: 0, fontSize: 14, opacity: 0.8 }}>
-          Room <strong>{roomName || "Unnamed room"}</strong> · Meeting ID{" "}
-          <strong>{meetingID || "pending"}</strong> · Your role level:{" "}
-          <strong>{islevel || "viewer"}</strong>
-        </p>
-      </header>
+        <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 600 }}>
+          Welcome to MediaSFU Modern
+        </h1>
+      </div>
 
-      <aside
+      {/* Body */}
+      <div
         style={{
-          padding: 24,
-          borderRight: "1px solid rgba(148, 163, 184, 0.2)",
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px',
         }}
       >
-        <h2 style={{ fontSize: 16, marginBottom: 12 }}>
-          Participants ({participants?.length ?? 0})
+        <h2
+          style={{
+            fontSize: '28px',
+            fontWeight: 'bold',
+            marginBottom: '20px',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          Hello, {credentials.apiUserName}!
         </h2>
-        <ul
+        <p
           style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gap: 8,
+            fontSize: '18px',
+            color: 'rgba(255, 255, 255, 0.7)',
+            marginBottom: '40px',
           }}
         >
-          {(participants ?? []).map((person: Participant) => (
-            <li
-              key={person.id ?? person.name}
-              style={{
-                padding: "12px 16px",
-                borderRadius: 12,
-                background: "rgba(79, 70, 229, 0.15)",
-                border: "1px solid rgba(79, 70, 229, 0.4)",
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{person.name}</div>
-              <div style={{ fontSize: 12, opacity: 0.8 }}>
-                Level {person.islevel ?? "n/a"}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      <main
-        style={{
-          padding: 32,
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-        }}
-      >
-        <section
+          Get ready to join your modern session.
+        </p>
+        <button
+          onClick={() => {
+            // Proceed to the session by updating the validation status
+            if (options && 'parameters' in options && options.parameters) {
+              options.parameters.updateValidated(true);
+            }
+          }}
           style={{
-            padding: 24,
-            borderRadius: 18,
-            background:
-              "linear-gradient(135deg, rgba(79, 70, 229, 0.25), rgba(14, 165, 233, 0.25))",
-            border: "1px solid rgba(79, 70, 229, 0.55)",
-            boxShadow: "0 18px 45px rgba(15, 23, 42, 0.45)",
+            padding: '14px 32px',
+            fontSize: '16px',
+            fontWeight: 600,
+            color: 'white',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            borderRadius: '12px',
+            cursor: 'pointer',
+            boxShadow: '0 8px 24px rgba(102, 126, 234, 0.4)',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(102, 126, 234, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.4)';
           }}
         >
-          <h2 style={{ marginBottom: 12, fontSize: 18 }}>Custom Controls</h2>
-          <p style={{ marginBottom: 18, fontSize: 14, maxWidth: 420 }}>
-            Trigger native alerts, switch MediaSFU menus, or call any exposed
-            helper via <code>parameters</code>.
-          </p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              style={{
-                padding: "10px 18px",
-                borderRadius: 999,
-                border: "none",
-                background: "#22c55e",
-                color: "#022c22",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-              onClick={() =>
-                showAlert?.({
-                  message: "Custom workspace calling back into MediaSFU!",
-                  type: "success",
-                })
-              }
-            >
-              Trigger success toast
-            </button>
-            <button
-              type="button"
-              style={{
-                padding: "10px 18px",
-                borderRadius: 999,
-                border: "1px solid rgba(148, 163, 184, 0.6)",
-                background: "transparent",
-                color: "#e2e8f0",
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-              onClick={() => toggleMenuModal?.({ showMenuModal: true })}
-            >
-              Open menu modal
-            </button>
-          </div>
-        </section>
-        <footer style={{ fontSize: 12, opacity: 0.6 }}>
-          Built using <code>customComponent</code>. Disable{" "}
-          <code>enableFullCustomUI</code> to fall back to the standard UI.
-        </footer>
-      </main>
+          Join Now
+        </button>
+      </div>
     </div>
   );
 };
 
-const EnhancedMainContainer: React.FC<
-  React.ComponentProps<typeof MainContainerComponent>
-> = (props) => (
-  <div
-    style={{
-      border: "4px dashed rgba(139, 92, 246, 0.8)",
-      borderRadius: 28,
-      padding: 16,
-      background: "rgba(244, 244, 255, 0.55)",
-    }}
-  >
-    <div
-      style={{
-        fontSize: 12,
-        fontWeight: 600,
-        textTransform: "uppercase",
-        color: "#6b21a8",
-        marginBottom: 8,
-      }}
-    >
-      Custom main container wrapper (uiOverrides.mainContainer)
-    </div>
-    <MainContainerComponent {...props} />
-  </div>
-);
+/**
+ * The main application component for MediaSFU Modern UI.
+ *
+ * This component initializes the necessary credentials and configuration for the MediaSFU application
+ * using the Modern UI components with glassmorphic design.
+ */
+const AppModern: React.FC = () => {
+  // =========================================================
+  //                API CREDENTIALS CONFIGURATION
+  // =========================================================
 
-const EnhancedPagination: React.FC<React.ComponentProps<typeof Pagination>> = (
-  props
-) => (
-  <div
-    style={{
-      display: "grid",
-      gap: 8,
-      background: "#0ea5e9",
-      padding: "10px 14px",
-      borderRadius: 16,
-      color: "#f8fafc",
-    }}
-  >
-    <span
-      style={{ fontSize: 12, letterSpacing: 1, textTransform: "uppercase" }}
-    >
-      Custom pagination shell
-    </span>
-    <Pagination {...props} />
-  </div>
-);
+  /**
+   * Scenario A: Not using MediaSFU Cloud at all.
+   * - Dummy credentials are needed to render PreJoinPage.
+   */
+  /*
+  const credentials = {
+    apiUserName: 'dummyUsr',
+    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  } as const;
+  const localLink = 'http://your-ce-server.com';
+  const connectMediaSFU = false;
+  */
 
-const EnhancedAlert: React.FC<React.ComponentProps<typeof AlertComponent>> = (
-  props
-) => (
-  <AlertComponent
-    {...props}
-    containerProps={{
-      ...props.containerProps,
-      style: {
-        ...(props.containerProps?.style ?? {}),
-        borderRadius: 20,
-        border: "2px solid rgba(249, 115, 22, 0.6)",
-        boxShadow: "0 18px 38px rgba(249, 115, 22, 0.25)",
-        overflow: "hidden",
-      },
-    }}
-  />
-);
+  /**
+   * Scenario B: Using MediaSFU CE + MediaSFU Cloud for Egress only.
+   */
+  /*
+  const credentials = {
+    apiUserName: 'dummyUsr',
+    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  } as const;
+  const localLink = 'http://your-ce-server.com';
+  const connectMediaSFU = true;
+  */
 
-const FrostedMenuModal: React.FC<React.ComponentProps<typeof MenuModal>> = (
-  props
-) => (
-  <MenuModal
-    {...props}
-    overlayProps={{
-      ...(props.overlayProps ?? {}),
-      style: {
-        backdropFilter: "blur(16px)",
-        background: "rgba(15, 23, 42, 0.45)",
-        ...(props.overlayProps?.style ?? {}),
-      },
-    }}
-    contentProps={{
-      ...(props.contentProps ?? {}),
-      style: {
-        borderRadius: 28,
-        border: "1px solid rgba(148, 163, 184, 0.35)",
-        boxShadow: "0 24px 60px rgba(15, 23, 42, 0.35)",
-        background:
-          "linear-gradient(160deg, rgba(244, 244, 255, 0.92), rgba(224, 231, 255, 0.9))",
-        color: "#0f172a",
-        ...(props.contentProps?.style ?? {}),
-      },
-    }}
-  />
-);
+  /**
+   * Scenario C: Using MediaSFU Cloud without your own server.
+   */
+  const credentials = {
+    apiUserName: 'yourDevUser',
+    apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  } as const;
+  const localLink = 'http://localhost:3000';
+  const connectMediaSFU = false;
 
-const NeonParticipantsModal: React.FC<
-  React.ComponentProps<typeof ParticipantsModal>
-> = (props) => (
-  <ParticipantsModal
-    {...props}
-    contentProps={{
-      ...(props.contentProps ?? {}),
-      style: {
-        borderRadius: 26,
-        background: "#0f172a",
-        color: "#e2e8f0",
-        border: "1px solid rgba(59, 130, 246, 0.35)",
-        ...(props.contentProps?.style ?? {}),
-      },
-    }}
-    headerProps={{
-      ...(props.headerProps ?? {}),
-      style: {
-        ...(props.headerProps?.style ?? {}),
-        borderBottom: "1px solid rgba(148, 163, 184, 0.35)",
-        padding: "18px 22px",
-      },
-    }}
-    bodyProps={{
-      ...(props.bodyProps ?? {}),
-      style: {
-        ...(props.bodyProps?.style ?? {}),
-        background:
-          "radial-gradient(circle at top, rgba(59, 130, 246, 0.12), transparent 70%)",
-      },
-    }}
-  />
-);
+  // =========================================================
+  //                    UI RENDERING OPTIONS
+  // =========================================================
 
-const SoftConfirmExitModal: React.FC<
-  React.ComponentProps<typeof ConfirmExitModal>
-> = (props) => (
-  <ConfirmExitModal
-    {...props}
-    contentProps={{
-      ...(props.contentProps ?? {}),
-      style: {
-        borderRadius: 24,
-        background: "#fdf2f8",
-        border: "1px solid rgba(236, 72, 153, 0.35)",
-        ...(props.contentProps?.style ?? {}),
-      },
-    }}
-    confirmButtonProps={{
-      ...(props.confirmButtonProps ?? {}),
-      style: {
-        ...(props.confirmButtonProps?.style ?? {}),
-        background: "#f97316",
-        color: "#0f172a",
-        borderRadius: 999,
-        padding: "10px 22px",
-        fontWeight: 600,
-      },
-    }}
-    cancelButtonProps={{
-      ...(props.cancelButtonProps ?? {}),
-      style: {
-        ...(props.cancelButtonProps?.style ?? {}),
-        borderRadius: 999,
-        padding: "10px 22px",
-      },
-    }}
-  />
-);
-
-const SlateScreenboardModal: React.FC<
-  React.ComponentProps<typeof ScreenboardModal>
-> = (props) => (
-  <ScreenboardModal
-    {...props}
-    backgroundColor={props.backgroundColor ?? "rgba(15, 23, 42, 0.9)"}
-    position={props.position ?? "center"}
-  />
-);
-
-// -----------------------------------------------------------------------------
-// AppUnique Component
-// -----------------------------------------------------------------------------
-const AppUnique: React.FC = () => {
-  const [sourceParameters, setSourceParameters] = useState<{
-    [key: string]: any;
-  }>({});
-  const updateSourceParameters = (data: { [key: string]: any }) => {
-    setSourceParameters(data);
+  // Example noUIPreJoinOptions for creating a room
+  const noUIPreJoinOptionsCreate: CreateMediaSFURoomOptions = {
+    action: 'create',
+    capacity: 10,
+    duration: 15,
+    eventType: 'broadcast',
+    userName: 'Prince',
   };
 
-  // ---------------------------------------------------------------------------
-  // Connection Scenarios
-  // ---------------------------------------------------------------------------
-  const preset = connectionPresets[connectionScenario];
-  const { credentials, localLink, connectMediaSFU } = preset;
+  const returnUI = true;
 
-  // When the UI is bypassed, simulate pre-join input here
-  const noUIPreJoinOptions:
-    | CreateMediaSFURoomOptions
-    | JoinMediaSFURoomOptions
-    | undefined = enableNoUIPreJoin
-    ? {
-        action: "create",
-        capacity: 12,
-        duration: 30,
-        eventType: "conference",
-        userName: "Demo Host",
-      }
-    : undefined;
+  // State for source parameters when not using the default UI
+  const sourceParameters = useRef<Record<string, unknown>>({}).current;
 
-  const cardOverrides = useMemo<
-    Partial<
-      Pick<
-        MediasfuGenericOptions,
-        "customVideoCard" | "customAudioCard" | "customMiniCard"
-      >
-    >
-  >(() => {
-    if (!enableCardBuilders) {
-      return {};
+  // Update function to update source parameters if not using the default UI
+  const updateSourceParameters = useCallback((data: Record<string, unknown>) => {
+    Object.assign(sourceParameters, data);  
+    // Add custom logic here when source parameters change
+    if (data) {
+      // console.log('Source parameters updated:', data);
     }
+  }, []);
 
-    return {
-      customVideoCard: ShowcaseVideoCard,
-      customAudioCard: ShowcaseAudioCard,
-      customMiniCard: ShowcaseMiniCard,
+  // =========================================================
+  //              DEPRECATED SEED DATA EXAMPLE (OPTIONAL)
+  // =========================================================
+  const useSeed = false;
+  let seedData: Record<string, unknown> | undefined;
+
+  if (useSeed) {
+    const memberName = 'TestUser';
+    const hostName = 'TestHost';
+
+    const participants_ = generateRandomParticipants({
+      member: memberName,
+      coHost: '',
+      host: hostName,
+      forChatBroadcast: false,
+    });
+
+    const messages_ = generateRandomMessages({
+      participants: participants_,
+      member: memberName,
+      host: hostName,
+      forChatBroadcast: false,
+    });
+
+    const requests_ = generateRandomRequestList({
+      participants: participants_,
+      hostName,
+      coHostName: '',
+      numberOfRequests: 3,
+    });
+
+    const waitingList_ = generateRandomWaitingRoomList();
+
+    seedData = {
+      member: memberName,
+      host: hostName,
+      eventType: 'webinar',
+      participants: participants_,
+      messages: messages_,
+      requests: requests_,
+      waitingList: waitingList_,
     };
-  }, []);
+  }
 
-  const uiOverrides = useMemo<MediasfuUICustomOverrides | undefined>(() => {
-    if (!enableUICoreOverrides && !enableModalOverrides) {
-      return undefined;
-    }
+  // =========================================================
+  //           MODERN MEDIASFU GENERIC CONFIGURATION
+  // =========================================================
 
-    const overrides: MediasfuUICustomOverrides = {};
+  /**
+   * ModernMediasfuGeneric uses the new glassmorphic UI design.
+   *
+   * Key differences from MediasfuGeneric:
+   * - Modern control bar with glassmorphic effects
+   * - Modern modals with animations and blur effects
+   * - Dark mode by default
+   *
+   * All the same functionality as MediasfuGeneric but with
+   * the new modern UI components.
+   */
 
-    if (enableUICoreOverrides) {
-      overrides.mainContainer = { component: EnhancedMainContainer };
-      overrides.pagination = { component: EnhancedPagination };
-      overrides.alert = { component: EnhancedAlert };
-    }
+  // =========================================================
+  //                    RENDER COMPONENT
+  // =========================================================
 
-    if (enableModalOverrides) {
-      overrides.menuModal = { component: FrostedMenuModal };
-      overrides.participantsModal = { component: NeonParticipantsModal };
-      overrides.confirmExitModal = { component: SoftConfirmExitModal };
-      overrides.screenboardModal = { component: SlateScreenboardModal };
-    }
-
-    return Object.keys(overrides).length > 0 ? overrides : undefined;
-  }, []);
-
-  const containerStyle = enableContainerStyling
-    ? {
-        background:
-          "linear-gradient(135deg, #f9fafb 0%, #e0f2fe 45%, #ede9fe 100%)",
-        borderRadius: 32,
-        padding: "12px 12px 24px",
-        boxShadow: "0 18px 48px rgba(15, 23, 42, 0.18)",
-      }
-    : undefined;
-
-  const ExperienceComponent = experienceComponentMap[selectedExperience];
-
-  const preJoinRenderer = showPrebuiltUI
-    ? (options: React.ComponentProps<typeof PreJoinPage>) => (
-        <PreJoinPage {...options} />
-      )
-    : undefined;
-
-  const customComponent = enableFullCustomUI ? CustomWorkspace : undefined;
-
+  // Basic Modern MediaSFU configuration
+  // When PrejoinPage is not provided, the default WelcomePage is used internally
   return (
-    <ExperienceComponent
-      PrejoinPage={preJoinRenderer}
-      localLink={localLink}
-      connectMediaSFU={connectMediaSFU}
+    <ModernMediasfuGeneric
+      // Pass your Credentials if you will be using MediaSFU Cloud
       credentials={credentials}
-      // returnUI={!enableFullCustomUI && showPrebuiltUI}
-      // noUIPreJoinOptions={noUIPreJoinOptions}
-      // sourceParameters={sourceParameters}
-      // updateSourceParameters={updateSourceParameters}
-      // customComponent={customComponent}
-      // containerStyle={containerStyle}
-      uiOverrides={uiOverrides}
-      // createMediaSFURoom={enableBackendProxyHooks ? createRoomOnMediaSFU : undefined}
-      // joinMediaSFURoom={enableBackendProxyHooks ? joinRoomOnMediaSFU : undefined}
-      {...cardOverrides}
+      connectMediaSFU={connectMediaSFU}
+      // Use your own MediaSFU server link if using MediaSFU Community Edition
+      localLink={localLink}
+      // Set to false to use a custom UI, true to use the default MediaSFU UI
+      returnUI={returnUI}
+      // Provide pre-join options if not using the default UI (if creating a room)
+      noUIPreJoinOptions={!returnUI ? noUIPreJoinOptionsCreate : undefined}
+      // Source parameters for custom UI integration
+      sourceParameters={!returnUI ? sourceParameters : undefined}
+      updateSourceParameters={!returnUI ? updateSourceParameters : undefined}
+      // Provide custom room functions
+      // createMediaSFURoom={createRoomOnMediaSFU}
+      // joinMediaSFURoom={joinRoomOnMediaSFU}
+      // Optional: Container styling for custom layouts
     />
   );
+
+  // =========================================================
+  //                    ALTERNATIVE EXAMPLES
+  // =========================================================
+
+  /*
+  // Example with custom pre-join page
+  return (
+    <ModernMediasfuGeneric
+      PrejoinPage={({ options }) => (
+        <MyCustomPreJoinPage options={options} credentials={credentials} />
+      )}
+      credentials={credentials}
+      connectMediaSFU={connectMediaSFU}
+    />
+  );
+  */
+
+  /*
+  // Example with Modern PreJoinPage component
+  return (
+    <ModernMediasfuGeneric
+      PrejoinPage={ModernPreJoinPage}
+      credentials={credentials}
+      connectMediaSFU={connectMediaSFU}
+      localLink={localLink}
+      createMediaSFURoom={createRoomOnMediaSFU}
+      joinMediaSFURoom={joinRoomOnMediaSFU}
+    />
+  );
+  */
+
+  /*
+  // Example with seed data for testing
+  return (
+    <ModernMediasfuGeneric
+      PrejoinPage={PreJoinPage}
+      credentials={credentials}
+      connectMediaSFU={connectMediaSFU}
+      useSeed={true}
+      seedData={{
+        member: 'TestUser',
+        host: 'TestHost',
+        eventType: 'webinar',
+        participants: generateRandomParticipants({
+          member: 'TestUser',
+          coHost: '',
+          host: 'TestHost',
+          forChatBroadcast: false,
+        }),
+        messages: generateRandomMessages({
+          participants: [],
+          member: 'TestUser',
+          host: 'TestHost',
+          forChatBroadcast: false,
+        }),
+        requests: generateRandomRequestList({
+          participants: [],
+          hostName: 'TestHost',
+          coHostName: '',
+          numberOfRequests: 3,
+        }),
+        waitingList: generateRandomWaitingRoomList(),
+      }}
+    />
+  );
+  */
+
+  /*
+  // Example with returnUI = false for custom UI
+  return (
+    <ModernMediasfuGeneric
+      PrejoinPage={PreJoinPage}
+      credentials={credentials}
+      connectMediaSFU={connectMediaSFU}
+      returnUI={false}
+      noUIPreJoinOptions={noUIPreJoinOptionsCreate}
+      sourceParameters={sourceParameters}
+      updateSourceParameters={updateSourceParameters}
+    />
+  );
+  */
+
+  /*
+  // Example with custom video/audio/mini cards for Modern styling
+  // You can import Modern card components and use them as custom cards
+  import { ModernVideoCard, ModernAudioCard, ModernMiniCard } from './components_modern/mediasfu_components/ModernMediasfuGeneric';
+
+  const modernVideoCard: CustomVideoCardType = (props) => (
+    <ModernVideoCard {...props} isDarkMode={true} />
+  );
+
+  const modernAudioCard: CustomAudioCardType = (props) => (
+    <ModernAudioCard {...props} isDarkMode={true} />
+  );
+
+  const modernMiniCard: CustomMiniCardType = (props) => (
+    <ModernMiniCard {...props} isDarkMode={true} />
+  );
+
+  return (
+    <ModernMediasfuGeneric
+      credentials={credentials}
+      connectMediaSFU={connectMediaSFU}
+      customVideoCard={modernVideoCard}
+      customAudioCard={modernAudioCard}
+      customMiniCard={modernMiniCard}
+    />
+  );
+  */
 };
 
-export default AppUnique;
+export default AppModern;

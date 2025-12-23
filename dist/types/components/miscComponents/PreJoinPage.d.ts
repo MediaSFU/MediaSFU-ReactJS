@@ -1,5 +1,5 @@
 import React from "react";
-import { ConnectSocketType, ShowAlert, ConnectLocalSocketType, RecordingParams, MeetingRoomParams, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from "../../@types/types";
+import { ConnectSocketType, ShowAlert, ConnectLocalSocketType, RecordingParams, MeetingRoomParams, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, EventType } from "../../@types/types";
 import { CreateRoomOnMediaSFUType, JoinRoomOnMediaSFUType } from "../../methods/utils/joinRoomOnMediaSFU";
 import { Socket } from "socket.io-client";
 export interface JoinLocalEventRoomParameters {
@@ -53,6 +53,16 @@ export interface PreJoinPageParameters {
     updateLink: (link: string) => void;
     updateRoomName: (roomName: string) => void;
     updateMember: (member: string) => void;
+    updateAudioPreference?: (deviceId: string) => void;
+    updateVideoPreference?: (deviceId: string) => void;
+    updateAudioOutputPreference?: (deviceId: string) => void;
+    updateIsDarkMode?: (isDarkMode: boolean) => void;
+    updateEventType?: (eventType: EventType) => void;
+    updateVirtualBackground?: (background: any) => void;
+    updateCurrentFacingMode?: (facingMode: string) => void;
+    updateKeepBackground?: (keep: boolean) => void;
+    updateAppliedBackground?: (applied: boolean) => void;
+    updateSelfieSegmentation?: (selfieSegmentation: any) => void;
 }
 export interface Credentials {
     apiUserName: string;

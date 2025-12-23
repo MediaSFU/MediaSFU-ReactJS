@@ -274,10 +274,9 @@ const OtherGridComponent: React.FC<OtherGridComponentOptions> = ({
         height,
         display: showAspect ? "block" : "none",
         overflow: "hidden",
-        borderStyle: "solid",
-        borderColor: "black",
-        borderWidth: 2,
-        borderRadius: 0,
+        border: "1px solid rgba(255, 255, 255, 0.08)",
+        borderRadius: 12,
+        boxShadow: "0 4px 24px rgba(0, 0, 0, 0.15)",
         margin: 0,
         padding: 0,
       }}

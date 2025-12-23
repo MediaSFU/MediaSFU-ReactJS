@@ -1,5 +1,6 @@
 import React from "react";
 import { ModifyDisplaySettingsOptions, ModifyDisplaySettingsParameters } from "../../methods/displaySettingsMethods/modifyDisplaySettings";
+import { ModalRenderMode } from '../menuComponents/MenuModal';
 export interface DisplaySettingsModalParameters extends ModifyDisplaySettingsParameters {
     meetingDisplayType: string;
     autoWave: boolean;
@@ -13,6 +14,12 @@ export interface DisplaySettingsModalOptions {
     parameters: DisplaySettingsModalParameters;
     position?: "topRight" | "topLeft" | "bottomRight" | "bottomLeft";
     backgroundColor?: string;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
 }
 export type DisplaySettingsModalType = (options: DisplaySettingsModalOptions) => React.JSX.Element;
 /**

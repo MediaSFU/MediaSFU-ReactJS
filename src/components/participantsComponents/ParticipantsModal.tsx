@@ -13,6 +13,7 @@ import {
   ShowAlert,
 } from "../../@types/types";
 import { Socket } from "socket.io-client";
+import { ModalRenderMode } from "../menuComponents/MenuModal";
 
 export interface ParticipantsModalParameters {
   position?: string;
@@ -48,6 +49,12 @@ export interface ParticipantsModalOptions {
   parameters: ParticipantsModalParameters;
   backgroundColor?: string;
   position?: string;
+  /** Theme control - whether dark mode is active */
+  isDarkMode?: boolean;
+  /** Enable glassmorphism effects (modern UI) */
+  enableGlassmorphism?: boolean;
+  /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+  renderMode?: ModalRenderMode;
   title?: React.ReactNode;
   overlayProps?: React.HTMLAttributes<HTMLDivElement>;
   contentProps?: React.HTMLAttributes<HTMLDivElement>;

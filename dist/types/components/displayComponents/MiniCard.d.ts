@@ -23,6 +23,7 @@ export interface MiniCardOptions {
         defaultInitials: React.ReactNode;
         initials?: string;
     }) => React.ReactNode;
+    isDarkMode?: boolean;
 }
 export type MiniCardType = (options: MiniCardOptions) => React.JSX.Element;
 /**

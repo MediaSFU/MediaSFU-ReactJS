@@ -1,3 +1,6 @@
+// Auto-inject critical styles for button containers
+import './utils/injectCriticalStyles';
+
 export * from './@types/types';
 
 // Utility and initial state
@@ -157,6 +160,9 @@ export * from './components/mediasfuComponents/MediasfuBroadcast';
 export * from './components/mediasfuComponents/MediasfuWebinar';
 export * from './components/mediasfuComponents/MediasfuConference';
 export * from './components/mediasfuComponents/MediasfuChat';
+
+// Modern UI Event Rooms
+export * from './components_modern/mediasfu_components/ModernMediasfuGeneric';
 
 // Random Data
 export * from './methods/utils/generateRandomParticipants';
@@ -396,6 +402,11 @@ import { joinRoomOnMediaSFU } from './methods/utils/joinRoomOnMediaSFU';
 import { createRoomOnMediaSFU } from './methods/utils/createRoomOnMediaSFU';
 import { checkLimitsAndMakeRequest } from './methods/utils/checkLimitsAndMakeRequest';
 import { createResponseJoinRoom } from './methods/utils/createResponseJoinRoom';
+
+// Modern UI Components
+// Limited Components (for website integration)
+// export * from './components_limited';
+export * from './components_modern';
 
 
 

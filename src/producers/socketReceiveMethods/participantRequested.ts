@@ -48,8 +48,20 @@ export const participantRequested = async ({
   updateRequestList,
 }: ParticipantRequestedOptions): Promise<void> => {
 
-  // Add the user request to the request list
-  const updatedRequestList = [...requestList, userRequest];
+  // Check if a request from this participant already exists
+  const existingIndex = requestList.findIndex(
+    (req) => req.id === userRequest.id
+  );
+
+  let updatedRequestList: Request[];
+  if (existingIndex !== -1) {
+    // Update existing request instead of adding duplicate
+    updatedRequestList = [...requestList];
+    updatedRequestList[existingIndex] = userRequest;
+  } else {
+    // Add the user request to the request list
+    updatedRequestList = [...requestList, userRequest];
+  }
   updateRequestList(updatedRequestList);
 
   // Update the total count of requests and waiting room participants

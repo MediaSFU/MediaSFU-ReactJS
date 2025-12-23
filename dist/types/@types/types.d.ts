@@ -433,10 +433,15 @@ export interface AudioDecibels {
     name: string;
     averageLoudness: number;
 }
+/** Position of the alert on screen */
+export type AlertPosition = 'top' | 'bottom' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center';
 export type ShowAlert = (options: {
     message: string;
-    type: "success" | "danger";
+    /** Alert semantics */
+    type: "success" | "danger" | "warning" | "info";
     duration?: number;
+    /** Position of the alert. Use 'center' for action-triggered alerts that need attention. Default: 'top' */
+    position?: AlertPosition;
 }) => void;
 export interface CoHostResponsibility {
     name: string;
@@ -632,6 +637,10 @@ export interface CreateRoomOptions {
     supportSIP: boolean;
     directionSIP: 'inbound' | 'outbound' | 'both';
     preferPCMA: boolean;
+    supportTranslation: boolean;
+    translationConfigNickName: string;
+    supportFlexRoom: boolean;
+    supportMaxRoom: boolean;
 }
 export interface CreateMediaSFURoomOptions {
     action: 'create';
@@ -652,6 +661,10 @@ export interface CreateMediaSFURoomOptions {
     supportSIP?: boolean;
     directionSIP?: 'inbound' | 'outbound' | 'both';
     preferPCMA?: boolean;
+    supportTranslation?: boolean;
+    translationConfigNickName?: string;
+    supportFlexRoom?: boolean;
+    supportMaxRoom?: boolean;
 }
 export interface JoinMediaSFURoomOptions {
     action: 'join';
@@ -690,6 +703,8 @@ export interface ResponseJoinRoom {
     banned?: boolean;
     suspended?: boolean;
     noAdmin?: boolean;
+    supportFlexRoom?: boolean;
+    supportMaxRoom?: boolean;
 }
 export interface AllMembersData {
     members: Participant[];

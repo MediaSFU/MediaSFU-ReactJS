@@ -8,6 +8,12 @@ export interface RenderRequestComponentOptions {
     updateRequestList: (newRequestList: Request[]) => void;
     roomName: string;
     socket: Socket;
+    /** Optional dark-mode toggle for theme-aware styling */
+    isDarkMode?: boolean;
+    /** Enable native title tooltips on controls */
+    showTooltips?: boolean;
+    /** Accent color used for the icon background */
+    accentColor?: string;
 }
 export type RenderRequestComponentType = (options: RenderRequestComponentOptions) => React.JSX.Element;
 /**

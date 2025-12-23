@@ -21,6 +21,8 @@ export interface CustomButton {
   iconStyle?: React.CSSProperties;
   text?: string;
   textStyle?: React.CSSProperties;
+  /** More descriptive tooltip text shown on hover (defaults to text if not provided) */
+  tooltip?: string;
   customComponent?: React.ReactNode;
   buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   contentProps?: React.HTMLAttributes<HTMLDivElement>;

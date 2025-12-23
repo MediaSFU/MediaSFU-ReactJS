@@ -41,6 +41,14 @@ export interface FlexibleVideoOptions {
   renderScreenboard?: (options: {
     defaultScreenboard: React.ReactNode;
   }) => React.ReactNode;
+  /** Dark mode toggle (default: true) - Used by Modern UI components */
+  isDarkMode?: boolean;
+  /** Enable glassmorphic styling (default: true) - Used by Modern UI components */
+  enableGlassmorphism?: boolean;
+  /** Custom cell border radius - Used by Modern UI components */
+  cellBorderRadius?: number;
+  /** Enable glow effects - Used by Modern UI components */
+  enableGlow?: boolean;
 }
 
 export type FlexibleVideoType = (options: FlexibleVideoOptions) => React.JSX.Element;

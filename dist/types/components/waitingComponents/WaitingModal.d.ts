@@ -3,6 +3,7 @@ import { RespondToWaitingType } from "../../methods/waitingMethods/respondToWait
 import "./WaitingRoomModal.css";
 import { WaitingRoomParticipant } from "../../@types/types";
 import { Socket } from "socket.io-client";
+import { ModalRenderMode } from "../menuComponents/MenuModal";
 export interface WaitingRoomModalParameters {
     filteredWaitingRoomList: WaitingRoomParticipant[];
     getUpdatedAllParams: () => WaitingRoomModalParameters;
@@ -20,6 +21,12 @@ export interface WaitingRoomModalOptions {
     position?: string;
     backgroundColor?: string;
     parameters: WaitingRoomModalParameters;
+    /** Theme control - whether dark mode is active */
+    isDarkMode?: boolean;
+    /** Enable glassmorphism effects (modern UI) */
+    enableGlassmorphism?: boolean;
+    /** Render mode: modal (default overlay), sidebar (inline for desktop), inline (no wrapper) */
+    renderMode?: ModalRenderMode;
     onWaitingRoomItemPress?: RespondToWaitingType;
     title?: React.ReactNode;
     overlayProps?: React.HTMLAttributes<HTMLDivElement>;

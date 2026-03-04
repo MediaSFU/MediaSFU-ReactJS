@@ -2,6 +2,7 @@ import React from "react";
 import MiniCard from "./MiniCard";
 import { ControlsPosition, InfoPosition, Participant, ControlMediaOptions, AudioDecibels, CoHostResponsibility, ShowAlert } from "../../@types/types";
 import { Socket } from "socket.io-client";
+import type { LiveSubtitle } from '../../producers/socketReceiveMethods/translationReceiveMethods';
 export interface AudioCardParameters {
     audioDecibels: AudioDecibels[];
     participants: Participant[];
@@ -67,6 +68,10 @@ export interface AudioCardOptions {
     imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
     showWaveformWhenMuted?: boolean;
     isDarkMode?: boolean;
+    /** Live subtitle for displaying translated speech */
+    liveSubtitle?: LiveSubtitle | null | (() => LiveSubtitle | null);
+    /** Whether to show subtitles on this card */
+    showSubtitles?: boolean;
 }
 export type AudioCardType = (options: AudioCardOptions) => React.JSX.Element;
 declare const AudioCard: React.FC<AudioCardOptions>;

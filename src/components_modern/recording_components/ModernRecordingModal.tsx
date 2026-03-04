@@ -90,7 +90,6 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   renderMode = 'modal',
   // Render props
   renderHeader,
@@ -219,8 +218,9 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: `${MediasfuSpacing.md}px`,
+    padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.lg}px`,
     borderBottom: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
+    background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.02)',
     ...headerStyleOverrides,
   };
 
@@ -241,7 +241,8 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
     alignItems: 'center',
     gap: `${MediasfuSpacing.sm}px`,
     margin: 0,
-    color: MediasfuColors.danger,
+    color: isDarkMode ? '#f8fafc' : '#0f172a',
+    letterSpacing: '0.01em',
     ...titleStyleOverrides,
   };
 
@@ -301,7 +302,7 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
     .trim() || undefined;
 
   const bodyStyle: React.CSSProperties = {
-    padding: `${MediasfuSpacing.md}px`,
+    padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.lg}px`,
     overflowY: 'auto',
     flex: 1,
     display: 'flex',
@@ -314,21 +315,22 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
   const tabsStyle: React.CSSProperties = {
     display: 'flex',
     gap: `${MediasfuSpacing.xs}px`,
-    padding: `${MediasfuSpacing.xs}px`,
-    background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
+    padding: `3px`,
+    background: isDarkMode ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.06)',
     borderRadius: MediasfuBorders.md,
+    boxShadow: isDarkMode ? 'inset 0 1px 3px rgba(0,0,0,0.3)' : 'inset 0 1px 3px rgba(0,0,0,0.08)',
   };
 
   const tabStyle = (isActive: boolean): React.CSSProperties => ({
     flex: 1,
     padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
     background: isActive
-      ? MediasfuColors.brandGradient(isDarkMode)
+      ? isDarkMode ? 'rgba(255,255,255,0.12)' : '#FFFFFF'
       : 'transparent',
     border: 'none',
     borderRadius: MediasfuBorders.sm,
     cursor: 'pointer',
-    color: isActive ? '#FFFFFF' : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+    color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     fontWeight: isActive ? 600 : 400,
     fontSize: 14,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
@@ -336,13 +338,17 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
     alignItems: 'center',
     justifyContent: 'center',
     gap: `${MediasfuSpacing.xs}px`,
+    boxShadow: isActive
+      ? isDarkMode ? '0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.08)' : '0 1px 4px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.06)'
+      : 'none',
   });
 
   const actionsStyle: React.CSSProperties = {
     display: 'flex',
     gap: `${MediasfuSpacing.sm}px`,
-    padding: `${MediasfuSpacing.md}px`,
+    padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.lg}px`,
     borderTop: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
+    background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)',
   };
 
   // Default header
@@ -493,7 +499,18 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
     const sidebarContent = (
       <div
         className={contentClassName}
-        style={{ display: 'flex', flexDirection: 'column', height: '100%', ...contentStyleOverrides }}
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          background: isDarkMode
+            ? 'rgba(15, 23, 42, 0.82)'
+            : 'rgba(255, 255, 255, 0.88)',
+          backdropFilter: enableGlassmorphism ? 'blur(24px) saturate(1.4)' : undefined,
+          WebkitBackdropFilter: enableGlassmorphism ? 'blur(24px) saturate(1.4)' : undefined,
+          borderLeft: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
+          ...contentStyleOverrides,
+        }}
         {...restContentProps}
       >
         {renderHeader ? renderHeader({ defaultHeader, onClose }) : defaultHeader}
@@ -518,10 +535,8 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
       elevation={4}
       style={{
         ...modalStyle,
-        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-        boxShadow: enableGlow
-          ? `${MediasfuColors.elevation(4, isDarkMode)}, 0 0 30px ${MediasfuColors.hexToRgba(MediasfuColors.danger, 0.3)}`
-          : MediasfuColors.elevation(4, isDarkMode),
+        backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.88)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
       }}
     >
       {renderHeader ? renderHeader({ defaultHeader, onClose }) : defaultHeader}

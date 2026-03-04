@@ -28,6 +28,9 @@ import {
   faWandMagicSparkles,
   faSliders,
   faClock,
+  faClosedCaptioning,
+  faInfoCircle,
+  faStar,
 } from '@fortawesome/free-solid-svg-icons';
 
 import type { Participant, ShowAlert } from '../../@types/types';
@@ -172,6 +175,18 @@ export interface TranslationSettingsModalOptions {
   socket: Socket;
   roomName: string;
   showAlert?: ShowAlert;
+
+  // Live subtitles
+  /** Whether to show subtitles on video cards */
+  showSubtitlesOnCards?: boolean;
+  /** Callback to update subtitle visibility */
+  updateShowSubtitlesOnCards?: (value: boolean) => void;
+
+  /** True when translation is billed from the user's personal credits (not room-wide) */
+  isPersonalTranslation?: boolean;
+
+  /** User's voice clones passed from the app level */
+  userVoiceClones?: Array<{ id?: string; providerVoiceId?: string; voiceId?: string; name?: string; provider?: string; isDefault?: boolean }>;
 }
 
 export interface TranslationSettingsModalProps extends TranslationSettingsModalOptions {
@@ -547,6 +562,10 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   socket,
   roomName,
   showAlert,
+  showSubtitlesOnCards,
+  updateShowSubtitlesOnCards,
+  isPersonalTranslation = false,
+  userVoiceClones,
   // Theme
   isDarkMode = true,
   enableGlassmorphism = true,
@@ -579,7 +598,11 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   const [listenCooldown, setListenCooldown] = useState<number>(0);
   
   // Voice selection state
-  const [voiceSelectionMode, setVoiceSelectionMode] = useState<VoiceSelectionMode>('basic');
+  const initialClones = userVoiceClones || [];
+  const defaultClone = initialClones.find(c => c.isDefault) || initialClones[0];
+  const defaultCloneId = defaultClone ? (defaultClone.providerVoiceId || defaultClone.voiceId || defaultClone.id || '') : '';
+  const defaultCloneProv = defaultClone?.provider || 'cartesia';
+  const [voiceSelectionMode, setVoiceSelectionMode] = useState<VoiceSelectionMode>(initialClones.length > 0 ? 'clone' : 'basic');
   const [selectedVoiceGender, setSelectedVoiceGender] = useState<VoiceGender>('female');
   const [selectedVoiceId, setSelectedVoiceId] = useState<string | null>(null);
   const [selectedTTSProvider, setSelectedTTSProvider] = useState<TTSProvider>(
@@ -587,11 +610,15 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   );
   
   // Voice cloning state
-  const [voiceCloneConfig, setVoiceCloneConfig] = useState<VoiceCloneConfig | null>(null);
+  const [voiceCloneConfig, setVoiceCloneConfig] = useState<VoiceCloneConfig | null>(
+    defaultCloneId ? { provider: defaultCloneProv as 'elevenlabs' | 'playht' | 'coqui', voiceId: defaultCloneId } : null
+  );
   const [cloneVoiceId, setCloneVoiceId] = useState<string>('');
   const [cloneProvider, setCloneProvider] = useState<'elevenlabs' | 'playht' | 'coqui'>('elevenlabs');
   const [cloneStability, setCloneStability] = useState<number>(0.5);
   const [cloneSimilarity, setCloneSimilarity] = useState<number>(0.75);
+  const [fetchedClones] = useState<Array<{ id?: string; providerVoiceId?: string; voiceId?: string; name?: string; provider?: string; isDefault?: boolean }>>(userVoiceClones || []); 
+  const [showManualCloneEntry, setShowManualCloneEntry] = useState(false);
   
   // Voice state (fetched from server on first modal open)
   const [availableVoices, setAvailableVoices] = useState<{ male: VoiceOption[]; female: VoiceOption[] } | null>(null);
@@ -1132,6 +1159,7 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
         style={{
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           gap: MediasfuSpacing.sm,
           padding: MediasfuSpacing.md,
           background: isDarkMode
@@ -1140,28 +1168,82 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
           borderRadius: MediasfuBorders.md,
         }}
       >
-        <input
-          type="checkbox"
-          id="enableTranslation"
-          checked={localSpokenEnabled}
-          onChange={(e) => setLocalSpokenEnabled(e.target.checked)}
-          style={{
-            width: 20,
-            height: 20,
-            accentColor: isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary,
-          }}
-        />
         <label
           htmlFor="enableTranslation"
           style={{
             color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
             fontSize: MediasfuTypography.bodyMedium.fontSize,
             cursor: 'pointer',
+            flex: 1,
           }}
         >
           Speak in a different language (translate my voice)
         </label>
+        <div
+          onClick={() => setLocalSpokenEnabled(!localSpokenEnabled)}
+          style={{
+            position: 'relative',
+            width: 44,
+            height: 24,
+            borderRadius: 12,
+            background: localSpokenEnabled
+              ? '#22C55E'
+              : isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)',
+            cursor: 'pointer',
+            transition: 'background 0.2s ease',
+            flexShrink: 0,
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              top: 2,
+              left: localSpokenEnabled ? 22 : 2,
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              background: '#fff',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              transition: 'left 0.2s ease',
+            }}
+          />
+        </div>
       </div>
+
+      {isPersonalTranslation && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: MediasfuSpacing.sm,
+            marginTop: MediasfuSpacing.sm,
+            padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
+            background: isDarkMode
+              ? 'rgba(234, 179, 8, 0.08)'
+              : 'rgba(234, 179, 8, 0.06)',
+            borderRadius: MediasfuBorders.sm,
+            border: `1px solid ${isDarkMode ? 'rgba(234, 179, 8, 0.2)' : 'rgba(234, 179, 8, 0.15)'}`,
+          }}
+        >
+          <FontAwesomeIcon
+            icon={faInfoCircle}
+            style={{
+              color: isDarkMode ? '#FBBF24' : '#D97706',
+              fontSize: 13,
+              flexShrink: 0,
+            }}
+          />
+          <span
+            style={{
+              color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+              fontSize: MediasfuTypography.bodySmall.fontSize,
+              lineHeight: 1.4,
+            }}
+          >
+            Translation is billed from your personal credits
+          </span>
+        </div>
+      )}
 
       {localSpokenEnabled && (
         <>
@@ -1293,10 +1375,6 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
                     <button
                       key={mode}
                       onClick={() => {
-                        if (mode === 'clone') {
-                          showAlert?.({ message: '🎤 Voice Cloning - Coming Soon!', type: 'info', duration: 3000 });
-                          return;
-                        }
                         setVoiceSelectionMode(mode);
                       }}
                       style={{
@@ -1487,179 +1565,309 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
               {/* Clone Mode: Voice Cloning */}
               {voiceSelectionMode === 'clone' && (
                 <div>
+                  {/* Info banner */}
                   <div style={{
                     padding: MediasfuSpacing.sm,
                     marginBottom: MediasfuSpacing.md,
                     background: isDarkMode
-                      ? MediasfuColors.hexToRgba(MediasfuColors.warning, 0.1)
-                      : MediasfuColors.hexToRgba(MediasfuColors.warning, 0.05),
+                      ? MediasfuColors.hexToRgba(MediasfuColors.info, 0.1)
+                      : MediasfuColors.hexToRgba(MediasfuColors.info, 0.05),
                     borderRadius: MediasfuBorders.sm,
-                    color: MediasfuColors.warning,
+                    color: isDarkMode ? '#60a5fa' : '#2563eb',
                     fontSize: MediasfuTypography.bodySmall.fontSize,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: MediasfuSpacing.sm,
                   }}>
-                    ⚠️ Voice cloning requires a pre-created cloned voice from your TTS provider.
+                    <FontAwesomeIcon icon={faInfoCircle} style={{ fontSize: 14 }} />
+                    Select a cloned voice or enter a voice ID manually.
                   </div>
 
-                  {/* Clone Provider */}
-                  <div style={{ marginBottom: MediasfuSpacing.md }}>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: MediasfuSpacing.sm,
-                      color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
-                      fontSize: MediasfuTypography.bodySmall.fontSize,
-                    }}>
-                      Voice Clone Provider
-                    </label>
-                    <select
-                      value={cloneProvider}
-                      onChange={(e) => setCloneProvider(e.target.value as 'elevenlabs' | 'playht' | 'coqui')}
-                      style={{
-                        width: '100%',
-                        padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
-                        borderRadius: MediasfuBorders.md,
-                        border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`,
-                        background: isDarkMode
-                          ? MediasfuColors.hexToRgba(MediasfuColors.surfaceElevatedDark, 0.8)
-                          : MediasfuColors.hexToRgba(MediasfuColors.surfaceElevated, 0.8),
-                        color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
-                        fontSize: MediasfuTypography.bodyMedium.fontSize,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <option value="elevenlabs">ElevenLabs (Recommended)</option>
-                      <option value="playht">PlayHT</option>
-                      <option value="coqui">Coqui TTS</option>
-                    </select>
-                  </div>
-
-                  {/* Clone Voice ID */}
-                  <div style={{ marginBottom: MediasfuSpacing.md }}>
-                    <label style={{
-                      display: 'block',
-                      marginBottom: MediasfuSpacing.sm,
-                      color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
-                      fontSize: MediasfuTypography.bodySmall.fontSize,
-                    }}>
-                      Cloned Voice ID
-                    </label>
-                    <input
-                      type="text"
-                      value={cloneVoiceId}
-                      onChange={(e) => setCloneVoiceId(e.target.value)}
-                      placeholder="Enter your cloned voice ID"
-                      style={{
-                        width: '100%',
-                        padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
-                        borderRadius: MediasfuBorders.md,
-                        border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`,
-                        background: isDarkMode
-                          ? MediasfuColors.hexToRgba(MediasfuColors.surfaceElevatedDark, 0.8)
-                          : MediasfuColors.hexToRgba(MediasfuColors.surfaceElevated, 0.8),
-                        color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
-                        fontSize: MediasfuTypography.bodyMedium.fontSize,
-                      }}
-                    />
-                  </div>
-
-                  {/* ElevenLabs-specific settings */}
-                  {cloneProvider === 'elevenlabs' && (
-                    <>
-                      <div style={{ marginBottom: MediasfuSpacing.md }}>
-                        <label style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: MediasfuSpacing.xs,
-                          color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
-                          fontSize: MediasfuTypography.bodySmall.fontSize,
-                        }}>
-                          <span>Stability</span>
-                          <span>{Math.round(cloneStability * 100)}%</span>
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.05"
-                          value={cloneStability}
-                          onChange={(e) => setCloneStability(parseFloat(e.target.value))}
-                          style={{
-                            width: '100%',
-                            accentColor: isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary,
-                          }}
-                        />
-                        <p style={{ 
-                          margin: `${MediasfuSpacing.xs}px 0 0`, 
-                          fontSize: '11px',
-                          color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-                        }}>
-                          Higher = more consistent, Lower = more expressive
-                        </p>
+                  {/* Clones display (passed from app level) */}
+                  {fetchedClones.length > 0 && (
+                    <div style={{ marginBottom: MediasfuSpacing.md }}>
+                      <label style={{
+                        display: 'block',
+                        marginBottom: MediasfuSpacing.sm,
+                        color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                        fontSize: MediasfuTypography.bodySmall.fontSize,
+                      }}>
+                        Your Cloned Voices
+                      </label>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: MediasfuSpacing.sm }}>
+                        {fetchedClones.map((clone, idx) => {
+                          const cId = clone.providerVoiceId || clone.voiceId || clone.id || '';
+                          const cName = clone.name || 'Clone';
+                          const cProv = clone.provider || 'cartesia';
+                          const isDefault = clone.isDefault === true;
+                          const isSelected = voiceCloneConfig?.voiceId === cId;
+                          return (
+                            <button
+                              key={idx}
+                              onClick={() => {
+                                setVoiceCloneConfig({ provider: cProv as 'elevenlabs' | 'playht' | 'coqui', voiceId: cId });
+                                showAlert?.({ message: `Voice clone "${cName}" selected!`, type: 'success', duration: 2000 });
+                              }}
+                              style={{
+                                padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
+                                background: isSelected
+                                  ? (isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary)
+                                  : (isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)'),
+                                border: `${isSelected ? 2 : 1}px solid ${isSelected
+                                  ? (isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary)
+                                  : (isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)')}`,
+                                borderRadius: MediasfuBorders.md,
+                                cursor: 'pointer',
+                                color: isSelected ? '#fff' : (isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary),
+                                fontSize: MediasfuTypography.bodySmall.fontSize,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: MediasfuSpacing.xs,
+                                transition: `all ${MediasfuAnimations.fast}ms ease`,
+                              }}
+                            >
+                              <span>🎤</span>
+                              <span style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                <strong>{cName}</strong>
+                                <span style={{ fontSize: 10, opacity: 0.7 }}>{cProv}</span>
+                              </span>
+                              {isDefault && <FontAwesomeIcon icon={faStar} style={{ fontSize: 10, color: MediasfuColors.warning }} />}
+                              {isSelected && <FontAwesomeIcon icon={faCheck} style={{ fontSize: 12 }} />}
+                            </button>
+                          );
+                        })}
                       </div>
-
-                      <div style={{ marginBottom: MediasfuSpacing.md }}>
-                        <label style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          marginBottom: MediasfuSpacing.xs,
-                          color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
-                          fontSize: MediasfuTypography.bodySmall.fontSize,
-                        }}>
-                          <span>Similarity Boost</span>
-                          <span>{Math.round(cloneSimilarity * 100)}%</span>
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.05"
-                          value={cloneSimilarity}
-                          onChange={(e) => setCloneSimilarity(parseFloat(e.target.value))}
-                          style={{
-                            width: '100%',
-                            accentColor: isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary,
-                          }}
-                        />
-                        <p style={{ 
-                          margin: `${MediasfuSpacing.xs}px 0 0`, 
-                          fontSize: '11px',
-                          color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
-                        }}>
-                          Higher = closer to original voice
-                        </p>
-                      </div>
-                    </>
+                    </div>
                   )}
 
-                  {/* Apply Clone Config */}
-                  <button
-                    onClick={() => {
-                      if (cloneVoiceId.trim()) {
-                        setVoiceCloneConfig({
-                          provider: cloneProvider,
-                          voiceId: cloneVoiceId.trim(),
-                          stability: cloneProvider === 'elevenlabs' ? cloneStability : undefined,
-                          similarity: cloneProvider === 'elevenlabs' ? cloneSimilarity : undefined,
-                        });
-                        showAlert?.({ message: 'Voice clone configured!', type: 'success', duration: 2000 });
-                      } else {
-                        showAlert?.({ message: 'Please enter a cloned voice ID', type: 'danger', duration: 2000 });
-                      }
-                    }}
-                    style={{
-                      width: '100%',
+                  {/* No clones available */}
+                  {fetchedClones.length === 0 && (
+                    <div style={{
                       padding: MediasfuSpacing.md,
-                      background: isDarkMode ? MediasfuColors.accentDark : MediasfuColors.accent,
-                      color: '#FFFFFF',
-                      border: 'none',
+                      marginBottom: MediasfuSpacing.md,
+                      background: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
                       borderRadius: MediasfuBorders.md,
+                      textAlign: 'center',
+                    }}>
+                      <div style={{ fontSize: 32, marginBottom: MediasfuSpacing.sm }}>🎤</div>
+                      <div style={{
+                        fontWeight: 600,
+                        color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
+                        marginBottom: MediasfuSpacing.xs,
+                      }}>
+                        No cloned voices found
+                      </div>
+                      <div style={{
+                        color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                        fontSize: MediasfuTypography.bodySmall.fontSize,
+                        marginBottom: MediasfuSpacing.md,
+                      }}>
+                        Create a voice clone on the web dashboard, then select it here.
+                      </div>
+                      <a
+                        href="https://mediasfu.com/lite/voice-clone"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          display: 'inline-block',
+                          padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.lg}px`,
+                          background: isDarkMode ? MediasfuColors.accentDark : MediasfuColors.accent,
+                          color: '#fff',
+                          borderRadius: MediasfuBorders.md,
+                          textDecoration: 'none',
+                          fontSize: MediasfuTypography.bodySmall.fontSize,
+                          fontWeight: 600,
+                        }}
+                      >
+                        🌐 Create Clone on Web
+                      </a>
+                    </div>
+                  )}
+
+                  {/* Manual entry toggle (hidden for now) */}
+                  {false && <button
+                    onClick={() => setShowManualCloneEntry(!showManualCloneEntry)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                      fontSize: MediasfuTypography.bodySmall.fontSize,
                       cursor: 'pointer',
-                      fontSize: MediasfuTypography.bodyMedium.fontSize,
-                      fontWeight: 600,
-                      transition: `all ${MediasfuAnimations.fast}ms ease`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: MediasfuSpacing.sm,
+                      padding: `${MediasfuSpacing.sm}px 0`,
                     }}
                   >
-                    🎤 Apply Voice Clone
-                  </button>
+                    <FontAwesomeIcon icon={showManualCloneEntry ? faChevronUp : faChevronDown} style={{ fontSize: 12 }} />
+                    Enter voice ID manually
+                  </button>}
+
+                  {/* Manual clone entry form (hidden for now) */}
+                  {false && showManualCloneEntry && (
+                    <div style={{ marginTop: MediasfuSpacing.sm }}>
+                      {/* Clone Provider */}
+                      <div style={{ marginBottom: MediasfuSpacing.md }}>
+                        <label style={{
+                          display: 'block',
+                          marginBottom: MediasfuSpacing.sm,
+                          color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                          fontSize: MediasfuTypography.bodySmall.fontSize,
+                        }}>
+                          Voice Clone Provider
+                        </label>
+                        <select
+                          value={cloneProvider}
+                          onChange={(e) => setCloneProvider(e.target.value as 'elevenlabs' | 'playht' | 'coqui')}
+                          style={{
+                            width: '100%',
+                            padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
+                            borderRadius: MediasfuBorders.md,
+                            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`,
+                            background: isDarkMode
+                              ? MediasfuColors.hexToRgba(MediasfuColors.surfaceElevatedDark, 0.8)
+                              : MediasfuColors.hexToRgba(MediasfuColors.surfaceElevated, 0.8),
+                            color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
+                            fontSize: MediasfuTypography.bodyMedium.fontSize,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <option value="cartesia">Cartesia (System Default)</option>
+                          <option value="elevenlabs">ElevenLabs</option>
+                          <option value="playht">PlayHT</option>
+                        </select>
+                      </div>
+
+                      {/* Clone Voice ID */}
+                      <div style={{ marginBottom: MediasfuSpacing.md }}>
+                        <label style={{
+                          display: 'block',
+                          marginBottom: MediasfuSpacing.sm,
+                          color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                          fontSize: MediasfuTypography.bodySmall.fontSize,
+                        }}>
+                          Cloned Voice ID
+                        </label>
+                        <input
+                          type="text"
+                          value={cloneVoiceId}
+                          onChange={(e) => setCloneVoiceId(e.target.value)}
+                          placeholder="Enter your cloned voice ID"
+                          style={{
+                            width: '100%',
+                            padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
+                            borderRadius: MediasfuBorders.md,
+                            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`,
+                            background: isDarkMode
+                              ? MediasfuColors.hexToRgba(MediasfuColors.surfaceElevatedDark, 0.8)
+                              : MediasfuColors.hexToRgba(MediasfuColors.surfaceElevated, 0.8),
+                            color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
+                            fontSize: MediasfuTypography.bodyMedium.fontSize,
+                          }}
+                        />
+                      </div>
+
+                      {/* ElevenLabs-specific settings */}
+                      {cloneProvider === 'elevenlabs' && (
+                        <>
+                          <div style={{ marginBottom: MediasfuSpacing.md }}>
+                            <label style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              marginBottom: MediasfuSpacing.xs,
+                              color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                              fontSize: MediasfuTypography.bodySmall.fontSize,
+                            }}>
+                              <span>Stability</span>
+                              <span>{Math.round(cloneStability * 100)}%</span>
+                            </label>
+                            <input
+                              type="range" min="0" max="1" step="0.05"
+                              value={cloneStability}
+                              onChange={(e) => setCloneStability(parseFloat(e.target.value))}
+                              style={{ width: '100%', accentColor: isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary }}
+                            />
+                            <p style={{ margin: `${MediasfuSpacing.xs}px 0 0`, fontSize: '11px', color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>
+                              Higher = more consistent, Lower = more expressive
+                            </p>
+                          </div>
+
+                          <div style={{ marginBottom: MediasfuSpacing.md }}>
+                            <label style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              marginBottom: MediasfuSpacing.xs,
+                              color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                              fontSize: MediasfuTypography.bodySmall.fontSize,
+                            }}>
+                              <span>Similarity Boost</span>
+                              <span>{Math.round(cloneSimilarity * 100)}%</span>
+                            </label>
+                            <input
+                              type="range" min="0" max="1" step="0.05"
+                              value={cloneSimilarity}
+                              onChange={(e) => setCloneSimilarity(parseFloat(e.target.value))}
+                              style={{ width: '100%', accentColor: isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary }}
+                            />
+                            <p style={{ margin: `${MediasfuSpacing.xs}px 0 0`, fontSize: '11px', color: isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)' }}>
+                              Higher = closer to original voice
+                            </p>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Apply Clone Config */}
+                      <button
+                        onClick={() => {
+                          if (cloneVoiceId.trim()) {
+                            setVoiceCloneConfig({
+                              provider: cloneProvider,
+                              voiceId: cloneVoiceId.trim(),
+                              stability: cloneProvider === 'elevenlabs' ? cloneStability : undefined,
+                              similarity: cloneProvider === 'elevenlabs' ? cloneSimilarity : undefined,
+                            });
+                            showAlert?.({ message: 'Voice clone configured!', type: 'success', duration: 2000 });
+                          } else {
+                            showAlert?.({ message: 'Please enter a cloned voice ID', type: 'danger', duration: 2000 });
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: MediasfuSpacing.md,
+                          background: isDarkMode ? MediasfuColors.accentDark : MediasfuColors.accent,
+                          color: '#FFFFFF',
+                          border: 'none',
+                          borderRadius: MediasfuBorders.md,
+                          cursor: 'pointer',
+                          fontSize: MediasfuTypography.bodyMedium.fontSize,
+                          fontWeight: 600,
+                          transition: `all ${MediasfuAnimations.fast}ms ease`,
+                        }}
+                      >
+                        🎤 Apply Voice Clone
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Current clone summary */}
+                  {voiceCloneConfig && (
+                    <div style={{
+                      marginTop: MediasfuSpacing.md,
+                      padding: MediasfuSpacing.sm,
+                      background: isDarkMode
+                        ? MediasfuColors.hexToRgba(MediasfuColors.success, 0.1)
+                        : MediasfuColors.hexToRgba(MediasfuColors.success, 0.05),
+                      borderRadius: MediasfuBorders.sm,
+                      fontSize: MediasfuTypography.bodySmall.fontSize,
+                      color: MediasfuColors.success,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: MediasfuSpacing.sm,
+                    }}>
+                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: 12 }} />
+                      Clone active: {voiceCloneConfig.provider} / {voiceCloneConfig.voiceId.length > 12 ? voiceCloneConfig.voiceId.substring(0, 12) + '...' : voiceCloneConfig.voiceId}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1685,6 +1893,90 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
             </div>
           )}
         </>
+      )}
+
+      {/* Live Subtitles Toggle - also on speaking tab */}
+      {updateShowSubtitlesOnCards && (
+        <div
+          style={{
+            marginTop: MediasfuSpacing.lg,
+            padding: MediasfuSpacing.md,
+            background: isDarkMode
+              ? 'rgba(255, 255, 255, 0.05)'
+              : 'rgba(0, 0, 0, 0.02)',
+            borderRadius: MediasfuBorders.md,
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: MediasfuSpacing.sm }}>
+              <FontAwesomeIcon
+                icon={faClosedCaptioning}
+                style={{
+                  color: showSubtitlesOnCards
+                    ? MediasfuColors.primary
+                    : (isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted),
+                  fontSize: 18,
+                }}
+              />
+              <div>
+                <span
+                  style={{
+                    color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
+                    fontSize: MediasfuTypography.bodyMedium.fontSize,
+                    fontWeight: 500,
+                  }}
+                >
+                  Show Subtitles on Video
+                </span>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: MediasfuTypography.bodySmall.fontSize,
+                    color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                  }}
+                >
+                  Display translated speech as subtitles on participant cards
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => updateShowSubtitlesOnCards(!showSubtitlesOnCards)}
+              style={{
+                width: 48,
+                height: 26,
+                borderRadius: 13,
+                border: 'none',
+                cursor: 'pointer',
+                background: showSubtitlesOnCards
+                  ? MediasfuColors.primary
+                  : (isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'),
+                position: 'relative',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 3,
+                  left: showSubtitlesOnCards ? 25 : 3,
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  background: '#FFFFFF',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                  transition: 'left 0.2s ease',
+                }}
+              />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1847,6 +2139,90 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
               />
             ))
           )}
+        </div>
+      )}
+
+      {/* Live Subtitles Toggle */}
+      {updateShowSubtitlesOnCards && (
+        <div
+          style={{
+            marginTop: MediasfuSpacing.lg,
+            padding: MediasfuSpacing.md,
+            background: isDarkMode
+              ? 'rgba(255, 255, 255, 0.05)'
+              : 'rgba(0, 0, 0, 0.02)',
+            borderRadius: MediasfuBorders.md,
+            border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.08)'}`,
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: MediasfuSpacing.sm }}>
+              <FontAwesomeIcon
+                icon={faClosedCaptioning}
+                style={{
+                  color: showSubtitlesOnCards
+                    ? MediasfuColors.primary
+                    : (isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted),
+                  fontSize: 18,
+                }}
+              />
+              <div>
+                <span
+                  style={{
+                    color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
+                    fontSize: MediasfuTypography.bodyMedium.fontSize,
+                    fontWeight: 500,
+                  }}
+                >
+                  Show Subtitles on Video
+                </span>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: MediasfuTypography.bodySmall.fontSize,
+                    color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+                  }}
+                >
+                  Display translated speech as subtitles on participant cards
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => updateShowSubtitlesOnCards(!showSubtitlesOnCards)}
+              style={{
+                width: 48,
+                height: 26,
+                borderRadius: 13,
+                border: 'none',
+                cursor: 'pointer',
+                background: showSubtitlesOnCards
+                  ? MediasfuColors.primary
+                  : (isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.2)'),
+                position: 'relative',
+                transition: 'background 0.2s ease',
+              }}
+            >
+              <span
+                style={{
+                  position: 'absolute',
+                  top: 3,
+                  left: showSubtitlesOnCards ? 25 : 3,
+                  width: 20,
+                  height: 20,
+                  borderRadius: '50%',
+                  background: '#FFFFFF',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+                  transition: 'left 0.2s ease',
+                }}
+              />
+            </button>
+          </div>
         </div>
       )}
     </div>

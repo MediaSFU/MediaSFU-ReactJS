@@ -696,7 +696,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     padding: "12px 16px",
     fontWeight: 700,
     cursor: "pointer",
-    boxShadow: enableGlow ? "0 10px 30px rgba(37,99,235,0.35)" : undefined,
+    boxShadow: enableGlow ? "0 4px 16px rgba(0,0,0,0.3)" : undefined,
     ...applyButtonStyleOverrides,
   };
 
@@ -724,7 +724,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     padding: "12px 16px",
     fontWeight: 700,
     cursor: "pointer",
-    boxShadow: enableGlow ? "0 10px 30px rgba(34,197,94,0.35)" : undefined,
+    boxShadow: enableGlow ? "0 4px 16px rgba(0,0,0,0.3)" : undefined,
     ...saveButtonStyleOverrides,
   };
 

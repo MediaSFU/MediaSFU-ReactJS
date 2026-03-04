@@ -83,7 +83,6 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   renderMode = 'modal',
 }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -295,23 +294,26 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
     const sidebarTabsStyle: React.CSSProperties = {
       display: 'flex',
       gap: `${MediasfuSpacing.xs}px`,
-      padding: `${MediasfuSpacing.sm}px`,
-      background: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+      padding: '3px',
+      background: isDarkMode ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.06)',
+      borderRadius: MediasfuBorders.md,
+      boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)',
     };
 
     const sidebarTabStyle = (isActive: boolean): React.CSSProperties => ({
       flex: 1,
       padding: `${MediasfuSpacing.sm}px`,
       background: isActive
-        ? MediasfuColors.brandGradient(isDarkMode)
+        ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.85)'
         : 'transparent',
       border: 'none',
       borderRadius: MediasfuBorders.sm,
       cursor: 'pointer',
-      color: isActive ? '#FFFFFF' : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
       fontWeight: isActive ? 600 : 400,
       fontSize: 13,
       transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.08)' : 'none',
     });
 
     const sidebarContentStyle: React.CSSProperties = {
@@ -787,23 +789,26 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
   const tabsStyle: React.CSSProperties = {
     display: 'flex',
     gap: `${MediasfuSpacing.xs}px`,
-    padding: `${MediasfuSpacing.sm}px`,
-    background: isDarkMode ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.03)',
+    padding: '3px',
+    background: isDarkMode ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.06)',
+    borderRadius: MediasfuBorders.md,
+    boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.3)',
   };
 
   const tabStyle = (isActive: boolean): React.CSSProperties => ({
     flex: 1,
     padding: `${MediasfuSpacing.sm}px`,
     background: isActive
-      ? MediasfuColors.brandGradient(isDarkMode)
+      ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.85)'
       : 'transparent',
     border: 'none',
     borderRadius: MediasfuBorders.sm,
     cursor: 'pointer',
-    color: isActive ? '#FFFFFF' : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+    color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     fontWeight: isActive ? 600 : 400,
     fontSize: 13,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.08)' : 'none',
   });
 
   const contentStyle: React.CSSProperties = {
@@ -919,10 +924,8 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
         elevation={4}
         style={{
           ...modalStyle,
-          backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-          boxShadow: enableGlow
-            ? `${MediasfuColors.elevation(4, isDarkMode)}, ${MediasfuColors.glowPrimary}`
-            : MediasfuColors.elevation(4, isDarkMode),
+          backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.88)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
         }}
       >
         {/* Header */}

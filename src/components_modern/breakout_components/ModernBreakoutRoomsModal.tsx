@@ -71,7 +71,6 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   renderMode = 'modal',
 }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -1005,9 +1004,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
         elevation={4}
         style={{
           ...modalStyle,
-          boxShadow: enableGlow
-            ? `${MediasfuColors.elevation(4, isDarkMode)}, ${MediasfuColors.glowPrimary}`
-            : MediasfuColors.elevation(4, isDarkMode),
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
         }}
       >
         {/* Header */}

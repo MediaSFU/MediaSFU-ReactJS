@@ -256,16 +256,16 @@ export class MediasfuColors {
     }
   }
 
-  /** Colored elevation shadows - Matches the element's color. */
-  static coloredElevation(color: string, level = 2): string {
+  /** Colored elevation shadows - Neutral dark shadows for Clean Pro look. */
+  static coloredElevation(_color: string, level = 2): string {
     switch (level) {
       case 1:
-        return `0 2px 8px ${this.hexToRgba(color, 0.2)}`;
+        return `0 2px 8px rgba(0, 0, 0, 0.12)`;
       case 2:
-        return `0 4px 16px ${this.hexToRgba(color, 0.25)}, 0 2px 6px ${this.hexToRgba(color, 0.15)}`;
+        return `0 4px 16px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08)`;
       case 3:
       default:
-        return `0 8px 24px ${this.hexToRgba(color, 0.3)}, 0 4px 10px ${this.hexToRgba(color, 0.2)}`;
+        return `0 8px 24px rgba(0, 0, 0, 0.2), 0 4px 10px rgba(0, 0, 0, 0.1)`;
     }
   }
 
@@ -273,62 +273,29 @@ export class MediasfuColors {
   // GLOW EFFECTS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /** Pre-computed primary glow - Convenience property for common use. */
+  /** Pre-computed primary glow - Neutral dark shadow for Clean Pro look. */
   static get glowPrimary(): string {
-    return this.glowShadow(this.primary, 0.6);
+    return `0 4px 16px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.1)`;
   }
 
-  /** Pre-computed secondary glow - Convenience property for common use. */
+  /** Pre-computed secondary glow - Neutral dark shadow for Clean Pro look. */
   static get glowSecondary(): string {
-    return this.glowShadow(this.secondary, 0.5);
+    return `0 4px 14px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08)`;
   }
 
-  /** Pre-computed accent glow - Convenience property for common use. */
+  /** Pre-computed accent glow - Neutral dark shadow for Clean Pro look. */
   static get glowAccent(): string {
-    return this.glowShadow(this.accent, 0.5);
+    return `0 4px 14px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08)`;
   }
 
-  /** Pre-computed success glow - Convenience property for common use. */
+  /** Pre-computed success glow - Neutral dark shadow for Clean Pro look. */
   static get glowSuccess(): string {
-    return this.glowShadow(this.success, 0.5);
+    return `0 4px 14px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08)`;
   }
 
-  /** Pre-computed danger glow - Convenience property for common use. */
+  /** Pre-computed danger glow - Neutral dark shadow for Clean Pro look. */
   static get glowDanger(): string {
-    return this.glowShadow(this.danger, 0.5);
-  }
-
-  /**
-   * Glow shadow - For buttons, icons, and interactive elements.
-   * @param color - The color for the glow
-   * @param intensity - ranges from 0.0 to 1.0
-   */
-  static glowShadow(color: string, intensity = 0.5): string {
-    const clampedIntensity = Math.max(0, Math.min(1, intensity));
-    return `0 0 32px 4px ${this.hexToRgba(color, 0.15 * clampedIntensity)}, 0 0 16px 2px ${this.hexToRgba(color, 0.25 * clampedIntensity)}, 0 0 8px ${this.hexToRgba(color, 0.4 * clampedIntensity)}`;
-  }
-
-  /** Subtle glow - For hover states and subtle highlights. */
-  static subtleGlow(color: string, darkMode = false): string {
-    const alpha = darkMode ? 0.2 : 0.15;
-    return `0 0 20px 1px ${this.hexToRgba(color, alpha)}`;
-  }
-
-  /**
-   * Pulsating glow base - Use with CSS animation for pulsing effect.
-   * @param color - The color for the glow
-   * @param phase - should be animated between 0.0 and 1.0
-   */
-  static pulseGlow(color: string, phase: number): string {
-    const intensity = 0.3 + (0.3 * phase);
-    const blurRadius = 24 + (8 * phase);
-    const spreadRadius = 2 + (2 * phase);
-    return `0 0 ${blurRadius}px ${spreadRadius}px ${this.hexToRgba(color, intensity * 0.5)}, 0 0 ${12 + (4 * phase)}px ${this.hexToRgba(color, intensity)}`;
-  }
-
-  /** Neon glow - High intensity colored glow. */
-  static neonGlow(color: string): string {
-    return `0 0 40px 8px ${this.hexToRgba(color, 0.1)}, 0 0 20px 4px ${this.hexToRgba(color, 0.3)}, 0 0 10px 1px ${this.hexToRgba(color, 0.5)}, 0 0 4px ${this.hexToRgba(color, 0.8)}`;
+    return `0 4px 14px rgba(0, 0, 0, 0.15), 0 2px 6px rgba(0, 0, 0, 0.08)`;
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -368,7 +335,7 @@ export class MediasfuColors {
 
   /** Glass effect border color. */
   static glassBorder(darkMode = false): string {
-    return darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255, 255, 255, 0.35)';
+    return darkMode ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.12)';
   }
 
   /** Premium frosted glass styles as React CSSProperties. */

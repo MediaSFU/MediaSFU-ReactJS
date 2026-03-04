@@ -197,7 +197,7 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
       }),
     // Glow effect
     ...(enableGlow && {
-      boxShadow: `0 0 20px ${isDarkMode ? "rgba(79, 172, 254, 0.2)" : "rgba(102, 126, 234, 0.2)"}`,
+      boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     }),
     ...(cellStyleOverrides ?? {}),
   });
@@ -220,14 +220,12 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
             height: 48,
             borderRadius: "50%",
             background: isDarkMode
-              ? "linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2))"
-              : "linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))",
+              ? "rgba(255, 255, 255, 0.06)"
+              : "rgba(0, 0, 0, 0.04)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: isDarkMode
-              ? "0 0 8px rgba(102, 126, 234, 0.15)"
-              : "0 0 12px rgba(102, 126, 234, 0.2)",
+            boxShadow: 'none',
           }}
         >
           {/* Videocam off icon */}

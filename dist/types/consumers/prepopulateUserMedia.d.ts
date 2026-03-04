@@ -3,6 +3,7 @@ import MiniCard from "../components/displayComponents/MiniCard";
 import VideoCard from "../components/displayComponents/VideoCard";
 import AudioCard from "../components/displayComponents/AudioCard";
 import { Participant, Stream, AudioCardParameters, EventType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../@types/types";
+import { LiveSubtitle } from "../producers/socketReceiveMethods/translationReceiveMethods";
 export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     participants: Participant[];
     allVideoStreams: (Stream | Participant)[];
@@ -41,6 +42,8 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
     updateUpdateMainWindow: (update: boolean) => void;
     updateMainGridStream: (components: React.JSX.Element[]) => void;
     isDarkModeValue?: boolean;
+    showSubtitlesOnCards?: boolean;
+    liveSubtitles?: Map<string, LiveSubtitle>;
     customVideoCard?: CustomVideoCardType;
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;

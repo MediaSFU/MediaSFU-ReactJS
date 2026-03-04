@@ -3,6 +3,8 @@ export interface StopShareScreenParameters extends DisconnectSendTransportScreen
     shared: boolean;
     shareScreenStarted: boolean;
     shareEnded: boolean;
+    whiteboardStarted: boolean;
+    whiteboardEnded: boolean;
     updateMainWindow: boolean;
     defer_receive: boolean;
     hostLabel: string;

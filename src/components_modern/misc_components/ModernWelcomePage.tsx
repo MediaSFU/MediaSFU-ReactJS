@@ -268,7 +268,7 @@ const ModernWelcomePage: React.FC<ModernWelcomePageOptions> = ({
     height: 80,
     borderRadius: 16,
     marginBottom: MediasfuSpacing.md,
-    boxShadow: `0 0 30px ${isDarkMode ? MediasfuColors.primary : MediasfuColors.primaryLight}40`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18)',
   };
 
   const titleStyle: CSSProperties = {
@@ -306,7 +306,7 @@ const ModernWelcomePage: React.FC<ModernWelcomePageOptions> = ({
 
   const inputFocusStyle: CSSProperties = {
     border: `1px solid ${MediasfuColors.primary}`,
-    boxShadow: `0 0 0 3px ${MediasfuColors.primary}30`,
+    boxShadow: `0 0 0 3px rgba(0,0,0,0.08)`,
   };
 
   const buttonStyle: CSSProperties = {
@@ -321,7 +321,7 @@ const ModernWelcomePage: React.FC<ModernWelcomePageOptions> = ({
     cursor: pending ? 'not-allowed' : 'pointer',
     opacity: pending ? 0.7 : 1,
     transition: 'transform 0.2s ease, box-shadow 0.3s ease, opacity 0.3s ease',
-    boxShadow: `0 4px 20px ${MediasfuColors.primary}40`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
   };
 
   const footerStyle: CSSProperties = {
@@ -409,12 +409,12 @@ const ModernWelcomePage: React.FC<ModernWelcomePageOptions> = ({
           onMouseEnter={(e) => {
             if (!pending) {
               e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = `0 6px 24px ${MediasfuColors.primary}50`;
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.22)';
             }
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = `0 4px 20px ${MediasfuColors.primary}40`;
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)';
           }}
         >
           {pending ? 'Connecting...' : 'Join Event'}

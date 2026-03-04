@@ -59,6 +59,8 @@ export interface ConfirmHereModalOptions {
     renderContent?: (options: {
         defaultContent: React.ReactNode;
     }) => React.ReactNode;
+    /** Called when user opts out of future confirm-here prompts for this session */
+    onSuppressConfirmHere?: () => void;
 }
 export type ConfirmHereModalType = (options: ConfirmHereModalOptions) => void;
 /**

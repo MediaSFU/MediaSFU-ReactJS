@@ -1009,6 +1009,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
       localLink: localLink,
     });
     if (response.success && response.data && "roomName" in response.data) {
+      updateMember(payload.userName + "_2");
       await checkLimitsAndMakeRequest({
         apiUserName: response.data.roomName,
         apiToken: response.data.secret,

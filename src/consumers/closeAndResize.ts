@@ -391,7 +391,7 @@ export const closeAndResize = async ({ producerId, kind, parameters }: CloseAndR
       await rePort({ parameters });
     }
 
-    if (eventType == "conference") {
+    if (eventType == "conference" && !(parameters.whiteboardStarted && !parameters.whiteboardEnded)) {
       updateMainHeightWidth(0);
     }
 

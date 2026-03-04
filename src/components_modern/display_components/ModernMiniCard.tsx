@@ -65,7 +65,6 @@ export const ModernMiniCard: React.FC<ModernMiniCardOptions> = ({
   onClick,
   roundedImage = true, // Default to circular like Flutter
   showGradientBackground = true,
-  enableGlow = false,
   showBorder = true,
   size, // Optional fixed size
 }) => {
@@ -160,9 +159,7 @@ export const ModernMiniCard: React.FC<ModernMiniCardOptions> = ({
       ? (isDarkMode ? '#1E293B' : '#E2E8F0')
       : (showGradientBackground ? getInitialsGradient() : getSolidBackground()),
     border: hasImage ? 'none' : getBorderStyle(),
-    boxShadow: enableGlow && !hasImage
-      ? `0 0 16px ${MediasfuColors.primary}40, 0 4px 8px rgba(0, 0, 0, 0.3)`
-      : (isDarkMode ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.1)'),
+    boxShadow: isDarkMode ? '0 2px 8px rgba(0, 0, 0, 0.2)' : '0 2px 8px rgba(0, 0, 0, 0.1)',
   };
 
   // Image container styles

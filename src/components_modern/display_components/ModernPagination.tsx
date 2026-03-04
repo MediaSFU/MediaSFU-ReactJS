@@ -75,7 +75,6 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
   // Modern-specific props
   isDarkMode,
   enableGlassmorphism = true,
-  enableGlow = true,
   maxVisiblePages = 5,
   buttonSize = 36,
 }) => {
@@ -241,11 +240,11 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
     if (isActive) {
       return {
         ...baseStyle,
-        background: enableGlow
-          ? MediasfuColors.brandGradient(resolvedIsDarkMode)
-          : MediasfuColors.primary,
+        background: isDarkMode
+          ? 'rgba(255,255,255,0.18)'
+          : 'rgba(0,0,0,0.12)',
         color: '#FFFFFF',
-        boxShadow: enableGlow ? MediasfuColors.glowPrimary : 'none',
+        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
         transform: 'scale(1.05)',
         ...activePageStyle,
       };

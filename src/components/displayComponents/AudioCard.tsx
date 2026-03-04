@@ -18,6 +18,7 @@ import MiniCard from "./MiniCard";
 import { controlMedia } from "../../consumers/controlMedia";
 import { ControlsPosition, InfoPosition, Participant, ControlMediaOptions, AudioDecibels, CoHostResponsibility, ShowAlert } from "../../@types/types";
 import { Socket } from "socket.io-client";
+import type { LiveSubtitle } from '../../producers/socketReceiveMethods/translationReceiveMethods';
 
 export interface AudioCardParameters {
   audioDecibels: AudioDecibels[];
@@ -87,6 +88,10 @@ export interface AudioCardOptions {
   imageProps?: React.ImgHTMLAttributes<HTMLImageElement>;
   showWaveformWhenMuted?: boolean;
   isDarkMode?: boolean; // Theme mode for modern card components
+  /** Live subtitle for displaying translated speech */
+  liveSubtitle?: LiveSubtitle | null | (() => LiveSubtitle | null);
+  /** Whether to show subtitles on this card */
+  showSubtitles?: boolean;
 }
 
 export type AudioCardType = (options: AudioCardOptions) => React.JSX.Element;
@@ -246,7 +251,12 @@ const AudioCard: React.FC<AudioCardOptions> = ({
   fallbackMiniCardProps,
   imageProps,
   showWaveformWhenMuted = false,
+  liveSubtitle: liveSubtitleProp,
+  showSubtitles = false,
 }) => {
+  // Resolve getter function for liveSubtitle
+  const liveSubtitle = typeof liveSubtitleProp === 'function' ? liveSubtitleProp() : liveSubtitleProp;
+
   const durations = useMemo(() => {
     if (waveformDurations && waveformDurations.length > 0) {
       return waveformDurations;
@@ -685,6 +695,13 @@ const AudioCard: React.FC<AudioCardOptions> = ({
               {defaultControls}
             </div>
           )}
+      
+      {/* Live Subtitle Overlay */}
+      {showSubtitles && liveSubtitle && liveSubtitle.text && (
+        <div style={styles.subtitleOverlay}>
+          <span style={styles.subtitleText}>{liveSubtitle.text}</span>
+        </div>
+      )}
     </div>
   );
 };
@@ -789,6 +806,28 @@ const styles: { [key: string]: CSSProperties } = {
     opacity: 0.75,
     margin: "0 1px",
     transition: "height 0.5s ease",
+  },
+  subtitleOverlay: {
+    position: "absolute",
+    bottom: "10%",
+    left: "5%",
+    right: "5%",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    pointerEvents: "none",
+  },
+  subtitleText: {
+    backgroundColor: "rgba(0, 0, 0, 0.75)",
+    color: "#ffffff",
+    padding: "6px 12px",
+    borderRadius: "4px",
+    fontSize: "14px",
+    fontWeight: 500,
+    textAlign: "center",
+    maxWidth: "90%",
+    wordWrap: "break-word",
+    lineHeight: 1.4,
   },
 };
 

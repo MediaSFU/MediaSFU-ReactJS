@@ -302,6 +302,53 @@ export interface TranslationTranscriptData {
   timestamp: number;
 }
 
+// ============================================================================
+// Live Subtitle Types
+// ============================================================================
+
+/**
+ * Represents a live subtitle entry for displaying on video/audio cards.
+ * Auto-expires based on text length.
+ */
+export interface LiveSubtitle {
+  text: string;
+  language: string;
+  timestamp: number;
+  expiresAt: number; // Unix timestamp in ms
+  speakerId: string;
+  speakerName?: string;
+}
+
+/**
+ * Creates a LiveSubtitle with auto-calculated expiration.
+ * Expiration is 3-8 seconds based on text length.
+ */
+export function createLiveSubtitle(params: {
+  text: string;
+  language: string;
+  speakerId: string;
+  speakerName?: string;
+}): LiveSubtitle {
+  const now = Date.now();
+  // Calculate expiration: 3000ms base + 50ms per character, clamped to 3-8 seconds
+  const duration = Math.min(8000, Math.max(3000, 3000 + params.text.length * 50));
+  return {
+    text: params.text,
+    language: params.language,
+    timestamp: now,
+    expiresAt: now + duration,
+    speakerId: params.speakerId,
+    speakerName: params.speakerName,
+  };
+}
+
+/**
+ * Checks if a subtitle has expired.
+ */
+export function isSubtitleExpired(subtitle: LiveSubtitle): boolean {
+  return Date.now() >= subtitle.expiresAt;
+}
+
 export interface TranslationTranscriptOptions {
   data: TranslationTranscriptData;
   updateTranscripts?: (updater: (prev: TranslationTranscriptData[]) => TranslationTranscriptData[]) => void;

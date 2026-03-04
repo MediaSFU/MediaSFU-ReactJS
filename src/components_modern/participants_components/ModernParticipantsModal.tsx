@@ -78,7 +78,6 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   renderMode = 'modal',
   // Render props
   renderHeader,
@@ -554,10 +553,8 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
       elevation={4}
       style={{
         ...modalStyle,
-        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-        boxShadow: enableGlow
-          ? `${MediasfuColors.elevation(4, isDarkMode)}, ${MediasfuColors.glowPrimary}`
-          : MediasfuColors.elevation(4, isDarkMode),
+        backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.88)',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
       }}
     >
       {renderHeader

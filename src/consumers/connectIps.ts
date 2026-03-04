@@ -125,7 +125,7 @@ export const connectIps = async ({
           }
 
           // Handle new pipe producer event
-          remote_sock.on("new-pipe-producer", async ({ producerId, islevel, isTranslation, translationMeta }: { producerId: string; islevel: string; isTranslation?: boolean; translationMeta?: { speakerId: string; speakerName: string; language: string; originalProducerId?: string } }) => {
+          remote_sock.on("new-pipe-producer", async ({ producerId, islevel, isTranslation, translationMeta }: { producerId: string; islevel: string; isTranslation?: boolean; translationMeta?: { speakerId: string; speakerName: string; language: string; originalProducerId?: string; isSpeakerControlled?: boolean } }) => {
             if (newProducerMethod) {
               await newProducerMethod({
                 producerId,

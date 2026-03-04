@@ -44,29 +44,36 @@ export interface AdvancedPanelOptions {
 }
 
 const sectionStyle = (isDarkMode: boolean): React.CSSProperties => ({
-  padding: MediasfuSpacing.md,
-  background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
-  border: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
+  padding: `${MediasfuSpacing.sm + 2}px ${MediasfuSpacing.md}px`,
+  background: isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)',
+  border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)'}`,
   borderRadius: MediasfuBorders.md,
+  boxShadow: isDarkMode ? '0 1px 3px rgba(0,0,0,0.12)' : '0 1px 3px rgba(0,0,0,0.06)',
+  transition: 'background 0.2s ease',
 });
 
 const labelStyle = (isDarkMode: boolean) => ({
   ...MediasfuTypography.getBodyMedium(isDarkMode),
-  fontWeight: 700,
-  marginBottom: 6,
+  fontWeight: 600,
+  marginBottom: 8,
+  fontSize: 13,
+  letterSpacing: '0.02em',
+  color: isDarkMode ? 'rgba(255,255,255,0.75)' : '#334155',
 });
 
 const selectStyle = (isDarkMode: boolean): React.CSSProperties => ({
   width: '100%',
-  padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
-  background: isDarkMode ? '#0f172a' : '#f8fafc',
+  padding: `${MediasfuSpacing.sm + 2}px ${MediasfuSpacing.md}px`,
+  background: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
   border: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
   borderRadius: MediasfuBorders.md,
-  color: isDarkMode ? '#f8fafc' : '#0f172a',
+  color: isDarkMode ? '#e2e8f0' : '#1e293b',
   outline: 'none',
   appearance: 'none',
-  boxShadow: isDarkMode ? '0 1px 4px rgba(0,0,0,0.4)' : '0 1px 4px rgba(0,0,0,0.08)',
+  boxShadow: isDarkMode ? 'inset 0 1px 3px rgba(0,0,0,0.2)' : 'inset 0 1px 2px rgba(0,0,0,0.06)',
   cursor: 'pointer',
+  fontSize: 14,
+  transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
 });
 
 const inputStyle = (isDarkMode: boolean): React.CSSProperties => ({
@@ -74,15 +81,15 @@ const inputStyle = (isDarkMode: boolean): React.CSSProperties => ({
 });
 
 const helperTextStyle = (isDarkMode: boolean): React.CSSProperties => ({
-  fontSize: 12,
-  opacity: 0.7,
-  marginTop: 4,
-  color: isDarkMode ? 'rgba(255,255,255,0.75)' : 'rgba(15,23,42,0.75)',
+  fontSize: 11,
+  marginTop: 6,
+  fontStyle: 'italic',
+  color: isDarkMode ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.6)',
 });
 
 const optionStyle = (isDarkMode: boolean): React.CSSProperties => ({
-  backgroundColor: isDarkMode ? '#0b1221' : '#ffffff',
-  color: isDarkMode ? '#f8fafc' : '#0f172a',
+  backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
+  color: isDarkMode ? '#e2e8f0' : '#1e293b',
 });
 
 const getOptionTooltip = (items: AdvancedOptionItem[], value: string) =>
@@ -213,10 +220,12 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({ parameters, is
         <div
           style={{
             backgroundColor: recordingBackgroundColor,
-            padding: '6px 10px',
+            padding: '6px 12px',
             borderRadius: MediasfuBorders.sm,
-            border: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
+            border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
             marginBottom: MediasfuSpacing.xs,
+            fontSize: 13,
+            color: isDarkMode ? '#e2e8f0' : '#1e293b',
           }}
         >
           {recordingBackgroundColor}
@@ -225,7 +234,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({ parameters, is
           type="color"
           value={recordingBackgroundColor}
           onChange={(e) => handleColorChange('backgroundColor', e.target.value)}
-          style={{ width: 50, height: 32, cursor: 'pointer', border: 'none' }}
+          style={{ width: 48, height: 30, cursor: 'pointer', border: 'none', borderRadius: MediasfuBorders.sm, background: 'transparent' }}
         />
       </div>
 
@@ -297,7 +306,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({ parameters, is
               type="color"
               value={recordingCustomTextColor}
               onChange={(e) => handleColorChange('customTextColor', e.target.value)}
-              style={{ width: 50, height: 32, cursor: 'pointer', border: 'none' }}
+              style={{ width: 48, height: 30, cursor: 'pointer', border: 'none', borderRadius: MediasfuBorders.sm, background: 'transparent' }}
             />
           </div>
         </>
@@ -329,7 +338,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({ parameters, is
           type="color"
           value={recordingNameTagsColor}
           onChange={(e) => handleColorChange('nameTagsColor', e.target.value)}
-          style={{ width: 50, height: 32, cursor: 'pointer', border: 'none' }}
+          style={{ width: 48, height: 30, cursor: 'pointer', border: 'none', borderRadius: MediasfuBorders.sm, background: 'transparent' }}
         />
       </div>
 

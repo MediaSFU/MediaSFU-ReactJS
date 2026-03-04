@@ -60,7 +60,6 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = false,
   isRecording = false,
   variant = 'badge',
   showIcon = true,
@@ -178,9 +177,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
     border: enableGlassmorphism
       ? `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`
       : `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)'}`,
-    boxShadow: enableGlow
-      ? `0 0 12px ${MediasfuColors.hexToRgba(statusColor, 0.4)}, ${MediasfuColors.elevation(2, isDarkMode)}`
-      : isDarkMode ? MediasfuColors.elevation(2, isDarkMode) : '0 2px 8px rgba(0, 0, 0, 0.12)',
+    boxShadow: isDarkMode ? MediasfuColors.elevation(2, isDarkMode) : '0 2px 8px rgba(0, 0, 0, 0.12)',
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.8) translateY(-10px)',
     opacity: isMounted ? 1 : 0,
   };
@@ -197,7 +194,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
     color: statusColor,
     fontSize: '10px',
     animation: isRecording && pulse ? 'modernTimerPulse 1s ease-in-out' : 'none',
-    boxShadow: `0 0 6px ${MediasfuColors.hexToRgba(statusColor, 0.3)}`,
+    boxShadow: 'none',
   };
 
   // Time text styles - adapt to background mode
@@ -217,7 +214,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
     height: 10, // Increased size
     borderRadius: '50%',
     backgroundColor: MediasfuColors.danger,
-    boxShadow: `0 0 8px ${MediasfuColors.danger}`,
+    boxShadow: 'none',
     opacity: pulse ? 1 : 0.5,
     transition: 'opacity 0.3s ease',
   };

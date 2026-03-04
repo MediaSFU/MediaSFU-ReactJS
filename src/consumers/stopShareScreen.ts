@@ -3,6 +3,8 @@ export interface StopShareScreenParameters extends DisconnectSendTransportScreen
   shared: boolean;
   shareScreenStarted: boolean;
   shareEnded: boolean;
+  whiteboardStarted: boolean;
+  whiteboardEnded: boolean;
   updateMainWindow: boolean;
   defer_receive: boolean;
   hostLabel: string;
@@ -213,7 +215,7 @@ export async function stopShareScreen({ parameters }: StopShareScreenOptions): P
     console.log('Error handling screen annotation:', error);
   }
 
-  if (eventType === 'conference') {
+  if (eventType === 'conference' && !(parameters.whiteboardStarted && !parameters.whiteboardEnded)) {
     updateMainHeightWidth(0);
   }
 

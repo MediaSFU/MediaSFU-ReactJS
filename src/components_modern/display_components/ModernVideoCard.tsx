@@ -32,12 +32,14 @@ import {
 import { VideoCardOptions } from '../../components/displayComponents/VideoCard';
 import CardVideoDisplay from '../../components/displayComponents/CardVideoDisplay';
 import { controlMedia } from '../../consumers/controlMedia';
+import type { LiveSubtitle } from '../../producers/socketReceiveMethods/translationReceiveMethods';
 import { MediasfuColors } from '../core/theme/MediasfuColors';
 import { MediasfuSpacing } from '../core/theme/MediasfuSpacing';
 import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 import { MediasfuAnimations } from '../core/theme/MediasfuAnimations';
 import { MediasfuBorders } from '../core/theme/MediasfuBorders';
 import { ModernTooltip } from '../core/widgets/ModernTooltip';
+import { SubtitleOverlay } from './SubtitleOverlay';
 
 export interface ModernVideoCardOptions extends VideoCardOptions {
   /** Use dark mode styling */
@@ -52,6 +54,10 @@ export interface ModernVideoCardOptions extends VideoCardOptions {
   showStatusIndicator?: boolean;
   /** Callback to toggle self view fit mode */
   onToggleSelfViewFit?: () => void;
+  /** Live subtitle for displaying translated speech - can be static value or getter function */
+  liveSubtitle?: LiveSubtitle | null | (() => LiveSubtitle | null);
+  /** Whether to show subtitles on this card */
+  showSubtitles?: boolean;
 }
 
 export type ModernVideoCardType = (options: ModernVideoCardOptions) => React.JSX.Element;
@@ -92,10 +98,11 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   borderRadius = MediasfuBorders.md,
   showStatusIndicator = true,
   onToggleSelfViewFit,
+  liveSubtitle: liveSubtitleProp,
+  showSubtitles = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -103,6 +110,10 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
   const [waveformValues, setWaveformValues] = useState<number[]>(Array(5).fill(0));
   const [showCropIndicator, setShowCropIndicator] = useState(true);
   const animationRef = useRef<number | null>(null);
+  
+  // Suppress unused variable warnings - these are kept for backwards compatibility
+  void liveSubtitleProp;
+  void showSubtitles;
 
   // Mount animation
   useEffect(() => {
@@ -400,10 +411,8 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     overflow: 'hidden',
     backgroundColor: backgroundColor || (isDarkMode ? '#0F172A' : '#F1F5F9'),
     boxShadow: showWaveform
-      ? `0 0 0 2px ${barColor}, 0 0 20px ${barColor}60, ${MediasfuColors.elevation(3, isDarkMode)}`
-      : (isHovered && enableGlow
-        ? `${MediasfuColors.glowPrimary}, ${MediasfuColors.elevation(3, isDarkMode)}`
-        : MediasfuColors.elevation(2, isDarkMode)),
+      ? `0 0 0 2.5px ${MediasfuColors.success}, ${MediasfuColors.elevation(2, isDarkMode)}`
+      : MediasfuColors.elevation(2, isDarkMode),
     transform: isMounted
       ? (isHovered ? 'scale(1.01)' : 'scale(1)')
       : 'scale(0.98)',
@@ -431,15 +440,7 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     alignItems: 'center',
     gap: `${MediasfuSpacing.xs}px`,
     padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
-    background: enableGlassmorphism
-      ? MediasfuColors.glassBackground(isDarkMode)
-      : 'rgba(0, 0, 0, 0.6)',
-    backdropFilter: enableGlassmorphism ? 'blur(10px)' : 'none',
-    WebkitBackdropFilter: enableGlassmorphism ? 'blur(10px)' : 'none',
-    border: enableGlassmorphism
-      ? `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`
-      : 'none',
-    borderRadius: `${MediasfuBorders.sm}px`,
+    background: 'transparent',
     zIndex: 2,
   };
 
@@ -449,6 +450,8 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     color: textColor,
     fontWeight: 600,
     letterSpacing: '0.3px',
+    textShadow: '0 1px 4px rgba(0, 0, 0, 0.7)',
+    fontSize: '12.5px',
   };
 
   // Waveform styles
@@ -468,16 +471,12 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     alignItems: 'center',
     gap: `${MediasfuSpacing.xs}px`,
     padding: `${MediasfuSpacing.xs}px`,
-    background: enableGlassmorphism
-      ? MediasfuColors.glassBackground(isDarkMode)
-      : 'rgba(0, 0, 0, 0.6)',
-    backdropFilter: enableGlassmorphism ? 'blur(8px)' : 'none',
-    WebkitBackdropFilter: enableGlassmorphism ? 'blur(8px)' : 'none',
-    border: enableGlassmorphism
-      ? `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`
-      : 'none',
-    borderRadius: `${MediasfuBorders.sm}px`,
-    opacity: isHovered ? 1 : 0.7,
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(6px)',
+    WebkitBackdropFilter: 'blur(6px)',
+    border: `1px solid rgba(255, 255, 255, 0.08)`,
+    borderRadius: '6px',
+    opacity: isHovered ? 1 : 0,
     transition: `opacity ${MediasfuAnimations.fast}ms`,
     zIndex: 2,
   };
@@ -489,14 +488,13 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: '50%',
-    border: 'none',
+    borderRadius: '6px',
+    border: `1px solid rgba(255, 255, 255, 0.08)`,
     cursor: 'pointer',
-    background: isActive
-      ? MediasfuColors.brandGradient(isDarkMode)
-      : isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-    color: isActive ? '#FFFFFF' : (isDarkMode ? '#FFFFFF' : '#1F2937'),
+    background: 'rgba(0, 0, 0, 0.55)',
+    color: isActive ? MediasfuColors.success : MediasfuColors.danger,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    fontSize: '14px',
   });
 
   // Status indicator styles
@@ -508,7 +506,6 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     height: 10,
     borderRadius: '50%',
     backgroundColor: participant?.videoOn ? MediasfuColors.success : MediasfuColors.danger,
-    boxShadow: `0 0 8px ${participant?.videoOn ? MediasfuColors.success : MediasfuColors.danger}`,
     zIndex: 2,
   };
 
@@ -561,8 +558,7 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
                     width: 8,
                     height: 8,
                     borderRadius: '50%',
-                    backgroundColor: barColor,
-                    animation: 'speakingPulse 1s ease-in-out infinite',
+                    backgroundColor: MediasfuColors.success,
                     marginRight: 6,
                     flexShrink: 0,
                   }}
@@ -637,6 +633,13 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
 
       {/* Webinar Self-Awareness Indicator */}
       {renderSelfAwarenessIndicator()}
+
+      {/* Live Subtitle Overlay - uses context for reactive updates without card re-render */}
+      <SubtitleOverlay
+        speakerId={participant?.id || ''}
+        speakerName={participant?.name || name || ''}
+        enableGlassmorphism={enableGlassmorphism}
+      />
 
       {/* Extra Widgets */}
       {extraWidgets}

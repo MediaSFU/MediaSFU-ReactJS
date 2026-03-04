@@ -65,7 +65,6 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   renderMode = 'modal',
 }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -198,13 +197,13 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     const sidebarOptionStyle = (isSelected: boolean): React.CSSProperties => ({
       padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.sm}px`,
       background: isSelected
-        ? MediasfuColors.brandGradient(isDarkMode)
+        ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.85)'
         : isDarkMode
           ? 'rgba(255,255,255,0.05)'
           : 'rgba(0,0,0,0.02)',
       border: `1px solid ${
         isSelected
-          ? 'transparent'
+          ? isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)'
           : isDarkMode
             ? 'rgba(255,255,255,0.1)'
             : 'rgba(0,0,0,0.08)'
@@ -216,9 +215,10 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
       alignItems: 'center',
       gap: `${MediasfuSpacing.xs}px`,
       transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-      color: isSelected ? '#FFFFFF' : isDarkMode ? '#FFFFFF' : '#1F2937',
+      color: isSelected ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
       fontSize: 12,
       fontWeight: isSelected ? 600 : 400,
+      boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
     });
 
     const sidebarToggleRowStyle: React.CSSProperties = {
@@ -244,7 +244,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
       height: 24,
       borderRadius: 12,
       background: isOn
-        ? MediasfuColors.brandGradient(isDarkMode)
+        ? '#22C55E'
         : isDarkMode
           ? 'rgba(255,255,255,0.2)'
           : 'rgba(0,0,0,0.2)',
@@ -456,13 +456,13 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
   const optionStyle = (isSelected: boolean): React.CSSProperties => ({
     padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.sm}px`,
     background: isSelected
-      ? MediasfuColors.brandGradient(isDarkMode)
+      ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.85)'
       : isDarkMode
         ? 'rgba(255,255,255,0.05)'
         : 'rgba(0,0,0,0.02)',
     border: `1px solid ${
       isSelected
-        ? 'transparent'
+        ? isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)'
         : isDarkMode
           ? 'rgba(255,255,255,0.1)'
           : 'rgba(0,0,0,0.08)'
@@ -474,9 +474,10 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     alignItems: 'center',
     gap: `${MediasfuSpacing.xs}px`,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-    color: isSelected ? '#FFFFFF' : isDarkMode ? '#FFFFFF' : '#1F2937',
+    color: isSelected ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
     fontSize: 12,
     fontWeight: isSelected ? 600 : 400,
+    boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
   });
 
   const toggleRowStyle: React.CSSProperties = {
@@ -502,7 +503,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     height: 24,
     borderRadius: 12,
     background: isOn
-      ? MediasfuColors.brandGradient(isDarkMode)
+      ? '#22C55E'
       : isDarkMode
         ? 'rgba(255,255,255,0.2)'
         : 'rgba(0,0,0,0.2)',
@@ -539,10 +540,8 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
         elevation={4}
         style={{
           ...modalStyle,
-          backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-          boxShadow: enableGlow
-            ? `${MediasfuColors.elevation(4, isDarkMode)}, ${MediasfuColors.glowPrimary}`
-            : MediasfuColors.elevation(4, isDarkMode),
+          backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.88)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
         }}
       >
         {/* Header */}

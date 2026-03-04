@@ -121,7 +121,6 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
   // Theme
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   renderMode = 'modal',
 }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -788,12 +787,10 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
       elevation={isSidebarMode ? 0 : 4}
       style={{
         ...modalStyle,
-        backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.88)',
         boxShadow: isSidebarMode 
           ? 'none'
-          : enableGlow
-            ? `${MediasfuColors.elevation(4, isDarkMode)}, ${MediasfuColors.glowPrimary}`
-            : MediasfuColors.elevation(4, isDarkMode),
+          : '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
       }}
     >
       <div

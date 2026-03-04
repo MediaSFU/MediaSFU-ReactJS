@@ -32,7 +32,6 @@ import {
   faObjectUngroup,
   faCompress,
   faExpand,
-  // faQuestionCircle,
   faShieldAlt,
   faStar,
   faGlobe,
@@ -66,6 +65,9 @@ import AudioGrid from "../../components/displayComponents/AudioGrid";
 import MiniAudio from "../../components/displayComponents/MiniAudio";
 
 // Modern UI Components - Used as DEFAULT components for modern UI system
+import { LoadingModalOptions } from "../../components/displayComponents/LoadingModal";
+import { AlertComponentOptions } from "../../components/displayComponents/AlertComponent";
+import { ConfirmExitModalOptions } from "../../components/exitComponents/ConfirmExitModal";
 // These are imported for direct use in withOverride calls, making Modern the default
 import { ModernLoadingModal } from "../display_components/ModernLoadingModal";
 import { ModernAlertComponent } from "../display_components/ModernAlertComponent";
@@ -89,8 +91,8 @@ import { ModernBreakoutRoomsModal } from "../breakout_components/ModernBreakoutR
 import { ModernConfigureWhiteboardModal } from "../whiteboard_components/ModernConfigureWhiteboardModal";
 import { ModernPermissionsModal } from "../permissions_components/ModernPermissionsModal";
 import { ModernPanelistsModal } from "../panelists_components/ModernPanelistsModal";
-import { ModernPagination } from "../display_components/ModernPagination";
 import { TranslationSettingsModal } from "../translation_components/TranslationSettingsModal";
+import { ModernPagination } from "../display_components/ModernPagination";
 import { ModernFlexibleGrid } from "../display_components/ModernFlexibleGrid";
 import { ModernFlexibleVideo } from "../display_components/ModernFlexibleVideo";
 import { ModernMeetingProgressTimer } from "../display_components/ModernMeetingProgressTimer";
@@ -284,13 +286,17 @@ import {
   translationSpeakerOutputChanged,
   TranslationRoomConfig,
   TranslationProducerMap,
+  LiveSubtitle,
+  createLiveSubtitle,
 } from "../../producers/socketReceiveMethods/translationReceiveMethods";
+import { LiveSubtitleProvider } from "../../contexts/LiveSubtitleContext";
 import {
   pauseOriginalProducer,
   resumeOriginalProducer,
   isSpeakerInMyBreakoutRoom,
   stopConsumingTranslation,
 } from "../../consumers/translationConsumerSwitch";
+
 import { captureCanvasStream } from "../../methods/whiteboardMethods/captureCanvasStream";
 import { resumePauseAudioStreams } from "../../consumers/resumePauseAudioStreams";
 import { processConsumerTransportsAudio } from "../../consumers/processConsumerTransportsAudio";
@@ -391,6 +397,15 @@ export type ModernMediasfuGenericOptions = {
   containerStyle?: React.CSSProperties;
   // UI override entry points
   uiOverrides?: MediasfuUICustomOverrides;
+  
+  // Personal translation (per-joiner)
+  // When true, the joiner can request personal translation even if the room host didn't enable it
+  canUsePersonalTranslation?: boolean;
+  // The MediaSFU username that has translation credits
+  personalTranslationUsername?: string;
+  // When true, keeps the urn:3gpp:video-orientation RTP header extension
+  // so recorded video has correct orientation metadata
+  optimizeVideoRecord?: boolean;
 };
 
 /**
@@ -524,6 +539,9 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   customComponent,
   containerStyle,
   uiOverrides,
+  canUsePersonalTranslation = false,
+  personalTranslationUsername,
+  optimizeVideoRecord = false,
 }) => {
 
   const MainContainer = useMemo(
@@ -625,11 +643,11 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   );
   // Modern modal components as defaults
   const LoadingModalComponent = useMemo(
-    () => withOverride(uiOverrides?.loadingModal, ModernLoadingModal),
+    () => withOverride(uiOverrides?.loadingModal, ModernLoadingModal as React.ComponentType<LoadingModalOptions>),
     [uiOverrides?.loadingModal]
   );
   const AlertComponentOverride = useMemo(
-    () => withOverride(uiOverrides?.alert, ModernAlertComponent),
+    () => withOverride(uiOverrides?.alert, ModernAlertComponent as React.ComponentType<AlertComponentOptions>),
     [uiOverrides?.alert]
   );
   const MenuModalComponent = useMemo(
@@ -669,7 +687,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     [uiOverrides?.displaySettingsModal]
   );
   const ConfirmExitModalComponent = useMemo(
-    () => withOverride(uiOverrides?.confirmExitModal, ModernConfirmExitModal),
+    () => withOverride(uiOverrides?.confirmExitModal, ModernConfirmExitModal as React.ComponentType<ConfirmExitModalOptions>),
     [uiOverrides?.confirmExitModal]
   );
   const ConfirmHereModalComponent = useMemo(
@@ -1253,12 +1271,14 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       if (value === "webinar") {
         setMainHeightWidth(67);
         prevMainHeightWidth.current = 67;
+        updateMeetingDisplayType("all");
       } else if (value === "broadcast") {
         setMainHeightWidth(100);
         prevMainHeightWidth.current = 100;
       } else {
         setMainHeightWidth(0);
         prevMainHeightWidth.current = 0;
+        updateMeetingDisplayType("all");
         if (eventType.current === "conference" && mainHeightWidth === 67) {
           setMainHeightWidth(0);
           prevMainHeightWidth.current = 0;
@@ -2215,6 +2235,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   // Translation-related variables
   const translationConfig = useRef<TranslationRoomConfig | null>(null); // Room translation configuration
   const [translationSupported, setTranslationSupported] = useState<boolean>(false); // State to trigger re-render when translation becomes available
+  const [isPersonalTranslation, setIsPersonalTranslation] = useState<boolean>(false); // True if translation is billed from user's own credits
   const mySpokenLanguage = useRef<string>('en'); // User's spoken language
   const mySpokenLanguageEnabled = useRef<boolean>(false); // True if user has enabled translation of their audio
   const myDefaultOutputLanguage = useRef<string | null>(null); // Default output language (e.g., speak French but output German)
@@ -2222,6 +2243,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const listenPreferences = useRef<Map<string, string>>(new Map()); // Per-speaker listen preferences (speakerId -> language)
   const translationProducerMap = useRef<TranslationProducerMap>({}); // Map of original producer IDs to translation producers
   const activeTranslationProducerIds = useRef<Set<string>>(new Set()); // Set of producer IDs that are translation audio
+  const translationFirstRenderForced = useRef<Set<string>>(new Set()); // Track speakers whose translation audio has been "nudged" (first transcript re-render)
   const availableTranslationChannels = useRef<Map<string, { languages: string[]; originalProducerId: string }>>(new Map()); // Available translation channels per speaker
   // Track speaker translation states (speakerId -> { outputLanguage, originalProducerId, enabled })
   const [speakerTranslationStates, setSpeakerTranslationStates] = useState<Map<string, {
@@ -2232,7 +2254,67 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     originalProducerId: string;
     enabled: boolean;
   }>>(new Map());
-  const updateSpeakerTranslationStates = setSpeakerTranslationStates; // Alias for consistency
+  const speakerTranslationStatesRef = useRef(speakerTranslationStates); // Ref for immediate access in async handlers
+  const updateSpeakerTranslationStates = (updater: React.SetStateAction<Map<string, {
+    speakerId: string;
+    speakerName: string;
+    inputLanguage: string;
+    outputLanguage: string;
+    originalProducerId: string;
+    enabled: boolean;
+  }>>) => {
+    setSpeakerTranslationStates((prev) => {
+      const newValue = typeof updater === 'function' ? updater(prev) : updater;
+      speakerTranslationStatesRef.current = newValue; // Keep ref in sync immediately
+      return newValue;
+    });
+  };
+
+  // Live subtitles state
+  const [showSubtitlesOnCards, setShowSubtitlesOnCards] = useState<boolean>(false);
+  const showSubtitlesOnCardsRef = useRef<boolean>(false); // Ref for event handler access
+  const [liveSubtitles, setLiveSubtitles] = useState<Map<string, LiveSubtitle>>(new Map());
+  const updateShowSubtitlesOnCards = (value: boolean) => {
+    setShowSubtitlesOnCards(value);
+    showSubtitlesOnCardsRef.current = value; // Keep ref in sync
+    if (!value) {
+      setLiveSubtitles(new Map()); // Clear subtitles when disabled
+    }
+    // Trigger grid refresh so cards pick up new subtitle visibility
+    setTimeout(() => {
+      reorderStreams({
+        add: false,
+        screenChanged: true,
+        parameters: { ...getAllParams(), ...mediaSFUFunctions(), showSubtitlesOnCards: value } as any
+      });
+    }, 50);
+  };
+  const updateLiveSubtitleForSpeaker = (speakerId: string, subtitle: LiveSubtitle | null) => {
+    setLiveSubtitles(prev => {
+      const newMap = new Map(prev);
+      if (subtitle) {
+        newMap.set(speakerId, subtitle);
+      } else {
+        newMap.delete(speakerId);
+      }
+      return newMap;
+    });
+    // No need to force grid re-render - SubtitleOverlay components use context reactively
+  };
+  const cleanupExpiredSubtitles = () => {
+    const now = Date.now();
+    setLiveSubtitles(prev => {
+      const newMap = new Map(prev);
+      let changed = false;
+      for (const [speakerId, subtitle] of newMap) {
+        if (now >= subtitle.expiresAt) {
+          newMap.delete(speakerId);
+          changed = true;
+        }
+      }
+      return changed ? newMap : prev;
+    });
+  };
 
   // Listener translation preferences - allows listeners to customize what they hear
   // Synced with server for billing tracking and routing
@@ -2545,6 +2627,9 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const updateIsConfirmHereModalVisible = (value: boolean) => {
     setIsConfirmHereModalVisible(value);
   };
+
+  // Session-level suppress flag for "Are you still here?" modal
+  const suppressConfirmHere = useRef<boolean>(false);
 
   const updateIsLoadingModalVisible = (value: boolean) => {
     setIsLoadingModalVisible(value);
@@ -3171,6 +3256,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     return {
       localUIMode: localUIMode.current, // Local UI mode
       isDarkModeValue: isDarkMode, // Theme mode for media cards
+      showSubtitlesOnCards: showSubtitlesOnCards, // Show live subtitles on cards
+      liveSubtitles: liveSubtitles, // Live subtitles map for speakers
       videoCardComponent: VideoCardComponentOverride,
       audioCardComponent: AudioCardComponentOverride,
       miniCardComponent: MiniCardComponentOverride,
@@ -3956,7 +4043,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         ])
       ),
       // Speaker-controlled translation states (speaker sets output language for everyone)
-      speakerTranslationStates: speakerTranslationStates,
+      // Use ref for synchronous access in getUpdatedAllParams to avoid stale closures
+      speakerTranslationStates: speakerTranslationStatesRef.current,
       // Listener translation preferences - server-synced for billing and routing
       // Use ref for synchronous access in getUpdatedAllParams
       listenerTranslationPreferences: listenerTranslationPreferencesRef.current,
@@ -3972,7 +4060,6 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         originalProducerId?: string,
         nsock?: Socket
       ) => {
-        
         // FIRST: Close any existing translation consumers for this same speaker (different language)
         // This prevents multiple translation streams playing simultaneously
         if (originalProducerId) {
@@ -4040,7 +4127,6 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         
         const targetSocket = nsock || socket.current;
         if (!targetSocket) {
-          console.warn('[Translation] No socket available for consuming translation');
           return;
         }
 
@@ -4055,6 +4141,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             activeTranslationProducerIds: activeTranslationProducerIds.current,
           },
         });
+        
         // Pause original producer if we have it
         if (originalProducerId) {
           // Update translation producer map to track this new translation
@@ -4108,7 +4195,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         
         // CRITICAL: Close any existing translation consumers for this speaker that don't match the new preference
         // This handles the case where speaker chose Dutch but listener now wants Portuguese
-        const speakerState = speakerTranslationStates.get(speakerId);
+        const speakerState = speakerTranslationStatesRef.current.get(speakerId);
         if (speakerState?.originalProducerId) {
           const existingTranslations = translationProducerMap.current[speakerState.originalProducerId];
           if (existingTranslations) {
@@ -4190,7 +4277,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         
         // CRITICAL: Close any existing translation consumers that don't match the global preference
         // Iterate through all speakers with active translation states
-        for (const [speakerId, speakerState] of speakerTranslationStates) {
+        for (const [speakerId, speakerState] of speakerTranslationStatesRef.current) {
           // Skip if there's a per-speaker preference (that takes priority)
           const perSpeakerPref = listenerTranslationPreferencesRef.current.perSpeaker?.get(speakerId);
           if (perSpeakerPref) continue;
@@ -5506,6 +5593,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
           try {
             let device_ = await createDeviceClient({
               rtpCapabilities: data.rtpCapabilities,
+              optimizeVideoRecord,
             });
 
             if (device_) {
@@ -5791,7 +5879,9 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     setTimeout(async function () {
       updateValidated(false);
       //if on web, reload the page
-      window.location.reload();
+      if (returnUI){
+        window.location.reload();
+      }
     }, 500);
   }
 
@@ -5895,10 +5985,17 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     }
 
     let tempMainHeightWidth = mainHeightWidth;
-    if (eventType.current == "conference" && mainHeightWidth === 67) {
+    // When screen share or whiteboard is active, force the main display to 84%
+    // to prevent stale closure values from resetting it to 0 (causes flashing)
+    if (shared.current || shareScreenStarted.current || whiteboardStarted.current) {
+      tempMainHeightWidth = 84;
+      if (mainHeightWidth !== 84) {
+        setMainHeightWidth(84);
+      }
+    } else if (eventType.current == "conference" && mainHeightWidth === 67) {
        tempMainHeightWidth = 0;
        setMainHeightWidth(0);
-    }else if (eventType.current == "broadcast" && mainHeightWidth !== 100) {
+    } else if (eventType.current == "broadcast" && mainHeightWidth !== 100) {
        tempMainHeightWidth = 100;
        setMainHeightWidth(100);
     } else if (eventType.current == "chat" && mainHeightWidth !== 0) {
@@ -6143,6 +6240,9 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     
     repopulateForTheme().catch(console.error);
   }, [isDarkMode, validated]);
+
+  // Note: Subtitle updates are handled reactively through the liveSubtitles prop
+  // passed to getAllParams(). The cards lookup their subtitle at render time.
 
   async function connect_Socket(
     apiUserName: string,
@@ -6577,6 +6677,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         );
 
         socketDefault.on("meetingStillThere", async () => {
+          if (suppressConfirmHere.current) return;
           await meetingStillThere({
             updateIsConfirmHereModalVisible,
           });
@@ -6761,6 +6862,54 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
               data,
               updateTranslationConfig,
             });
+
+            // If room doesn't support translation but user has personal translation eligibility,
+            // automatically request personal translation from the server
+            if (
+              !data.config.supportTranslation &&
+              canUsePersonalTranslation &&
+              personalTranslationUsername
+            ) {
+              socketDefault.emit(
+                "requestPersonalTranslation",
+                {
+                  roomName: roomName.current,
+                  username: personalTranslationUsername,
+                },
+                (response: { success: boolean; translationConfig?: TranslationRoomConfig; error?: string }) => {
+                  if (response?.success) {
+                    // personalTranslationConfig event will follow from server
+                    console.log("[PersonalTranslation] Request accepted");
+                  } else {
+                    console.log("[PersonalTranslation] Request denied:", response?.error);
+                  }
+                }
+              );
+            }
+          } catch {
+            // Handle error
+          }
+        });
+
+        // Listen for personal translation config (per-joiner translation)
+        socketDefault.on("personalTranslationConfig", async (data: {
+          supportTranslation: boolean;
+          translationConfig: TranslationRoomConfig;
+          providerGroups: any;
+          billingUsername: string;
+          isPersonalTranslation: boolean;
+        }) => {
+          try {
+            if (data.supportTranslation && data.translationConfig) {
+              // Enable translation UI for this user
+              updateTranslationConfig(data.translationConfig);
+              setIsPersonalTranslation(data.isPersonalTranslation === true);
+              showAlert?.({
+                message: "Personal translation activated with your account credits",
+                type: "success",
+                duration: 3000,
+              });
+            }
           } catch {
             // Handle error
           }
@@ -6964,7 +7113,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             }
 
             // Find the original producer for this speaker from translation state
-            const speakerState = speakerTranslationStates.get(data.speakerId);
+            const speakerState = speakerTranslationStatesRef.current.get(data.speakerId);
             const originalProducerId = speakerState?.originalProducerId;
 
             // Resume original audio
@@ -7012,15 +7161,47 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
           try {
             await translationTranscript({
               data,
-              // Optional: update a transcript state for subtitle display
-              // updateTranscripts,
-              // Optional: callback for custom handling
-              onTranscriptReceived: () => {
-                // Transcript received for subtitle display
-              },
             });
-          } catch {
-            // Handle error
+
+            // One-time forced re-render per speaker: when the first transcript arrives
+            // it confirms the translation pipeline is active. Force a re-render of
+            // translationStreams and retry .play() on any paused audio elements to
+            // unstick the audio if the initial mount didn't trigger playback.
+            if (data.speakerId && !translationFirstRenderForced.current.has(data.speakerId)) {
+              translationFirstRenderForced.current.add(data.speakerId);
+              // Force new array reference → React schedules a re-render
+              setTranslationStreams(prev => [...prev]);
+              // Belt-and-suspenders: retry play on any paused audio elements
+              requestAnimationFrame(() => {
+                document.querySelectorAll('audio').forEach((audio) => {
+                  if (audio.paused && audio.srcObject) {
+                    audio.play().catch(() => {});
+                  }
+                });
+              });
+            }
+
+            // Update live subtitles if enabled (use ref to avoid stale closure)
+            if (showSubtitlesOnCardsRef.current && data.speakerId) {
+              const subtitle = createLiveSubtitle({
+                text: data.translatedText || data.originalText || '',
+                language: data.language || 'unknown',
+                speakerId: data.speakerId,
+                speakerName: data.speakerName,
+              });
+              // Store by BOTH speakerId AND speakerName for flexible lookup
+              updateLiveSubtitleForSpeaker(data.speakerId, subtitle);
+              if (data.speakerName && data.speakerName !== data.speakerId) {
+                updateLiveSubtitleForSpeaker(data.speakerName, subtitle);
+              }
+
+              // Schedule cleanup of expired subtitles
+              setTimeout(() => {
+                cleanupExpiredSubtitles();
+              }, subtitle.expiresAt - Date.now() + 100);
+            }
+          } catch (error) {
+            // Error in translation:transcript handler
           }
         });
 
@@ -7756,6 +7937,9 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             socket={socket.current}
             roomName={roomName.current}
             showAlert={showAlert}
+            showSubtitlesOnCards={showSubtitlesOnCards}
+            updateShowSubtitlesOnCards={updateShowSubtitlesOnCards}
+            isPersonalTranslation={isPersonalTranslation}
             isDarkMode={isDarkMode}
             renderMode="sidebar"
           />
@@ -8019,6 +8203,11 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
                 }
               }}
             >
+              {/* LiveSubtitleProvider for reactive subtitle updates */}
+              <LiveSubtitleProvider
+                liveSubtitles={liveSubtitles}
+                showSubtitlesOnCards={showSubtitlesOnCards}
+              >
               {/* MainGridComponent shows the main grid view - not used at all in chat event type  and conference event type when screenshare is not active*/}
               {/* MainGridComponent becomes the dominant grid view in broadcast and webinar event types */}
               {/* MainGridComponent becomes the dominant grid view in conference event type when screenshare is active */}
@@ -8207,6 +8396,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
                   isDarkMode={isDarkMode}
                 />
               </OtherGrid>
+              </LiveSubtitleProvider>
             </MainScreen>
             
             {/* Desktop sidebar panel - only shows when shouldUseSidebar is true */}
@@ -8313,6 +8503,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             backgroundColor={themedSurfaceColor}
             isConfirmHereModalVisible={isConfirmHereModalVisible}
             onConfirmHereClose={() => updateIsConfirmHereModalVisible(false)}
+            onSuppressConfirmHere={() => { suppressConfirmHere.current = true; }}
             member={member.current}
             roomName={roomName.current}
             socket={socket.current}

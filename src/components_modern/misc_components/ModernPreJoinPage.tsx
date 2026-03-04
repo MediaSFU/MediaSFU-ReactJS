@@ -67,10 +67,8 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
   noUIPreJoinOptions,
   createMediaSFURoom = createRoomOnMediaSFU,
   joinMediaSFURoom = joinRoomOnMediaSFU,
-  isDarkMode: initialDarkMode = true,
+  isDarkMode = true,
 }) => {
-  // Internal theme state (can be toggled by user)
-  const [isDarkMode, setIsDarkMode] = useState(initialDarkMode);
   const {
     imgSrc = 'https://mediasfu.com/images/logo192.png',
     showAlert,
@@ -181,6 +179,7 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
       localLink: localLink,
     });
     if (response.success && response.data && 'roomName' in response.data) {
+      updateMember(payload.userName + "_2");
       await checkLimitsAndMakeRequest({
         apiUserName: response.data.roomName,
         apiToken: response.data.secret,
@@ -716,7 +715,7 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
     padding: 3,
     borderRadius: '50%',
     background: `linear-gradient(135deg, ${isDarkMode ? MediasfuColors.primaryDark : MediasfuColors.primary} 0%, ${isDarkMode ? MediasfuColors.secondaryDarkMode : MediasfuColors.secondary} 50%, ${isDarkMode ? MediasfuColors.accentDark : MediasfuColors.accent} 100%)`,
-    boxShadow: `0 0 20px ${MediasfuColors.primary}66, 0 0 40px ${MediasfuColors.primary}33`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
   };
 
   const logoStyle: CSSProperties = {
@@ -762,31 +761,7 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
   const selectStyle: CSSProperties = {
     ...inputStyle,
     cursor: 'pointer',
-    appearance: 'none',
-    WebkitAppearance: 'none',
-    MozAppearance: 'none',
-    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='${isDarkMode ? '%23ffffff' : '%23333333'}' d='M6 8L1 3h10z'/%3E%3C/svg%3E")`,
-    backgroundRepeat: 'no-repeat',
-    backgroundPosition: 'right 12px center',
-    backgroundSize: '12px',
-    paddingRight: 36,
   };
-
-  // Style for select options (injected via style tag)
-  const selectOptionStyle = `
-    select option {
-      background: ${isDarkMode ? '#1a1a2e' : '#ffffff'};
-      color: ${isDarkMode ? '#ffffff' : '#1a1a2e'};
-      padding: 12px;
-      font-size: 14px;
-    }
-    select option:hover,
-    select option:focus,
-    select option:checked {
-      background: ${isDarkMode ? '#2d2d44' : '#f0f0f5'};
-      color: ${MediasfuColors.primary};
-    }
-  `;
 
   const buttonStyle: CSSProperties = {
     width: '100%',
@@ -800,7 +775,7 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
     cursor: pending.current ? 'not-allowed' : 'pointer',
     opacity: pending.current ? 0.7 : 1,
     transition: 'transform 0.2s ease, box-shadow 0.3s ease, opacity 0.3s ease',
-    boxShadow: `0 4px 20px ${MediasfuColors.primary}40`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     marginTop: MediasfuSpacing.sm,
   };
 
@@ -843,57 +818,13 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
     ...(focusedField === fieldName
       ? {
           border: `1px solid ${MediasfuColors.primary}`,
-          boxShadow: `0 0 0 3px ${MediasfuColors.primary}30`,
+          boxShadow: `0 0 0 3px rgba(0,0,0,0.08)`,
         }
       : {}),
   });
 
   return (
     <div style={containerStyle}>
-      {/* Inject custom option styles */}
-      <style>{selectOptionStyle}</style>
-      
-      {/* Theme Toggle Button */}
-      <button
-        onClick={() => setIsDarkMode(!isDarkMode)}
-        style={{
-          position: 'absolute',
-          top: 20,
-          right: 20,
-          width: 48,
-          height: 48,
-          borderRadius: 12,
-          border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
-          background: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-          backdropFilter: 'blur(10px)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 22,
-          transition: 'transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease',
-          boxShadow: isDarkMode 
-            ? '0 4px 20px rgba(0,0,0,0.3)' 
-            : '0 4px 20px rgba(0,0,0,0.1)',
-          zIndex: 100,
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.1) rotate(15deg)';
-          e.currentTarget.style.boxShadow = isDarkMode 
-            ? '0 6px 24px rgba(102, 126, 234, 0.4)' 
-            : '0 6px 24px rgba(102, 126, 234, 0.3)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1) rotate(0deg)';
-          e.currentTarget.style.boxShadow = isDarkMode 
-            ? '0 4px 20px rgba(0,0,0,0.3)' 
-            : '0 4px 20px rgba(0,0,0,0.1)';
-        }}
-        title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-      >
-        {isDarkMode ? '☀️' : '🌙'}
-      </button>
-
       <GlassmorphicContainer
         isDarkMode={isDarkMode}
         style={formContainerStyle}
@@ -990,12 +921,12 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
           onMouseEnter={(e) => {
             if (!pending.current) {
               e.currentTarget.style.transform = 'translateY(-2px)';
-              e.currentTarget.style.boxShadow = `0 6px 24px ${MediasfuColors.primary}50`;
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.22)';
             }
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = `0 4px 20px ${MediasfuColors.primary}40`;
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)';
           }}
         >
           {pending.current

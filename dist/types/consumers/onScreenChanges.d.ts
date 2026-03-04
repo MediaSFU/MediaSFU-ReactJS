@@ -3,6 +3,8 @@ export interface OnScreenChangesParameters extends ReorderStreamsParameters {
     eventType: EventType;
     shareScreenStarted: boolean;
     shared: boolean;
+    whiteboardStarted: boolean;
+    whiteboardEnded: boolean;
     addForBasic: boolean;
     updateAddForBasic: (value: boolean) => void;
     itemPageLimit: number;

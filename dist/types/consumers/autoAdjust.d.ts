@@ -4,6 +4,8 @@ export interface AutoAdjustOptions {
     eventType: EventType;
     shareScreenStarted: boolean;
     shared: boolean;
+    whiteboardStarted?: boolean;
+    whiteboardEnded?: boolean;
 }
 export type AutoAdjustType = (options: AutoAdjustOptions) => Promise<number[]>;
 /**
@@ -37,5 +39,5 @@ export type AutoAdjustType = (options: AutoAdjustOptions) => Promise<number[]>;
  *     console.error('Error adjusting values:', error);
  *   });
  */
-export declare function autoAdjust({ n, eventType, shareScreenStarted, shared }: AutoAdjustOptions): Promise<number[]>;
+export declare function autoAdjust({ n, eventType, shareScreenStarted, shared, whiteboardStarted, whiteboardEnded }: AutoAdjustOptions): Promise<number[]>;
 //# sourceMappingURL=autoAdjust.d.ts.map

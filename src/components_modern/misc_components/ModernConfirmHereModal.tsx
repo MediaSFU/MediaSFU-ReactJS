@@ -23,6 +23,8 @@ export interface ModernConfirmHereModalOptions {
   member: string;
   position?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'center';
   onTimeout?: () => void;
+  /** Called when user opts out of future confirm-here prompts for this session */
+  onSuppressConfirmHere?: () => void;
   // Modern UI props
   isDarkMode?: boolean;
 }
@@ -44,10 +46,12 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
   roomName,
   member,
   onTimeout,
+  onSuppressConfirmHere,
   isDarkMode = false,
 }) => {
   const [counter, setCounter] = useState(countdownDuration);
   const [isMounted, setIsMounted] = useState(false);
+  const [doNotShowAgain, setDoNotShowAgain] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const handleTimeoutRef = useRef<() => void>(() => {});
 
@@ -88,6 +92,13 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
     onConfirmHereClose();
   }, [clearCountdown, onConfirmHereClose]);
 
+  const handleSuppressAndConfirm = useCallback(() => {
+    if (doNotShowAgain) {
+      onSuppressConfirmHere?.();
+    }
+    confirmAndClose();
+  }, [doNotShowAgain, onSuppressConfirmHere, confirmAndClose]);
+
   // Keep handleTimeoutRef updated with latest callbacks
   useEffect(() => {
     handleTimeoutRef.current = () => {
@@ -98,8 +109,8 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
   }, [emitDisconnect, onTimeout, confirmAndClose]);
 
   const handleConfirm = useCallback(() => {
-    confirmAndClose();
-  }, [confirmAndClose]);
+    handleSuppressAndConfirm();
+  }, [handleSuppressAndConfirm]);
 
   // Reset counter when duration changes or modal opens
   useEffect(() => {
@@ -225,7 +236,7 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
     fontWeight: 600,
     cursor: 'pointer',
     transition: 'transform 0.2s ease, box-shadow 0.3s ease',
-    boxShadow: `0 4px 20px ${MediasfuColors.success}40`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
   };
 
   const warningStyle: CSSProperties = {
@@ -287,16 +298,39 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
           Please confirm your presence to stay connected to the meeting.
         </p>
 
+        {/* Don't show again checkbox */}
+        {onSuppressConfirmHere && (
+          <label
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              cursor: 'pointer',
+              fontSize: 13,
+              color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
+              userSelect: 'none',
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={doNotShowAgain}
+              onChange={(e) => setDoNotShowAgain(e.target.checked)}
+              style={{ accentColor: MediasfuColors.primary, width: 16, height: 16, cursor: 'pointer' }}
+            />
+            Don&apos;t show again this session
+          </label>
+        )}
+
         <button
           onClick={handleConfirm}
           style={buttonStyle}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'translateY(-2px)';
-            e.currentTarget.style.boxShadow = `0 6px 24px ${MediasfuColors.success}50`;
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(0,0,0,0.22)';
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = `0 4px 20px ${MediasfuColors.success}40`;
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.18)';
           }}
         >
           I&apos;m Here

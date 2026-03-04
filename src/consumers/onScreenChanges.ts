@@ -4,6 +4,8 @@ export interface OnScreenChangesParameters extends ReorderStreamsParameters {
   eventType: EventType;
   shareScreenStarted: boolean;
   shared: boolean;
+  whiteboardStarted: boolean;
+  whiteboardEnded: boolean;
   addForBasic: boolean;
   updateAddForBasic: (value: boolean) => void;
   itemPageLimit: number;
@@ -69,6 +71,8 @@ export async function onScreenChanges({ changed, parameters }: OnScreenChangesOp
       eventType,
       shareScreenStarted,
       shared,
+      whiteboardStarted,
+      whiteboardEnded,
       addForBasic,
       updateMainHeightWidth,
       updateAddForBasic,
@@ -91,7 +95,7 @@ export async function onScreenChanges({ changed, parameters }: OnScreenChangesOp
       updateItemPageLimit(itemPageLimit);
       updateMainHeightWidth(eventType === "broadcast" ? 100 : 0);
     } else {
-      if (eventType === "conference" && !(shareScreenStarted || shared)) {
+      if (eventType === "conference" && !(shareScreenStarted || shared || (whiteboardStarted && !whiteboardEnded))) {
         updateMainHeightWidth(0);
       }
     }

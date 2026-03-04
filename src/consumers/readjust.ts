@@ -84,6 +84,8 @@ export async function readjust({ n, state, parameters }: ReadjustOptions): Promi
       hostLabel,
       first_round,
       lock_screen,
+      whiteboardStarted,
+      whiteboardEnded,
       updateMainHeightWidth,
       prepopulateUserMedia,
     } = parameters;
@@ -107,12 +109,12 @@ export async function readjust({ n, state, parameters }: ReadjustOptions): Promi
       }
     } else if (
       eventType === "chat" ||
-      (eventType === "conference" && !(shareScreenStarted || shared))
+      (eventType === "conference" && !(shareScreenStarted || shared || (whiteboardStarted && !whiteboardEnded)))
     ) {
       val1 = 12;
       val2 = 12 - val1;
     } else {
-      if (shareScreenStarted || shared) {
+      if (shareScreenStarted || shared || (whiteboardStarted && !whiteboardEnded)) {
         val2 = 10;
         val1 = 12 - val2;
       } else {

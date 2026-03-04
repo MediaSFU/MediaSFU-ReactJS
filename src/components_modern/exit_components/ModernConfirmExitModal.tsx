@@ -68,7 +68,6 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -216,9 +215,7 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
         elevation={4}
         style={{
           ...modalStyle,
-          boxShadow: enableGlow
-            ? `${MediasfuColors.elevation(4, isDarkMode)}, 0 0 20px rgba(239, 68, 68, 0.15)`
-            : MediasfuColors.elevation(4, isDarkMode),
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
         }}
       >
         {/* Header */}

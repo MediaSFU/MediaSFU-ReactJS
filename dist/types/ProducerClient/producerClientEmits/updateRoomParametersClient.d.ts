@@ -14,6 +14,8 @@ export interface UpdateRoomParametersClientParameters {
     screenPageLimit: number;
     shareScreenStarted: boolean;
     shared: boolean;
+    whiteboardStarted: boolean;
+    whiteboardEnded: boolean;
     targetOrientation: string;
     vidCons: VidCons;
     recordingVideoSupport: boolean;

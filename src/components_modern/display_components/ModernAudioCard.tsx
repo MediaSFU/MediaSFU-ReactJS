@@ -25,12 +25,14 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { AudioCardOptions } from '../../components/displayComponents/AudioCard';
 import { MediasfuColors } from '../core/theme/MediasfuColors';
+import type { LiveSubtitle } from '../../producers/socketReceiveMethods/translationReceiveMethods';
 import { MediasfuSpacing } from '../core/theme/MediasfuSpacing';
 import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 import { MediasfuAnimations } from '../core/theme/MediasfuAnimations';
 import { MediasfuBorders } from '../core/theme/MediasfuBorders';
 import { ModernTooltip } from '../core/widgets/ModernTooltip';
 import { ModernMiniCard } from './ModernMiniCard';
+import { SubtitleOverlay } from './SubtitleOverlay';
 
 export interface ModernAudioCardOptions extends AudioCardOptions {
   /** Use dark mode styling */
@@ -43,6 +45,10 @@ export interface ModernAudioCardOptions extends AudioCardOptions {
   borderRadius?: number;
   /** Optional card size (width/height). If omitted, card fills parent container */
   size?: number;
+  /** Live subtitle for displaying translated speech - can be static value or getter function */
+  liveSubtitle?: LiveSubtitle | null | (() => LiveSubtitle | null);
+  /** Whether to show subtitles on this card */
+  showSubtitles?: boolean;
 }
 
 export type ModernAudioCardType = (options: ModernAudioCardOptions) => React.JSX.Element;
@@ -77,15 +83,20 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   borderRadius = MediasfuBorders.md,
   size,
+  liveSubtitle: liveSubtitleProp,
+  showSubtitles = false,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [showWaveform, setShowWaveform] = useState(false);
   const [waveformValues, setWaveformValues] = useState<number[]>(Array(waveformBarCount).fill(0));
   const animationRef = useRef<number | null>(null);
+  
+  // Suppress unused variable warnings - these are kept for backwards compatibility
+  void liveSubtitleProp;
+  void showSubtitles;
 
   // Mount animation
   useEffect(() => {
@@ -239,8 +250,8 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     background: backgroundColor || (isDarkMode 
       ? 'linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%)'
       : 'linear-gradient(135deg, #F8F9FA 0%, #E9ECEF 50%, #DEE2E6 100%)'),
-    boxShadow: isHovered && enableGlow
-      ? `0 0 24px ${MediasfuColors.primary}40, ${MediasfuColors.elevation(3, isDarkMode)}`
+    boxShadow: showWaveform
+      ? `0 0 0 2.5px ${MediasfuColors.success}, ${MediasfuColors.elevation(2, isDarkMode)}`
       : MediasfuColors.elevation(2, isDarkMode),
     transform: isMounted
       ? (isHovered ? 'scale(1.02)' : 'scale(1)')
@@ -271,12 +282,10 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     borderRadius: '50%',
     background: initialsGradient,
     padding: '3px',
-    boxShadow: showWaveform
-      ? `0 0 30px ${barColor}80, 0 0 60px ${barColor}40`
-      : `0 0 10px ${MediasfuColors.primary}20`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     transform: showWaveform ? 'scale(1.02)' : 'scale(1)',
     transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
-    animation: showWaveform ? 'avatarPulse 2s ease-in-out infinite' : 'none',
+    animation: 'none',
   };
 
   // Waveform ring - bars radiating outward around avatar (like Flutter)
@@ -304,7 +313,7 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
             height: `${Math.max(8, Math.min(28, height))}px`,
             backgroundColor: barColor,
             borderRadius: '2px',
-            boxShadow: `0 0 4px ${barColor}80`,
+            boxShadow: 'none',
             transform: `rotate(${i * 40}deg) translateY(-90px)`,
             transformOrigin: 'center',
             transition: 'height 100ms linear',
@@ -333,11 +342,7 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     alignItems: 'center',
     gap: `${MediasfuSpacing.xs}px`,
     padding: `2px 6px`,
-    background: enableGlassmorphism
-      ? 'rgba(0, 0, 0, 0.5)'
-      : 'rgba(0, 0, 0, 0.7)',
-    backdropFilter: enableGlassmorphism ? 'blur(8px)' : 'none',
-    WebkitBackdropFilter: enableGlassmorphism ? 'blur(8px)' : 'none',
+    background: 'transparent',
     borderRadius: `${MediasfuBorders.xs}px`,
     zIndex: 2,
     maxWidth: size ? size - MediasfuSpacing.sm * 2 : 'calc(100% - 16px)',
@@ -346,9 +351,10 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
   // Name text style
   const nameStyle: React.CSSProperties = {
     ...MediasfuTypography.toStyle(MediasfuTypography.labelSmall),
-    fontSize: 12,
+    fontSize: 12.5,
     color: textColor,
     fontWeight: 600,
+    textShadow: '0 1px 4px rgba(0,0,0,0.7)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
     whiteSpace: 'nowrap',
@@ -382,14 +388,12 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: '50%',
-    border: 'none',
+    borderRadius: '6px',
+    border: '1px solid rgba(255,255,255,0.08)',
     cursor: 'pointer',
-    background: enableGlassmorphism
-      ? 'rgba(0, 0, 0, 0.5)'
-      : 'rgba(0, 0, 0, 0.7)',
-    backdropFilter: enableGlassmorphism ? 'blur(8px)' : 'none',
-    WebkitBackdropFilter: enableGlassmorphism ? 'blur(8px)' : 'none',
+    background: 'rgba(0, 0, 0, 0.55)',
+    backdropFilter: 'blur(6px)',
+    WebkitBackdropFilter: 'blur(6px)',
     color: isActive ? MediasfuColors.success : MediasfuColors.danger,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
     fontSize: 12,
@@ -404,12 +408,12 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
       <style>
         {`
           @keyframes avatarPulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 30px ${MediasfuColors.primary}80, 0 0 60px ${MediasfuColors.primary}40; }
-            50% { transform: scale(1.05); box-shadow: 0 0 40px ${MediasfuColors.primary}99, 0 0 80px ${MediasfuColors.primary}60; }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
           }
           @keyframes speakingPulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.3); opacity: 0.7; }
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
           }
         `}
       </style>
@@ -451,12 +455,11 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
                 {showWaveform && (
                   <span
                     style={{
-                      width: 8,
-                      height: 8,
+                      width: 6,
+                      height: 6,
                       borderRadius: '50%',
-                      backgroundColor: barColor,
-                      animation: 'speakingPulse 1s ease-in-out infinite',
-                      marginRight: 6,
+                      backgroundColor: MediasfuColors.success,
+                      marginRight: 4,
                       flexShrink: 0,
                     }}
                   />
@@ -481,6 +484,13 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
             )}
           </div>
         )}
+
+        {/* Live Subtitle Overlay - uses context for reactive updates without card re-render */}
+        <SubtitleOverlay
+          speakerId={participant?.id || ''}
+          speakerName={participant?.name || name || ''}
+          enableGlassmorphism={enableGlassmorphism}
+        />
 
         {/* Controls Overlay */}
         {showControls && (

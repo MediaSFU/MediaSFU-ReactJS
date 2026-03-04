@@ -4,7 +4,9 @@ export interface AutoAdjustOptions {
   n: number;
   eventType: EventType;
   shareScreenStarted: boolean;
-  shared: boolean;  
+  shared: boolean;
+  whiteboardStarted?: boolean;
+  whiteboardEnded?: boolean;
 }
 
 export type AutoAdjustType = (options: AutoAdjustOptions) => Promise<number[]>;
@@ -44,7 +46,7 @@ export type AutoAdjustType = (options: AutoAdjustOptions) => Promise<number[]>;
 
 export async function autoAdjust({
   n,
-  eventType, shareScreenStarted, shared
+  eventType, shareScreenStarted, shared, whiteboardStarted = false, whiteboardEnded = false
 }: AutoAdjustOptions): Promise<number[]> {
 
   // Default values
@@ -57,12 +59,12 @@ export async function autoAdjust({
     val2 = 12 - val1;
   } else if (
     eventType === 'chat' ||
-    (eventType === 'conference' && !(shareScreenStarted || shared))
+    (eventType === 'conference' && !(shareScreenStarted || shared || (whiteboardStarted && !whiteboardEnded)))
   ) {
     val1 = 12;
     val2 = 12 - val1;
   } else {
-    if (shareScreenStarted || shared) {
+    if (shareScreenStarted || shared || (whiteboardStarted && !whiteboardEnded)) {
       val2 = 10;
       val1 = 12 - val2;
     } else {

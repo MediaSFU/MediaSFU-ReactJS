@@ -260,7 +260,7 @@ export const ModernShareEventModal: React.FC<ModernShareEventModalProps> = ({
             padding: MediasfuSpacing.xs,
             background: `linear-gradient(135deg, ${MediasfuColors.secondary}, ${MediasfuColors.secondary}B3)`,
             borderRadius: MediasfuBorders.sm,
-            boxShadow: `0 4px 12px ${MediasfuColors.secondary}80`,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

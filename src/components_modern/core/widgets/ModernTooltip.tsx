@@ -252,7 +252,7 @@ const ModernTooltipComponent: React.FC<ModernTooltipOptions> = ({
     pointerEvents: 'none',
     opacity: visible ? 1 : 0,
     transition: 'opacity 200ms ease-in-out',
-    boxShadow: `0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px ${isDarkMode ? 'rgba(79, 172, 254, 0.15)' : 'rgba(102, 126, 234, 0.15)'}`,
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)',
   };
 
   if (!message) {

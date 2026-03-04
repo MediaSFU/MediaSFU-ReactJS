@@ -126,7 +126,7 @@ const ModernFlexibleGridComponent: React.FC<ModernFlexibleGridOptions> = ({
 
   const borderColor = useMemo(() => {
     if (!enableGlassmorphism) return undefined;
-    return isDarkMode ? "rgba(102, 126, 234, 0.1)" : "rgba(102, 126, 234, 0.05)";
+    return isDarkMode ? "rgba(255, 255, 255, 0.06)" : "rgba(0, 0, 0, 0.04)";
   }, [isDarkMode, enableGlassmorphism]);
 
   // Get cell style based on whether it has content
@@ -183,14 +183,12 @@ const ModernFlexibleGridComponent: React.FC<ModernFlexibleGridOptions> = ({
             height: 40,
             borderRadius: "50%",
             background: isDarkMode
-              ? "linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.2))"
-              : "linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1))",
+              ? "rgba(255, 255, 255, 0.06)"
+              : "rgba(0, 0, 0, 0.04)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            boxShadow: isDarkMode
-              ? "0 0 8px rgba(102, 126, 234, 0.15)"
-              : "0 0 12px rgba(102, 126, 234, 0.2)",
+            boxShadow: 'none',
           }}
         >
           <svg

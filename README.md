@@ -36,9 +36,27 @@
 
 # MediaSFU ReactJS SDK
 
-**Build production-ready video conferencing, webinars, broadcasts, and chat in minutes.**
+**Ship production-ready voice, video, and AI communication in minutes — not months.**
 
-MediaSFU ReactJS provides prebuilt, fully-featured event room components with real-time video/audio, screen sharing, recording, chat, polls, whiteboards, and more — ready to drop into your React app.
+MediaSFU gives you prebuilt, fully-featured event room components with real-time video/audio, screen sharing, recording, chat, polls, whiteboards, real-time translation, and more. Drop them into your React app with a few lines of code and go live.
+
+### Why MediaSFU?
+
+| Without MediaSFU | With MediaSFU |
+|---|---|
+| 6–12 months of WebRTC, TURN/STUN, codec work | `npm install mediasfu-reactjs` → done |
+| $1–5 per 1,000 minutes (Twilio, Vonage, Daily) | **$0.10 per 1,000 minutes** — 10–50× cheaper |
+| Build every modal, card, and control from scratch | Prebuilt components — classic & modern themes |
+| Wire up third-party AI, TTS, vision APIs yourself | Built-in AI agents, voice translation, transcription |
+| Separate codebases per platform | One API surface → React, React Native, Flutter, Angular, Vue |
+| Weeks of infrastructure setup | Under 5 minutes |
+
+## 🔥 What Makes MediaSFU Different
+
+| | |
+|---|---|
+| **Embeddable by Design** — Other platforms give you raw APIs and leave you to build the UI. MediaSFU gives you finished, production-ready components — video grids, control bars, modals, chat panels, recording controls — that you drop in and customize. | **Pricing That Makes Sense** — $0.10 per 1,000 minutes. MediaSFU runs its own media infrastructure. No reselling. No hidden fees. Free tier included, no credit card required. |
+| **AI-Native, Not Bolted On** — AI agents, real-time voice translation (50+ languages), live transcription, and intelligent routing are built into the platform — not third-party add-ons you wire up yourself. | **Full Stack, One Platform** — Voice + video + chat + screen sharing + recording + polls + whiteboards + breakout rooms + AI + translation + SIP. All included. Replace 5 communication tools with one SDK. |
 
 ---
 
@@ -69,39 +87,56 @@ cd MediaSFUOpen
 
 ## ✨ Platform Features
 
-MediaSFU delivers enterprise-grade real-time communication with these core capabilities:
+Everything you need for enterprise-grade real-time communication — included at $0.10/1K min:
 
 ### 🎥 **Video & Audio**
+
 - Multi-party video conferencing with adaptive quality
 - Screen sharing with real-time annotation
 - Virtual backgrounds and video effects
 - Audio-only participant support
 
-### 🎤 **Advanced Audio Features**
-- **Real-time Translation** — Listen and speak in any language with live AI translation
-- Automatic echo cancellation and noise suppression
-- Spatial audio support
+### 🎤 **Real-time Translation** 🌍
+
+- **Speak in any language** — The system auto-detects what language you're speaking
+- **Listen in any language** — Hear others translated to your preferred language in real time
+- **Live transcription** — See real-time transcripts during meetings
+- **50+ languages supported** — True borderless communication
+- No interpreters. No delay. Works with voice, video, and chat.
+
+### 🤖 **AI-Powered Features**
+
+- AI voice agents that answer, resolve, and escalate
+- Multimodal AI with voice + vision capabilities
+- AI-generated meeting summaries and transcription
+- Intelligent call routing and warm handoffs
+- Voice cloning options with custom TTS configurations
 
 ### 👥 **Participant Management**
+
 - **Panelists Mode** — Designate speakers in webinars with audience Q&A
-- **Individual Permissions** — Granular control per-participant (video/audio/screen/chat)
-- **Co-host Delegation** — Share moderation duties with configurable responsibilities
+- **Individual Permissions** — Granular per-participant control (video/audio/screen/chat)
+- **Group Permissions** — Apply permission templates to participant groups
 - Waiting room with manual admit
+- Co-host delegation with configurable responsibilities
 - Breakout rooms for focused discussions
 
 ### 📊 **Engagement Tools**
+
 - Live polls with real-time results
 - In-meeting chat (direct & group)
 - Collaborative whiteboards
-- Reactions and hand raising
 
 ### 🎬 **Recording & Analytics**
+
 - Cloud recording with track-based customization
 - Watermarks, name tags, custom backgrounds
 - Real-time call analytics
 
 ### 🔒 **Security & Control**
+
 - End-to-end encryption option
+- Domain-locked API keys
 - Managed events with time/capacity limits
 - Abandoned participant handling
 
@@ -112,26 +147,33 @@ MediaSFU delivers enterprise-grade real-time communication with these core capab
 - [Quick Start](#-quick-start)
 - [Installation](#-installation)
 - [Prebuilt Event Rooms](#-prebuilt-event-rooms)
+- [Modern UI Components](#-modern-ui-components)
 - [Usage Examples](#-usage-examples)
 - [Key Components](#-key-components)
 - [Customization](#-customization)
 - [API Reference](#-api-reference)
 - [Self-Hosting / Community Edition](#-self-hosting--community-edition)
-- [Modern UI Components](#-modern-ui-components)
 - [Advanced Features](#-advanced-features) *(Panelists, Permissions, Translation)*
 - [sourceParameters - The Power API](#-sourceparameters---the-power-api)
 - [AudioGrid - Display All Audio Participants](#-audiogrid---display-all-audio-participants)
 - [Using Modals Standalone](#-using-modals-standalone)
 - [Building Your Own UI](#-building-your-own-ui)
+- [SDKs for Every Framework](#-sdks-for-every-framework)
 - [Detailed Documentation](#-detailed-documentation)
 
 ---
 
 ## 🚀 Quick Start
 
+Three steps. Under 5 minutes. First video call live.
+
+**1. Install**
+
 ```bash
 npm install mediasfu-reactjs
 ```
+
+**2. Import & Render**
 
 ```tsx
 import { MediasfuGeneric } from 'mediasfu-reactjs';
@@ -145,9 +187,24 @@ function App() {
 }
 ```
 
-**That's it!** You now have a fully-featured video conferencing room.
+**3. Run**
+
+```bash
+npm start
+```
+
+That's it. You have a fully-featured video conferencing room with screen sharing, chat, recording, and more.
 
 > ℹ️ Critical component styles are automatically injected at runtime. For additional styling options, see [Optional CSS Import](#optional-css-import).
+
+> **Want to try without a server?** Use demo mode:
+> ```tsx
+> <MediasfuGeneric
+>   useLocalUIMode={true}
+>   useSeed={true}
+>   seedData={{ member: "DemoUser", eventType: "conference" }}
+> />
+> ```
 
 ---
 
@@ -209,9 +266,12 @@ Most applications work perfectly without this import.
 
 ## 🏛️ Prebuilt Event Rooms
 
+Choose the room type that fits your use case — or use `MediasfuGeneric` for maximum flexibility:
+
 | Component | Use Case | Description |
 |-----------|----------|-------------|
 | `MediasfuGeneric` | **Universal** | Supports all event types dynamically |
+| `ModernMediasfuGeneric` | **Universal (Premium)** | Theme-aware, glassmorphism UI |
 | `MediasfuConference` | **Meetings** | Multi-party video conferencing |
 | `MediasfuWebinar` | **Webinars** | Presenters + audience model |
 | `MediasfuBroadcast` | **Broadcasting** | One-to-many live streaming |
@@ -1152,11 +1212,29 @@ function CustomMeetingApp() {
 
 ---
 
-## 🔗 Links
+## �️ SDKs for Every Framework
+
+MediaSFU isn't just React. The same communication platform is available across 7 frameworks — same API surface, same capabilities, same pricing:
+
+| Framework | Package |
+|-----------|---------|
+| **React** | [mediasfu-reactjs](https://www.npmjs.com/package/mediasfu-reactjs) (you are here) |
+| **React Native** | [@mediasfu/mediasfu-reactnative](https://www.npmjs.com/package/@mediasfu/mediasfu-reactnative) |
+| **Expo** | [@mediasfu/mediasfu-reactnative-expo](https://www.npmjs.com/package/@mediasfu/mediasfu-reactnative-expo) |
+| **Flutter** | [mediasfu_sdk](https://pub.dev/packages/mediasfu_sdk) |
+| **Angular** | [@mediasfu/mediasfu-angular](https://www.npmjs.com/package/@mediasfu/mediasfu-angular) |
+| **Vue** | [@mediasfu/mediasfu-vue](https://www.npmjs.com/package/@mediasfu/mediasfu-vue) |
+| **Android (Kotlin)** | [MediaSFU Android](https://github.com/MediaSFU/MediaSFU-Android) |
+
+---
+
+## �🔗 Links
 
 - **Website**: [mediasfu.com](https://www.mediasfu.com)
-- **Documentation**: [mediasfu.com/documentation](https://www.mediasfu.com/documentation#rooms)
+- **Documentation**: [mediasfu.com/reactjs](https://www.mediasfu.com/reactjs/)
+- **API Documentation**: [mediasfu.com/developers](https://mediasfu.com/developers)
 - **MediaSFU Open**: [github.com/MediaSFU/MediaSFUOpen](https://github.com/MediaSFU/MediaSFUOpen)
+- **Sandbox**: [mediasfu.com/sandbox](https://www.mediasfu.com/sandbox)
 - **Community Forum**: [mediasfu.com/forums](https://www.mediasfu.com/forums)
 - **GitHub**: [github.com/MediaSFU](https://github.com/MediaSFU)
 
@@ -1169,5 +1247,6 @@ MIT © [MediaSFU](https://www.mediasfu.com)
 ---
 
 <p align="center">
-  <strong>Built with ❤️ by MediaSFU</strong>
+  <strong>Built with ❤️ by MediaSFU</strong><br/>
+  Voice · Video · AI · Translation · 7 Frameworks · $0.10/1K min
 </p>

@@ -3,6 +3,7 @@ import { RtpCapabilities, Device } from "mediasoup-client/lib/types";
 
 export interface CreateDeviceClientOptions {
   rtpCapabilities: RtpCapabilities | null;
+  optimizeVideoRecord?: boolean;
 }
 
 
@@ -28,7 +29,8 @@ export type CreateDeviceClientType = (options: CreateDeviceClientOptions) => Pro
  */
 
 export const createDeviceClient = async ({
-  rtpCapabilities
+  rtpCapabilities,
+  optimizeVideoRecord = false,
 }: CreateDeviceClientOptions): Promise<Device | null> => {
   try {
     // Validate input parameters
@@ -41,10 +43,12 @@ export const createDeviceClient = async ({
     // Create a mediasoup client device
     const device: (Device | null) = new mediasoupClient.Device();
 
-    // Remove orientation capabilities
-    rtpCapabilities.headerExtensions = rtpCapabilities!.headerExtensions!.filter(
-      (ext) => ext.uri !== "urn:3gpp:video-orientation"
-    );
+    // Remove orientation capabilities (unless optimizeVideoRecord is true)
+    if (!optimizeVideoRecord) {
+      rtpCapabilities.headerExtensions = rtpCapabilities!.headerExtensions!.filter(
+        (ext) => ext.uri !== "urn:3gpp:video-orientation"
+      );
+    }
 
     // Load the provided RTP capabilities into the device
     await device!.load({

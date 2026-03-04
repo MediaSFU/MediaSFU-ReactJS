@@ -22,6 +22,7 @@ import {
   CustomAudioCardType,
   CustomMiniCardType,
 } from "../@types/types";
+import type { LiveSubtitle } from '../producers/socketReceiveMethods/translationReceiveMethods';
 
 export interface AddVideosGridParameters
   extends UpdateMiniCardsGridParameters,
@@ -44,6 +45,10 @@ export interface AddVideosGridParameters
 
   // Theme support
   isDarkModeValue?: boolean;
+
+  // Live subtitles
+  showSubtitlesOnCards?: boolean;
+  liveSubtitles?: Map<string, LiveSubtitle>;
 
   // Custom builder hooks
   customVideoCard?: CustomVideoCardType;
@@ -209,6 +214,8 @@ export async function addVideosGrid({
     isDarkModeValue,
     selfViewForceFull,
     updateSelfViewForceFull,
+    showSubtitlesOnCards,
+    liveSubtitles,
     customVideoCard,
     customAudioCard,
     customMiniCard,
@@ -230,6 +237,21 @@ export async function addVideosGrid({
     (audioCardComponent ?? AudioCard) as React.ComponentType<React.ComponentProps<typeof AudioCard>>;
   const MiniCardComponentOverride =
     (miniCardComponent ?? MiniCard) as React.ComponentType<React.ComponentProps<typeof MiniCard>>;
+
+  // Helper to get subtitle for a specific speaker (tries id first, then name as fallback)
+  const getSubtitleForSpeaker = (speakerId: string, speakerName?: string): LiveSubtitle | null => {
+    if (!showSubtitlesOnCards || !liveSubtitles) return null;
+    // Try speakerId first
+    let subtitle = speakerId ? liveSubtitles.get(speakerId) : null;
+    // Fallback to speakerName if no match or expired
+    if ((!subtitle || Date.now() >= subtitle.expiresAt) && speakerName) {
+      subtitle = liveSubtitles.get(speakerName) ?? null;
+    }
+    if (subtitle && Date.now() < subtitle.expiresAt) {
+      return subtitle;
+    }
+    return null;
+  };
 
   let newComponents: React.JSX.Element[][] = [[], []];
   let participant: any;
@@ -270,6 +292,8 @@ export async function addVideosGrid({
               showControls: eventType !== "chat",
               participant: participant,
               isDarkMode: isDarkMode,
+              liveSubtitle: () => getSubtitleForSpeaker(participant.id || '', participant.name),
+              showSubtitles: showSubtitlesOnCards,
             })
           : (
               <AudioCardComponentOverride
@@ -289,6 +313,8 @@ export async function addVideosGrid({
                 showControls={eventType !== "chat"}
                 participant={participant}
                 isDarkMode={isDarkMode}
+                liveSubtitle={() => getSubtitleForSpeaker(participant.id || '', participant.name)}
+                showSubtitles={showSubtitlesOnCards}
               />
             );
 
@@ -388,6 +414,8 @@ export async function addVideosGrid({
                 doMirror: true,
                 parameters: parameters,
                 isDarkMode: isDarkMode,
+                liveSubtitle: () => getSubtitleForSpeaker(participant.id || '', participant.name),
+                showSubtitles: showSubtitlesOnCards,
                 onToggleSelfViewFit: updateSelfViewForceFull 
                   ? async () => {
                       await updateSelfViewForceFull(!selfViewForceFull);
@@ -412,6 +440,8 @@ export async function addVideosGrid({
                   doMirror={true}
                   parameters={parameters}
                   isDarkMode={isDarkMode}
+                  liveSubtitle={() => getSubtitleForSpeaker(participant.id || '', participant.name)}
+                  showSubtitles={showSubtitlesOnCards}
                   // @ts-expect-error - ModernVideoCard supports this prop but original VideoCard doesn't
                   onToggleSelfViewFit={updateSelfViewForceFull 
                     ? async () => {
@@ -446,6 +476,8 @@ export async function addVideosGrid({
                 doMirror: false,
                 parameters: parameters,
                 isDarkMode: isDarkMode,
+                liveSubtitle: () => getSubtitleForSpeaker(participant_.id || '', participant_.name),
+                showSubtitles: showSubtitlesOnCards,
               })
             : (
                 <VideoCardComponentOverride
@@ -465,6 +497,8 @@ export async function addVideosGrid({
                   doMirror={false}
                   parameters={parameters}
                   isDarkMode={isDarkMode}
+                  liveSubtitle={() => getSubtitleForSpeaker(participant_.id || '', participant_.name)}
+                  showSubtitles={showSubtitlesOnCards}
                 />
               );
 
@@ -526,6 +560,8 @@ export async function addVideosGrid({
                 showControls: eventType !== "chat",
                 participant: participant,
                 isDarkMode: isDarkMode,
+                liveSubtitle: () => getSubtitleForSpeaker(participant.id || '', participant.name),
+                showSubtitles: showSubtitlesOnCards,
               })
             : (
                 <AudioCardComponentOverride
@@ -545,6 +581,8 @@ export async function addVideosGrid({
                   showControls={eventType !== "chat"}
                   participant={participant}
                   isDarkMode={isDarkMode}
+                  liveSubtitle={() => getSubtitleForSpeaker(participant.id || '', participant.name)}
+                  showSubtitles={showSubtitlesOnCards}
                 />
               );
 
@@ -599,6 +637,8 @@ export async function addVideosGrid({
                 doMirror: false,
                 parameters: parameters,
                 isDarkMode: isDarkMode,
+                liveSubtitle: () => getSubtitleForSpeaker(participant_.id || '', participant_.name),
+                showSubtitles: showSubtitlesOnCards,
               })
             : (
                 <VideoCardComponentOverride
@@ -618,6 +658,8 @@ export async function addVideosGrid({
                   doMirror={false}
                   parameters={parameters}
                   isDarkMode={isDarkMode}
+                  liveSubtitle={() => getSubtitleForSpeaker(participant_.id || '', participant_.name)}
+                  showSubtitles={showSubtitlesOnCards}
                 />
               );
 

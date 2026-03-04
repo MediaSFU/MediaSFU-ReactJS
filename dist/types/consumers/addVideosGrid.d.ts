@@ -3,6 +3,7 @@ import MiniCard from "../components/displayComponents/MiniCard";
 import VideoCard from "../components/displayComponents/VideoCard";
 import AudioCard from "../components/displayComponents/AudioCard";
 import { Participant, Stream, UpdateMiniCardsGridType, UpdateMiniCardsGridParameters, AudioCardParameters, EventType, CustomVideoCardType, CustomAudioCardType, CustomMiniCardType } from "../@types/types";
+import type { LiveSubtitle } from '../producers/socketReceiveMethods/translationReceiveMethods';
 export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, Omit<AudioCardParameters, "getUpdatedAllParams"> {
     eventType: EventType;
     updateAddAltGrid: (addAltGrid: boolean) => void;
@@ -18,6 +19,8 @@ export interface AddVideosGridParameters extends UpdateMiniCardsGridParameters, 
     selfViewForceFull?: boolean;
     updateSelfViewForceFull?: (value: boolean) => Promise<void>;
     isDarkModeValue?: boolean;
+    showSubtitlesOnCards?: boolean;
+    liveSubtitles?: Map<string, LiveSubtitle>;
     customVideoCard?: CustomVideoCardType;
     customAudioCard?: CustomAudioCardType;
     customMiniCard?: CustomMiniCardType;

@@ -37,6 +37,8 @@ export interface UpdateRoomParametersClientParameters {
   screenPageLimit: number;
   shareScreenStarted: boolean;
   shared: boolean;
+  whiteboardStarted: boolean;
+  whiteboardEnded: boolean;
   targetOrientation: string;
   vidCons: VidCons;
   recordingVideoSupport: boolean;
@@ -225,6 +227,8 @@ export const updateRoomParametersClient = ({ parameters }: UpdateRoomParametersC
       screenPageLimit,
       shareScreenStarted,
       shared,
+      whiteboardStarted,
+      whiteboardEnded,
 
       hParams = host_Params,
       vParams = video_Params,
@@ -349,7 +353,7 @@ export const updateRoomParametersClient = ({ parameters }: UpdateRoomParametersC
 
     updateAudioOnlyRoom(data.meetingRoomParams.mediaType != "video");
 
-    if (data.meetingRoomParams.type == "conference" && (shared || shareScreenStarted)) {
+    if (data.meetingRoomParams.type == "conference" && (shared || shareScreenStarted || (whiteboardStarted && !whiteboardEnded))) {
       updateMainHeightWidth(100);
     } else {
       updateMainHeightWidth(0);

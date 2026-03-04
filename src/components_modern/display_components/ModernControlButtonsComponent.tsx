@@ -133,9 +133,9 @@ const PremiumControlButton: React.FC<PremiumControlButtonProps> = ({
     width: iconSize + 16,
     height: iconSize + 16,
     borderRadius: '50%',
-    background: isActive ? MediasfuColors.brandGradient(isDarkMode) : bgColor,
+    background: isActive ? activeColor : bgColor,
     boxShadow: isActive
-      ? `0 0 15px ${MediasfuColors.hexToRgba(glowColor, 0.4)}, ${MediasfuColors.elevation(2, isDarkMode)}`
+      ? '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)'
       : isHovered
         ? MediasfuColors.elevation(1, isDarkMode)
         : 'none',
@@ -259,7 +259,7 @@ export const ModernControlButtonsComponent: React.FC<ModernControlButtonsCompone
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1)' : 'scale(0.8)',
     transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
-    boxShadow: `0 0 20px ${MediasfuColors.hexToRgba(MediasfuColors.primary, 0.15)}`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     borderRadius: 32,
   };
 

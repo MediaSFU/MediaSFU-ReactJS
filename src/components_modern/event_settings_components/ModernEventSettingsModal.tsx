@@ -86,7 +86,6 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
   // Modern-specific props
   isDarkMode = true,
   enableGlassmorphism = true,
-  enableGlow = true,
   renderMode = 'modal',
 }) => {
   const [isMounted, setIsMounted] = useState(false);
@@ -259,11 +258,11 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
       flex: 1,
       padding: `${MediasfuSpacing.sm}px`,
       background: isSelected
-        ? MediasfuColors.brandGradient(isDarkMode)
+        ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(99,102,241,0.12)'
         : 'transparent',
       border: `1px solid ${
         isSelected
-          ? 'transparent'
+          ? isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(99,102,241,0.25)'
           : isDarkMode
             ? 'rgba(255,255,255,0.15)'
             : 'rgba(0,0,0,0.1)'
@@ -275,7 +274,7 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
       alignItems: 'center',
       gap: `${MediasfuSpacing.xs}px`,
       transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-      color: isSelected ? '#FFFFFF' : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+      color: isSelected ? (isDarkMode ? '#FFFFFF' : '#1F2937') : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
       fontSize: 11,
       fontWeight: isSelected ? 600 : 400,
     });
@@ -465,11 +464,11 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
     flex: 1,
     padding: `${MediasfuSpacing.sm}px`,
     background: isSelected
-      ? MediasfuColors.brandGradient(isDarkMode)
+      ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(99,102,241,0.12)'
       : 'transparent',
     border: `1px solid ${
       isSelected
-        ? 'transparent'
+        ? isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(99,102,241,0.25)'
         : isDarkMode
           ? 'rgba(255,255,255,0.15)'
           : 'rgba(0,0,0,0.1)'
@@ -481,7 +480,7 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
     alignItems: 'center',
     gap: `${MediasfuSpacing.xs}px`,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-    color: isSelected ? '#FFFFFF' : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
+    color: isSelected ? (isDarkMode ? '#FFFFFF' : '#1F2937') : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
     fontSize: 11,
     fontWeight: isSelected ? 600 : 400,
   });
@@ -502,10 +501,8 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
         elevation={4}
         style={{
           ...modalStyle,
-          backgroundColor: isDarkMode ? 'rgba(0, 0, 0, 0.05)' : 'rgba(255, 255, 255, 0.05)',
-          boxShadow: enableGlow
-            ? `${MediasfuColors.elevation(4, isDarkMode)}, ${MediasfuColors.glowPrimary}`
-            : MediasfuColors.elevation(4, isDarkMode),
+          backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.88)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2)',
         }}
       >
         {/* Header */}

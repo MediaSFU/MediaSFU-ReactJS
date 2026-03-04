@@ -179,7 +179,7 @@ export const connectRecvTransport = async ({
                           }
                         }
                       }
-                    } catch {
+                    } catch (error) {
                       // Don't let translation check break the main consumer flow
                     }
                   }

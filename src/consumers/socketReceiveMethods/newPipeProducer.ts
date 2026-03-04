@@ -130,7 +130,6 @@ export const newPipeProducer = async ({
   isTranslation,
   translationMeta,
 }: NewPipeProducerOptions): Promise<void> => {
-  
   // Handle translation producers separately - skip grid/UI updates
   if (isTranslation && translationMeta) {
     // Get fresh parameters to ensure we have the latest state
@@ -254,7 +253,7 @@ export const newPipeProducer = async ({
           nsock
         );
       } catch (err) {
-        console.error(`[newPipeProducer][Translation] startConsumingTranslation error:`, err);
+        // Translation consumption error
       }
     }
     // For translation producers, we don't do any grid/UI updates

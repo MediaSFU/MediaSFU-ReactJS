@@ -45,10 +45,7 @@ export interface ModernLoadingModalOptions {
 }
 
 // Props interface extends LoadingModalOptions for withOverride compatibility
-// Pick required props and make others optional for flexibility
-export interface ModernLoadingModalProps extends Omit<Partial<LoadingModalOptions>, 'isVisible'> {
-  /** Whether the modal is visible (required for compatibility) */
-  isVisible: boolean;
+export interface ModernLoadingModalProps extends LoadingModalOptions {
   /** Loading modal options (alternative to direct props) */
   options?: ModernLoadingModalOptions;
   /** Whether to use dark mode */
@@ -193,8 +190,8 @@ export const ModernLoadingModal: React.FC<ModernLoadingModalProps> = ({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: '50%',
-    background: MediasfuColors.brandGradient(isDarkMode),
-    boxShadow: MediasfuColors.glowPrimary,
+    background: MediasfuColors.primary,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     transform: `scale(${pulseValue})`,
     transition: 'transform 50ms linear',
   };
@@ -212,17 +209,14 @@ export const ModernLoadingModal: React.FC<ModernLoadingModalProps> = ({
   // Text styles with gradient
   const textStyle: React.CSSProperties = {
     ...MediasfuTypography.getTitleMedium(isDarkMode),
-    background: MediasfuColors.brandGradient(isDarkMode),
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: MediasfuColors.primary,
     fontWeight: 600,
     letterSpacing: '0.5px',
   };
 
   // Glow wrapper styles
   const glowWrapperStyle: React.CSSProperties = {
-    boxShadow: `0 0 30px ${MediasfuColors.hexToRgba(MediasfuColors.primary, 0.2)}`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     borderRadius: 24,
   };
 

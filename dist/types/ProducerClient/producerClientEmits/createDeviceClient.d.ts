@@ -1,6 +1,7 @@
 import { RtpCapabilities, Device } from "mediasoup-client/lib/types";
 export interface CreateDeviceClientOptions {
     rtpCapabilities: RtpCapabilities | null;
+    optimizeVideoRecord?: boolean;
 }
 export type CreateDeviceClientType = (options: CreateDeviceClientOptions) => Promise<Device | null>;
 /**
@@ -19,5 +20,5 @@ export type CreateDeviceClientType = (options: CreateDeviceClientOptions) => Pro
  *   console.log("Failed to create device");
  * }
  */
-export declare const createDeviceClient: ({ rtpCapabilities }: CreateDeviceClientOptions) => Promise<Device | null>;
+export declare const createDeviceClient: ({ rtpCapabilities, optimizeVideoRecord, }: CreateDeviceClientOptions) => Promise<Device | null>;
 //# sourceMappingURL=createDeviceClient.d.ts.map

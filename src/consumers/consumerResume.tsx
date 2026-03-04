@@ -357,8 +357,6 @@ export const consumerResume = async ({
         // Add to translationStreams using functional update
         if (addTranslationStream) {
           addTranslationStream(translationTrack);
-        } else {
-          console.warn('[consumerResume] addTranslationStream is not available!');
         }
 
         // Add to allAudioStreams for tracking
@@ -512,7 +510,7 @@ export const consumerResume = async ({
         updateRemoteScreenStream(remoteScreenStream);
 
         if (eventType == "conference") {
-          if (shared || shareScreenStarted) {
+          if (shared || shareScreenStarted || (whiteboardStarted && !whiteboardEnded)) {
             if (mainHeightWidth == 0) {
               updateMainHeightWidth(84);
             }

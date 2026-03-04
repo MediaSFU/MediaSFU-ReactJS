@@ -51,12 +51,7 @@ export interface ModernAlertComponentOptions {
 }
 
 // Props interface extends AlertComponentOptions for withOverride compatibility
-// Pick required props and make others optional for flexibility
-export interface ModernAlertComponentProps extends Omit<Partial<AlertComponentOptions>, 'visible' | 'message'> {
-  /** Whether the alert is visible (required for compatibility) */
-  visible: boolean;
-  /** Alert message (required for compatibility) */
-  message: string;
+export interface ModernAlertComponentProps extends AlertComponentOptions {
   /** Alert options (alternative to direct props) */
   options?: ModernAlertComponentOptions;
   /** Position (shorthand) */
@@ -217,30 +212,7 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
     };
   }, [visible, duration, onHide]);
 
-  // Glow animation
-  useEffect(() => {
-    if (!visible) return;
-
-    let startTime: number | null = null;
-    const animDuration = 2000;
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      const progress = (elapsed % animDuration) / animDuration;
-      const eased = Math.sin(progress * Math.PI);
-      setGlowValue(0.2 + eased * 0.2);
-      glowRef.current = requestAnimationFrame(animate);
-    };
-
-    glowRef.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (glowRef.current) {
-        cancelAnimationFrame(glowRef.current);
-      }
-    };
-  }, [visible]);
+  // Glow animation removed — Clean Pro: static neutral shadow
 
   const handleDismiss = useCallback(() => {
     if (dismissTimerRef.current) {
@@ -303,7 +275,7 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
     transform: `${getAnimationTransform()} scale(${isAnimating ? 1 : 0.95})`,
     opacity: isAnimating ? 1 : 0,
     transition: `all 250ms ${MediasfuAnimations.snappy}`,
-    boxShadow: `0 0 20px ${colors.glow.replace(/[\d.]+\)$/, `${glowValue})`)}`,
+    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     borderRadius: 16,
     cursor: contentDismissible ? 'pointer' : 'default',
   };

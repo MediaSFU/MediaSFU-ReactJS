@@ -19,6 +19,7 @@ import {
   CustomAudioCardType,
   CustomMiniCardType,
 } from "../@types/types";
+import { LiveSubtitle } from "../producers/socketReceiveMethods/translationReceiveMethods";
 
 export interface PrepopulateUserMediaParameters extends AudioCardParameters {
 
@@ -61,6 +62,10 @@ export interface PrepopulateUserMediaParameters extends AudioCardParameters {
 
   // Theme support
   isDarkModeValue?: boolean;
+
+  // Subtitle support
+  showSubtitlesOnCards?: boolean;
+  liveSubtitles?: Map<string, LiveSubtitle>;
 
   // Custom Component Builders
   customVideoCard?: CustomVideoCardType;
@@ -228,6 +233,8 @@ export async function prepopulateUserMedia({
       updateUpdateMainWindow,
       updateMainGridStream,
       isDarkModeValue,
+      showSubtitlesOnCards,
+      liveSubtitles,
       customVideoCard,
       customAudioCard,
       customMiniCard,
@@ -242,6 +249,21 @@ export async function prepopulateUserMedia({
     const borderColorThemed = isDarkMode ? 'rgba(255, 255, 255, 0.2)' : 'black';
     // Theme suffix for keys to force re-render when theme changes
     const themeSuffix = isDarkMode ? '-dark' : '-light';
+
+    // Helper to get subtitle for a speaker (tries id first, then name as fallback)
+    const getSubtitleForSpeaker = (speakerId: string, speakerName?: string): LiveSubtitle | null => {
+      if (!liveSubtitles || !showSubtitlesOnCards) return null;
+      // Try speakerId first
+      let subtitle = speakerId ? liveSubtitles.get(speakerId) : null;
+      // Fallback to speakerName if no match or expired
+      if ((!subtitle || Date.now() >= subtitle.expiresAt) && speakerName) {
+        subtitle = liveSubtitles.get(speakerName) ?? null;
+      }
+      if (subtitle && Date.now() < subtitle.expiresAt) {
+        return subtitle;
+      }
+      return null;
+    };
 
     const VideoCardComponentOverride =
       (videoCardComponent ?? VideoCard) as React.ComponentType<React.ComponentProps<typeof VideoCard>>;
@@ -279,6 +301,8 @@ export async function prepopulateUserMedia({
     }) => {
       // Include theme suffix to force re-render when theme changes
       const themedKey = `${key}${themeSuffix}`;
+      // Pass a getter function so the card can re-evaluate subtitle on each render
+      const getSubtitle = () => getSubtitleForSpeaker(cardParticipant?.id || '', cardParticipant?.name);
       if (customVideoCard) {
         return React.createElement(customVideoCard as any, {
           key: themedKey,
@@ -295,6 +319,8 @@ export async function prepopulateUserMedia({
           doMirror,
           parameters,
           isDarkMode: isDarkMode,
+          liveSubtitle: getSubtitle,
+          showSubtitles: showSubtitlesOnCards,
         });
       }
 
@@ -314,6 +340,8 @@ export async function prepopulateUserMedia({
           doMirror={doMirror}
           parameters={parameters}
           isDarkMode={isDarkMode}
+          liveSubtitle={getSubtitle}
+          showSubtitles={showSubtitlesOnCards}
         />
       );
     };
@@ -339,6 +367,8 @@ export async function prepopulateUserMedia({
     }) => {
       // Include theme suffix to force re-render when theme changes
       const themedKey = `${key}${themeSuffix}`;
+      // Pass a getter function so the card can re-evaluate subtitle on each render
+      const getSubtitle = () => getSubtitleForSpeaker(cardParticipant?.id || '', cardParticipant?.name);
       if (customAudioCard) {
         return React.createElement(customAudioCard as any, {
           key: themedKey,
@@ -350,6 +380,8 @@ export async function prepopulateUserMedia({
           imageStyle: {},
           parameters,
           isDarkMode: isDarkMode,
+          liveSubtitle: getSubtitle,
+          showSubtitles: showSubtitlesOnCards,
         });
       }
 
@@ -368,6 +400,8 @@ export async function prepopulateUserMedia({
           backgroundColor={backgroundColor}
           participant={cardParticipant}
           isDarkMode={isDarkMode}
+          liveSubtitle={getSubtitle}
+          showSubtitles={showSubtitlesOnCards}
         />
       );
     };
@@ -425,11 +459,11 @@ export async function prepopulateUserMedia({
     let hostStream: any;
     let newComponent: React.JSX.Element[] = [];
 
-    // Check if screen sharing is started or shared
-    if (shareScreenStarted || shared) {
+    // Check if screen sharing is started or shared (or whiteboard is active)
+    if (shareScreenStarted || shared || (whiteboardStarted && !whiteboardEnded)) {
       // Handle main grid visibility based on the event type
       if (eventType == "conference") {
-        if (shared || shareScreenStarted) {
+        if (shared || shareScreenStarted || (whiteboardStarted && !whiteboardEnded)) {
           if (mainHeightWidth == 0) {
             // Add the main grid if not present
             updateMainHeightWidth(84);

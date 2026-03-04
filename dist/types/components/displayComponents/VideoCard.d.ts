@@ -1,6 +1,7 @@
 import React from "react";
 import { CardVideoDisplayOptions } from "./CardVideoDisplay";
 import { EventType } from '../../@types/types';
+import type { LiveSubtitle } from '../../producers/socketReceiveMethods/translationReceiveMethods';
 export interface VideoCardParameters {
     socket: Socket;
     roomName: string;
@@ -47,6 +48,10 @@ export interface VideoCardOptions {
     extraWidgets?: React.ReactNode;
     children?: React.ReactNode;
     isDarkMode?: boolean;
+    /** Live subtitle for displaying translated speech */
+    liveSubtitle?: LiveSubtitle | null | (() => LiveSubtitle | null);
+    /** Whether to show subtitles on this card */
+    showSubtitles?: boolean;
 }
 export type VideoCardType = (options: VideoCardOptions) => React.JSX.Element;
 /**

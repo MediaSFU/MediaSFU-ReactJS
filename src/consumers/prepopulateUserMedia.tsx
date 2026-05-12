@@ -20,6 +20,7 @@ import {
   CustomMiniCardType,
 } from "../@types/types";
 import { LiveSubtitle } from "../producers/socketReceiveMethods/translationReceiveMethods";
+import { buildMainHostCardPlan, buildMainScreenState, buildPrepopulateUserMediaPlan, buildScreenShareHostCardPlan } from "./gridLayout/prepopulateUserMedia.engine";
 
 export interface PrepopulateUserMediaParameters extends AudioCardParameters {
 
@@ -449,369 +450,104 @@ export async function prepopulateUserMedia({
       );
     };
 
-    // If the event type is 'chat', return early
-    if (eventType == "chat") {
-      return;
-    }
+    const applyMainScreenState = ({
+      filled,
+      adminOnMainScreen: nextAdminOnMainScreen,
+      mainScreenPerson: nextMainScreenPerson,
+    }: {
+      filled: boolean;
+      adminOnMainScreen: boolean;
+      mainScreenPerson: string;
+    }) => {
+      mainScreenFilled = filled;
+      adminOnMainScreen = nextAdminOnMainScreen;
+      mainScreenPerson = nextMainScreenPerson;
 
-    // Initialize variables
-    let host: Participant | null = null;
-    let hostStream: any;
-    let newComponent: React.JSX.Element[] = [];
+      updateMainScreenFilled(mainScreenFilled);
+      updateAdminOnMainScreen(adminOnMainScreen);
+      updateMainScreenPerson(mainScreenPerson);
+    };
 
-    // Check if screen sharing is started or shared (or whiteboard is active)
-    if (shareScreenStarted || shared || (whiteboardStarted && !whiteboardEnded)) {
-      // Handle main grid visibility based on the event type
-      if (eventType == "conference") {
-        if (shared || shareScreenStarted || (whiteboardStarted && !whiteboardEnded)) {
-          if (mainHeightWidth == 0) {
-            // Add the main grid if not present
-            updateMainHeightWidth(84);
-          }
-        } else {
-          // Remove the main grid if not shared or started
-          updateMainHeightWidth(0);
-        }
-      }else {
-        if (mainHeightWidth != 84) {
-          updateMainHeightWidth(84);
-        }
-      }
+    const renderMainHostCard = ({
+      plan,
+      host,
+    }: {
+      plan: ReturnType<typeof buildMainHostCardPlan>;
+      host: Participant;
+    }) => {
+      if (plan.kind === "audio") {
+        try {
+          const audioCardElement = buildAudioCard({
+            key: plan.key,
+            name: plan.name,
+            barColor: "red",
+            textColor: textColorThemed,
+            customStyle: {
+              backgroundColor: "transparent",
+              border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
+            },
+            roundedImage: true,
+            backgroundColor: "transparent",
+            participant: host,
+          });
 
-      // Switch display to optimize for screen share
-      screenForceFullDisplay = forceFullDisplay;
-
-      updateScreenForceFullDisplay(screenForceFullDisplay);
-
-      // Get the orientation and adjust forceFullDisplay
-      let orientation = checkOrientation();
-      if (orientation == "portrait" || !isWideScreen) {
-        if (shareScreenStarted || shared) {
-          screenForceFullDisplay = false;
-          updateScreenForceFullDisplay(screenForceFullDisplay);
-        }
-      }
-
-      // Check if the user is sharing the screen
-      if (shared) {
-        // User is sharing
-        host = { name: member, audioID: "", videoID: "" };
-        hostStream = localStreamScreen;
-
-        // Update admin on the main screen
-        adminOnMainScreen = islevel == "2";
-        updateAdminOnMainScreen(adminOnMainScreen);
-
-        // Update main screen person
-        mainScreenPerson = host!.name || "";
-        updateMainScreenPerson(mainScreenPerson);
-      } else {
-        //someone else is sharing
-        host =
-          participants.find(
-            (participant: Participant) => participant.ScreenID == screenId && participant.ScreenOn == true
-          ) ?? null;
-
-        if (whiteboardStarted && !whiteboardEnded) {
-          host = { name: "WhiteboardActive", islevel: "2", audioID: "", videoID: "" };
-          hostStream = { producerId: "WhiteboardActive" };
+          newComponent.push(audioCardElement);
+          updateMainGridStream(newComponent);
+        } catch  {
+          // Handle audio card creation error
         }
 
-        if (host == null) {
-          // remoteScreenStream
-          host =
-            participants.find(
-              (participant: Participant) => participant.ScreenOn == true
-            ) ?? null;
-        }
-
-        // check remoteScreenStream
-        if (host != null && !host?.name!.includes("WhiteboardActive")) {
-          if (remoteScreenStream.length == 0) {
-            hostStream =
-              allVideoStreams.find(
-                (stream: (Stream | Participant)) => stream.producerId == host?.ScreenID
-              ) ?? null;
-          } else {
-            hostStream = remoteScreenStream[0];
-          }
-        }
-
-        // Update admin on the main screen
-        adminOnMainScreen = (host && host.islevel == "2") ?? false;
-        updateAdminOnMainScreen(adminOnMainScreen);
-
-        // Update main screen person
-        mainScreenPerson = host?.name ?? "";
-        updateMainScreenPerson(mainScreenPerson);
-      }
-    } else {
-      // Screen share not started
-      if (eventType == "conference") {
-        // No main grid for conferences
+        applyMainScreenState(plan.state);
         return;
       }
 
-      // Find the host with level '2'
-      host =
-        participants.find((participant: Participant) => participant.islevel == "2") ?? null;
+      if (plan.kind === "mini") {
+        try {
+          const miniCardElement = buildMiniCard({
+            key: plan.key,
+            initials: plan.initials || name,
+            fontSize: 20,
+            borderColor: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
+          });
 
-      // Update main screen person
-      mainScreenPerson = host?.name ?? "";
-      updateMainScreenPerson(mainScreenPerson);
-    }
-
-    // If host is not null, check if host videoIsOn
-    if (host) {
-      // Populate the main screen with the host video
-      if (shareScreenStarted || shared) {
-        forceFullDisplay = screenForceFullDisplay;
-        if (whiteboardStarted && !whiteboardEnded) {
-          // Whiteboard is active
-        } else {
-          newComponent.push(
-            buildVideoCard({
-              key: host.ScreenID || host.name || "host-screen",
-              videoStream: shared ? hostStream : hostStream!.stream ?? null,
-              remoteProducerId: host.ScreenID || "",
-              eventType,
-              forceFullDisplay: annotateScreenStream && shared ? false : forceFullDisplay,
-              customStyle: {
-                border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
-              },
-              participant: host,
-              backgroundColor: "transparent",
-              showControls: false,
-              showInfo: true,
-              name: host.name || "",
-              doMirror: false,
-            })
-          );
+          newComponent.push(miniCardElement);
+          updateMainGridStream(newComponent);
+        } catch {
+          // Handle mini card creation error
         }
+
+        applyMainScreenState(plan.state);
+        return;
+      }
+
+      try {
+        newComponent.push(
+          buildVideoCard({
+            key: plan.key,
+            videoStream: plan.videoStream || null,
+            remoteProducerId: plan.remoteProducerId || "",
+            eventType,
+            forceFullDisplay,
+            customStyle: {
+              border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
+            },
+            participant: host,
+            backgroundColor: "transparent",
+            showControls: false,
+            showInfo: true,
+            name: plan.name,
+            doMirror: plan.doMirror || false,
+          })
+        );
 
         updateMainGridStream(newComponent);
-
-        mainScreenFilled = true;
-        updateMainScreenFilled(mainScreenFilled);
-        adminOnMainScreen = host.islevel == "2";
-        updateAdminOnMainScreen(adminOnMainScreen);
-        mainScreenPerson = host.name ?? "";
-        updateMainScreenPerson(mainScreenPerson);
-
-        return newComponent;
+        applyMainScreenState(plan.state);
+      } catch {
+        // Handle video card creation error
       }
+    };
 
-      // Check if video is already on or not
-      if (
-        (islevel != "2" && !host.videoOn) ||
-        (islevel == "2" && (!host.videoOn || !videoAlreadyOn)) ||
-        localUIMode == true
-      ) {
-        // Video is off
-        if (islevel == "2" && videoAlreadyOn) {
-          // Admin's video is on
-          newComponent.push(
-            buildVideoCard({
-              key: host.videoID || host.name || "host-video",
-              videoStream:
-                keepBackground && virtualStream ? virtualStream : localStreamVideo!,
-              remoteProducerId: host.videoID || "",
-              eventType,
-              forceFullDisplay,
-              customStyle: {
-                border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
-              },
-              participant: host,
-              backgroundColor: "transparent",
-              showControls: false,
-              showInfo: true,
-              name: host.name || "",
-              doMirror: true,
-            })
-          );
-
-          updateMainGridStream(newComponent);
-
-          mainScreenFilled = true;
-          updateMainScreenFilled(mainScreenFilled);
-          adminOnMainScreen = true;
-          updateAdminOnMainScreen(adminOnMainScreen);
-          mainScreenPerson = host.name ?? "";
-          updateMainScreenPerson(mainScreenPerson);
-        } else {
-          // Video is off and not admin
-          let audOn;
-
-          if (islevel == "2" && audioAlreadyOn) {
-            audOn = true;
-          } else {
-            if (host != null && islevel != "2") {
-              audOn = host.muted == false;
-            }
-          }
-
-          if (audOn) {
-            // Audio is on
-            try {
-              const audioCardElement = buildAudioCard({
-                key: host.name || name,
-                name: host.name || "",
-                barColor: "red",
-                textColor: textColorThemed,
-                customStyle: {
-                  backgroundColor: "transparent",
-                  border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
-                },
-                roundedImage: true,
-                backgroundColor: "transparent",
-                participant: host,
-              });
-
-              newComponent.push(audioCardElement);
-
-              updateMainGridStream(newComponent);
-            } catch  {
-              // Handle audio card creation error
-            }
-
-            mainScreenFilled = true;
-            updateMainScreenFilled(mainScreenFilled);
-            adminOnMainScreen = islevel == "2";
-            updateAdminOnMainScreen(adminOnMainScreen);
-            mainScreenPerson = host.name ?? "";
-            updateMainScreenPerson(mainScreenPerson);
-          } else {
-            // Audio is off
-            try {
-              const miniCardElement = buildMiniCard({
-                key: name,
-                initials: name,
-                fontSize: 20,
-                borderColor: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
-              });
-
-              newComponent.push(miniCardElement);
-
-              updateMainGridStream(newComponent);
-            } catch {
-              // Handle mini card creation error
-            }
-
-            mainScreenFilled = false;
-            updateMainScreenFilled(mainScreenFilled);
-            adminOnMainScreen = islevel == "2";
-            updateAdminOnMainScreen(adminOnMainScreen);
-            mainScreenPerson = host.name ?? "";
-            updateMainScreenPerson(mainScreenPerson);
-          }
-        }
-      } else {
-        // Video is on
-        if (shareScreenStarted || shared) {
-          // Screen share is on
-          if (whiteboardStarted && !whiteboardEnded) {
-            // Whiteboard is active
-          } else {
-            try {
-              newComponent.push(
-                buildVideoCard({
-                  key: host.ScreenID || host.name || "host-screen",
-                  videoStream: shared ? hostStream : hostStream!.stream ?? null,
-                  remoteProducerId: host.ScreenID || "",
-                  eventType,
-                  forceFullDisplay,
-                  customStyle: {
-                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
-                  },
-                  participant: host,
-                  backgroundColor: "transparent",
-                  showControls: false,
-                  showInfo: true,
-                  name: host.name || "",
-                  doMirror: false,
-                })
-              );
-
-              updateMainGridStream(newComponent);
-
-              mainScreenFilled = true;
-              updateMainScreenFilled(mainScreenFilled);
-              adminOnMainScreen = host.islevel == "2";
-              updateAdminOnMainScreen(adminOnMainScreen);
-              mainScreenPerson = host.name ?? "";
-              updateMainScreenPerson(mainScreenPerson);
-            } catch {
-              // Handle video card creation error
-            }
-          }
-        } else {
-          // Screen share is off
-          let streame;
-          if (islevel == "2") {
-            host.stream =
-              keepBackground && virtualStream
-                ? virtualStream
-                : localStreamVideo;
-          } else {
-            streame = oldAllStreams.find(
-              (streame: (Stream|Participant)) => streame.producerId == host.videoID
-            );
-            host.stream = streame && streame.stream;
-          }
-
-          try {
-            if (host.stream) {
-              newComponent.push(
-                buildVideoCard({
-                  key: host.videoID || host.name || "host-video",
-                  videoStream: host.stream || null,
-                  remoteProducerId: host.videoID || "",
-                  eventType,
-                  forceFullDisplay,
-                  customStyle: {
-                    border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
-                  },
-                  participant: host,
-                  backgroundColor: "transparent",
-                  showControls: false,
-                  showInfo: true,
-                  name: host.name || "",
-                  doMirror: member == host.name,
-                })
-              );
-
-              updateMainGridStream(newComponent);
-              mainScreenFilled = true;
-              adminOnMainScreen = host.islevel == "2";
-              mainScreenPerson = host.name ?? "";
-            } else {
-              newComponent.push(
-                buildMiniCard({
-                  key: name,
-                  initials: name,
-                  fontSize: 20,
-                  borderColor: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
-                })
-              );
-
-              updateMainGridStream(newComponent);
-              mainScreenFilled = false;
-              adminOnMainScreen = islevel == "2";
-              mainScreenPerson = host.name ?? "";
-            }
-
-            updateMainScreenFilled(mainScreenFilled);
-
-            updateAdminOnMainScreen(adminOnMainScreen);
-
-            updateMainScreenPerson(mainScreenPerson);
-          } catch {
-            // Handle video card creation error
-          }
-        }
-      }
-    } else {
-      // Host is null, add a mini card
+    const renderNoHostCard = () => {
       try {
         newComponent.push(
           buildMiniCard({
@@ -824,15 +560,139 @@ export async function prepopulateUserMedia({
 
         updateMainGridStream(newComponent);
 
-        mainScreenFilled = false;
-        adminOnMainScreen = false;
-        mainScreenPerson = "";
-        updateMainScreenFilled(mainScreenFilled);
-        updateAdminOnMainScreen(adminOnMainScreen);
-        updateMainScreenPerson(mainScreenPerson);
+        applyMainScreenState(buildMainScreenState({
+          filled: false,
+          adminOnMainScreen: false,
+          mainScreenPerson: "",
+        }));
       } catch {
         // Handle mini card creation error
       }
+    };
+
+    // If the event type is 'chat', return early
+    if (eventType == "chat") {
+      return;
+    }
+
+    // Initialize variables
+    let host: Participant | null = null;
+    let hostStream: any;
+    let newComponent: React.JSX.Element[] = [];
+
+    const prepopulatePlan = buildPrepopulateUserMediaPlan<Participant, Stream>({
+      participants,
+      allVideoStreams: allVideoStreams as Stream[],
+      member,
+      islevel,
+      shared,
+      shareScreenStarted,
+      eventType,
+      screenId,
+      whiteboardStarted,
+      whiteboardEnded,
+      remoteScreenStream,
+      localStreamScreen,
+      checkOrientation,
+      isWideScreen,
+      forceFullDisplay,
+      includeWhiteboardAsScreenFlow: true,
+    });
+
+    if (prepopulatePlan.screenFlowActive) {
+      if (eventType == "conference") {
+        if (mainHeightWidth == 0) {
+          updateMainHeightWidth(84);
+        }
+      } else if (mainHeightWidth != 84) {
+        updateMainHeightWidth(84);
+      }
+    }
+
+    screenForceFullDisplay = prepopulatePlan.screenForceFullDisplay;
+    updateScreenForceFullDisplay(screenForceFullDisplay);
+
+    host = prepopulatePlan.host as Participant | null;
+    hostStream = prepopulatePlan.hostStream;
+
+    if (prepopulatePlan.shouldUpdateAdminOnMainScreen) {
+      adminOnMainScreen = prepopulatePlan.adminOnMainScreen;
+      updateAdminOnMainScreen(adminOnMainScreen);
+    }
+
+    mainScreenPerson = prepopulatePlan.mainScreenPerson;
+    updateMainScreenPerson(mainScreenPerson);
+
+    if (prepopulatePlan.shouldReturnEarly) {
+      return;
+    }
+
+    // If host is not null, check if host videoIsOn
+    if (host) {
+      // Populate the main screen with the host video
+      if (shareScreenStarted || shared) {
+        forceFullDisplay = screenForceFullDisplay;
+        const screenShareHostCardPlan = buildScreenShareHostCardPlan({
+          hostName: host.name || "",
+          hostScreenID: host.ScreenID,
+          hostIsAdmin: host.islevel === "2",
+          shared,
+          hostStream,
+          screenForceFullDisplay,
+          annotateScreenStream,
+        });
+
+        if (whiteboardStarted && !whiteboardEnded) {
+          // Whiteboard is active
+        } else {
+          newComponent.push(
+            buildVideoCard({
+              key: screenShareHostCardPlan.key,
+              videoStream: screenShareHostCardPlan.videoStream,
+              remoteProducerId: screenShareHostCardPlan.remoteProducerId,
+              eventType,
+              forceFullDisplay: screenShareHostCardPlan.forceFullDisplay,
+              customStyle: {
+                border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
+              },
+              participant: host,
+              backgroundColor: "transparent",
+              showControls: false,
+              showInfo: true,
+              name: screenShareHostCardPlan.name,
+              doMirror: screenShareHostCardPlan.doMirror,
+            })
+          );
+        }
+
+        updateMainGridStream(newComponent);
+
+        applyMainScreenState(screenShareHostCardPlan.state);
+
+        return newComponent;
+      }
+
+      const mainHostCardPlan = buildMainHostCardPlan({
+        islevel,
+        localUIMode,
+        videoAlreadyOn,
+        audioAlreadyOn,
+        hostVideoOn: !!host.videoOn,
+        hostMuted: host.muted,
+        hostIsAdmin: host.islevel === "2",
+        hostName: host.name || "",
+        hostVideoID: host.videoID,
+        fallbackName: name,
+        member,
+        keepBackground,
+        virtualStream,
+        localStreamVideo,
+        oldAllStreams: oldAllStreams as Stream[],
+      });
+
+      renderMainHostCard({ plan: mainHostCardPlan, host });
+    } else {
+      renderNoHostCard();
     }
 
     updateMainWindow = false;

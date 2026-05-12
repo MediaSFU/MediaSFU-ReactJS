@@ -88,18 +88,18 @@ const connectionPresets: Record<
 > = {
   cloud: {
     credentials: {
-      apiUserName: "yourDevUser",
+      apiUserName: "abcdefgh",
       apiKey:
-        "yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758",
     },
     localLink: "",
     connectMediaSFU: true,
   },
   hybrid: {
     credentials: {
-      apiUserName: "dummyUsr",
+      apiUserName: "abcdefgh",
       apiKey:
-        "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758",
     },
     localLink: "http://localhost:3000",
     connectMediaSFU: true,

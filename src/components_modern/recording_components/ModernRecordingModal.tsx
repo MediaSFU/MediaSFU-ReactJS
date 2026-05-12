@@ -55,6 +55,36 @@ export interface ModernRecordingModalProps extends RecordingModalOptions {
 
 export type ModernRecordingModalType = RecordingModalType;
 
+type RecordingDisplayAdviceParameters = {
+  meetingDisplayType?: string;
+  breakOutRoomStarted?: boolean;
+  breakOutRoomEnded?: boolean;
+  recordingVideoParticipantsFullRoomSupport?: boolean;
+  recordingVideoOptions?: string;
+  recordingMediaOptions?: string;
+};
+
+const getRecordingDisplayAdvice = (parameters?: RecordingDisplayAdviceParameters) => {
+  if (!parameters) {
+    return null;
+  }
+
+  const normalizedRecordingMediaOptions =
+    parameters.recordingMediaOptions === 'all' ? 'video' : parameters.recordingMediaOptions;
+
+  if (
+    !parameters.recordingVideoParticipantsFullRoomSupport &&
+    parameters.recordingVideoOptions === 'all' &&
+    normalizedRecordingMediaOptions === 'video' &&
+    parameters.meetingDisplayType === 'all' &&
+    !(parameters.breakOutRoomStarted && !parameters.breakOutRoomEnded)
+  ) {
+    return 'Meeting display is set to All, so this recording may be blocked. To fix it, go back to the main menu, open Display, choose Media, then return here and confirm.';
+  }
+
+  return null;
+};
+
 /**
  * ModernRecordingModal provides recording settings with premium styling.
  */
@@ -113,6 +143,7 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
 
   // Get parameters
   const params = parameters?.getUpdatedAllParams?.() || parameters;
+  const recordingDisplayAdvice = getRecordingDisplayAdvice(params);
 
   // Handle confirm
   const handleConfirm = useCallback(async () => {
@@ -345,6 +376,8 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
 
   const actionsStyle: React.CSSProperties = {
     display: 'flex',
+    flexWrap: 'wrap',
+    alignItems: 'stretch',
     gap: `${MediasfuSpacing.sm}px`,
     padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.lg}px`,
     borderTop: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
@@ -446,6 +479,43 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
       style={{ ...actionsStyle, ...actionsWrapperProps?.style }}
       {...actionsWrapperProps}
     >
+      {recordingDisplayAdvice && (
+        <div
+          style={{
+            flex: '1 0 100%',
+            width: '100%',
+            display: 'grid',
+            gap: MediasfuSpacing.xs,
+            padding: '12px 14px',
+            borderRadius: MediasfuBorders.md,
+            border: `1px solid ${isDarkMode ? 'rgba(245, 158, 11, 0.28)' : 'rgba(245, 158, 11, 0.34)'}`,
+            background: isDarkMode ? 'rgba(245, 158, 11, 0.14)' : 'rgba(245, 158, 11, 0.12)',
+            color: isDarkMode ? '#f8fafc' : '#1e293b',
+            boxShadow: isDarkMode ? 'inset 0 1px 0 rgba(255,255,255,0.04)' : 'inset 0 1px 0 rgba(255,255,255,0.4)',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: isDarkMode ? '#fbbf24' : '#b45309',
+            }}
+          >
+            Fix before confirming
+          </span>
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              lineHeight: 1.5,
+            }}
+          >
+            {recordingDisplayAdvice}
+          </span>
+        </div>
+      )}
       <PremiumButton
         variant={confirmSuccess ? 'filled' : 'outlined'}
         backgroundColor={confirmSuccess ? MediasfuColors.success : undefined}

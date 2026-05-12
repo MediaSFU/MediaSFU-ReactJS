@@ -3,6 +3,7 @@ import {
   CreateMediaSFURoomOptions,
   JoinMediaSFURoomOptions
 } from '../../@types/types';
+import { resolveMediaSFURoomApi } from './resolveMediaSFURoomApi';
 
 export type CreateJoinRoomType = (options: {
   payload: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
@@ -120,11 +121,7 @@ export const joinRoomOnMediaSFU: CreateJoinRoomType = async ({
       return { data: { error: "Invalid credentials" }, success: false };
     }
 
-    let finalLink = 'https://mediasfu.com/v1/rooms/';
-    if ( localLink && localLink.trim() !== ''  && !localLink.includes('mediasfu.com') ){
-      localLink = localLink.replace(/\/$/, '');
-      finalLink = localLink + '/joinRoom';
-    }
+    const finalLink = resolveMediaSFURoomApi(localLink, 'joinRoom');
 
     const response = await fetch(finalLink,
       {
@@ -144,7 +141,11 @@ export const joinRoomOnMediaSFU: CreateJoinRoomType = async ({
     const data = await response.json();
     return { data, success: true };
   } catch (error) {
-    const errorMessage = (error as any).reason ? (error as any).reason : 'unknown error';
+    const errorMessage = (
+      error as { reason?: string; message?: string }
+    ).reason || (
+      error as { reason?: string; message?: string }
+    ).message || 'unknown error';
     return {
       data: { error: `Unable to join room, ${errorMessage}` },
       success: false,

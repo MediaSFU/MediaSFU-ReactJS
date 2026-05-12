@@ -76,6 +76,37 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
   const [videoOptimized, setVideoOptimized] = useState(parameters.meetingVideoOptimized);
   const hasInitializedRef = React.useRef(false);
 
+  const selectedDisplayOptionBadgeStyle: React.CSSProperties = {
+    position: 'absolute',
+    top: MediasfuSpacing.xs,
+    right: MediasfuSpacing.xs,
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: 4,
+    padding: '3px 7px',
+    borderRadius: 999,
+    background: isDarkMode ? 'rgba(14, 165, 233, 0.2)' : 'rgba(37, 99, 235, 0.12)',
+    color: isDarkMode ? '#bae6fd' : '#1d4ed8',
+    fontSize: 10,
+    fontWeight: 800,
+    letterSpacing: '0.06em',
+    lineHeight: 1,
+    textTransform: 'uppercase',
+  };
+
+  const getSelectedDisplayOptionBackground = () =>
+    isDarkMode
+      ? 'linear-gradient(180deg, rgba(37, 99, 235, 0.34) 0%, rgba(8, 145, 178, 0.2) 100%)'
+      : 'linear-gradient(180deg, rgba(219, 234, 254, 0.96) 0%, rgba(224, 242, 254, 0.92) 100%)';
+
+  const getSelectedDisplayOptionBorder = () =>
+    isDarkMode ? 'rgba(96, 165, 250, 0.78)' : 'rgba(37, 99, 235, 0.28)';
+
+  const getSelectedDisplayOptionShadow = () =>
+    isDarkMode
+      ? '0 0 0 1px rgba(125, 211, 252, 0.16) inset, 0 14px 24px rgba(2, 132, 199, 0.18)'
+      : '0 0 0 1px rgba(96, 165, 250, 0.24) inset, 0 12px 22px rgba(59, 130, 246, 0.14)';
+
   // Only re-initialize settings when modal opens (not on every parameter change)
   useEffect(() => {
     if (isDisplaySettingsModalVisible && !hasInitializedRef.current) {
@@ -197,13 +228,13 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     const sidebarOptionStyle = (isSelected: boolean): React.CSSProperties => ({
       padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.sm}px`,
       background: isSelected
-        ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.85)'
+        ? getSelectedDisplayOptionBackground()
         : isDarkMode
           ? 'rgba(255,255,255,0.05)'
           : 'rgba(0,0,0,0.02)',
       border: `1px solid ${
         isSelected
-          ? isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)'
+          ? getSelectedDisplayOptionBorder()
           : isDarkMode
             ? 'rgba(255,255,255,0.1)'
             : 'rgba(0,0,0,0.08)'
@@ -213,12 +244,17 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
+      justifyContent: 'center',
       gap: `${MediasfuSpacing.xs}px`,
       transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-      color: isSelected ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
+      color: isSelected ? (isDarkMode ? '#f8fafc' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
       fontSize: 12,
-      fontWeight: isSelected ? 600 : 400,
-      boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
+      fontWeight: isSelected ? 700 : 500,
+      textAlign: 'center',
+      minHeight: 92,
+      position: 'relative',
+      transform: isSelected ? 'translateY(-1px)' : 'none',
+      boxShadow: isSelected ? getSelectedDisplayOptionShadow() : 'none',
     });
 
     const sidebarToggleRowStyle: React.CSSProperties = {
@@ -295,6 +331,12 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
                   style={sidebarOptionStyle(displayType === option.value)}
                   onClick={() => setDisplayType(option.value)}
                 >
+                  {displayType === option.value && (
+                    <span style={selectedDisplayOptionBadgeStyle}>
+                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
+                      Active
+                    </span>
+                  )}
                   <FontAwesomeIcon icon={option.icon} size="lg" />
                   <span>{option.label}</span>
                 </div>
@@ -456,13 +498,13 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
   const optionStyle = (isSelected: boolean): React.CSSProperties => ({
     padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.sm}px`,
     background: isSelected
-      ? isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.85)'
+      ? getSelectedDisplayOptionBackground()
       : isDarkMode
         ? 'rgba(255,255,255,0.05)'
         : 'rgba(0,0,0,0.02)',
     border: `1px solid ${
       isSelected
-        ? isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.12)'
+        ? getSelectedDisplayOptionBorder()
         : isDarkMode
           ? 'rgba(255,255,255,0.1)'
           : 'rgba(0,0,0,0.08)'
@@ -472,12 +514,17 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: `${MediasfuSpacing.xs}px`,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-    color: isSelected ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
+    color: isSelected ? (isDarkMode ? '#f8fafc' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
     fontSize: 12,
-    fontWeight: isSelected ? 600 : 400,
-    boxShadow: isSelected ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
+    fontWeight: isSelected ? 700 : 500,
+    textAlign: 'center',
+    minHeight: 92,
+    position: 'relative',
+    transform: isSelected ? 'translateY(-1px)' : 'none',
+    boxShadow: isSelected ? getSelectedDisplayOptionShadow() : 'none',
   });
 
   const toggleRowStyle: React.CSSProperties = {
@@ -567,6 +614,12 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
                   style={optionStyle(displayType === option.value)}
                   onClick={() => setDisplayType(option.value)}
                 >
+                  {displayType === option.value && (
+                    <span style={selectedDisplayOptionBadgeStyle}>
+                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
+                      Active
+                    </span>
+                  )}
                   <FontAwesomeIcon icon={option.icon} size="lg" />
                   <span>{option.label}</span>
                 </div>

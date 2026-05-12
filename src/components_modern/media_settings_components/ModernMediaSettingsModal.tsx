@@ -195,6 +195,15 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
     return positions[position] || positions.topRight;
   };
 
+  const deviceLabelStyle: React.CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    display: 'block',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  };
+
   // Sidebar/inline mode - render content directly without modal wrapper
   if (renderMode === 'sidebar' || renderMode === 'inline') {
     const params = resolveParams();
@@ -299,6 +308,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
       transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
       color: isDarkMode ? '#FFFFFF' : '#1F2937',
       fontSize: 14,
+      overflow: 'hidden',
     });
 
     const sidebarActionsStyle: React.CSSProperties = {
@@ -391,7 +401,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
     );
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', minWidth: 0, overflowX: 'hidden' }}>
         {/* Header */}
         <div style={sidebarHeaderStyle}>
           <h2 style={sidebarTitleStyle}>
@@ -443,7 +453,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
                       style={sidebarDeviceItemStyle(selectedVideoDevice === device.deviceId)}
                       onClick={() => handleVideoChange(device.deviceId)}
                     >
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={deviceLabelStyle}>
                         {device.label || `Camera ${device.deviceId.slice(0, 8)}...`}
                       </span>
                       {selectedVideoDevice === device.deviceId && (
@@ -476,7 +486,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
                       style={sidebarDeviceItemStyle(selectedAudioDevice === device.deviceId)}
                       onClick={() => handleAudioChange(device.deviceId)}
                     >
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={deviceLabelStyle}>
                         {device.label || `Microphone ${device.deviceId.slice(0, 8)}...`}
                       </span>
                       {selectedAudioDevice === device.deviceId && (
@@ -628,6 +638,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
     fontSize: 14,
+    overflow: 'hidden',
   });
 
   const actionsStyle: React.CSSProperties = {
@@ -701,7 +712,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
                       style={deviceItemStyle(selectedVideoDevice === device.deviceId)}
                       onClick={() => handleVideoChange(device.deviceId)}
                     >
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={deviceLabelStyle}>
                         {device.label || `Camera ${device.deviceId.slice(0, 8)}...`}
                       </span>
                       {selectedVideoDevice === device.deviceId && (
@@ -734,7 +745,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
                       style={deviceItemStyle(selectedAudioDevice === device.deviceId)}
                       onClick={() => handleAudioChange(device.deviceId)}
                     >
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={deviceLabelStyle}>
                         {device.label || `Microphone ${device.deviceId.slice(0, 8)}...`}
                       </span>
                       {selectedAudioDevice === device.deviceId && (

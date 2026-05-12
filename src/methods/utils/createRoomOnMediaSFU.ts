@@ -1,4 +1,5 @@
 import { CreateJoinRoomError, CreateJoinRoomResponse, CreateJoinRoomType, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from '../../@types/types';
+import { resolveMediaSFURoomApi } from './resolveMediaSFURoomApi';
 
 /**
  * Asynchronously creates a room on MediaSFU.
@@ -96,11 +97,7 @@ export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
             return { data: { error: 'Invalid credentials' }, success: false };
         }
 
-        let finalLink = 'https://mediasfu.com/v1/rooms/';
-        if (localLink && localLink.trim() !== '' && !localLink.includes('mediasfu.com')) {
-            localLink = localLink.replace(/\/$/, '');
-            finalLink = localLink + '/createRoom';
-        }
+        const finalLink = resolveMediaSFURoomApi(localLink, 'createRoom');
 
 
     // Mark request as pending

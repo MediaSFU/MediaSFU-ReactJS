@@ -47,6 +47,10 @@ export interface ConfirmRecordingOptions {
 // Export the type definition for the function
 export type ConfirmRecordingType = (options: ConfirmRecordingOptions) => Promise<void>;
 
+const ALERT_DURATION = 6000;
+const FULL_PARTICIPANT_RECORDING_ALERT_MESSAGE =
+  "You are not allowed to record videos of all participants while the meeting display is set to All. Switch the meeting display to Media and try again.";
+
 /**
  * Confirms the recording settings based on the provided parameters and updates the recording state.
  * 
@@ -161,10 +165,9 @@ export const confirmRecording = async ({
   ) {
     if (meetingDisplayType === "all" && !(breakOutRoomStarted && !breakOutRoomEnded)) {
       showAlert?.({
-        message:
-          "You are not allowed to record videos of all participants; change the meeting display type to video or video optimized.",
+        message: FULL_PARTICIPANT_RECORDING_ALERT_MESSAGE,
         type: "danger",
-        duration: 3000,
+        duration: ALERT_DURATION,
       });
       return;
     }
@@ -174,7 +177,7 @@ export const confirmRecording = async ({
     showAlert?.({
       message: "You are only allowed to record yourself.",
       type: "danger",
-      duration: 3000,
+      duration: ALERT_DURATION,
     });
     return;
   }
@@ -183,7 +186,7 @@ export const confirmRecording = async ({
     showAlert?.({
       message: "You are not allowed to record other video participants.",
       type: "danger",
-      duration: 3000,
+      duration: ALERT_DURATION,
     });
     return;
   }
@@ -195,7 +198,7 @@ export const confirmRecording = async ({
     showAlert?.({
       message: "You are not allowed to record all orientations.",
       type: "danger",
-      duration: 3000,
+      duration: ALERT_DURATION,
     });
     return;
   }
@@ -210,7 +213,7 @@ export const confirmRecording = async ({
       showAlert?.({
         message: "You are not allowed to record this orientation.",
         type: "danger",
-        duration: 3000,
+        duration: ALERT_DURATION,
       });
       return;
     }
@@ -220,7 +223,7 @@ export const confirmRecording = async ({
     showAlert?.({
       message: "You are not allowed to record all formats.",
       type: "danger",
-      duration: 3000,
+      duration: ALERT_DURATION,
     });
     return;
   }
@@ -235,7 +238,7 @@ export const confirmRecording = async ({
           message:
             "Recording display type can be either video, video optimized, or media when meeting display type is media.",
           type: "danger",
-          duration: 3000,
+          duration: ALERT_DURATION,
         });
         updateRecordingDisplayType(meetingDisplayType);
         return;
@@ -250,7 +253,7 @@ export const confirmRecording = async ({
             message:
               "Recording display type can be either video or video optimized when meeting display type is video.",
             type: "danger",
-            duration: 3000,
+            duration: ALERT_DURATION,
           });
           updateRecordingDisplayType(meetingDisplayType);
           return;
@@ -261,7 +264,7 @@ export const confirmRecording = async ({
             message:
               "Recording display type can only be video optimized when meeting display type is video optimized.",
             type: "danger",
-            duration: 3000,
+            duration: ALERT_DURATION,
           });
           updateRecordingVideoOptimized(meetingVideoOptimized);
           return;
@@ -280,7 +283,7 @@ export const confirmRecording = async ({
     showAlert?.({
       message: "You can only record all participants with media.",
       type: "danger",
-      duration: 3000,
+      duration: ALERT_DURATION,
     });
     return;
   }

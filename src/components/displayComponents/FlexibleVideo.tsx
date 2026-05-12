@@ -429,7 +429,7 @@ const FlexibleVideoComponent: React.FC<FlexibleVideoOptions> = ({
     height: cardHeight,
     backgroundColor: "rgba(0, 0, 0, 0.005)",
     zIndex: 2,
-    pointerEvents: annotateScreenStream ? "auto" : "none",
+    pointerEvents: "none",
     ...(screenboardStyleOverrides ?? {}),
   };
 

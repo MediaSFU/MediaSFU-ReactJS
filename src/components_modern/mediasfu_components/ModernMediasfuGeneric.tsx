@@ -403,6 +403,8 @@ export type ModernMediasfuGenericOptions = {
   canUsePersonalTranslation?: boolean;
   // The MediaSFU username that has translation credits
   personalTranslationUsername?: string;
+  // App-level cloned voices available to translation clone mode
+  userVoiceClones?: Array<{ id?: string; providerVoiceId?: string; voiceId?: string; name?: string; provider?: string; isDefault?: boolean }>;
   // When true, keeps the urn:3gpp:video-orientation RTP header extension
   // so recorded video has correct orientation metadata
   optimizeVideoRecord?: boolean;
@@ -541,6 +543,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   uiOverrides,
   canUsePersonalTranslation = false,
   personalTranslationUsername,
+  userVoiceClones,
   optimizeVideoRecord = false,
 }) => {
 
@@ -2271,8 +2274,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   };
 
   // Live subtitles state
-  const [showSubtitlesOnCards, setShowSubtitlesOnCards] = useState<boolean>(false);
-  const showSubtitlesOnCardsRef = useRef<boolean>(false); // Ref for event handler access
+  const [showSubtitlesOnCards, setShowSubtitlesOnCards] = useState<boolean>(true);
+  const showSubtitlesOnCardsRef = useRef<boolean>(true); // Ref for event handler access
   const [liveSubtitles, setLiveSubtitles] = useState<Map<string, LiveSubtitle>>(new Map());
   const updateShowSubtitlesOnCards = (value: boolean) => {
     setShowSubtitlesOnCards(value);
@@ -2416,6 +2419,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const canvasScreenboard = useRef<HTMLCanvasElement | null>(null); // Canvas screenboard as HTMLCanvasElement or null
   const processedScreenStream = useRef<MediaStream | null>(null); // Processed screen stream as MediaStream or null
   const annotateScreenStream = useRef<boolean>(false); // Annotate screen stream as boolean
+  const [, setAnnotateScreenStreamState] = useState<boolean>(false);
   const mainScreenCanvas = useRef<HTMLCanvasElement | null>(null); // Main screen canvas as HTMLCanvasElement or null
   const [isScreenboardModalVisible, setIsScreenboardModalVisible] =
     useState<boolean>(false); // True if the screenboard modal should be shown
@@ -3122,6 +3126,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateAnnotateScreenStream = (value: boolean) => {
     annotateScreenStream.current = value;
+    setAnnotateScreenStreamState(value);
   };
 
   const updateMainScreenCanvas = (value: HTMLCanvasElement | null) => {
@@ -4446,23 +4451,51 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     }
   }, []);
 
+  const prepareRecordingSidebar = useCallback(() => {
+    if (stopLaunchRecord.current && !localUIMode.current) {
+      showAlert({
+        message: 'Recording has already ended or you are not allowed to record',
+        type: 'danger',
+        duration: 3000,
+      });
+      return false;
+    }
+
+    if (recordStarted.current && !recordPaused.current) {
+      showAlert({
+        message: 'You can only re-configure recording after pausing it',
+        type: 'danger',
+        duration: 3000,
+      });
+      return false;
+    }
+
+    if (!recordingAudioSupport.current && !recordingVideoSupport.current && !localUIMode.current) {
+      showAlert({
+        message: 'You are not allowed to record',
+        type: 'danger',
+        duration: 3000,
+      });
+      return false;
+    }
+
+    if (canLaunchRecord.current && !localUIMode.current) {
+      updateClearedToRecord(false);
+      updateCanRecord(false);
+    }
+
+    updateConfirmedToRecord(false);
+    updateIsRecordingModalVisible(false);
+
+    return true;
+  }, [showAlert, updateCanRecord, updateClearedToRecord, updateConfirmedToRecord, updateIsRecordingModalVisible]);
+
   // Run pre-flight logic before showing sidebar content
   const updateActiveSidebarContent = useCallback((content: SidebarContentType, pushToStack = false) => {
     if (content === 'recording') {
-      launchRecording({
-        updateIsRecordingModalVisible,
-        isRecordingModalVisible,
-        showAlert,
-        stopLaunchRecord: stopLaunchRecord.current,
-        canLaunchRecord: canLaunchRecord.current,
-        recordingAudioSupport: recordingAudioSupport.current,
-        recordingVideoSupport: recordingVideoSupport.current,
-        updateCanRecord,
-        updateClearedToRecord,
-        recordStarted: recordStarted.current,
-        recordPaused: recordPaused.current,
-        localUIMode: localUIMode.current,
-      });
+      if (!prepareRecordingSidebar()) {
+        return;
+      }
     }
 
     if (content === 'background') {
@@ -4500,11 +4533,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     updateVideoInputs,
     updateIsMediaSettingsModalVisible,
     isMediaSettingsModalVisible,
-    updateIsRecordingModalVisible,
-    isRecordingModalVisible,
-    showAlert,
-    updateCanRecord,
-    updateClearedToRecord,
+    prepareRecordingSidebar,
     setIsBackgroundModalVisible,
   ]);
 
@@ -7940,6 +7969,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             showSubtitlesOnCards={showSubtitlesOnCards}
             updateShowSubtitlesOnCards={updateShowSubtitlesOnCards}
             isPersonalTranslation={isPersonalTranslation}
+            userVoiceClones={userVoiceClones}
             isDarkMode={isDarkMode}
             renderMode="sidebar"
           />

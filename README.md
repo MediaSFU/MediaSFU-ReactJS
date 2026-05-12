@@ -36,109 +36,58 @@
 
 # MediaSFU ReactJS SDK
 
-**Ship production-ready voice, video, and AI communication in minutes — not months.**
+`mediasfu-reactjs` is the React 18/19 package for shipping MediaSFU-powered calling, conferencing, webinar, chat, screen sharing, whiteboard, recording, subtitle, translation, and AI-assisted room experiences in the browser.
 
-MediaSFU gives you prebuilt, fully-featured event room components with real-time video/audio, screen sharing, recording, chat, polls, whiteboards, real-time translation, and more. Drop them into your React app with a few lines of code and go live.
+Use this package when you want one of three paths:
 
-### Why MediaSFU?
+- render a prebuilt room fast with `MediasfuGeneric`, `MediasfuConference`, `MediasfuWebinar`, `MediasfuBroadcast`, or `MediasfuChat`
+- keep the MediaSFU runtime and replace targeted UI surfaces with `uiOverrides`, custom cards, and custom shells
+- run MediaSFU headless with `returnUI={false}` and own the full browser experience
 
-| Without MediaSFU | With MediaSFU |
-|---|---|
-| 6–12 months of WebRTC, TURN/STUN, codec work | `npm install mediasfu-reactjs` → done |
-| $1–5 per 1,000 minutes (Twilio, Vonage, Daily) | **$0.10 per 1,000 minutes** — 10–50× cheaper |
-| Build every modal, card, and control from scratch | Prebuilt components — classic & modern themes |
-| Wire up third-party AI, TTS, vision APIs yourself | Built-in AI agents, voice translation, transcription |
-| Separate codebases per platform | One API surface → React, React Native, Flutter, Angular, Vue |
-| Weeks of infrastructure setup | Under 5 minutes |
-
-## 🔥 What Makes MediaSFU Different
-
-| | |
-|---|---|
-| **Embeddable by Design** — Other platforms give you raw APIs and leave you to build the UI. MediaSFU gives you finished, production-ready components — video grids, control bars, modals, chat panels, recording controls — that you drop in and customize. | **Pricing That Makes Sense** — $0.10 per 1,000 minutes. MediaSFU runs its own media infrastructure. No reselling. No hidden fees. Free tier included, no credit card required. |
-| **AI-Native, Not Bolted On** — AI agents, real-time voice translation (50+ languages), live transcription, and intelligent routing are built into the platform — not third-party add-ons you wire up yourself. | **Full Stack, One Platform** — Voice + video + chat + screen sharing + recording + polls + whiteboards + breakout rooms + AI + translation + SIP. All included. Replace 5 communication tools with one SDK. |
-
----
-
-## ⚠️ Important: Backend Server Required
-
-**MediaSFU is a frontend SDK that requires a backend media server to function.**
-
-You have two options:
-
-| Option | Description | Best For |
-|--------|-------------|----------|
-| **☁️ MediaSFU Cloud** | Managed service at [mediasfu.com](https://www.mediasfu.com) | Production apps, zero infrastructure |
-| **🏠 MediaSFU Open** | Self-hosted open-source server | Full control, on-premise requirements |
+## Start Here
 
 ```bash
-# Option 1: Use MediaSFU Cloud
-# Sign up at https://www.mediasfu.com and get your API credentials
-
-# Option 2: Self-host with MediaSFU Open
-git clone https://github.com/MediaSFU/MediaSFUOpen
-cd MediaSFUOpen
+npm install mediasfu-reactjs
 ```
 
-📖 **[MediaSFU Cloud Documentation →](https://www.mediasfu.com/documentation#rooms)**  
-📖 **[MediaSFU Open Repository →](https://github.com/MediaSFU/MediaSFUOpen)**
+```tsx
+import { MediasfuGeneric } from "mediasfu-reactjs";
+
+export default function App() {
+  return (
+    <MediasfuGeneric
+      credentials={{ apiUserName: "your-api-username", apiKey: "your-api-key" }}
+      connectMediaSFU={true}
+    />
+  );
+}
+```
+
+## Backend Requirement
+
+This SDK needs a MediaSFU-compatible backend for room lifecycle, signaling, and media routing.
+
+| Option | Use it when | What to pass |
+|---|---|---|
+| MediaSFU Cloud | You want managed infrastructure | `credentials={{ apiUserName, apiKey }}` |
+| MediaSFU Open / CE | You want to self-host | `localLink="http://your-server:3000"` and your own server config |
+
+Cloud room helpers in this package target `https://mediasfu.com/v1/rooms/` by default. For self-hosted deployments, pass a non-MediaSFU `localLink`.
+
+## Integration Paths
+
+- Keep the bundled room UI for the fastest route to production.
+- Replace targeted surfaces with `uiOverrides`, custom cards, and custom shells.
+- Use `customComponent` or `returnUI={false}` when your app should own the entire shell.
+
+## Package Links
+
+- Docs portal: [https://mediasfu.com/documentation](https://mediasfu.com/documentation)
+- User guide: [https://mediasfu.com/user-guide](https://mediasfu.com/user-guide)
+- Storybook: [https://mediasfu.com/storybook](https://mediasfu.com/storybook)
+- Detailed guide: [README_DETAILED.md](README_DETAILED.md)
 
 ---
-
-## ✨ Platform Features
-
-Everything you need for enterprise-grade real-time communication — included at $0.10/1K min:
-
-### 🎥 **Video & Audio**
-
-- Multi-party video conferencing with adaptive quality
-- Screen sharing with real-time annotation
-- Virtual backgrounds and video effects
-- Audio-only participant support
-
-### 🎤 **Real-time Translation** 🌍
-
-- **Speak in any language** — The system auto-detects what language you're speaking
-- **Listen in any language** — Hear others translated to your preferred language in real time
-- **Live transcription** — See real-time transcripts during meetings
-- **50+ languages supported** — True borderless communication
-- No interpreters. No delay. Works with voice, video, and chat.
-
-### 🤖 **AI-Powered Features**
-
-- AI voice agents that answer, resolve, and escalate
-- Multimodal AI with voice + vision capabilities
-- AI-generated meeting summaries and transcription
-- Intelligent call routing and warm handoffs
-- Voice cloning options with custom TTS configurations
-
-### 👥 **Participant Management**
-
-- **Panelists Mode** — Designate speakers in webinars with audience Q&A
-- **Individual Permissions** — Granular per-participant control (video/audio/screen/chat)
-- **Group Permissions** — Apply permission templates to participant groups
-- Waiting room with manual admit
-- Co-host delegation with configurable responsibilities
-- Breakout rooms for focused discussions
-
-### 📊 **Engagement Tools**
-
-- Live polls with real-time results
-- In-meeting chat (direct & group)
-- Collaborative whiteboards
-
-### 🎬 **Recording & Analytics**
-
-- Cloud recording with track-based customization
-- Watermarks, name tags, custom backgrounds
-- Real-time call analytics
-
-### 🔒 **Security & Control**
-
-- End-to-end encryption option
-- Domain-locked API keys
-- Managed events with time/capacity limits
-- Abandoned participant handling
 
 ---
 
@@ -146,6 +95,7 @@ Everything you need for enterprise-grade real-time communication — included at
 
 - [Quick Start](#-quick-start)
 - [Installation](#-installation)
+- [Component Storybook](#-component-storybook)
 - [Prebuilt Event Rooms](#-prebuilt-event-rooms)
 - [Modern UI Components](#-modern-ui-components)
 - [Usage Examples](#-usage-examples)
@@ -261,6 +211,56 @@ import 'mediasfu-reactjs/dist/main.css';
 ```
 
 Most applications work perfectly without this import.
+
+---
+
+## 📚 Component Storybook
+
+This package owns the React Storybook used for visual inspection of runtime-light MediaSFU surfaces. It is intended to sit beside the main Docusaurus docs portal, not replace it.
+
+Run it from the `MediaSFUReactJS` package directory:
+
+```bash
+npm run storybook
+```
+
+Build the static Storybook output for deployment:
+
+```bash
+npm run build-storybook
+```
+
+For local visual inspection, the most reliable path in this repo is to serve the built `storybook-static` output after that command completes:
+
+```bash
+python3 -m http.server 6006 -d storybook-static
+```
+
+The dev server remains useful for iterative authoring, but its indexer can be stricter than the static build for generated TS-heavy stories.
+
+Baseline stories for safe, presentational, or seeded modern components are generated automatically before both commands run. The current automated targets cover the modern widget barrel, a safe subset of display components, misc entry flows, most exported modal-style modern barrels, the whiteboard configuration modal, and `ModernMediasfuGeneric` in seeded local-UI mode. To refresh them directly:
+
+```bash
+npm run generate-storybook-stories
+```
+
+The initial stories live under `src/stories` and focus on components that do not need a live MediaSFU session:
+
+- `UiOverridesGuide`
+- `PremiumButton`
+- `GradientCard`
+- `GlassmorphicContainer`
+- `ModernBackgroundModal`
+
+Curated internal modal stories also live under `src/stories/InternalComponents` for `ModernPermissionsModal`, `ModernPanelistsModal`, and `TranslationSettingsModal`.
+
+Curated display and canvas stories live under `src/stories/DisplayComponents` and `src/stories/WhiteboardComponents` for surfaces that are too stateful for the generated baseline set, including `ModernVideoCard`, `ModernAudioCard`, `ModernControlButtonsComponent`, `ModernPagination`, `ModernFlexibleGrid`, `ModernFlexibleVideo`, `ModernMainContainerComponent`, and the collaborative `Whiteboard` canvas.
+
+That same display story surface now also includes classic display primitives that are still relevant in the mixed modern/classic room stack, including `MiniAudio`, `MiniCardAudio`, `ControlButtonsComponent`, `ControlButtonsAltComponent`, and `ControlButtonsComponentTouch`.
+
+Generated baseline coverage is written to `src/stories/generated` and is intended for runtime-light or safely stubbed components only. Media-stream-driven and highly stateful meeting surfaces such as video grids, control stacks, pagination, and virtual-background flows still need curated stories with explicit fixtures.
+
+If you want the public docs site to expose Storybook in navigation, deploy the generated `storybook-static` output separately and point the docs portal at it with `MEDIASFU_STORYBOOK_URL`.
 
 ---
 
@@ -1224,7 +1224,7 @@ MediaSFU isn't just React. The same communication platform is available across 7
 | **Flutter** | [mediasfu_sdk](https://pub.dev/packages/mediasfu_sdk) |
 | **Angular** | [@mediasfu/mediasfu-angular](https://www.npmjs.com/package/@mediasfu/mediasfu-angular) |
 | **Vue** | [@mediasfu/mediasfu-vue](https://www.npmjs.com/package/@mediasfu/mediasfu-vue) |
-| **Android (Kotlin)** | [MediaSFU Android](https://github.com/MediaSFU/MediaSFU-Android) |
+| **Android (Kotlin)** | MediaSFU Android |
 
 ---
 

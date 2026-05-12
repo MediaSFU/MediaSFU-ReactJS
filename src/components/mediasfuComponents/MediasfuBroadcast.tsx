@@ -1761,6 +1761,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
   const canvasScreenboard = useRef<HTMLCanvasElement | null>(null); // Canvas screenboard as HTMLCanvasElement or null
   const processedScreenStream = useRef<MediaStream | null>(null); // Processed screen stream as MediaStream or null
   const annotateScreenStream = useRef<boolean>(false); // Annotate screen stream as boolean
+  const [, setAnnotateScreenStreamState] = useState<boolean>(false);
   const mainScreenCanvas = useRef<HTMLCanvasElement | null>(null); // Main screen canvas as HTMLCanvasElement or null
   const [isScreenboardModalVisible, setIsScreenboardModalVisible] =
     useState<boolean>(false); // True if the screenboard modal should be shown
@@ -2329,6 +2330,7 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
 
   const updateAnnotateScreenStream = (value: boolean) => {
     annotateScreenStream.current = value;
+    setAnnotateScreenStreamState(value);
   };
 
   const updateMainScreenCanvas = (value: HTMLCanvasElement | null) => {

@@ -102,7 +102,7 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
   showStatusIndicator = true,
   onToggleSelfViewFit,
   liveSubtitle: liveSubtitleProp,
-  showSubtitles = false,
+  showSubtitles = true,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);

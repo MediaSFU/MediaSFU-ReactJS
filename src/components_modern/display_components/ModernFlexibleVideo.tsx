@@ -353,7 +353,7 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
     height: cardHeight,
     backgroundColor: "rgba(0, 0, 0, 0.005)",
     zIndex: 2,
-    pointerEvents: annotateScreenStream ? "auto" : "none",
+    pointerEvents: "none",
     borderRadius: cellBorderRadius > 0 ? `${cellBorderRadius}px` : "0px",
     overflow: "hidden",
     ...(screenboardStyleOverrides ?? {}),

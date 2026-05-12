@@ -222,7 +222,7 @@ const VideoCard: React.FC<VideoCardOptions> = ({
   extraWidgets,
   children,
   liveSubtitle: liveSubtitleProp,
-  showSubtitles = false,
+  showSubtitles = true,
 }) => {
   // Resolve getter function for liveSubtitle
   const liveSubtitle = typeof liveSubtitleProp === 'function' ? liveSubtitleProp() : liveSubtitleProp;

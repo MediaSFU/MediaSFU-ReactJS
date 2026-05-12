@@ -248,8 +248,15 @@ const Pagination: React.FC<PaginationOptions> = ({
   renderPageButton,
   renderPageContent,
 }) => {
-  let { getUpdatedAllParams } = parameters;
-  parameters = getUpdatedAllParams();
+  const { getUpdatedAllParams } = parameters;
+
+  const getLatestParameters = () => {
+    try {
+      return getUpdatedAllParams ? getUpdatedAllParams() : parameters;
+    } catch {
+      return parameters;
+    }
+  };
 
   const {
     mainRoomsLength,
@@ -281,28 +288,43 @@ const Pagination: React.FC<PaginationOptions> = ({
     .join(" ")
     .trim() || undefined;
 
-  const handleClick = async (page: number, offSet = mainRoomsLength) => {
+  const handleClick = async (page: number, offSet?: number) => {
     if (page === currentUserPage) {
       return;
     }
 
-    if (breakOutRoomStarted && !breakOutRoomEnded && page !== 0) {
-      const roomMember = breakoutRooms.find((r: any) =>
-        r.find((p: any) => p.name === member)
+    const latestParameters = getLatestParameters();
+    const latestMainRoomsLength = latestParameters.mainRoomsLength ?? mainRoomsLength;
+    const latestBreakOutRoomStarted =
+      latestParameters.breakOutRoomStarted ?? breakOutRoomStarted;
+    const latestBreakOutRoomEnded =
+      latestParameters.breakOutRoomEnded ?? breakOutRoomEnded;
+    const latestMember = latestParameters.member ?? member;
+    const latestBreakoutRooms = latestParameters.breakoutRooms ?? breakoutRooms;
+    const latestHostNewRoom = latestParameters.hostNewRoom ?? hostNewRoom;
+    const latestRoomName = latestParameters.roomName ?? roomName;
+    const latestIsLevel = latestParameters.islevel ?? islevel;
+    const latestShowAlert = latestParameters.showAlert ?? showAlert;
+    const latestSocket = latestParameters.socket ?? socket;
+    const pageOffset = offSet ?? latestMainRoomsLength;
+
+    if (latestBreakOutRoomStarted && !latestBreakOutRoomEnded && page !== 0) {
+      const roomMember = latestBreakoutRooms.find((r: any) =>
+        r.find((p: any) => p.name === latestMember)
       );
-      const pageInt = page - offSet;
+      const pageInt = page - pageOffset;
       let memberBreakRoom = -1;
       if (roomMember) {
-        memberBreakRoom = breakoutRooms.indexOf(roomMember);
+        memberBreakRoom = latestBreakoutRooms.indexOf(roomMember);
       }
 
       if (
         (memberBreakRoom === -1 || memberBreakRoom !== pageInt) &&
         pageInt >= 0
       ) {
-        if (islevel !== "2") {
-          if (showAlert) {
-            showAlert({
+        if (latestIsLevel !== "2") {
+          if (latestShowAlert) {
+            latestShowAlert({
               message: `You are not part of the breakout room ${pageInt + 1}.`,
               type: "danger",
             });
@@ -312,28 +334,28 @@ const Pagination: React.FC<PaginationOptions> = ({
 
         await handlePageChange({
           page,
-          parameters,
+          parameters: latestParameters,
           breakRoom: pageInt,
           inBreakRoom: true,
         });
-        if (hostNewRoom !== pageInt) {
-          socket.emit(
+        if (latestHostNewRoom !== pageInt) {
+          latestSocket.emit(
             "updateHostBreakout",
-            { newRoom: pageInt, roomName },
+            { newRoom: pageInt, roomName: latestRoomName },
             () => {}
           );
         }
       } else {
         await handlePageChange({
           page,
-          parameters,
+          parameters: latestParameters,
           breakRoom: pageInt,
           inBreakRoom: pageInt >= 0,
         });
-        if (islevel === "2" && hostNewRoom !== -1) {
-          socket.emit(
+        if (latestIsLevel === "2" && latestHostNewRoom !== -1) {
+          latestSocket.emit(
             "updateHostBreakout",
-            { prevRoom: hostNewRoom, newRoom: -1, roomName },
+            { prevRoom: latestHostNewRoom, newRoom: -1, roomName: latestRoomName },
             () => {}
           );
         }
@@ -341,14 +363,14 @@ const Pagination: React.FC<PaginationOptions> = ({
     } else {
       await handlePageChange({
         page,
-        parameters,
+        parameters: latestParameters,
         breakRoom: 0,
         inBreakRoom: false,
       });
-      if (islevel === "2" && hostNewRoom !== -1) {
-        socket.emit(
+      if (latestIsLevel === "2" && latestHostNewRoom !== -1) {
+        latestSocket.emit(
           "updateHostBreakout",
-          { prevRoom: hostNewRoom, newRoom: -1, roomName },
+          { prevRoom: latestHostNewRoom, newRoom: -1, roomName: latestRoomName },
           () => {}
         );
       }

@@ -685,6 +685,24 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
       }}
       ref={screenboardRef}
     >
+      <button
+        id="annotateScreen"
+        className="btn btn-primary btnBoardScreen annotateScreenBtn"
+        style={{
+          position: "absolute",
+          top: "5px",
+          right: "10px",
+          zIndex: 1000,
+          pointerEvents: "auto",
+        }}
+        onClick={toggleAnnotate}
+      >
+        <FontAwesomeIcon
+          icon={faPencilAlt}
+          color={annotateScreenStream ? "red" : "green"}
+        />
+      </button>
+
       <div
         id="screenboardContent"
         style={{
@@ -697,26 +715,10 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
           overflow: "hidden",
           top: 0,
           left: 0,
+          pointerEvents: annotateScreenStream ? "auto" : "none",
         }}
         ref={screenboardContentRef}
       >
-        <button
-          id="annotateScreen"
-          className="btn btn-primary btnBoardScreen annotateScreenBtn"
-          style={{
-            position: "absolute",
-            top: "5px",
-            right: "10px",
-            zIndex: 1000,
-          }}
-          onClick={toggleAnnotate}
-        >
-          <FontAwesomeIcon
-            icon={faPencilAlt}
-            color={annotateScreenStream ? "red" : "green"}
-          />
-        </button>
-
         {annotateScreenStream && (
           <button
             id="toolbarToggleScreen"

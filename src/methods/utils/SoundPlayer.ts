@@ -3,7 +3,7 @@ export interface SoundPlayerOptions {
 }
 
 // Export the type definition for the function
-export type SoundPlayerType = (options: SoundPlayerOptions) => void;
+export type SoundPlayerType = (options: SoundPlayerOptions) => void | Promise<void>;
 
 /**
  * Plays a sound from a given URL.
@@ -11,7 +11,7 @@ export type SoundPlayerType = (options: SoundPlayerOptions) => void;
  * @param {SoundPlayerOptions} options - The options for the sound player.
  * @param {string} options.soundUrl - The URL of the sound to play.
  * 
- * @returns {void}
+ * @returns {void | Promise<void>}
  * 
  * @example
  * ```typescript
@@ -19,18 +19,15 @@ export type SoundPlayerType = (options: SoundPlayerOptions) => void;
  * ```
  */
 
-export const SoundPlayer = ({ soundUrl }: SoundPlayerOptions): void => {
-  /**
-   * Plays a sound from the specified URL.
-   * @function
-   * @param {string} url - The URL of the sound to play.
-   */
-  const playSound = (url: string): void => {
-    const audio = new Audio(url);
-    audio.play().catch((error) => console.error('Error playing sound:', error));
-  };
+export const SoundPlayer = async ({ soundUrl }: SoundPlayerOptions): Promise<void> => {
+  if (!soundUrl || typeof Audio === 'undefined') {
+    return;
+  }
 
-  if (soundUrl) {
-    playSound(soundUrl);
+  try {
+    const audio = new Audio(soundUrl);
+    await audio.play();
+  } catch (error) {
+    console.error('Error playing sound:', error);
   }
 };

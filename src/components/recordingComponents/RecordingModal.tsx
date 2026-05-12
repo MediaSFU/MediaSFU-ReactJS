@@ -106,6 +106,36 @@ export type RecordingModalType = (
   options: RecordingModalOptions
 ) => React.JSX.Element;
 
+type RecordingDisplayAdviceParameters = {
+  meetingDisplayType?: string;
+  breakOutRoomStarted?: boolean;
+  breakOutRoomEnded?: boolean;
+  recordingVideoParticipantsFullRoomSupport?: boolean;
+  recordingVideoOptions?: string;
+  recordingMediaOptions?: string;
+};
+
+const getRecordingDisplayAdvice = (parameters?: RecordingDisplayAdviceParameters) => {
+  if (!parameters) {
+    return null;
+  }
+
+  const normalizedRecordingMediaOptions =
+    parameters.recordingMediaOptions === "all" ? "video" : parameters.recordingMediaOptions;
+
+  if (
+    !parameters.recordingVideoParticipantsFullRoomSupport &&
+    parameters.recordingVideoOptions === "all" &&
+    normalizedRecordingMediaOptions === "video" &&
+    parameters.meetingDisplayType === "all" &&
+    !(parameters.breakOutRoomStarted && !parameters.breakOutRoomEnded)
+  ) {
+    return "Meeting display is set to All. This recording setup may be blocked. Switch the meeting display to Media before confirming so only participants with active media are included.";
+  }
+
+  return null;
+};
+
 /**
  * RecordingModal - Comprehensive recording configuration interface
  * 
@@ -391,6 +421,8 @@ const RecordingModal: React.FC<RecordingModalOptions> = ({
   renderContent,
 }) => {
   const { recordPaused } = parameters;
+  const resolvedParameters = parameters.getUpdatedAllParams?.() || parameters;
+  const recordingDisplayAdvice = getRecordingDisplayAdvice(resolvedParameters);
 
   const defaultOverlayWidth =
     typeof window !== "undefined" ? Math.min(window.innerWidth * 0.8, 350) : 320;
@@ -870,6 +902,23 @@ const RecordingModal: React.FC<RecordingModalOptions> = ({
         style={panelsActionsDividerStyle}
         {...restPanelsActionsDividerProps}
       />
+      {recordingDisplayAdvice && (
+        <div
+          style={{
+            padding: "12px 14px",
+            marginTop: 12,
+            borderRadius: 10,
+            border: "1px solid rgba(245, 158, 11, 0.35)",
+            background: "rgba(245, 158, 11, 0.18)",
+            color: "black",
+            fontSize: 13,
+            fontWeight: 600,
+            lineHeight: 1.45,
+          }}
+        >
+          {recordingDisplayAdvice}
+        </div>
+      )}
       {actionsNode}
     </div>
   );

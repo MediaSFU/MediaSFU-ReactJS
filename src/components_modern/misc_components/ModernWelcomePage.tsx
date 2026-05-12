@@ -24,6 +24,7 @@ export interface ModernWelcomePageOptions {
   // Modern UI props
   isDarkMode?: boolean;
   enableGlassmorphism?: boolean;
+  entryShellLayout?: 'inline' | 'split';
 }
 
 export type ModernWelcomePageType = (options: ModernWelcomePageOptions) => React.JSX.Element;

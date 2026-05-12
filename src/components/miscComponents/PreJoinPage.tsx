@@ -23,8 +23,8 @@ import { CreateRoomOnMediaSFUType, JoinRoomOnMediaSFUType, joinRoomOnMediaSFU } 
 import { Socket } from "socket.io-client";
 import { CSSProperties } from "react";
 
-const apiKey = "yourAPIKEY";
-const apiUserName = "yourAPIUSERNAME";
+const apiKey = "021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758";
+const apiUserName = "abcdefgh";
 const user_credentials = { apiUserName, apiKey };
 
 export interface JoinLocalEventRoomParameters {

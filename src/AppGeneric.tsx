@@ -64,8 +64,8 @@ const App = () => {
 
   // Scenario C: Using MediaSFU Cloud without your own server (default)
   const credentials = {
-    apiUserName: 'yourDevUser',
-    apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    apiUserName: 'abcdefgh',
+    apiKey: '021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758',
   } as const;
   const localLink = '';
   const connectMediaSFU = true;
@@ -504,7 +504,7 @@ export default App;
  *       return res.status(401).json({ error: "Invalid or expired credentials" });
  *     }
  *
- *     const response = await fetch("https://mediasfu.com/v1/rooms", {
+ *     const response = await fetch("https://mediasfu.com/v1/rooms/", {
  *       method: "POST",
  *       headers: {
  *         "Content-Type": "application/json",
@@ -592,7 +592,7 @@ export default App;
 *     localLink = '',
 * }) => {
 *     try {
-*         let finalLink = 'https://mediasfu.com/v1/rooms/join';
+*         let finalLink = 'https://mediasfu.com/v1/rooms/';
 *
 *         // Update finalLink if using a local server
 *         if (localLink) {

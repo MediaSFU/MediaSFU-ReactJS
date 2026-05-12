@@ -23,6 +23,7 @@ import {
   CustomMiniCardType,
 } from "../@types/types";
 import type { LiveSubtitle } from '../producers/socketReceiveMethods/translationReceiveMethods';
+import { buildAddVideosGridPlan } from './gridLayout/addVideosGrid.engine';
 
 export interface AddVideosGridParameters
   extends UpdateMiniCardsGridParameters,
@@ -257,7 +258,16 @@ export async function addVideosGrid({
   let participant: any;
   let remoteProducerId: string = "";
 
-  numtoadd = mainGridStreams.length;
+  const gridPlan = buildAddVideosGridPlan({
+    mainGridStreams,
+    altGridStreams,
+    numToAdd: numtoadd,
+  });
+
+  const mainEntries = gridPlan.mainEntries;
+  const altEntries = gridPlan.altEntries;
+
+  numtoadd = mainEntries.length;
 
   if (removeAltGrid) {
     updateAddAltGrid(false);
@@ -265,7 +275,7 @@ export async function addVideosGrid({
 
   // Add participants to the main grid
   for (let i = 0; i < numtoadd; i++) {
-    participant = mainGridStreams[i];
+    participant = mainEntries[i].stream;
     remoteProducerId = participant.producerId;
 
     let pseudoName = !remoteProducerId || remoteProducerId === "";
@@ -534,8 +544,8 @@ export async function addVideosGrid({
 
   // Handle the alternate grid streams
   if (!removeAltGrid) {
-    for (let i = 0; i < altGridStreams.length; i++) {
-      participant = altGridStreams[i];
+    for (let i = 0; i < altEntries.length; i++) {
+      participant = altEntries[i].stream;
       remoteProducerId = participant.producerId;
 
       let pseudoName = !remoteProducerId || remoteProducerId === "";

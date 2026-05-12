@@ -61,7 +61,7 @@ import {
 export type VoiceSelectionMode = 'basic' | 'advanced' | 'clone';
 
 export interface VoiceCloneConfig {
-  provider: 'elevenlabs' | 'playht' | 'coqui';
+  provider: 'elevenlabs' | 'playht' | 'coqui' | 'cartesia';
   voiceId: string;
   stability?: number;   // 0-1, ElevenLabs
   similarity?: number;  // 0-1, ElevenLabs
@@ -184,6 +184,12 @@ export interface TranslationSettingsModalOptions {
 
   /** True when translation is billed from the user's personal credits (not room-wide) */
   isPersonalTranslation?: boolean;
+
+  /** True when the joiner can request personal translation even if room-wide translation is off */
+  canUsePersonalTranslation?: boolean;
+
+  /** Username or billing handle used for pending personal translation activation */
+  personalTranslationUsername?: string;
 
   /** User's voice clones passed from the app level */
   userVoiceClones?: Array<{ id?: string; providerVoiceId?: string; voiceId?: string; name?: string; provider?: string; isDefault?: boolean }>;
@@ -565,6 +571,8 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   showSubtitlesOnCards,
   updateShowSubtitlesOnCards,
   isPersonalTranslation = false,
+  canUsePersonalTranslation = false,
+  personalTranslationUsername,
   userVoiceClones,
   // Theme
   isDarkMode = true,
@@ -611,7 +619,7 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   
   // Voice cloning state
   const [voiceCloneConfig, setVoiceCloneConfig] = useState<VoiceCloneConfig | null>(
-    defaultCloneId ? { provider: defaultCloneProv as 'elevenlabs' | 'playht' | 'coqui', voiceId: defaultCloneId } : null
+    defaultCloneId ? { provider: defaultCloneProv as VoiceCloneConfig['provider'], voiceId: defaultCloneId } : null
   );
   const [cloneVoiceId, setCloneVoiceId] = useState<string>('');
   const [cloneProvider, setCloneProvider] = useState<'elevenlabs' | 'playht' | 'coqui'>('elevenlabs');
@@ -629,6 +637,11 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   
   // Track the current language for which voices are fetched
   const [voicesFetchedForLang, setVoicesFetchedForLang] = useState<string | null>(null);
+  const roomSupportsTranslation = translationConfig?.supportTranslation === true;
+  const translationAvailable = roomSupportsTranslation || canUsePersonalTranslation;
+  const pendingTranslationMessage = personalTranslationUsername
+    ? `MediaSFU will try to activate translation using ${personalTranslationUsername} credits for this joiner.`
+    : 'MediaSFU will try to activate translation using your personal translation eligibility for this joiner.';
   
   // Single consolidated effect for fetching voices
   // Handles both initial fetch and language changes
@@ -1605,7 +1618,7 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
                             <button
                               key={idx}
                               onClick={() => {
-                                setVoiceCloneConfig({ provider: cProv as 'elevenlabs' | 'playht' | 'coqui', voiceId: cId });
+                                setVoiceCloneConfig({ provider: cProv as VoiceCloneConfig['provider'], voiceId: cId });
                                 showAlert?.({ message: `Voice clone "${cName}" selected!`, type: 'success', duration: 2000 });
                               }}
                               style={{
@@ -2237,7 +2250,7 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
       <PremiumButton variant="outlined" onPress={onClose} isDarkMode={isDarkMode}>
         Cancel
       </PremiumButton>
-      <PremiumButton variant="filled" onPress={handleApply} disabled={isSaving} isDarkMode={isDarkMode}>
+      <PremiumButton variant="filled" onPress={handleApply} disabled={isSaving || !roomSupportsTranslation} isDarkMode={isDarkMode}>
         {isSaving ? (
           <>
             <FontAwesomeIcon icon={faSpinner} spin style={{ marginRight: 8 }} />
@@ -2253,15 +2266,66 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
     </div>
   );
 
+  const stateCardStyle: React.CSSProperties = {
+    minHeight: 220,
+    display: 'grid',
+    placeItems: 'center',
+    textAlign: 'center',
+    gap: MediasfuSpacing.md,
+    padding: `${MediasfuSpacing.lg}px ${MediasfuSpacing.xl}px`,
+    borderRadius: MediasfuBorders.lg,
+    border: `1px solid ${isDarkMode ? MediasfuColors.glassBorder(true) : MediasfuColors.divider}`,
+    background: isDarkMode
+      ? MediasfuColors.hexToRgba(MediasfuColors.surfaceElevatedDark, 0.5)
+      : MediasfuColors.hexToRgba(MediasfuColors.surfaceElevated, 0.7),
+  };
+
+  const stateSummaryStyle: React.CSSProperties = {
+    color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
+    fontSize: MediasfuTypography.bodyMedium.fontSize,
+    lineHeight: 1.6,
+    maxWidth: 420,
+    margin: 0,
+  };
+
+  const stateHeadingStyle: React.CSSProperties = {
+    color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
+    fontSize: MediasfuTypography.titleMedium.fontSize,
+    fontWeight: 700,
+    margin: 0,
+  };
+
+  const unsupportedStateContent = (
+    <div style={stateCardStyle}>
+      <h3 style={stateHeadingStyle}>Translation is not enabled for this room yet.</h3>
+      <p style={stateSummaryStyle}>
+        The room has not exposed translation controls or personal translation access for this joiner.
+      </p>
+    </div>
+  );
+
+  const pendingStateContent = (
+    <div style={stateCardStyle}>
+      <h3 style={stateHeadingStyle}>Personal translation is being prepared.</h3>
+      <p style={stateSummaryStyle}>{pendingTranslationMessage}</p>
+    </div>
+  );
+
   // ============================================================================
   // Default Body
   // ============================================================================
 
   const defaultBody = (
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
-      {tabNavigation}
+      {translationAvailable && roomSupportsTranslation ? tabNavigation : null}
       <div style={bodyStyle}>
-        {activeTab === 'speaking' ? speakingTabContent : listeningTabContent}
+        {!translationAvailable
+          ? unsupportedStateContent
+          : !roomSupportsTranslation
+            ? pendingStateContent
+            : activeTab === 'speaking'
+              ? speakingTabContent
+              : listeningTabContent}
       </div>
       {footerContent}
     </div>

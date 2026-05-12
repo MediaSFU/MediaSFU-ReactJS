@@ -184,11 +184,11 @@ const AppModern: React.FC = () => {
    * Scenario C: Using MediaSFU Cloud without your own server.
    */
   const credentials = {
-    apiUserName: 'yourDevUser',
-    apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    apiUserName: 'abcdefgh',
+    apiKey: '021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758',
   } as const;
-  const localLink = 'http://localhost:3000';
-  const connectMediaSFU = false;
+  const localLink = '';
+  const connectMediaSFU = true;
 
   // =========================================================
   //                    UI RENDERING OPTIONS

@@ -37,22 +37,17 @@
 
 ---
 
-## 🚨 **BREAKING: AI Phone Agents at $0.10 per 1,000 minutes**
+# MediaSFU ReactJS SDK Detailed Guide
 
-📞 **Call our live AI demos right now:**
-- 🇺🇸 **+1 (785) 369-1724** - Mixed Support Demo  
-- 🇬🇧 **+44 7445 146575** - AI Conversation Demo  
-- 🇨🇦 **+1 (587) 407-1990** - Technical Support Demo  
-- 🇨🇦 **+1 (647) 558-6650** - Friendly AI Chat Demo  
+`mediasfu-reactjs` is the full package guide for teams shipping MediaSFU-powered browser rooms with React 18 or React 19.
 
-**Traditional providers charge $0.05 per minute. We charge $0.10 per 1,000 minutes. That's 500x cheaper.**
+Use this guide when you need to:
 
-✅ **Deploy AI phone agents in 30 minutes**  
-✅ **Works with ANY SIP provider** (Twilio, Telnyx, Zadarma, etc.)  
-✅ **Seamless AI-to-human handoffs**  
-✅ **Real-time call analytics & transcription**  
+- choose between prebuilt rooms, targeted `uiOverrides`, and fully headless integrations
+- understand the shared prop surface across `MediasfuGeneric`, `MediasfuConference`, `MediasfuWebinar`, `MediasfuBroadcast`, and `MediasfuChat`
+- wire MediaSFU Cloud credentials or a self-hosted `localLink` into a production React app
 
-📖 **[Complete SIP/PSTN Documentation →](https://mediasfu.com/telephony)**
+Before you start, install the package with `npm install mediasfu-reactjs` and make sure you have either MediaSFU Cloud credentials or a self-hosted MediaSFU Open / CE deployment. The cloud room helpers in this package target `https://mediasfu.com/v1/rooms/` by default.
 
 ---
 
@@ -115,8 +110,8 @@ const showPrebuiltUI = true;
 const enableFullCustomUI = false;
 
 const connectionPresets = {
-  cloud: { credentials: { apiUserName: "demo", apiKey: "demo" }, localLink: "", connectMediaSFU: true },
-  hybrid: { credentials: { apiUserName: "demo", apiKey: "demo" }, localLink: "http://localhost:3000", connectMediaSFU: true },
+  cloud: { credentials: { apiUserName: "your-api-username", apiKey: "your-api-key" }, localLink: "", connectMediaSFU: true },
+  hybrid: { credentials: { apiUserName: "your-api-username", apiKey: "your-api-key" }, localLink: "http://localhost:3000", connectMediaSFU: true },
   ce: { credentials: undefined, localLink: "http://localhost:3000", connectMediaSFU: false },
 };
 
@@ -3419,7 +3414,7 @@ export default App;
  *       return res.status(401).json({ error: "Invalid or expired credentials" });
  *     }
  *
- *     const response = await fetch("https://mediasfu.com/v1/rooms", {
+ *     const response = await fetch("https://mediasfu.com/v1/rooms/", {
  *       method: "POST",
  *       headers: {
  *         "Content-Type": "application/json",
@@ -3507,7 +3502,7 @@ export default App;
 *     localLink = '',
 * }) => {
 *     try {
-*         let finalLink = 'https://mediasfu.com/v1/rooms/join';
+*         let finalLink = 'https://mediasfu.com/v1/rooms/';
 *
 *         // Update finalLink if using a local server
 *         if (localLink) {

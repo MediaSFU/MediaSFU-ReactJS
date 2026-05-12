@@ -761,6 +761,12 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
   const selectStyle: CSSProperties = {
     ...inputStyle,
     cursor: 'pointer',
+    colorScheme: isDarkMode ? 'dark' : 'light',
+  };
+
+  const selectOptionStyle: CSSProperties = {
+    backgroundColor: isDarkMode ? '#111827' : '#f8fafc',
+    color: isDarkMode ? '#f8fafc' : '#0f172a',
   };
 
   const buttonStyle: CSSProperties = {
@@ -891,11 +897,11 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
                 onBlur={() => setFocusedField(null)}
                 disabled={pending.current}
               >
-                <option value="">Select Event Type</option>
-                <option value="chat">Chat</option>
-                <option value="broadcast">Broadcast</option>
-                <option value="webinar">Webinar</option>
-                <option value="conference">Conference</option>
+                <option value="" style={selectOptionStyle}>Select Event Type</option>
+                <option value="chat" style={selectOptionStyle}>Chat</option>
+                <option value="broadcast" style={selectOptionStyle}>Broadcast</option>
+                <option value="webinar" style={selectOptionStyle}>Webinar</option>
+                <option value="conference" style={selectOptionStyle}>Conference</option>
               </select>
             </>
           ) : (

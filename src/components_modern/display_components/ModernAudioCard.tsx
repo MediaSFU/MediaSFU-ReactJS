@@ -86,7 +86,7 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
   borderRadius = MediasfuBorders.md,
   size,
   liveSubtitle: liveSubtitleProp,
-  showSubtitles = false,
+  showSubtitles = true,
 }) => {
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);

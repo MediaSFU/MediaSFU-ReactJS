@@ -2113,6 +2113,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     useState<boolean>(false); // True if the settings modal is visible as boolean
   const [isRequestsModalVisible, setIsRequestsModalVisible] =
     useState<boolean>(false); // True if the requests modal is visible as boolean
+  const [, setRequestUiVersion] = useState<number>(0);
   const [isWaitingModalVisible, setIsWaitingModalVisible] =
     useState<boolean>(false); // True if the waiting room modal is visible as boolean
   const [isCoHostModalVisible, setIsCoHostModalVisible] =
@@ -2246,7 +2247,73 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const listenPreferences = useRef<Map<string, string>>(new Map()); // Per-speaker listen preferences (speakerId -> language)
   const translationProducerMap = useRef<TranslationProducerMap>({}); // Map of original producer IDs to translation producers
   const activeTranslationProducerIds = useRef<Set<string>>(new Set()); // Set of producer IDs that are translation audio
-  const translationFirstRenderForced = useRef<Set<string>>(new Set()); // Track speakers whose translation audio has been "nudged" (first transcript re-render)
+  const translationPlaybackRetryTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const translationPlaybackRetryLimit = 8;
+  const translationPlaybackRetryDelayMs = 120;
+  const getTranslationAudioElements = () => {
+    if (typeof document === "undefined") {
+      return [] as HTMLAudioElement[];
+    }
+
+    return Array.from(
+      document.querySelectorAll<HTMLAudioElement>('audio[data-translation-audio-player="true"]'),
+    );
+  };
+
+  const tryPlayTranslationAudioElements = () => {
+    let hasStartedPlayback = false;
+
+    getTranslationAudioElements().forEach((audioElement) => {
+      if (!audioElement.srcObject) {
+        return;
+      }
+
+      if (audioElement.paused) {
+        audioElement.play().catch(() => {});
+      }
+
+      const hasCurrentData = typeof HTMLMediaElement === "undefined"
+        || audioElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
+
+      if (!audioElement.paused && hasCurrentData) {
+        hasStartedPlayback = true;
+      }
+    });
+
+    return hasStartedPlayback;
+  };
+
+  const scheduleTranslationPlaybackPriming = (speakerId: string) => {
+    if (translationPlaybackRetryTimers.current.has(speakerId)) {
+      tryPlayTranslationAudioElements();
+      return;
+    }
+
+    setTranslationStreams(prev => [...prev]);
+
+    const run = (attempt = 0) => {
+      translationPlaybackRetryTimers.current.delete(speakerId);
+
+      if (tryPlayTranslationAudioElements() || attempt >= translationPlaybackRetryLimit) {
+        return;
+      }
+
+      const timer = setTimeout(() => run(attempt + 1), translationPlaybackRetryDelayMs);
+      translationPlaybackRetryTimers.current.set(speakerId, timer);
+    };
+
+    if (typeof requestAnimationFrame === "function") {
+      requestAnimationFrame(() => run());
+    } else {
+      run();
+    }
+  };
+
+  useEffect(() => () => {
+    translationPlaybackRetryTimers.current.forEach((timer) => clearTimeout(timer));
+    translationPlaybackRetryTimers.current.clear();
+  }, []);
+
   const availableTranslationChannels = useRef<Map<string, { languages: string[]; originalProducerId: string }>>(new Map()); // Available translation channels per speaker
   // Track speaker translation states (speakerId -> { outputLanguage, originalProducerId, enabled })
   const [speakerTranslationStates, setSpeakerTranslationStates] = useState<Map<string, {
@@ -2506,6 +2573,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateRequestCounter = (value: number) => {
     requestCounter.current = value;
+    setRequestUiVersion((current) => current + 1);
   };
 
   const updateRequestFilter = (value: string) => {
@@ -2516,6 +2584,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     requestList.current = value;
     filteredRequestList.current = value;
     requestCounter.current = value.length;
+    setRequestUiVersion((current) => current + 1);
   };
 
   const updateTotalReqWait = (value: number) => {
@@ -2550,6 +2619,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       filteredRequestList.current = requestList.current;
       requestCounter.current = requestList.current.length;
     }
+
+    setRequestUiVersion((current) => current + 1);
   };
 
   const onParticipantsFilterChange = (value: string) => {
@@ -4127,13 +4198,36 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
           }
         }
         
-        // Track this producer ID as a translation producer so consumerResume can identify it
-        activeTranslationProducerIds.current.add(producerId);
-        
         const targetSocket = nsock || socket.current;
         if (!targetSocket) {
           return;
         }
+
+        const breakoutParams = {
+          consumerTransports: consumerTransports.current,
+          roomName: roomName.current,
+          member: member.current,
+          updateConsumerTransports,
+          breakOutRoomStarted: breakOutRoomStarted.current,
+          breakOutRoomEnded: breakOutRoomEnded.current,
+          breakoutRooms: breakoutRooms.current,
+          limitedBreakRoom: limitedBreakRoom.current,
+          participants: participants.current,
+          islevel: islevel.current,
+          eventType: eventType.current,
+          hostNewRoom: hostNewRoom.current,
+        };
+
+        if (originalProducerId) {
+          await pauseOriginalProducer({
+            originalProducerId,
+            speakerId,
+            parameters: breakoutParams,
+          });
+        }
+
+        // Track this producer ID as a translation producer so consumerResume can identify it
+        activeTranslationProducerIds.current.add(producerId);
 
         await signalNewConsumerTransport({
           remoteProducerId: producerId,
@@ -4159,25 +4253,6 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             },
           }));
           
-          const breakoutParams = {
-            consumerTransports: consumerTransports.current,
-            roomName: roomName.current,
-            member: member.current,
-            updateConsumerTransports,
-            breakOutRoomStarted: breakOutRoomStarted.current,
-            breakOutRoomEnded: breakOutRoomEnded.current,
-            breakoutRooms: breakoutRooms.current,
-            limitedBreakRoom: limitedBreakRoom.current,
-            participants: participants.current,
-            islevel: islevel.current,
-            eventType: eventType.current,
-            hostNewRoom: hostNewRoom.current,
-          };
-          await pauseOriginalProducer({
-            originalProducerId,
-            speakerId,
-            parameters: breakoutParams,
-          });
         }
       },
 
@@ -6996,13 +7071,6 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
               showAlert,
               // If producer is already ready, start consuming immediately
               startConsumingTranslation: (shouldConsume && data.producerId) ? async (producerId: string) => {
-                await signalNewConsumerTransport({
-                  remoteProducerId: producerId,
-                  islevel: islevel.current as string,
-                  nsock: socket.current!,
-                  parameters: { ...getAllParams(), ...mediaSFUFunctions() },
-                });
-                // Pause original producer if we have it
                 if (data.originalProducerId) {
                   await pauseOriginalProducer({
                     originalProducerId: data.originalProducerId,
@@ -7010,6 +7078,19 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
                     parameters: breakoutParams,
                   });
                 }
+
+                activeTranslationProducerIds.current.add(producerId);
+
+                await signalNewConsumerTransport({
+                  remoteProducerId: producerId,
+                  islevel: islevel.current as string,
+                  nsock: socket.current!,
+                  parameters: {
+                    ...getAllParams(),
+                    ...mediaSFUFunctions(),
+                    activeTranslationProducerIds: activeTranslationProducerIds.current,
+                  },
+                });
               } : undefined,
             });
           } catch {
@@ -7192,22 +7273,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
               data,
             });
 
-            // One-time forced re-render per speaker: when the first transcript arrives
-            // it confirms the translation pipeline is active. Force a re-render of
-            // translationStreams and retry .play() on any paused audio elements to
-            // unstick the audio if the initial mount didn't trigger playback.
-            if (data.speakerId && !translationFirstRenderForced.current.has(data.speakerId)) {
-              translationFirstRenderForced.current.add(data.speakerId);
-              // Force new array reference → React schedules a re-render
-              setTranslationStreams(prev => [...prev]);
-              // Belt-and-suspenders: retry play on any paused audio elements
-              requestAnimationFrame(() => {
-                document.querySelectorAll('audio').forEach((audio) => {
-                  if (audio.paused && audio.srcObject) {
-                    audio.play().catch(() => {});
-                  }
-                });
-              });
+            if (data.speakerId) {
+              scheduleTranslationPlaybackPriming(data.speakerId);
             }
 
             // Update live subtitles if enabled (use ref to avoid stale closure)

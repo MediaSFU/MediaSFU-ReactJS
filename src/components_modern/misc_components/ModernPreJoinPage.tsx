@@ -29,6 +29,7 @@ import {
 import { checkLimitsAndMakeRequest } from '../../methods/utils/checkLimitsAndMakeRequest';
 import { createRoomOnMediaSFU } from '../../methods/utils/createRoomOnMediaSFU';
 import { CreateRoomOnMediaSFUType, JoinRoomOnMediaSFUType, joinRoomOnMediaSFU } from '../../methods/utils/joinRoomOnMediaSFU';
+import { validateAlphanumeric } from '../../methods/utils/validateAlphanumeric';
 import { Socket } from 'socket.io-client';
 import { GlassmorphicContainer } from '../core';
 import { MediasfuColors } from '../core/theme/MediasfuColors';
@@ -96,6 +97,28 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
   const [focusedField, setFocusedField] = useState<string | null>(null);
   
   const pending = useRef(false);
+
+  const validateDisplayName = async (displayName: string) => {
+    const isValidDisplayName =
+      displayName.length >= 2 &&
+      displayName.length <= 10 &&
+      (await validateAlphanumeric({ str: displayName }));
+
+    if (isValidDisplayName) {
+      return true;
+    }
+
+    const message =
+      'Display Name must be alphanumeric and between 2 and 10 characters.';
+    pending.current = false;
+
+    if (returnUI) {
+      setError(message);
+      return false;
+    }
+
+    throw new Error(message);
+  };
 
   // Local connection state (using refs like original)
   const localConnected = useRef(false);
@@ -239,12 +262,6 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
         return;
       }
 
-      if (name.length < 2 || name.length > 10) {
-        setError('Display Name must be between 2 and 10 characters.');
-        pending.current = false;
-        return;
-      }
-
       payload = {
         action: 'create',
         duration: durationInt,
@@ -264,6 +281,10 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
         pending.current = false;
         throw new Error('Invalid options provided for creating a room without UI.');
       }
+    }
+
+    if (!(await validateDisplayName(payload.userName))) {
+      return;
     }
 
     updateIsLoadingModalVisible(true);
@@ -514,12 +535,6 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
         return;
       }
 
-      if (name.length < 2 || name.length > 10) {
-        setError('Display Name must be between 2 and 10 characters.');
-        pending.current = false;
-        return;
-      }
-
       payload = {
         action: 'join',
         meetingID: eventID,
@@ -536,6 +551,10 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
         pending.current = false;
         throw new Error('Invalid options provided for joining a room without UI.');
       }
+    }
+
+    if (!(await validateDisplayName(payload.userName))) {
+      return;
     }
 
     if (localLink.length > 0 && !localLink.includes('mediasfu.com')) {

@@ -93,17 +93,21 @@ export const hostRequestResponse = async ({
   updateChatRequestTime,
   updateRequestIntervalSeconds,
 }: HostRequestResponseOptions): Promise<void> => {
-  // Filter out the request from the list
+  const requestType = requestResponse.type ?? requestResponse.icon;
+
+  // Remove only the specific request that received a host response.
   const filteredRequests = requestList.filter(
-    (request) =>
-      request.id !== requestResponse.id &&
-      request.icon !== requestResponse.type &&
-      request.name !== requestResponse.name &&
-      request.username !== requestResponse.username
+    (request) => {
+      const matchesId = request.id === requestResponse.id;
+      const matchesType = requestType == null || request.icon === requestType;
+      const matchesName = requestResponse.name == null || request.name === requestResponse.name;
+      const matchesUsername =
+        requestResponse.username == null || request.username === requestResponse.username;
+
+      return !(matchesId && matchesType && matchesName && matchesUsername);
+    }
   );
   updateRequestList(filteredRequests);
-
-  const requestType = requestResponse.type;
 
   // Handle accepted actions
   if (requestResponse.action === "accepted") {

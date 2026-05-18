@@ -95,6 +95,31 @@ export type ConsumerResumeType = (
   options: ConsumerResumeOptions
 ) => Promise<void>;
 
+const translationAudioRetryDelays = [0, 120, 240, 480];
+
+const primeTranslationAudioElement = (audioElement: HTMLAudioElement, stream: MediaStream) => {
+  if (audioElement.srcObject !== stream) {
+    audioElement.srcObject = stream;
+  }
+
+  const tryPlay = () => {
+    audioElement.play().catch(() => {});
+  };
+
+  translationAudioRetryDelays.forEach((delay) => {
+    if (delay === 0) {
+      tryPlay();
+      return;
+    }
+
+    setTimeout(tryPlay, delay);
+  });
+
+  stream.getAudioTracks().forEach((audioTrack) => {
+    audioTrack.addEventListener('unmute', tryPlay, { once: true });
+  });
+};
+
 
 /**
  * Resumes a media consumer by handling the provided track and updating the relevant parameters.
@@ -342,15 +367,17 @@ export const consumerResume = async ({
           <audio
             key={`translation-${remoteProducerId}`}
             autoPlay
+            data-translation-audio-player="true"
+            data-producer-id={remoteProducerId}
+            style={{ display: "none" }}
             ref={(ref) => {
               if (ref && nStream) {
-                ref.srcObject = nStream;
-                ref.play().then(() => {
-                }).catch((err) => {
-                  console.error('[consumerResume] Translation audio play error:', err);
-                });
+                primeTranslationAudioElement(ref, nStream);
               }
             }}
+            onLoadedMetadata={(event) => event.currentTarget.play().catch(() => {})}
+            onCanPlay={(event) => event.currentTarget.play().catch(() => {})}
+            onStalled={(event) => event.currentTarget.play().catch(() => {})}
           />
         );
 

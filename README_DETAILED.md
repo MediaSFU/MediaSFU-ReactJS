@@ -567,6 +567,27 @@ function App() {
 export default App;
 ```
 
+If you want the same room runtime with the modern themed shell, swap in `ModernMediasfuGeneric`:
+
+```tsx
+import React from 'react';
+import { ModernMediasfuGeneric } from 'mediasfu-reactjs';
+
+function App() {
+  return (
+    <ModernMediasfuGeneric
+      credentials={{ apiUserName: 'your_username', apiKey: 'your_api_key' }}
+      containerStyle={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a, #1e3a8a)',
+      }}
+    />
+  );
+}
+
+export default App;
+```
+
 ### Step 3: Run Your App
 
 ```bash

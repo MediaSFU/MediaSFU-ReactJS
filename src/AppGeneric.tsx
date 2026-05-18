@@ -62,10 +62,10 @@ const App = () => {
   // const localLink = 'http://your-ce-server.com';
   // const connectMediaSFU = localLink.trim() !== '';
 
-  // Scenario C: Using MediaSFU Cloud without your own server (default)
+  // Scenario C: Using MediaSFU Cloud without your own server (fill in your own credentials first)
   const credentials = {
-    apiUserName: 'abcdefgh',
-    apiKey: '021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758',
+    apiUserName: '',
+    apiKey: '',
   } as const;
   const localLink = '';
   const connectMediaSFU = true;

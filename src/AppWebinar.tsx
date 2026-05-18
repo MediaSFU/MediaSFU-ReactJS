@@ -73,11 +73,11 @@ const App = () => {
   */
 
   // Scenario C: Using MediaSFU Cloud without your own server.
-  // - For development, use your actual or dummy credentials.
+  // - Fill in your own credentials here before using direct cloud create/join flows.
   // - In production, securely handle credentials server-side and use custom room functions.
   const credentials = {
-    apiUserName: 'abcdefgh', // 8 chars recommended for dummy
-    apiKey: '021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758', // 64 chars
+    apiUserName: '',
+    apiKey: '',
   };
   const localLink = ''; // Leave empty if not using your own server
   const connectMediaSFU = true; // Set to true if using MediaSFU Cloud since localLink is empty

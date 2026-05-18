@@ -41,6 +41,7 @@
 Use this package when you want one of three paths:
 
 - render a prebuilt room fast with `MediasfuGeneric`, `MediasfuConference`, `MediasfuWebinar`, `MediasfuBroadcast`, or `MediasfuChat`
+- render the same room runtime with the modern themed shell via `ModernMediasfuGeneric`
 - keep the MediaSFU runtime and replace targeted UI surfaces with `uiOverrides`, custom cards, and custom shells
 - run MediaSFU headless with `returnUI={false}` and own the full browser experience
 
@@ -63,6 +64,24 @@ export default function App() {
 }
 ```
 
+Prefer the themed modern shell? Start with `ModernMediasfuGeneric` instead of `MediasfuGeneric`:
+
+```tsx
+import { ModernMediasfuGeneric } from 'mediasfu-reactjs';
+
+export default function App() {
+  return (
+    <ModernMediasfuGeneric
+      credentials={{ apiUserName: 'your-api-username', apiKey: 'your-api-key' }}
+      containerStyle={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f172a, #1e3a8a)',
+      }}
+    />
+  );
+}
+```
+
 ## Backend Requirement
 
 This SDK needs a MediaSFU-compatible backend for room lifecycle, signaling, and media routing.
@@ -77,6 +96,7 @@ Cloud room helpers in this package target `https://mediasfu.com/v1/rooms/` by de
 ## Integration Paths
 
 - Keep the bundled room UI for the fastest route to production.
+- Use `ModernMediasfuGeneric` when you want the premium themed shell as your default entry point.
 - Replace targeted surfaces with `uiOverrides`, custom cards, and custom shells.
 - Use `customComponent` or `returnUI={false}` when your app should own the entire shell.
 

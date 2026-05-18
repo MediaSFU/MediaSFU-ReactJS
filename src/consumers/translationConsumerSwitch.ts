@@ -54,6 +54,31 @@ export interface ResumeOriginalProducerOptions {
 export type PauseOriginalProducerType = (options: PauseOriginalProducerOptions) => Promise<void>;
 export type ResumeOriginalProducerType = (options: ResumeOriginalProducerOptions) => Promise<void>;
 
+const setOriginalAudioElementSilenced = (producerId: string, silenced: boolean) => {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  document
+    .querySelectorAll<HTMLAudioElement>('audio[data-mini-audio-player="true"]')
+    .forEach((audioElement) => {
+      if (audioElement.dataset.producerId !== producerId) {
+        return;
+      }
+
+      if (silenced) {
+        audioElement.pause();
+        audioElement.muted = true;
+        return;
+      }
+
+      audioElement.muted = false;
+      if (audioElement.srcObject) {
+        audioElement.play().catch(() => {});
+      }
+    });
+};
+
 /**
  * Check if a speaker is in the current user's breakout room (or main room).
  * Returns true if the speaker's audio should be active (they are in our room).
@@ -155,7 +180,17 @@ export const pauseOriginalProducer: PauseOriginalProducerType = async ({
       (t) => t.producerId === originalProducerId && t.consumer?.kind === 'audio'
     );
 
-    if (transport && transport.consumer && !transport.consumer.paused) {
+    setOriginalAudioElementSilenced(originalProducerId, true);
+
+    if (transport?.consumer) {
+      if (transport.consumer.track) {
+        transport.consumer.track.enabled = false;
+      }
+
+      if (transport.consumer.paused) {
+        return;
+      }
+
       // Pause locally
       transport.consumer.pause();
       
@@ -196,13 +231,25 @@ export const resumeOriginalProducer: ResumeOriginalProducerType = async ({
       (t) => t.producerId === originalProducerId && t.consumer?.kind === 'audio'
     );
 
-    if (transport && transport.consumer && transport.consumer.paused) {
+    setOriginalAudioElementSilenced(originalProducerId, false);
+
+    if (transport?.consumer) {
+      if (!transport.consumer.paused) {
+        if (transport.consumer.track) {
+          transport.consumer.track.enabled = true;
+        }
+        return;
+      }
+
       // Resume on server first
       transport.socket_?.emit(
         'consumer-resume',
         { serverConsumerId: transport.serverConsumerTransportId },
         async ({ resumed }: { resumed: boolean }) => {
           if (resumed) {
+            if (transport.consumer.track) {
+              transport.consumer.track.enabled = true;
+            }
             transport.consumer.resume();
           }
         }

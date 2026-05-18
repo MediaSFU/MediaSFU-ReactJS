@@ -78,6 +78,7 @@ const enableContainerStyling = true; // Applies a custom containerStyle
 const enableBackendProxyHooks = true; // Hooks create/join calls through helper functions
 const enableDebugPanel = true; // Renders a JSON panel of live parameters on the right
 
+// Fill in cloud and hybrid credentials locally before testing direct MediaSFU Cloud flows.
 const connectionPresets: Record<
   ConnectionScenario,
   {
@@ -88,18 +89,16 @@ const connectionPresets: Record<
 > = {
   cloud: {
     credentials: {
-      apiUserName: "abcdefgh",
-      apiKey:
-        "021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758",
+      apiUserName: "",
+      apiKey: "",
     },
     localLink: "",
     connectMediaSFU: true,
   },
   hybrid: {
     credentials: {
-      apiUserName: "abcdefgh",
-      apiKey:
-        "021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758",
+      apiUserName: "",
+      apiKey: "",
     },
     localLink: "http://localhost:3000",
     connectMediaSFU: true,

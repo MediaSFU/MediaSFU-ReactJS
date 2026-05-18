@@ -545,6 +545,8 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
       {stream && (
         <audio
           autoPlay
+          data-mini-audio-player="true"
+          data-producer-id={remoteProducerId}
           ref={(ref) => {
             if (ref) {
               ref.srcObject = stream;

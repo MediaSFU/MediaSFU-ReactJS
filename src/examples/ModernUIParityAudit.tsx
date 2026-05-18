@@ -12,7 +12,9 @@ import {
 import { GlassmorphicContainer, PremiumButton, PremiumTextField } from '../components_modern/core';
 import { ModernAlertComponent } from '../components_modern/display_components/ModernAlertComponent';
 import { ModernAudioCard } from '../components_modern/display_components/ModernAudioCard';
+import { ModernBreakoutRoomsModal } from '../components_modern/breakout_components';
 import { ModernControlButtonsComponent } from '../components_modern/display_components/ModernControlButtonsComponent';
+import ModernControlButtonsComponentTouch from '../components_modern/display_components/ModernControlButtonsComponentTouch';
 import { ModernFlexibleGrid } from '../components_modern/display_components/ModernFlexibleGrid';
 import { ModernFlexibleVideo } from '../components_modern/display_components/ModernFlexibleVideo';
 import { ModernMeetingProgressTimer } from '../components_modern/display_components/ModernMeetingProgressTimer';
@@ -42,10 +44,19 @@ import { ModernRecordingModal } from '../components_modern/recording_components/
 import { ModernRequestsModal } from '../components_modern/requests_components/ModernRequestsModal';
 import { TranslationSettingsModal as ModernTranslationSettingsModal } from '../components_modern/translation_components/TranslationSettingsModal';
 import { ModernWaitingModal } from '../components_modern/waiting_components/ModernWaitingModal';
+import { ModernConfigureWhiteboardModal } from '../components_modern/whiteboard_components';
+import Whiteboard from '../components/whiteboardComponents/Whiteboard';
 import type { Message, Participant, Request, WaitingRoomParticipant } from '../@types/types';
 import type { PreJoinPageParameters } from '../components/miscComponents/PreJoinPage';
 import type { WelcomePageParameters } from '../components/miscComponents/WelcomePage';
 import type { ParticipantsModalParameters } from '../components/participantsComponents/ParticipantsModal';
+import { createPreviewMeetingParameters } from '../stories/generated-support/modernStorybookFixtures';
+import {
+  buildWhiteboardParameters,
+  previewWhiteboardParticipantUsers,
+  previewWhiteboardParticipants,
+  previewWhiteboardShapes,
+} from '../stories/generated-support/manualDisplayStoryFixtures';
 
 type ComponentId =
   | 'button'
@@ -56,6 +67,7 @@ type ComponentId =
   | 'timer'
   | 'pagination'
   | 'control-buttons'
+  | 'touch-controls'
   | 'main-container'
   | 'main-aspect'
   | 'main-grid'
@@ -65,12 +77,15 @@ type ComponentId =
   | 'flexible-video'
   | 'video-card'
   | 'audio-card'
+  | 'breakout-rooms'
+  | 'configure-whiteboard'
   | 'messages'
   | 'participants'
   | 'permissions'
   | 'panelists'
   | 'poll'
   | 'recording'
+  | 'whiteboard'
   | 'translation'
   | 'event-settings'
   | 'media-settings'
@@ -299,6 +314,60 @@ const AuditScreenboard: React.FC<{ isDarkMode: boolean }> = ({ isDarkMode }) => 
   </div>
 );
 
+const AuditWhiteboardCanvas: React.FC = () => {
+  const [shapes, setShapes] = useState(previewWhiteboardShapes as any[]);
+  const [useImageBackground, setUseImageBackground] = useState(false);
+  const [redoStack, setRedoStack] = useState<any[]>([]);
+  const [undoStack, setUndoStack] = useState<string[]>([]);
+  const [whiteboardStarted, setWhiteboardStarted] = useState(true);
+  const [whiteboardEnded, setWhiteboardEnded] = useState(false);
+  const [whiteboardUsers, setWhiteboardUsers] = useState(previewWhiteboardParticipantUsers as any[]);
+  const [participants, setParticipants] = useState(previewWhiteboardParticipants as any[]);
+  const [screenId, setScreenId] = useState('audit-screenboard');
+  const [shareScreenStarted, setShareScreenStarted] = useState(false);
+  const [, setCanvasWhiteboard] = useState<HTMLCanvasElement | null>(null);
+
+  const parameters = useMemo(
+    () => buildWhiteboardParameters({
+      shapes,
+      setShapes,
+      useImageBackground,
+      setUseImageBackground,
+      redoStack,
+      setRedoStack,
+      undoStack,
+      setUndoStack,
+      whiteboardStarted,
+      setWhiteboardStarted,
+      whiteboardEnded,
+      setWhiteboardEnded,
+      whiteboardUsers,
+      setWhiteboardUsers,
+      participants,
+      setParticipants,
+      screenId,
+      setScreenId,
+      shareScreenStarted,
+      setShareScreenStarted,
+      setCanvasWhiteboard,
+    }),
+    [
+      participants,
+      redoStack,
+      screenId,
+      shapes,
+      shareScreenStarted,
+      undoStack,
+      useImageBackground,
+      whiteboardEnded,
+      whiteboardStarted,
+      whiteboardUsers,
+    ],
+  );
+
+  return <Whiteboard customWidth={1280} customHeight={720} parameters={parameters as any} showAspect isDarkModeValue />;
+};
+
 const auditGridTiles: Array<{ label: string; detail: string; tone: GridTone }> = [
   { label: 'Host Feed', detail: 'Spotlight-ready primary tile', tone: 'primary' },
   { label: 'Panel A', detail: 'Secondary participant feed', tone: 'accent' },
@@ -374,6 +443,14 @@ const componentRegistry: Record<ComponentId, { label: string; scenarios: Scenari
       { id: 'disabled', label: 'Disabled Action' },
     ],
   },
+  'touch-controls': {
+    label: 'ModernControlButtonsComponentTouch',
+    scenarios: [
+      { id: 'vertical-right', label: 'Vertical Right' },
+      { id: 'vertical-left', label: 'Vertical Left' },
+      { id: 'horizontal', label: 'Horizontal Bottom' },
+    ],
+  },
   'main-container': {
     label: 'ModernMainContainerComponent',
     scenarios: [
@@ -446,6 +523,18 @@ const componentRegistry: Record<ComponentId, { label: string; scenarios: Scenari
       { id: 'subtitle', label: 'Subtitle Overlay' },
     ],
   },
+  'breakout-rooms': {
+    label: 'ModernBreakoutRoomsModal',
+    scenarios: [
+      { id: 'default', label: 'Default' },
+    ],
+  },
+  'configure-whiteboard': {
+    label: 'ModernConfigureWhiteboardModal',
+    scenarios: [
+      { id: 'default', label: 'Default' },
+    ],
+  },
   messages: {
     label: 'ModernMessagesModal',
     scenarios: [
@@ -487,6 +576,12 @@ const componentRegistry: Record<ComponentId, { label: string; scenarios: Scenari
     label: 'ModernRecordingModal',
     scenarios: [
       { id: 'standard', label: 'Standard Panel' },
+    ],
+  },
+  whiteboard: {
+    label: 'Whiteboard',
+    scenarios: [
+      { id: 'default', label: 'Default' },
     ],
   },
   translation: {
@@ -1719,6 +1814,14 @@ const ModernUIParityAudit: React.FC = () => {
     () => createMeetingAuditParameters() as React.ComponentProps<typeof ModernRecordingModal>['parameters'],
     [],
   );
+  const breakoutRoomsParameters = useMemo(
+    () => createPreviewMeetingParameters() as unknown as React.ComponentProps<typeof ModernBreakoutRoomsModal>['parameters'],
+    [],
+  );
+  const configureWhiteboardParameters = useMemo(
+    () => createPreviewMeetingParameters() as unknown as React.ComponentProps<typeof ModernConfigureWhiteboardModal>['parameters'],
+    [],
+  );
 
   const mediaSettingsParameters = useMemo(
     () => createMeetingAuditParameters() as React.ComponentProps<typeof ModernMediaSettingsModal>['parameters'],
@@ -1927,6 +2030,43 @@ const ModernUIParityAudit: React.FC = () => {
             buttons={controlButtons}
             isDarkMode={isDarkMode}
             animateOnMount={false}
+          />
+        </div>
+      );
+    }
+
+    if (componentId === 'touch-controls') {
+      const touchDirection = scenarioId === 'horizontal' ? 'horizontal' : 'vertical';
+      const touchPosition = scenarioId === 'vertical-left' ? 'left' : 'right';
+      const touchButtons = [
+        { name: 'Microphone', icon: faMicrophone, alternateIcon: faMicrophoneSlash, active: true, activeColor: '#60a5fa', inActiveColor: '#94a3b8', color: '#60a5fa' },
+        { name: 'Camera', icon: faVideo, alternateIcon: faVideoSlash, active: true, activeColor: '#34d399', inActiveColor: '#94a3b8', color: '#34d399' },
+        { name: 'Chat', icon: faComments, active: false, activeColor: '#f472b6', inActiveColor: '#94a3b8', color: '#94a3b8' },
+        { name: 'Participants', icon: faUsers, active: false, activeColor: '#fb923c', inActiveColor: '#94a3b8', color: '#94a3b8' },
+      ];
+      return (
+        <div
+          style={{
+            position: 'relative',
+            width: '420px',
+            height: '360px',
+            margin: '40px auto 0',
+            background: isDarkMode
+              ? 'linear-gradient(135deg, rgba(15,23,42,0.92), rgba(30,41,59,0.85))'
+              : 'linear-gradient(135deg, rgba(200,210,230,0.82), rgba(220,230,250,0.72))',
+            borderRadius: '18px',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <ModernControlButtonsComponentTouch
+            buttons={touchButtons}
+            position={touchPosition as 'left' | 'right'}
+            location="bottom"
+            direction={touchDirection as 'vertical' | 'horizontal'}
+            showAspect={true}
           />
         </div>
       );
@@ -2154,6 +2294,32 @@ const ModernUIParityAudit: React.FC = () => {
       );
     }
 
+    if (componentId === 'breakout-rooms') {
+      return (
+        <div style={modalShellStyle}>
+          <ModernBreakoutRoomsModal
+            isVisible
+            onBreakoutRoomsClose={noOp}
+            parameters={breakoutRoomsParameters}
+            isDarkMode={isDarkMode}
+          />
+        </div>
+      );
+    }
+
+    if (componentId === 'configure-whiteboard') {
+      return (
+        <div style={modalShellStyle}>
+          <ModernConfigureWhiteboardModal
+            isVisible
+            onConfigureWhiteboardClose={noOp}
+            parameters={configureWhiteboardParameters}
+            isDarkMode={isDarkMode}
+          />
+        </div>
+      );
+    }
+
     if (componentId === 'messages') {
       return (
         <div style={modalShellStyle}>
@@ -2260,6 +2426,24 @@ const ModernUIParityAudit: React.FC = () => {
             renderMode="modal"
             isDarkMode={isDarkMode}
           />
+        </div>
+      );
+    }
+
+    if (componentId === 'whiteboard') {
+      return (
+        <div
+          style={{
+            width: 'min(100% - 48px, 1080px)',
+            margin: '72px auto 0',
+            padding: 16,
+            borderRadius: 28,
+            background: isDarkMode ? 'rgba(15, 23, 42, 0.28)' : 'rgba(255, 255, 255, 0.42)',
+            border: isDarkMode ? '1px solid rgba(148, 163, 184, 0.18)' : '1px solid rgba(148, 163, 184, 0.3)',
+            boxShadow: isDarkMode ? '0 24px 64px rgba(2, 8, 23, 0.28)' : '0 24px 64px rgba(148, 163, 184, 0.22)',
+          }}
+        >
+          <AuditWhiteboardCanvas />
         </div>
       );
     }

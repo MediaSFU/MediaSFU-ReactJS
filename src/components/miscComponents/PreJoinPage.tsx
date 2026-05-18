@@ -23,10 +23,6 @@ import { CreateRoomOnMediaSFUType, JoinRoomOnMediaSFUType, joinRoomOnMediaSFU } 
 import { Socket } from "socket.io-client";
 import { CSSProperties } from "react";
 
-const apiKey = "021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758";
-const apiUserName = "abcdefgh";
-const user_credentials = { apiUserName, apiKey };
-
 export interface JoinLocalEventRoomParameters {
   eventID: string;
   userName: string;
@@ -99,6 +95,11 @@ export interface Credentials {
   apiUserName: string;
   apiKey: string;
 }
+
+const EMPTY_CREDENTIALS: Credentials = {
+  apiUserName: "",
+  apiKey: "",
+};
 
 export interface PreJoinPageOptions {
   localLink?: string;
@@ -218,7 +219,7 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => React.JSX.Element
  * @param {(roomName: string) => void} props.parameters.updateRoomName - Function to store room name
  * @param {(member: string) => void} props.parameters.updateMember - Function to store member name
  * @param {string} [props.parameters.imgSrc] - Logo image source URL for branding
- * @param {Credentials} [props.credentials=user_credentials] - API credentials (apiUserName and apiKey)
+ * @param {Credentials} [props.credentials={ apiUserName: '', apiKey: '' }] - API credentials (apiUserName and apiKey)
  * @param {boolean} [props.returnUI=false] - Flag to enable UI mode (true) or headless mode (false)
  * @param {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [props.noUIPreJoinOptions] - Configuration for headless mode operation
  * @param {string} [props.localLink=""] - URL for local server connection (empty string for MediaSFU cloud)
@@ -513,7 +514,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
   localLink = "",
   connectMediaSFU = true,
   parameters,
-  credentials = user_credentials,
+  credentials = EMPTY_CREDENTIALS,
   returnUI = false,
   noUIPreJoinOptions,
   createMediaSFURoom = createRoomOnMediaSFU,
@@ -569,6 +570,22 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
     updateMember,
   } = parameters;
 
+  const hasCloudCredentials = (candidate: Credentials = credentials) => {
+    return Boolean(candidate.apiUserName?.trim() && candidate.apiKey?.trim());
+  };
+
+  const failMissingCloudCredentials = () => {
+    const message = "MediaSFU Cloud credentials are required when using cloud create or join flows.";
+    setError(message);
+    pending.current = false;
+    updateIsLoadingModalVisible(false);
+    showAlert?.({
+      message,
+      type: "danger",
+      duration: 3000,
+    });
+  };
+
   const handleCreateRoom = async () => {
     if (pending.current) {
       return;
@@ -578,6 +595,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
     if (returnUI) {
       if (!name || !duration || !eventType || !capacity) {
         setError("Please fill all the fields.");
+        pending.current = false;
         return;
       }
       payload = {
@@ -601,6 +619,11 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
           "Invalid options provided for creating a room without UI."
         );
       }
+    }
+
+    if (!localLink && !hasCloudCredentials()) {
+      failMissingCloudCredentials();
+      return;
     }
 
     updateIsLoadingModalVisible(true);
@@ -870,6 +893,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
     if (returnUI) {
       if (!name || !eventID) {
         setError("Please fill all the fields.");
+        pending.current = false;
         return;
       }
 
@@ -886,6 +910,7 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
       ) {
         payload = noUIPreJoinOptions as JoinMediaSFURoomOptions;
       } else {
+        pending.current = false;
         throw new Error(
           "Invalid options provided for joining a room without UI."
         );
@@ -904,6 +929,11 @@ const PreJoinPage: React.FC<PreJoinPageOptions> = ({
 
       await joinLocalRoom({ joinData: joinData });
       pending.current = false;
+      return;
+    }
+
+    if (!hasCloudCredentials()) {
+      failMissingCloudCredentials();
       return;
     }
 

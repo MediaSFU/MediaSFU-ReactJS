@@ -217,7 +217,7 @@ export interface TranslationSubscribedOptions {
   updateListenPreferences?: (updater: (prev: Map<string, string>) => Map<string, string>) => void;
   updateTranslationProducerMap?: (updater: (prev: TranslationProducerMap) => TranslationProducerMap) => void;
   // Trigger consumption of the translation producer
-  startConsumingTranslation?: (producerId: string, speakerId: string, language: string) => Promise<void>;
+  startConsumingTranslation?: (producerId: string, speakerId: string, language: string, originalProducerId?: string) => Promise<void>;
   showAlert?: ShowAlert;
 }
 
@@ -518,7 +518,7 @@ export const translationSubscribed: TranslationSubscribedType = async ({
 
     // Start consuming if producer is ready
     if (producerId && startConsumingTranslation) {
-      await startConsumingTranslation(producerId, speakerId, language);
+      await startConsumingTranslation(producerId, speakerId, language, originalProducerId);
     }
 
     if (showAlert && channelCreated) {

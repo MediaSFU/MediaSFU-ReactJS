@@ -16,14 +16,10 @@
  */
 
 import React, { useState, useCallback, useRef } from 'react';
-
 // Modern MediaSFU component
 import ModernMediasfuGeneric from './components_modern/mediasfu_components/ModernMediasfuGeneric';
-
-// Pre-Join Page component
 import PreJoinPage from './components/miscComponents/PreJoinPage';
 import { ModernPreJoinPage } from './components_modern/misc_components/ModernPreJoinPage';
-
 // Import types
 import {
   CreateMediaSFURoomOptions,
@@ -156,8 +152,8 @@ const AppModern: React.FC = () => {
   // =========================================================
 
   /**
-   * Scenario A: Not using MediaSFU Cloud at all.
-   * - Dummy credentials are needed to render PreJoinPage.
+  * Scenario A: Not using MediaSFU Cloud at all.
+  * - No credentials are needed when you are not using MediaSFU Cloud.
    */
   /*
   const credentials = {
@@ -182,13 +178,15 @@ const AppModern: React.FC = () => {
 
   /**
    * Scenario C: Using MediaSFU Cloud without your own server.
+   * - Fill credentials from your local development environment before using direct cloud create/join flows.
+   * - Keep real production credentials on your server and use custom room functions in public apps.
    */
   const credentials = {
-    apiUserName: 'abcdefgh',
-    apiKey: '021193742c935c4434d25d7592362575fcb6d6590b6c38334a2f3e06c83af758',
+    apiUserName: '',
+    apiKey: '',
   } as const;
   const localLink = '';
-  const connectMediaSFU = true;
+  const connectMediaSFU = localLink.trim() !== '' || (credentials.apiUserName.trim() !== '' && credentials.apiKey.trim() !== '');
 
   // =========================================================
   //                    UI RENDERING OPTIONS

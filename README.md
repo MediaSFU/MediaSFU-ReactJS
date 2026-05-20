@@ -1,3 +1,9 @@
+# MediaSFU ReactJS SDK · [mediasfu-reactjs on npm](https://www.npmjs.com/package/mediasfu-reactjs)
+
+**mediasfu-reactjs** is the React 18/19 WebRTC SDK for video conferencing, webinars, live streaming, broadcast, screen sharing, whiteboard, chat, recording, live subtitles, translation, and AI agent rooms — powered by MediaSFU Cloud or your self-hosted MediaSFU Open server. Install with `npm install mediasfu-reactjs`.
+
+---
+
 <p align="center">
   <img src="https://www.mediasfu.com/logo192.png" width="100" alt="MediaSFU Logo">
 </p>
@@ -1263,6 +1269,17 @@ MediaSFU isn't just React. The same communication platform is available across 7
 ## 📄 License
 
 MIT © [MediaSFU](https://www.mediasfu.com)
+
+---
+
+## Related SDKs
+
+| Package | Framework | npm |
+|---------|-----------|-----|
+| **[mediasfu-reactjs](https://github.com/MediaSFU/MediaSFU-ReactJS)** | **React 18/19** | **this package** |
+| [mediasfu-vue](https://github.com/MediaSFU/MediaSFU-Vue) | Vue 3 | [`npm install mediasfu-vue`](https://www.npmjs.com/package/mediasfu-vue) |
+| [mediasfu-angular](https://github.com/MediaSFU/MediaSFU-Angular) | Angular 17+ | [`npm install mediasfu-angular`](https://www.npmjs.com/package/mediasfu-angular) |
+| [mediasfu-shared](https://github.com/MediaSFU/MediaSFU-Shared) | Framework-agnostic | [`npm install mediasfu-shared`](https://www.npmjs.com/package/mediasfu-shared) |
 
 ---
 

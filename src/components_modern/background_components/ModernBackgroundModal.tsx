@@ -233,10 +233,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     selfieSegmentation = parameters.getUpdatedAllParams().selfieSegmentation;
   }
 
+  const getCurrentParameters = () => parameters.getUpdatedAllParams?.() ?? parameters;
+
   // Suppress unused position warning - kept for API compatibility
   void _position;
 
-  const defaultImagesContainerRef = useRef<HTMLDivElement>(null);
   const uploadImageInputRef = useRef<HTMLInputElement>(null);
   const backgroundCanvasRef = useRef<HTMLCanvasElement>(null);
   const videoPreviewRef = useRef<HTMLVideoElement>(null);
@@ -245,9 +246,15 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   const applyBackgroundButtonRef = useRef<HTMLButtonElement>(null);
   const saveBackgroundButtonRef = useRef<HTMLButtonElement>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
+  const previewLoopVersionRef = useRef(0);
+  const previewAnimationFrameIdRef = useRef<number | null>(null);
+  const previewCaptureTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [uploadFileName, setUploadFileName] = React.useState("No file selected");
+  const [isAutoApplyingBackground, setIsAutoApplyingBackground] = React.useState(false);
 
   // Modern modal width - similar to sidebar
   const modalWidth = typeof window !== "undefined" ? Math.min(window.innerWidth * 0.85, 420) : 380;
+  const isCompactViewport = typeof window !== "undefined" ? window.innerWidth < 560 : false;
 
   const resolvedBackgroundColor =
     backgroundColor ?? (isDarkMode 
@@ -285,6 +292,8 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     left: isSidebar || isInline ? undefined : undefined,
     width: isSidebar || isInline ? "100%" : "auto",
     height: isSidebar || isInline ? "100%" : "100%",
+    minHeight: 0,
+    overflow: isSidebar || isInline ? "hidden" : undefined,
     backgroundColor: "transparent", // No backdrop - floating panel like sidebar
     display: isVisible ? "flex" : "none",
     flexDirection: "column",
@@ -313,22 +322,28 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   // Modern content styling - sidebar-like panel
   const contentBase: React.CSSProperties = {
     background: resolvedBackgroundColor,
-    borderRadius: isModal ? 0 : 18, // No border radius for full-height panel
+    borderRadius: isModal || isSidebar || isInline ? 0 : 18,
     padding: 16,
     width: isSidebar || isInline ? "100%" : modalWidth,
     minWidth: isModal ? 300 : undefined,
     maxWidth: isSidebar || isInline ? "100%" : modalWidth,
-    height: isModal ? "100%" : undefined,
+    height: isSidebar || isInline ? "100%" : isModal ? "100%" : undefined,
+    minHeight: 0,
     maxHeight: isSidebar || isInline ? "100%" : undefined,
-    overflow: "hidden",
+    overflowX: "hidden",
+    overflowY: "hidden",
     display: "flex",
     flexDirection: "column",
     gap: 12,
-    boxShadow: isModal 
+    boxShadow: isSidebar || isInline
+      ? "none"
+      : isModal 
       ? "-4px 0 20px rgba(0, 0, 0, 0.25)" // Left shadow for right-side panel
       : (enableGlow ? "0 20px 60px rgba(0,0,0,0.35)" : "0 12px 30px rgba(0,0,0,0.25)"),
     ...(isModal
       ? { borderLeft: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}` }
+      : isSidebar || isInline
+      ? { border: "none" }
       : !isModal && enableGlassmorphism
       ? { border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}` }
       : {}),
@@ -359,12 +374,12 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     justifyContent: "space-between",
     alignItems: "center",
     gap: 12,
-    padding: isModal ? "12px 16px" : undefined,
+    padding: "12px 16px",
     marginBottom: isModal ? 0 : undefined,
-    borderBottom: isModal 
+    borderBottom: isModal || isSidebar || isInline
       ? `1px solid ${isDarkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
       : undefined,
-    backgroundColor: isModal 
+    backgroundColor: isModal || isSidebar || isInline
       ? (isDarkMode ? "rgba(15, 23, 42, 0.5)" : "rgba(248, 250, 252, 0.5)")
       : undefined,
     color: isDarkMode ? "#e5e7eb" : "#0f172a",
@@ -462,9 +477,15 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     flexDirection: "column",
     gap: 16,
     flex: 1,
+    minHeight: 0,
     overflowY: "auto",
-    padding: isModal ? "16px" : undefined,
-    paddingRight: isModal ? 16 : 4,
+    overflowX: "hidden",
+    paddingTop: 16,
+    paddingRight: 16,
+    paddingBottom: 16,
+    paddingLeft: 16,
+    pointerEvents: isAutoApplyingBackground ? "none" : undefined,
+    opacity: isAutoApplyingBackground ? 0.72 : 1,
     color: isDarkMode ? "#e5e7eb" : "#0f172a",
     ...bodyStyleOverrides,
   };
@@ -484,12 +505,22 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     .trim() || undefined;
 
   const imagesContainerStyle: React.CSSProperties = {
-    maxWidth: "95%",
-    overflowX: "auto",
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    minHeight: "50px",
+    width: "100%",
+    minHeight: 140,
+    minWidth: 0,
+    maxWidth: "100%",
+    overflowX: "hidden",
+    display: "grid",
+    gridTemplateColumns: isCompactViewport
+      ? "repeat(auto-fit, minmax(58px, 1fr))"
+      : "repeat(4, minmax(0, 1fr))",
+    gap: 6,
+    padding: 10,
+    borderRadius: 12,
+    border: `1px solid ${isDarkMode ? "rgba(148,163,184,0.16)" : "rgba(148,163,184,0.22)"}`,
+    background: isDarkMode
+      ? "rgba(15, 23, 42, 0.42)"
+      : "rgba(255, 255, 255, 0.76)",
     ...imagesContainerStyleOverrides,
   };
 
@@ -509,8 +540,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     .trim() || undefined;
 
   const uploadWrapperStyle: React.CSSProperties = {
-    maxWidth: "70%",
-    overflowX: "auto",
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+    overflow: "visible",
+    boxSizing: "border-box",
     display: "flex",
     flexDirection: "column",
     gap: 6,
@@ -546,10 +580,66 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     .trim() || undefined;
 
   const uploadInputStyle: React.CSSProperties = {
-    background: isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
-    border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`,
-    color: isDarkMode ? "#e5e7eb" : "#0f172a",
+    position: "absolute",
+    width: 1,
+    height: 1,
+    padding: 0,
+    margin: -1,
+    overflow: "hidden",
+    clip: "rect(0, 0, 0, 0)",
+    whiteSpace: "nowrap",
+    border: 0,
+    opacity: 0,
+    pointerEvents: "none",
     ...uploadInputStyleOverrides,
+  };
+
+  const uploadPickerRowStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    width: "100%",
+    maxWidth: "100%",
+    minWidth: 0,
+    padding: 10,
+    borderRadius: 12,
+    border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`,
+    background: isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.82)",
+    boxSizing: "border-box",
+  };
+
+  const uploadPickerButtonStyle: React.CSSProperties = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    minHeight: 38,
+    padding: "0 14px",
+    borderRadius: 10,
+    background: isDarkMode ? "rgba(59, 130, 246, 0.18)" : "rgba(59, 130, 246, 0.12)",
+    border: `1px solid ${isDarkMode ? "rgba(96,165,250,0.35)" : "rgba(59,130,246,0.18)"}`,
+    color: isDarkMode ? "#dbeafe" : "#1d4ed8",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+  };
+
+  const uploadFileNameStyle: React.CSSProperties = {
+    flex: 1,
+    minWidth: 0,
+    fontSize: 13,
+    lineHeight: 1.4,
+    color: isDarkMode ? "#cbd5e1" : "#334155",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  };
+
+  const uploadHelperTextStyle: React.CSSProperties = {
+    margin: 0,
+    fontSize: 12,
+    lineHeight: 1.45,
+    color: isDarkMode ? "#94a3b8" : "#64748b",
   };
 
   const {
@@ -730,13 +820,56 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
 
   const previewLabel = applyButtonLabel ?? "Preview Background";
   const appliedLabel = applyButtonAppliedLabel ?? previewLabel;
+  const defaultBackgroundEntries = ["wall", "wall2", "shelf", "clock", "desert", "flower"] as const;
+
+  const thumbnailButtonStyle = (active: boolean, isNone = false): React.CSSProperties => ({
+    width: "100%",
+    minWidth: 0,
+    minHeight: isCompactViewport ? 50 : 56,
+    aspectRatio: isNone ? "1.3 / 1" : "16 / 10",
+    padding: 0,
+    borderRadius: 10,
+    border: active
+      ? `2px solid ${isDarkMode ? "rgba(96, 165, 250, 0.95)" : "#2563eb"}`
+      : `1px solid ${isDarkMode ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.22)"}`,
+    background: isNone
+      ? (isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.92)")
+      : (isDarkMode ? "rgba(15, 23, 42, 0.6)" : "rgba(255, 255, 255, 0.92)"),
+    boxShadow: active
+      ? (isDarkMode ? "0 0 0 3px rgba(59,130,246,0.22)" : "0 0 0 3px rgba(37,99,235,0.16)")
+      : "none",
+    boxSizing: "border-box",
+    overflow: "hidden",
+    cursor: "pointer",
+    display: "block",
+    appearance: "none",
+    WebkitAppearance: "none",
+  });
+
+  const thumbnailImageStyle: React.CSSProperties = {
+    width: "100%",
+    height: "100%",
+    objectFit: "cover",
+    display: "block",
+    pointerEvents: "none",
+  };
+
+  const thumbnailLabelStyle: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    height: "100%",
+    fontWeight: 600,
+    fontSize: "0.85rem",
+    color: isDarkMode ? "#cbd5e1" : "#334155",
+  };
 
   useEffect(() => {
     if (isVisible) {
       if (!selfieSegmentation) {
         preloadModel().catch(() => console.log("Error preloading model:"));
       }
-      renderDefaultImages();
       if (selectedImage) {
         loadImageToCanvas(selectedImage, selectedImage);
       } else {
@@ -759,36 +892,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       }
 
       if (autoClickBackground) {
-        // Wait for DOM refs to be ready before auto-clicking
-        const waitForRefsAndApply = async () => {
-          // Wait for refs to mount (up to 2 seconds)
-          let attempts = 0;
-          while (attempts < 20 && (!captureVideoRef.current || !videoPreviewRef.current || !mainCanvasRef.current)) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-          }
-          
-          if (!captureVideoRef.current || !videoPreviewRef.current || !mainCanvasRef.current) {
-            console.error("Background modal refs not ready after waiting");
-            autoClickBackground = false;
-            updateAutoClickBackground(false);
-            onClose();
-            return;
-          }
-
-          try {
-            await applyBackground();
-            await saveBackground();
-          } catch (error) {
-            console.error("Error auto-applying background:", error);
-          } finally {
-            autoClickBackground = false;
-            updateAutoClickBackground(autoClickBackground);
-            // Close modal after auto-apply completes
-            onClose();
-          }
-        };
-        waitForRefsAndApply();
+        void handleAutoClickBackground();
       }
     } else {
       try {
@@ -797,6 +901,18 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           (appliedBackground && !keepBackground) ||
           (appliedBackground && !videoAlreadyOn)
         ) {
+          previewLoopVersionRef.current += 1;
+
+          if (previewAnimationFrameIdRef.current !== null) {
+            cancelAnimationFrame(previewAnimationFrameIdRef.current);
+            previewAnimationFrameIdRef.current = null;
+          }
+
+          if (previewCaptureTimeoutIdRef.current !== null) {
+            clearTimeout(previewCaptureTimeoutIdRef.current);
+            previewCaptureTimeoutIdRef.current = null;
+          }
+
           const refVideo = captureVideoRef.current;
           pauseSegmentation = true;
           updatePauseSegmentation(true);
@@ -840,87 +956,6 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   const clonedStream = useRef<MediaStream | null>(null);
   const clonedTrack = useRef<MediaStreamTrack | null>(null);
 
-  const renderDefaultImages = () => {
-    const defaultImages = [
-      'wall',
-      'wall2',
-      'shelf',
-      'clock',
-      'desert',
-      'flower',
-    ];
-
-    const defaultImagesContainer = defaultImagesContainerRef.current;
-    if (!defaultImagesContainer) return;
-
-    defaultImagesContainer.innerHTML = "";
-
-    defaultImages.forEach((baseName) => {
-      const thumb = `https://mediasfu.com/images/backgrounds/${baseName}_thumbnail.jpg`;
-      const small = `https://mediasfu.com/images/backgrounds/${baseName}_small.jpg`;
-      const large = `https://mediasfu.com/images/backgrounds/${baseName}_large.jpg`;
-      const full = `https://mediasfu.com/images/backgrounds/${baseName}.jpg`
-      const img = document.createElement("img");
-      img.src = thumb;
-      img.classList.add("img-thumbnail", "m-1");
-      img.style.width = "80px";
-      img.style.cursor = "pointer";
-      img.addEventListener("click", async () => {
-        if (targetResolution == 'fhd' || targetResolution =='qhd') {
-             await loadImageToCanvas(small, large);
-        } else {
-              await loadImageToCanvas(small, full);
-        }
-      });
-      defaultImagesContainer.appendChild(img);
-    });
-
-    const noBackgroundImg = document.createElement("div");
-    noBackgroundImg.classList.add(
-      "img-thumbnail",
-      "m-1",
-      "d-flex",
-      "align-items-center",
-      "justify-content-center"
-    );
-    noBackgroundImg.style.width = "76px";
-    noBackgroundImg.style.minHeight = "60px";
-    noBackgroundImg.style.cursor = "pointer";
-    noBackgroundImg.style.backgroundColor = isDarkMode ? "rgba(255,255,255,0.1)" : "#f8f9fa";
-    noBackgroundImg.style.border = `1px solid ${isDarkMode ? "rgba(255,255,255,0.2)" : "#dee2e6"}`;
-    noBackgroundImg.style.borderRadius = "8px";
-    noBackgroundImg.style.position = "relative";
-    noBackgroundImg.innerHTML =
-      `<span style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:${isDarkMode ? "#e5e7eb" : "#000"}; font-weight:500;">None</span>`;
-    noBackgroundImg.addEventListener("click", () => {
-      selectedImage = "";
-      updateSelectedImage(selectedImage);
-      updateCustomImage("");
-
-      showLoading(); // Show loading indicator
-      videoPreviewRef.current?.classList.add("d-none");
-      backgroundCanvasRef.current?.classList.remove("d-none");
-      clearCanvas();
-      hideLoading(); // Hide loading indicator after loading
-    });
-    defaultImagesContainer.appendChild(noBackgroundImg);
-
-    // Load custom image if it exists
-    if (customImage) {
-      const img = document.createElement("img");
-      img.src = customImage;
-      img.classList.add("img-thumbnail", "m-1");
-      img.style.width = "80px";
-      img.style.cursor = "pointer";
-      img.addEventListener("click", () => {
-        if (customImage) {
-          loadImageToCanvas(customImage, customImage);
-        }
-      });
-      defaultImagesContainer.appendChild(img);
-    }
-  };
-
   async function preloadModel() {
     // Use singleton service to get the shared model instance
     const model = await selfieSegmentationService.getModel();
@@ -959,6 +994,115 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
 
   const hideLoading = () => {
     loadingOverlayRef.current?.classList.add("d-none");
+  };
+
+  const playMediaSafely = async (element: HTMLMediaElement | null) => {
+    if (!element) {
+      return;
+    }
+
+    try {
+      await element.play();
+    } catch (error) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        console.log("Error playing media element:", error);
+      }
+    }
+  };
+
+  const getLiveVideoTrack = (stream: MediaStream | null | undefined) =>
+    stream?.getVideoTracks().find((track) => track.readyState === "live") ?? null;
+
+  const waitForProcessedStream = async (): Promise<MediaStream | null> => {
+    let attempts = 0;
+    while (attempts < 40) {
+      const latestProcessedStream = getCurrentParameters().processedStream ?? processedStream ?? null;
+      if (latestProcessedStream) {
+        processedStream = latestProcessedStream;
+      }
+
+      if (getLiveVideoTrack(processedStream)) {
+        return processedStream;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      attempts += 1;
+    }
+
+    return getLiveVideoTrack(processedStream) ? processedStream : null;
+  };
+
+  const waitForBackgroundPublishCompletion = async (
+    expectedTrackId: string | undefined,
+    requiresAsyncPublish: boolean,
+  ) => {
+    if (!requiresAsyncPublish || !expectedTrackId) {
+      return;
+    }
+
+    for (let attempts = 0; attempts < 14; attempts += 1) {
+      const currentParameters = getCurrentParameters();
+      const producerTrack = currentParameters.videoProducer?.track ?? null;
+
+      if (
+        currentParameters.transportCreated &&
+        producerTrack?.readyState === "live" &&
+        producerTrack.id === expectedTrackId
+      ) {
+        return;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    console.warn("Virtual background publish did not settle before the modal closed.");
+  };
+
+  const interactiveViewReady = () => Boolean(
+    captureVideoRef.current &&
+      videoPreviewRef.current &&
+      mainCanvasRef.current &&
+      applyBackgroundButtonRef.current &&
+      saveBackgroundButtonRef.current,
+  );
+
+  const waitForInteractiveView = async () => {
+    for (let attempts = 0; attempts < 12; attempts += 1) {
+      if (interactiveViewReady()) {
+        return true;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+
+    return interactiveViewReady();
+  };
+
+  const resetProcessedStreamForAutoApply = () => {
+    if (!selectedImage || !processedStream) {
+      return;
+    }
+
+    processedStream.getVideoTracks().forEach((track) => track.stop());
+    processedStream = null;
+    updateProcessedStream(null);
+  };
+
+  const ensureLiveProcessedStream = async (): Promise<MediaStream> => {
+    let currentProcessedStream = await waitForProcessedStream();
+    if (getLiveVideoTrack(currentProcessedStream)) {
+      return currentProcessedStream as MediaStream;
+    }
+
+    resetProcessedStreamForAutoApply();
+    await applyBackground();
+    currentProcessedStream = await waitForProcessedStream();
+
+    if (getLiveVideoTrack(currentProcessedStream)) {
+      return currentProcessedStream as MediaStream;
+    }
+
+    throw new Error("Virtual background stream was not ready after the camera turned on.");
   };
 
   const clearCanvas = () => {
@@ -1006,6 +1150,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     try {
       const file = event.target.files?.[0];
       if (file) {
+        setUploadFileName(file.name);
         // Validate file size
         if (file.size > 2048 * 2048) {
           // 2MB
@@ -1055,6 +1200,8 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           }
         };
         reader.readAsDataURL(file);
+      } else {
+        setUploadFileName("No file selected");
       }
     } catch { /* Handle error */}
   };
@@ -1103,6 +1250,79 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     ctx.drawImage(img, 0, 0);
   };
 
+  const resolveDefaultBackgroundSources = (baseName: typeof defaultBackgroundEntries[number]) => {
+    const thumb = `https://mediasfu.com/images/backgrounds/${baseName}_thumbnail.jpg`;
+    const previewSrc = `https://mediasfu.com/images/backgrounds/${baseName}_small.jpg`;
+    const fullSrc =
+      targetResolution == "fhd" || targetResolution == "qhd"
+        ? `https://mediasfu.com/images/backgrounds/${baseName}_large.jpg`
+        : `https://mediasfu.com/images/backgrounds/${baseName}.jpg`;
+
+    return { thumb, previewSrc, fullSrc };
+  };
+
+  const handleClearBackgroundSelection = async () => {
+    selectedImage = "";
+    updateSelectedImage(selectedImage);
+    updateCustomImage("");
+
+    showLoading();
+    videoPreviewRef.current?.classList.add("d-none");
+    backgroundCanvasRef.current?.classList.remove("d-none");
+    clearCanvas();
+    hideLoading();
+  };
+
+  const renderThumbnailTiles = () => {
+    const tiles = defaultBackgroundEntries.map((baseName) => {
+      const { thumb, previewSrc, fullSrc } = resolveDefaultBackgroundSources(baseName);
+      const isActive = selectedImage.includes(baseName);
+
+      return (
+        <button
+          key={baseName}
+          type="button"
+          style={thumbnailButtonStyle(isActive)}
+          onClick={() => {
+            void loadImageToCanvas(previewSrc, fullSrc);
+          }}
+        >
+          <img src={thumb} alt={`${baseName} background`} style={thumbnailImageStyle} />
+        </button>
+      );
+    });
+
+    tiles.push(
+      <button
+        key="none"
+        type="button"
+        style={thumbnailButtonStyle(!selectedImage, true)}
+        onClick={() => {
+          void handleClearBackgroundSelection();
+        }}
+      >
+        <span style={thumbnailLabelStyle}>None</span>
+      </button>,
+    );
+
+    if (customImage) {
+      tiles.push(
+        <button
+          key="custom"
+          type="button"
+          style={thumbnailButtonStyle(selectedImage === customImage)}
+          onClick={() => {
+            void loadImageToCanvas(customImage, customImage);
+          }}
+        >
+          <img src={customImage} alt="Custom background" style={thumbnailImageStyle} />
+        </button>,
+      );
+    }
+
+    return tiles;
+  };
+
   const applyBackground = async () => {
     if (audioOnlyRoom) {
       showAlert?.({
@@ -1121,19 +1341,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     pauseSegmentation = false;
     updatePauseSegmentation(false);
     await selfieSegmentationPreview(doSegmentation);
-    
-    // Wait for processedStream to be set up (selfieSegmentationPreview uses setTimeout internally)
+
     if (doSegmentation) {
-      let waitAttempts = 0;
-      while (!processedStream && waitAttempts < 30) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        // Re-fetch from updated params in case it was set
-        const updatedParams = parameters.getUpdatedAllParams();
-        processedStream = updatedParams.processedStream;
-        waitAttempts++;
-      }
+      await waitForProcessedStream();
     }
-    
+
     hideLoading();
 
     applyBackgroundButtonRef.current?.classList.add("d-none");
@@ -1160,6 +1372,18 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     virtualImage.crossOrigin = "anonymous";
     virtualImage.src = selectedImage || "";
 
+    if (doSegmentation && selectedImage) {
+      await new Promise<void>((resolve) => {
+        if (virtualImage.complete && virtualImage.naturalWidth > 0) {
+          resolve();
+          return;
+        }
+
+        virtualImage.onload = () => resolve();
+        virtualImage.onerror = () => resolve();
+      });
+    }
+
     if (!mainCanvas) {
       mainCanvas = mainCanvasRef.current;
     }
@@ -1170,6 +1394,21 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     mediaCanvas.width = refVideo.videoWidth;
     mediaCanvas.height = refVideo.videoHeight;
     let ctx = mediaCanvas.getContext("2d");
+    let firstFrameResolved = !doSegmentation;
+    let resolveFirstFrame: (() => void) | null = null;
+    const firstFrameRendered = new Promise<void>((resolve) => {
+      resolveFirstFrame = resolve;
+    });
+
+    const markFirstFrameRendered = () => {
+      if (firstFrameResolved) {
+        return;
+      }
+
+      firstFrameResolved = true;
+      resolveFirstFrame?.();
+      resolveFirstFrame = null;
+    };
 
     backgroundHasChanged = true;
     updateBackgroundHasChanged(true);
@@ -1186,10 +1425,77 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       previewVideo.classList.remove("d-none");
     }
 
+    const onResults = (results: any) => {
+      try {
+        if (
+          !pauseSegmentation &&
+          mediaCanvas &&
+          mediaCanvas.width > 0 &&
+          mediaCanvas.height > 0 &&
+          virtualImage &&
+          virtualImage.width > 0 &&
+          virtualImage.height > 0
+        ) {
+          ctx!.save();
+          ctx!.clearRect(0, 0, mediaCanvas.width, mediaCanvas.height);
+          ctx!.drawImage(
+            results.segmentationMask,
+            0,
+            0,
+            mediaCanvas.width,
+            mediaCanvas.height
+          );
+
+          ctx!.globalCompositeOperation = "source-out";
+          const repeatPattern =
+            virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height
+              ? "repeat"
+              : "no-repeat";
+          const pat = ctx!.createPattern(virtualImage, repeatPattern);
+          ctx!.fillStyle = pat || "";
+          ctx!.fillRect(0, 0, mediaCanvas.width, mediaCanvas.height);
+
+          ctx!.globalCompositeOperation = "destination-atop";
+          ctx!.drawImage(results.image, 0, 0, mediaCanvas.width, mediaCanvas.height);
+
+          ctx!.restore();
+          markFirstFrameRendered();
+        }
+      } catch (error) {
+        console.log("Error applying background:", error);
+      }
+    };
+
+    if (!selfieSegmentation) {
+      await preloadModel().catch(() => console.log("Error preloading model: "));
+    }
+
+    try {
+      selfieSegmentation!.onResults(onResults);
+    } catch {
+      /* ignore */
+    }
+
     const segmentImage = async (videoElement: HTMLVideoElement) => {
       try {
+        previewLoopVersionRef.current += 1;
+
+        if (previewAnimationFrameIdRef.current !== null) {
+          cancelAnimationFrame(previewAnimationFrameIdRef.current);
+          previewAnimationFrameIdRef.current = null;
+        }
+
+        if (previewCaptureTimeoutIdRef.current !== null) {
+          clearTimeout(previewCaptureTimeoutIdRef.current);
+          previewCaptureTimeoutIdRef.current = null;
+        }
+
+        const loopVersion = previewLoopVersionRef.current;
+        let startedProcessing = false;
+
         const processFrame = () => {
           if (
+            loopVersion !== previewLoopVersionRef.current ||
             !selfieSegmentation ||
             pauseSegmentation ||
             !videoElement ||
@@ -1199,15 +1505,40 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
             return;
           }
 
-          selfieSegmentation.send({ image: videoElement });
-          requestAnimationFrame(processFrame);
+          void selfieSegmentation.send({ image: videoElement }).catch(() => undefined);
+          previewAnimationFrameIdRef.current = requestAnimationFrame(processFrame);
         };
 
-        videoElement.onloadeddata = () => {
+        const startProcessing = () => {
+          if (startedProcessing) {
+            return;
+          }
+
+          startedProcessing = true;
           processFrame();
         };
 
-        setTimeout(async () => {
+        videoElement.onloadeddata = startProcessing;
+        if (videoElement.readyState >= 2 && videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+          startProcessing();
+        }
+
+        previewCaptureTimeoutIdRef.current = setTimeout(async () => {
+          previewCaptureTimeoutIdRef.current = null;
+
+          if (loopVersion !== previewLoopVersionRef.current) {
+            return;
+          }
+
+          await Promise.race([
+            firstFrameRendered,
+            new Promise<void>((resolve) => setTimeout(resolve, 1200)),
+          ]);
+
+          if (loopVersion !== previewLoopVersionRef.current) {
+            return;
+          }
+
           processedStream = mediaCanvas.captureStream(frameRate || 5);
           previewVideo.srcObject = processedStream;
           updateProcessedStream(processedStream);
@@ -1216,11 +1547,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           updateKeepBackground(keepBackground);
 
           if (previewVideo.paused) {
-            try {
-              await previewVideo.play();
-            } catch {
-              /* ignore */
-            }
+            await playMediaSafely(previewVideo);
           }
         }, 100);
       } catch {
@@ -1246,7 +1573,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       }
       refVideo.srcObject = segmentVideo;
       if (refVideo.paused) {
-        refVideo.play();
+        void playMediaSafely(refVideo);
       }
       refVideo.width = segmentVideo!.getVideoTracks()[0]?.getSettings().width || 0;
       refVideo.height = segmentVideo!.getVideoTracks()[0]?.getSettings().height || 0;
@@ -1259,6 +1586,9 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           await segmentImage(refVideo);
         } else {
           previewVideo.srcObject = clonedStream.current || localStreamVideo;
+          if (previewVideo.paused) {
+            await playMediaSafely(previewVideo);
+          }
         }
       } catch (error) {
         console.log("Error segmenting image:", error);
@@ -1276,7 +1606,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           updateSegmentVideo(segmentVideo);
           refVideo.srcObject = segmentVideo;
           if (refVideo.paused) {
-            refVideo.play();
+            void playMediaSafely(refVideo);
           }
         } catch {
           try {
@@ -1288,7 +1618,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
             updateSegmentVideo(segmentVideo);
             refVideo.srcObject = segmentVideo;
             if (refVideo.paused) {
-              refVideo.play();
+              void playMediaSafely(refVideo);
             }
           } catch (error) {
             console.log("Error getting user media:", error);
@@ -1307,158 +1637,181 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           await segmentImage(refVideo);
         } else {
           previewVideo.srcObject = refVideo.srcObject;
+          if (previewVideo.paused) {
+            await playMediaSafely(previewVideo);
+          }
         }
       } catch {
         /* ignore */
       }
     }
-
-    let repeatPattern = "no-repeat";
-    try {
-      if (virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height) {
-        repeatPattern = "repeat";
-      }
-    } catch {
-      // ignore
-    }
-
-    const onResults = (results: any) => {
-      try {
-        if (
-          !pauseSegmentation &&
-          mediaCanvas &&
-          mediaCanvas.width > 0 &&
-          mediaCanvas.height > 0 &&
-          virtualImage &&
-          virtualImage.width > 0 &&
-          virtualImage.height > 0
-        ) {
-          ctx!.save();
-          ctx!.clearRect(0, 0, mediaCanvas.width, mediaCanvas.height);
-          ctx!.drawImage(
-            results.segmentationMask,
-            0,
-            0,
-            mediaCanvas.width,
-            mediaCanvas.height
-          );
-
-          ctx!.globalCompositeOperation = "source-out";
-          const pat = ctx!.createPattern(virtualImage, repeatPattern);
-          ctx!.fillStyle = pat || "";
-          ctx!.fillRect(0, 0, mediaCanvas.width, mediaCanvas.height);
-
-          ctx!.globalCompositeOperation = "destination-atop";
-          ctx!.drawImage(results.image, 0, 0, mediaCanvas.width, mediaCanvas.height);
-
-          ctx!.restore();
-        }
-      } catch (error) {
-        console.log("Error applying background:", error);
-      }
-    };
-
-    if (!selfieSegmentation) {
-      await preloadModel().catch(() => console.log("Error preloading model: "));
-    }
-
-    try {
-      selfieSegmentation!.onResults(onResults);
-    } catch {
-      /* ignore */
-    }
   };
 
-  const saveBackground = async () => {
-    if (audioOnlyRoom) {
-      showAlert?.({
+  const saveBackground = async (): Promise<{ expectedTrackId?: string; requiresAsyncPublish: boolean }> => {
+    const currentParameters = getCurrentParameters();
+
+    if (currentParameters.audioOnlyRoom) {
+      currentParameters.showAlert?.({
         message: "You cannot use a background in an audio only event.",
         type: "danger",
       });
-      return;
-    } else if (backgroundHasChanged) {
-      if (videoAlreadyOn) {
-        if (islevel === "2" && (recordStarted || recordResumed)) {
-          if (!(recordPaused || recordStopped)) {
-            if (recordingMediaOptions === "video") {
-              showAlert?.({
-                message: "Please pause the recording before changing the background.",
-                type: "danger",
-              });
-              return;
-            }
-          }
-        }
+      return { requiresAsyncPublish: false };
+    }
 
-        if (keepBackground && selectedImage && processedStream) {
-          virtualStream = processedStream;
-          updateVirtualStream(virtualStream);
-          videoParams = { track: virtualStream.getVideoTracks()[0] };
-          updateVideoParams(videoParams);
-        } else {
-          if (localStreamVideo && localStreamVideo.getVideoTracks()[0]?.readyState === "live") {
-            videoParams = { track: localStreamVideo.getVideoTracks()[0] };
-            updateVideoParams(videoParams);
-          } else {
-            try {
-              if (localStreamVideo && localStreamVideo.getVideoTracks()[0]?.readyState !== "live") {
-                localStreamVideo.removeTrack(localStreamVideo.getVideoTracks()[0]);
-                const clonedTrackLocal = segmentVideo?.getVideoTracks()[0]?.clone();
-                if (clonedTrackLocal) {
-                  localStreamVideo.addTrack(clonedTrackLocal);
-                }
-              }
-            } catch (error) {
-              console.log("Error handling local stream video:", error);
-            }
+    let expectedTrackId: string | undefined;
+    let requiresAsyncPublish = false;
 
-            videoParams = {
-              track: clonedStream.current?.getVideoTracks()[0] || undefined,
-            };
-            updateVideoParams(videoParams);
-          }
-        }
-
-        if (keepBackground) {
-          appliedBackground = true;
-          updateAppliedBackground(appliedBackground);
-        } else {
-          appliedBackground = false;
-          updateAppliedBackground(appliedBackground);
-        }
-
-        if (!transportCreated) {
-          await createSendTransport({
-            option: "video",
-            parameters: { ...parameters, videoParams },
-          });
-        } else {
-          try {
-            if (videoProducer?.id) {
-              if (videoProducer.track?.id !== videoParams.track?.id) {
-                await disconnectSendTransportVideo({ parameters });
-                await sleep({ ms: 500 });
-              }
-            }
-            await connectSendTransportVideo({ videoParams, parameters });
-          } catch {
-            /* ignore */
-          }
-        }
-        await onScreenChanges({ changed: true, parameters });
+    if (backgroundHasChanged && currentParameters.videoAlreadyOn) {
+      if (
+        currentParameters.islevel === "2" &&
+        (currentParameters.recordStarted || currentParameters.recordResumed) &&
+        !(currentParameters.recordPaused || currentParameters.recordStopped) &&
+        currentParameters.recordingMediaOptions === "video"
+      ) {
+        currentParameters.showAlert?.({
+          message: "Please pause the recording before changing the background.",
+          type: "danger",
+        });
+        return { requiresAsyncPublish: false };
       }
+
+      let nextVideoParams = currentParameters.videoParams ?? {};
+      const requiresProcessedBackground = keepBackground && Boolean(selectedImage);
+      const processedBackgroundStream = requiresProcessedBackground
+        ? await ensureLiveProcessedStream()
+        : null;
+
+      if (keepBackground && selectedImage && processedBackgroundStream) {
+        processedStream = processedBackgroundStream;
+        updateProcessedStream(processedBackgroundStream);
+        virtualStream = processedBackgroundStream;
+        updateVirtualStream(virtualStream);
+        nextVideoParams = { track: virtualStream.getVideoTracks()[0] };
+        updateVideoParams(nextVideoParams);
+      } else if (currentParameters.localStreamVideo?.getVideoTracks()[0]?.readyState === "live") {
+        nextVideoParams = { track: currentParameters.localStreamVideo.getVideoTracks()[0] };
+        updateVideoParams(nextVideoParams);
+      } else {
+        try {
+          if (
+            currentParameters.localStreamVideo &&
+            currentParameters.localStreamVideo.getVideoTracks()[0]?.readyState !== "live"
+          ) {
+            const originalTrack = currentParameters.localStreamVideo.getVideoTracks()[0];
+            if (originalTrack) {
+              currentParameters.localStreamVideo.removeTrack(originalTrack);
+            }
+
+            const clonedTrackLocal = segmentVideo?.getVideoTracks()[0]?.clone();
+            if (clonedTrackLocal) {
+              currentParameters.localStreamVideo.addTrack(clonedTrackLocal);
+            }
+          }
+        } catch (error) {
+          console.log("Error handling local stream video:", error);
+        }
+
+        nextVideoParams = {
+          track: clonedStream.current?.getVideoTracks()[0] || undefined,
+        };
+        updateVideoParams(nextVideoParams);
+      }
+
+      const nextTrack = (nextVideoParams as { track?: MediaStreamTrack }).track;
+      expectedTrackId = nextTrack?.id;
+      requiresAsyncPublish = !currentParameters.transportCreated;
+
+      if (keepBackground) {
+        appliedBackground = true;
+        updateAppliedBackground(true);
+      } else {
+        appliedBackground = false;
+        updateAppliedBackground(false);
+      }
+
+      if (!currentParameters.transportCreated) {
+        await currentParameters.createSendTransport?.({
+          option: "video",
+          parameters: { ...currentParameters, videoParams: nextVideoParams },
+        });
+      } else {
+        try {
+          if (
+            currentParameters.videoProducer?.id &&
+            currentParameters.videoProducer.track?.id !== nextTrack?.id
+          ) {
+            await currentParameters.disconnectSendTransportVideo?.({ parameters: currentParameters });
+            await currentParameters.sleep?.({ ms: 500 });
+          }
+
+          await currentParameters.connectSendTransportVideo?.({
+            videoParams: nextVideoParams,
+            parameters: currentParameters,
+          });
+        } catch {
+          /* ignore */
+        }
+      }
+
+      await currentParameters.onScreenChanges?.({ changed: true, parameters: currentParameters });
     }
 
     if (keepBackground) {
       appliedBackground = true;
-      updateAppliedBackground(appliedBackground);
+      updateAppliedBackground(true);
     } else {
       appliedBackground = false;
-      updateAppliedBackground(appliedBackground);
+      updateAppliedBackground(false);
     }
 
     saveBackgroundButtonRef.current?.classList.add("d-none");
-    saveBackgroundButtonRef.current!.disabled = true;
+    if (saveBackgroundButtonRef.current) {
+      saveBackgroundButtonRef.current.disabled = true;
+    }
+
+    return { expectedTrackId, requiresAsyncPublish };
+  };
+
+  const handleAutoClickBackground = async () => {
+    if (!autoClickBackground || !isVisible) {
+      return;
+    }
+
+    setIsAutoApplyingBackground(true);
+    const refsReady = await waitForInteractiveView();
+
+    if (!refsReady) {
+      console.error("Background modal refs not ready after waiting");
+      updateAutoClickBackground(false);
+      setIsAutoApplyingBackground(false);
+      onClose();
+      return;
+    }
+
+    let shouldClose = true;
+
+    try {
+      resetProcessedStreamForAutoApply();
+      await applyBackground();
+      const publishResult = await saveBackground();
+      await waitForBackgroundPublishCompletion(
+        publishResult.expectedTrackId,
+        publishResult.requiresAsyncPublish,
+      );
+    } catch (error) {
+      shouldClose = false;
+      getCurrentParameters().showAlert?.({
+        message: "Virtual background could not finish applying automatically. Please review the preview and save again.",
+        type: "danger",
+      });
+      console.error("Error auto-applying background:", error);
+    } finally {
+      updateAutoClickBackground(false);
+      setIsAutoApplyingBackground(false);
+      if (shouldClose) {
+        onClose();
+      }
+    }
   };
 
   const Spinner: FC = () => {
@@ -1691,11 +2044,12 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       
       <div
         id="defaultImages"
-        ref={defaultImagesContainerRef}
         className={imagesContainerClassNames}
         style={imagesContainerStyle}
         {...restImagesContainerProps}
-      />
+      >
+        {renderThumbnailTiles()}
+      </div>
       <div style={{ 
         fontSize: "0.65rem", 
         color: isDarkMode ? "#94a3b8" : "#64748b", 
@@ -1728,6 +2082,13 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           onChange={handleImageUpload}
           {...restUploadInputProps}
         />
+        <div style={uploadPickerRowStyle}>
+          <label htmlFor="uploadImage" style={uploadPickerButtonStyle}>
+            Choose image
+          </label>
+          <span style={uploadFileNameStyle}>{uploadFileName}</span>
+        </div>
+        <p style={uploadHelperTextStyle}>PNG and JPG files up to 2MB work best.</p>
       </div>
       <canvas
         id="mainCanvas"

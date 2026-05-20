@@ -3081,7 +3081,31 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   };
 
   const updateIsBackgroundModalVisible = (value: boolean) => {
+    if (value && autoClickBackground.current) {
+      if (activeSidebarContent === 'background') {
+        setActiveSidebarContent('none');
+        setSidebarNavigationStack([]);
+      }
+
+      setIsBackgroundModalVisible(true);
+      return;
+    }
+
+    if (value && (shouldUseSidebar || activeSidebarContent !== 'none')) {
+      setIsBackgroundModalVisible(false);
+      if (activeSidebarContent !== 'background') {
+        setSidebarNavigationStack([]);
+        setActiveSidebarContent('background');
+      }
+      return;
+    }
+
     setIsBackgroundModalVisible(value);
+
+    if (!value && activeSidebarContent === 'background') {
+      setActiveSidebarContent('none');
+      setSidebarNavigationStack([]);
+    }
   };
 
   const updateAutoClickBackground = (value: boolean) => {
@@ -4573,10 +4597,6 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       }
     }
 
-    if (content === 'background') {
-      setIsBackgroundModalVisible(true);
-    }
-
     if (content === 'mediaSettings') {
       launchMediaSettings({
         updateIsMediaSettingsModalVisible,
@@ -4611,18 +4631,6 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     prepareRecordingSidebar,
     setIsBackgroundModalVisible,
   ]);
-
-  // When background is selected via sidebar navigation, show the floating modal and close the sidebar
-  // The background modal is rendered as a floating overlay outside the sidebar (like classic approach)
-  useEffect(() => {
-    if (activeSidebarContent === 'background') {
-      setIsBackgroundModalVisible(true);
-      // Close sidebar since background modal is floating, not embedded in sidebar
-      // Setting activeSidebarContent to 'none' automatically makes isSidebarVisible and isSidebarModalVisible false
-      setActiveSidebarContent('none');
-      setSidebarNavigationStack([]);
-    }
-  }, [activeSidebarContent]);
 
   // Navigate back in sidebar stack (return to previous content like menu)
   const sidebarNavigateBack = useCallback(() => {
@@ -7876,6 +7884,21 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             handleCreatePoll={handleCreatePoll}
             handleEndPoll={handleEndPoll}
             handleVotePoll={handleVotePoll}
+          />
+        );
+        break;
+      case 'background':
+        sidebarBodyContent = (
+          <BackgroundModalComponent
+            {...baseProps}
+            backgroundColor={themedSurfaceColor}
+            isVisible={true}
+            onClose={closeSidebar}
+            parameters={{
+              ...getAllParams(),
+              ...mediaSFUFunctions(),
+              selfieSegmentation: selfieSegmentation.current,
+            }}
           />
         );
         break;

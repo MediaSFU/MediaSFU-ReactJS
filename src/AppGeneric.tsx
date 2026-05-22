@@ -42,6 +42,7 @@ import { generateRandomRequestList } from './methods/utils/generateRandomRequest
 import { generateRandomWaitingRoomList } from './methods/utils/generateRandomWaitingRoomList';
 import { createRoomOnMediaSFU } from './methods/utils/createRoomOnMediaSFU';
 import { joinRoomOnMediaSFU } from './methods/utils/joinRoomOnMediaSFU';
+import { getDemoCloudConfig } from './utils/demoCloudConfig';
 
 const App = () => {
   // =========================================================
@@ -62,13 +63,9 @@ const App = () => {
   // const localLink = 'http://your-ce-server.com';
   // const connectMediaSFU = localLink.trim() !== '';
 
-  // Scenario C: Using MediaSFU Cloud without your own server (fill in your own credentials first)
-  const credentials = {
-    apiUserName: '',
-    apiKey: '',
-  } as const;
-  const localLink = '';
-  const connectMediaSFU = true;
+  // Scenario C: Using MediaSFU Cloud without your own server.
+  // Fill credentials from `REACT_APP_MEDIASFU_*` environment variables before using direct cloud create/join flows.
+  const { credentials, localLink, connectMediaSFU } = getDemoCloudConfig();
 
   // =========================================================
   //                    UI RENDERING OPTIONS

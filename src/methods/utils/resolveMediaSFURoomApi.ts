@@ -2,6 +2,9 @@ const DEFAULT_MEDIA_SFU_ROOM_API_URL = 'https://mediasfu.com/v1/rooms/';
 
 type MediaSFURoomApiAction = 'createRoom' | 'joinRoom';
 
+const getDefaultMediaSFURoomApiUrl = (): string =>
+  DEFAULT_MEDIA_SFU_ROOM_API_URL;
+
 const normalizeManagedRoomApi = (normalizedLink: string): string => {
   if (normalizedLink.includes('/v1/rooms')) {
     return `${normalizedLink.replace(/\/$/, '')}/`;
@@ -17,7 +20,7 @@ export const resolveMediaSFURoomApi = (
   const normalizedLink = localLink?.trim();
 
   if (!normalizedLink) {
-    return DEFAULT_MEDIA_SFU_ROOM_API_URL;
+    return getDefaultMediaSFURoomApiUrl();
   }
 
   if (normalizedLink.includes('mediasfu.com')) {

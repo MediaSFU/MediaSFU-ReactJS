@@ -28,6 +28,7 @@ import { generateRandomWaitingRoomList } from './methods/utils/generateRandomWai
 import { createRoomOnMediaSFU } from './methods/utils/createRoomOnMediaSFU';
 import { joinRoomOnMediaSFU } from './methods/utils/joinRoomOnMediaSFU';
 import { CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from './@types/types';
+import { getDemoCloudConfig } from './utils/demoCloudConfig';
 
 /**
  * App Component
@@ -73,14 +74,9 @@ const App = () => {
   */
 
   // Scenario C: Using MediaSFU Cloud without your own server.
-  // - Fill in your own credentials here before using direct cloud create/join flows.
+  // - Fill credentials from `REACT_APP_MEDIASFU_*` environment variables before using direct cloud create/join flows.
   // - In production, securely handle credentials server-side and use custom room functions.
-  const credentials = {
-    apiUserName: '',
-    apiKey: '',
-  };
-  const localLink = ''; // Leave empty if not using your own server
-  const connectMediaSFU = true; // Set to true if using MediaSFU Cloud since localLink is empty
+  const { credentials, localLink, connectMediaSFU } = getDemoCloudConfig();
 
   // =========================================================
   //                    UI RENDERING OPTIONS

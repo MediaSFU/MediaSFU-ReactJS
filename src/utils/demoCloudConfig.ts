@@ -7,18 +7,21 @@ export interface DemoCloudConfig {
   connectMediaSFU: boolean;
 }
 
+// Publish-safe defaults. Use scripts/configure-mediasfu-defaults.mjs
+// to temporarily swap in staging or other local test values when needed.
+export const DEMO_MEDIASFU_API_USERNAME = 'your-api-username';
+export const DEMO_MEDIASFU_API_KEY = 'your-api-key';
+export const DEMO_CONNECT_MEDIA_SFU = false;
+
 export const getDemoCloudConfig = (): DemoCloudConfig => {
-  const apiUserName = process.env.REACT_APP_MEDIASFU_API_USERNAME?.trim() ?? '';
-  const apiKey = process.env.REACT_APP_MEDIASFU_API_KEY?.trim() ?? '';
-  const localLink = process.env.REACT_APP_MEDIASFU_LOCAL_LINK?.trim() ?? '';
+  const localLink = '';
 
   return {
     credentials: {
-      apiUserName,
-      apiKey,
+      apiUserName: DEMO_MEDIASFU_API_USERNAME,
+      apiKey: DEMO_MEDIASFU_API_KEY,
     },
     localLink,
-    connectMediaSFU:
-      localLink !== '' || (apiUserName !== '' && apiKey !== ''),
+    connectMediaSFU: DEMO_CONNECT_MEDIA_SFU,
   };
 };

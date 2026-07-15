@@ -11,6 +11,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./Screenboard.css";
 import { ShowAlert, SleepType } from "../../@types/types";
+import { getCanvasPoint } from "./canvasCoordinates";
 
 export interface ScreenboardParameters {
   updateCanvasScreenboard: (canvas: HTMLCanvasElement | null) => void;
@@ -316,51 +317,55 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
   );
 
   const startDrawing = (e: MouseEvent, ctx: CanvasRenderingContext2D | null) => {
-    if (!ctx) return;
+    const activeCanvas = canvasRef.current;
+    if (!ctx || !activeCanvas) return;
+    const point = getCanvasPoint(e, activeCanvas);
     isDrawing.current = true;
-    startX.current = e.offsetX;
-    startY.current = e.offsetY;
+    startX.current = point.x;
+    startY.current = point.y;
 
     if (mode.current === "erase") {
-      erase(e.offsetX, e.offsetY, ctx);
+      erase(point.x, point.y, ctx);
     } else if (mode.current === "draw" || mode.current === "freehand") {
       ctx.beginPath();
-      ctx.moveTo(e.offsetX, e.offsetY);
+      ctx.moveTo(point.x, point.y);
       if (mode.current === "freehand") {
-        freehandDrawing.current = [{ x: e.offsetX, y: e.offsetY, color: color.current, thickness: brushThickness.current }];
+        freehandDrawing.current = [{ x: point.x, y: point.y, color: color.current, thickness: brushThickness.current }];
       }
     }
   };
 
   const draw = (e: MouseEvent, ctx: CanvasRenderingContext2D | null) => {
-    if (!ctx || !isDrawing.current) return;
+    const activeCanvas = canvasRef.current;
+    if (!ctx || !activeCanvas || !isDrawing.current) return;
+    const point = getCanvasPoint(e, activeCanvas);
 
-    currentX.current = e.offsetX;
-    currentY.current = e.offsetY;
+    currentX.current = point.x;
+    currentY.current = point.y;
 
     if (mode.current === "erase") {
-      erase(e.offsetX, e.offsetY, ctx);
+      erase(point.x, point.y, ctx);
     } else if (mode.current === "draw") {
       ctx.clearRect(0, 0, canvasRef.current?.width ?? 0, canvasRef.current?.height ?? 0);
       drawShapes(ctx);
       drawLine(
         startX.current,
         startY.current,
-        e.offsetX,
-        e.offsetY,
+        point.x,
+        point.y,
         color.current,
         lineThickness.current,
         lineType.current,
         ctx
       );
     } else if (mode.current === "freehand") {
-      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.lineTo(point.x, point.y);
       ctx.strokeStyle = color.current;
       ctx.lineWidth = brushThickness.current;
       ctx.stroke();
       freehandDrawing.current.push({
-        x: e.offsetX,
-        y: e.offsetY,
+        x: point.x,
+        y: point.y,
         color: color.current,
         thickness: brushThickness.current,
       });
@@ -372,8 +377,8 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
           shape.current,
           startX.current,
           startY.current,
-          e.offsetX,
-          e.offsetY,
+          point.x,
+          point.y,
           color.current,
           lineThickness.current,
           lineType.current,
@@ -653,11 +658,14 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
     if (newAnnotateState) {
       toolbarVisible.current = true;
       showAlert?.(
-        {message:`You can now annotate the screen. If you cannot see your annotation controls (on top), try minimizing your screen by using 'Cmd' + '-' (on Mac) or 'Ctrl' + '-' (on Windows).`, 
-        type:'success', 
-        duration: 
-        9000
-      });
+        {
+          message:
+            "Annotation is on. Use the controls at the top of the shared screen. If they are outside the viewport, zoom out with Ctrl − (Windows) or ⌘ − (Mac).",
+          type: "success",
+          duration: 6500,
+          position: "bottom-left",
+        }
+      );
     } else {
       toolbarVisible.current = false;
     }
@@ -681,7 +689,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
         height: "100%",
         maxWidth: "100%",
         maxHeight: "100%",
-        overflow: "auto",
+        overflow: "hidden",
       }}
       ref={screenboardRef}
     >
@@ -745,8 +753,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
             top: "5px",
             right: "105px",
             zIndex: 1000,
-            backgroundColor: "transparent",
-            display: toolbarVisible.current ? "block" : "none",
+            display: toolbarVisible.current ? "flex" : "none",
           }}
         >
           <div className="btn-group" role="group">
@@ -963,6 +970,13 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
           width="1280"
           height="720"
           style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            maxWidth: "100%",
+            maxHeight: "100%",
             padding: 0,
             margin: 0,
             display: annotateScreenStream ? "block" : "none",

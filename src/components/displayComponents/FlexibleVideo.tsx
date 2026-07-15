@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { getContainedContentRect } from "../screenboardComponents/canvasCoordinates";
+import type { ContainRect } from "../screenboardComponents/canvasCoordinates";
 
 const joinClassNames = (
   ...classes: Array<string | undefined | null | false>
@@ -239,29 +241,25 @@ const FlexibleVideoComponent: React.FC<FlexibleVideoOptions> = ({
   renderGrid,
   renderScreenboard,
 }) => {
-  const [cardWidth, setCardWidth] = useState<number>(0);
-  const [cardHeight, setCardHeight] = useState<number>(0);
-  const [cardLeft, setCardLeft] = useState<number>(0);
-  const [canvasLeft, setCanvasLeft] = useState<number>(0);
+  const [screenContentRect, setScreenContentRect] = useState<ContainRect>(() =>
+    getContainedContentRect(customWidth, customHeight, 0, 0)
+  );
 
   useEffect(() => {
     if (annotateScreenStream && localStreamScreen) {
       const videoTrack = localStreamScreen.getVideoTracks()[0];
       if (videoTrack) {
-        const videoHeight = videoTrack.getSettings().height || 0;
-        const videoWidth = videoTrack.getSettings().width || 0;
-        setCardWidth(videoWidth);
-        setCardHeight(videoHeight);
-        const computedLeft = Math.floor((customWidth - videoWidth) / 2);
-        setCardLeft(computedLeft);
-        setCanvasLeft(computedLeft < 0 ? computedLeft : 0);
+        const { width = 0, height = 0 } = videoTrack.getSettings();
+        setScreenContentRect(
+          getContainedContentRect(customWidth, customHeight, width, height)
+        );
+        return;
       }
-    } else {
-      setCardWidth(customWidth);
-      setCardHeight(customHeight);
-      setCardLeft(0);
-      setCanvasLeft(0);
     }
+
+    setScreenContentRect(
+      getContainedContentRect(customWidth, customHeight, 0, 0)
+    );
   }, [
     customWidth,
     customHeight,
@@ -286,10 +284,12 @@ const FlexibleVideoComponent: React.FC<FlexibleVideoOptions> = ({
     margin: 0,
     position: "relative",
     display: showAspect ? "flex" : "none",
+    width: "100%",
+    height: "100%",
     maxWidth: customWidth,
+    maxHeight: customHeight,
     overflowX: "hidden",
-    overflowY: "auto",
-    left: cardLeft > 0 ? cardLeft : 0,
+    overflowY: "hidden",
     ...(containerStyleOverrides ?? {}),
   };
 
@@ -307,6 +307,8 @@ const FlexibleVideoComponent: React.FC<FlexibleVideoOptions> = ({
   const rowStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "row",
+    width: "100%",
+    height: "100%",
     ...(rowStyleOverrides ?? {}),
   };
 
@@ -323,13 +325,14 @@ const FlexibleVideoComponent: React.FC<FlexibleVideoOptions> = ({
 
   const cellStyle: React.CSSProperties = {
     flex: 1,
-    width: cardWidth,
-    height: cardHeight,
+    width: customWidth,
+    height: customHeight,
     backgroundColor,
     margin: "1px",
     padding: 0,
     borderRadius: "0px",
-    left: cardLeft,
+    position: "relative",
+    left: 0,
     ...(cellStyleOverrides ?? {}),
   };
 
@@ -423,10 +426,10 @@ const FlexibleVideoComponent: React.FC<FlexibleVideoOptions> = ({
 
   const screenboardStyle: React.CSSProperties = {
     position: "absolute",
-    top: 0,
-    left: canvasLeft,
-    width: cardWidth,
-    height: cardHeight,
+    top: screenContentRect.top,
+    left: screenContentRect.left,
+    width: screenContentRect.width,
+    height: screenContentRect.height,
     backgroundColor: "rgba(0, 0, 0, 0.005)",
     zIndex: 2,
     pointerEvents: "none",

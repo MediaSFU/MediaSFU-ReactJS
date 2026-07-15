@@ -120,7 +120,6 @@ const primeTranslationAudioElement = (audioElement: HTMLAudioElement, stream: Me
   });
 };
 
-
 /**
  * Resumes a media consumer by handling the provided track and updating the relevant parameters.
  *

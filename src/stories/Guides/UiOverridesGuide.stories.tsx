@@ -8,6 +8,12 @@ const meta = {
 	tags: ['autodocs'],
 	parameters: {
 		layout: 'fullscreen',
+		controls: {
+			disable: true,
+		},
+		actions: {
+			disable: true,
+		},
 		backgrounds: {
 			default: 'midnight',
 		},

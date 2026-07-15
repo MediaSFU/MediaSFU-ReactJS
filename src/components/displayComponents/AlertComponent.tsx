@@ -215,7 +215,7 @@ const AlertComponent: React.FC<AlertComponentOptions> = ({
   type = 'success',
   duration = 4000,
   onHide,
-  textColor = 'black',
+  textColor = '#ffffff',
   overlayProps,
   containerProps,
   messageProps,
@@ -289,8 +289,16 @@ const AlertComponent: React.FC<AlertComponentOptions> = ({
     containerClassName
   );
 
+  const alertPalette = {
+    success: { background: '#14532d', border: '#4ade80' },
+    danger: { background: '#7f1d1d', border: '#f87171' },
+    warning: { background: '#78350f', border: '#fbbf24' },
+    info: { background: '#1e3a8a', border: '#60a5fa' },
+  }[alertType];
+
   const containerStyle: React.CSSProperties = {
-    backgroundColor: alertType === 'success' ? '#16a34a' : '#dc2626',
+    backgroundColor: alertPalette.background,
+    border: `1px solid ${alertPalette.border}`,
     borderRadius: 12,
     padding: '20px 24px',
     maxWidth: 420,

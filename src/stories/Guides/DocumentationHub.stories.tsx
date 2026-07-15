@@ -123,6 +123,12 @@ const meta = {
 	component: DocumentationHub,
 	parameters: {
 		layout: 'fullscreen',
+		controls: {
+			disable: true,
+		},
+		actions: {
+			disable: true,
+		},
 		docs: {
 			description: {
 				component:

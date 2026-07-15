@@ -53,54 +53,109 @@
 }
 
 #screenboard-interface .toolbarScreen .btn-group button,
-#screenboard-interface .toolbarScreen .dropdown-menu a {
+#screenboard-interface .toolbarScreen .dropdown-menu a,
+#screenboard-interface .toolbarScreen .dropdown-menu button {
   font-size: 0.8rem;
-  padding: 5px 10px;
-  margin: 1px 2px;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-  background-color: transparent;
-  color: "black";
+  transition: background-color 0.16s ease, border-color 0.16s ease,
+    color 0.16s ease, transform 0.16s ease;
 }
 
 #screenboard-interface .toolbarScreen .btn-group button {
-  color: rgb(6, 6, 6);
-  border: none;
+  min-width: 34px;
+  height: 34px;
+  padding: 5px 9px;
+  margin: 0;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(148, 163, 184, 0.42) !important;
+  color: #f8fafc !important;
 }
 
-#screenboard-interface .toolbarScreen .dropdown-menu a {
+#screenboard-interface .toolbarScreen .btn-group button:hover,
+#screenboard-interface .toolbarScreen .btn-group button:focus-visible {
+  background: rgba(59, 130, 246, 0.36) !important;
+  border-color: rgba(147, 197, 253, 0.9) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+#screenboard-interface .toolbarScreen .dropdown-menu {
+  min-width: 160px;
+  padding: 6px;
+  margin-top: 6px;
+  background: rgba(15, 23, 42, 0.98);
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  border-radius: 10px;
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.38);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+#screenboard-interface .toolbarScreen .dropdown-menu a,
+#screenboard-interface .toolbarScreen .dropdown-menu button {
   background-color: transparent;
-  color: rgb(27, 26, 26);
+  color: #e2e8f0 !important;
+  width: 100%;
+  height: auto;
+  padding: 7px 9px !important;
+  border: 0 !important;
+  border-radius: 6px;
+  text-align: left;
+  white-space: nowrap;
 }
 
-/* #screenboard-interface .toolbarScreen .btn-group button:hover,
-#screenboard-interface .toolbarScreen .dropdown-menu a:hover {
-  background-color: rgba(214, 209, 209, 0.4);
-  color: black;
-} */
+#screenboard-interface .toolbarScreen .dropdown-menu a:hover,
+#screenboard-interface .toolbarScreen .dropdown-menu button:hover,
+#screenboard-interface .toolbarScreen .dropdown-menu a:focus,
+#screenboard-interface .toolbarScreen .dropdown-menu button:focus {
+  background: rgba(59, 130, 246, 0.3) !important;
+  color: #ffffff !important;
+  transform: none;
+}
 
 #screenboard-interface .toolbarScreen .btn-group button.active {
-  background-color: #454d55;
+  background-color: #2563eb !important;
+  border-color: #93c5fd !important;
 }
 
 #screenboard-interface #toolbar,
 #screenboard-interface #toolbarScreen {
-  transition: display 0.3s ease-in-out;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+#screenboard-interface #toolbarScreen {
+  align-items: center;
+  gap: 5px;
+  max-width: calc(100% - 120px);
+  padding: 5px;
+  border: 1px solid rgba(148, 163, 184, 0.46);
+  border-radius: 11px;
+  background: rgba(15, 23, 42, 0.94);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.38),
+    0 1px 0 rgba(255, 255, 255, 0.08) inset;
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
 }
 
 #screenboard-interface #toolbarToggle,
 #screenboard-interface #toolbarToggleScreen {
   cursor: pointer;
-  border: "2px solid black" !important;
+  border: 1px solid rgba(191, 219, 254, 0.9) !important;
   font-size: 0.8rem;
+  box-shadow: 0 7px 18px rgba(2, 6, 23, 0.28);
 }
 
 #screenboard-interface #colorPicker,
 #screenboard-interface #colorPickerScreen {
   font-size: 0.8rem;
-  padding: 2px 2px;
-  width: 32px;
-  height: 32px;
+  padding: 3px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.55);
+  border-radius: 7px;
+  cursor: pointer;
 }
 
 #screenboard-interface #lineTypePicker {
@@ -119,13 +174,16 @@
 }
 
 #screenboard-interface #lineTypePickerScreen {
-  font-size: 0.7rem;
-  padding: 2px auto;
-  width: 28px;
-  height: 28px;
-  background-color: rgba(214, 209, 209, 0.4);
-  color: #000;
-  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0 26px 0 9px;
+  min-width: 74px;
+  height: 34px;
+  background-color: #f8fafc;
+  color: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  border-radius: 7px;
+  cursor: pointer;
 }
 
 #screenboard-interface .toggle-icon {
@@ -140,8 +198,19 @@
 }
 
 #screenboard-interface .annotateScreenBtn {
-  background-color: #2d2e2f !important;
-  border: 2px solid #000 !important;
-  color: green !important;
+  background-color: #111827 !important;
+  border: 1px solid #64748b !important;
+  color: #f8fafc !important;
   font-size: 0.75rem;
+  box-shadow: 0 7px 18px rgba(2, 6, 23, 0.3);
+}
+
+#screenboard-interface .annotateScreenBtn:hover,
+#screenboard-interface .annotateScreenBtn:focus-visible {
+  background-color: #1e293b !important;
+  border-color: #cbd5e1 !important;
+}
+
+#screenboard-interface .toolbarScreen .shape-icon {
+  filter: brightness(0) invert(1);
 }

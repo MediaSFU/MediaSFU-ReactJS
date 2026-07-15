@@ -367,6 +367,18 @@ import {
 } from "../../@types/types";
 
 export type ModernMediasfuGenericOptions = {
+  initialTranslationState?: {
+    config?: TranslationRoomConfig | null;
+    spokenLanguage?: string;
+    spokenLanguageEnabled?: boolean;
+    defaultOutputLanguage?: string | null;
+    defaultListenLanguage?: string | null;
+    listenPreferences?:
+      | Map<string, string>
+      | Array<[string, string]>
+      | Record<string, string>;
+    isPersonalTranslation?: boolean;
+  };
   PrejoinPage?: (
     options: PreJoinPageOptions | WelcomePageOptions
   ) => React.ReactNode;
@@ -439,6 +451,7 @@ export type ModernMediasfuGenericOptions = {
  * @property {CustomComponentType} [customComponent] - Replace entire UI while retaining transports, sockets, and helpers.
  * @property {React.CSSProperties} [containerStyle] - Inline styles for root wrapper (dashboards, split views).
  * @property {MediasfuUICustomOverrides} [uiOverrides] - Targeted component/function overrides (layout, modals, helper wraps). See full map in docs.
+ * @property {Object} [initialTranslationState] - Optional translation bootstrap state for preview, demos, or local-first onboarding flows.
  *
  * MediasfuGeneric component.
  *
@@ -520,6 +533,7 @@ export type ModernMediasfuGenericOptions = {
  */
 
 const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
+  initialTranslationState,
   PrejoinPage, // No default - uses ModernPreJoinPage via withOverride
   localLink = "",
   connectMediaSFU = true,
@@ -546,6 +560,23 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   userVoiceClones,
   optimizeVideoRecord = false,
 }) => {
+  const normalizeListenPreferences = (
+    value?: Map<string, string> | Array<[string, string]> | Record<string, string>
+  ): Map<string, string> => {
+    if (!value) {
+      return new Map<string, string>();
+    }
+
+    if (value instanceof Map) {
+      return new Map(value);
+    }
+
+    if (Array.isArray(value)) {
+      return new Map(value);
+    }
+
+    return new Map(Object.entries(value));
+  };
 
   const MainContainer = useMemo(
     () => withOverride(uiOverrides?.mainContainer, MainContainerComponent),
@@ -2237,14 +2268,31 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const muteOthersCamera = useRef<boolean>(false); // True if non-panelist cameras should be muted
 
   // Translation-related variables
-  const translationConfig = useRef<TranslationRoomConfig | null>(null); // Room translation configuration
-  const [translationSupported, setTranslationSupported] = useState<boolean>(false); // State to trigger re-render when translation becomes available
-  const [isPersonalTranslation, setIsPersonalTranslation] = useState<boolean>(false); // True if translation is billed from user's own credits
-  const mySpokenLanguage = useRef<string>('en'); // User's spoken language
-  const mySpokenLanguageEnabled = useRef<boolean>(false); // True if user has enabled translation of their audio
-  const myDefaultOutputLanguage = useRef<string | null>(null); // Default output language (e.g., speak French but output German)
-  const myDefaultListenLanguage = useRef<string | null>(null); // User's default listen language (null = original)
-  const listenPreferences = useRef<Map<string, string>>(new Map()); // Per-speaker listen preferences (speakerId -> language)
+  const translationConfig = useRef<TranslationRoomConfig | null>(
+    initialTranslationState?.config ?? null
+  ); // Room translation configuration
+  const [translationSupported, setTranslationSupported] = useState<boolean>(
+    initialTranslationState?.config?.supportTranslation === true
+      || initialTranslationState?.isPersonalTranslation === true
+  ); // State to trigger re-render when translation becomes available
+  const [isPersonalTranslation, setIsPersonalTranslation] = useState<boolean>(
+    initialTranslationState?.isPersonalTranslation === true
+  ); // True if translation is billed from user's own credits
+  const mySpokenLanguage = useRef<string>(
+    initialTranslationState?.spokenLanguage ?? 'en'
+  ); // User's spoken language
+  const mySpokenLanguageEnabled = useRef<boolean>(
+    initialTranslationState?.spokenLanguageEnabled ?? false
+  ); // True if user has enabled translation of their audio
+  const myDefaultOutputLanguage = useRef<string | null>(
+    initialTranslationState?.defaultOutputLanguage ?? null
+  ); // Default output language (e.g., speak French but output German)
+  const myDefaultListenLanguage = useRef<string | null>(
+    initialTranslationState?.defaultListenLanguage ?? null
+  ); // User's default listen language (null = original)
+  const listenPreferences = useRef<Map<string, string>>(
+    normalizeListenPreferences(initialTranslationState?.listenPreferences)
+  ); // Per-speaker listen preferences (speakerId -> language)
   const translationProducerMap = useRef<TranslationProducerMap>({}); // Map of original producer IDs to translation producers
   const activeTranslationProducerIds = useRef<Set<string>>(new Set()); // Set of producer IDs that are translation audio
   const translationPlaybackRetryTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
@@ -2988,7 +3036,9 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const updateTranslationConfig = (value: TranslationRoomConfig | null) => {
     translationConfig.current = value;
     // Also update state to trigger re-render for menu visibility
-    setTranslationSupported(value?.supportTranslation === true);
+    setTranslationSupported(
+      value?.supportTranslation === true || canUsePersonalTranslation === true
+    );
   };
   const updateMySpokenLanguage = (value: string) => {
     mySpokenLanguage.current = value;
@@ -4987,7 +5037,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         // Action for the Translation button - always use sidebar content
         updateActiveSidebarContent('translation', true);
       },
-      show: translationSupported,
+      show: translationSupported || canUsePersonalTranslation,
     },
   ];
 

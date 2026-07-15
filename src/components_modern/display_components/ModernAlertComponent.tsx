@@ -236,6 +236,11 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
   if (!shouldRender) return null;
 
   const colors = getAlertColors(type, isDarkMode);
+  const surfaceColor = isDarkMode
+    ? 'rgba(15, 23, 42, 0.97)'
+    : 'rgba(255, 255, 255, 0.98)';
+  const primaryTextColor = isDarkMode ? '#F8FAFC' : '#0F172A';
+  const secondaryControlColor = isDarkMode ? '#CBD5E1' : '#334155';
 
   // Position styles
   const getPositionStyle = (): React.CSSProperties => {
@@ -275,7 +280,9 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
     transform: `${getAnimationTransform()} scale(${isAnimating ? 1 : 0.95})`,
     opacity: isAnimating ? 1 : 0,
     transition: `all 250ms ${MediasfuAnimations.snappy}`,
-    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
+    boxShadow: isDarkMode
+      ? '0 18px 45px rgba(2, 6, 23, 0.5), 0 3px 10px rgba(2, 6, 23, 0.35)'
+      : '0 18px 45px rgba(15, 23, 42, 0.2), 0 3px 10px rgba(15, 23, 42, 0.12)',
     borderRadius: 16,
     cursor: contentDismissible ? 'pointer' : 'default',
   };
@@ -306,7 +313,8 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
   const messageStyle: React.CSSProperties = {
     ...MediasfuTypography.getBodyMedium(isDarkMode),
     flex: 1,
-    color: isDarkMode ? '#FFFFFF' : '#1F2937',
+    color: primaryTextColor,
+    lineHeight: 1.45,
   };
 
   // Close button styles - adapt to background mode
@@ -317,10 +325,12 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: '50%',
-    backgroundColor: 'transparent',
-    border: 'none',
+    backgroundColor: isDarkMode
+      ? 'rgba(255, 255, 255, 0.08)'
+      : 'rgba(15, 23, 42, 0.06)',
+    border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.08)'}`,
     cursor: 'pointer',
-    color: isDarkMode ? 'rgba(255, 255, 255, 0.6)' : 'rgba(0, 0, 0, 0.5)',
+    color: secondaryControlColor,
     transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
     flexShrink: 0,
   };
@@ -337,7 +347,11 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
           blur={20}
           padding={MediasfuSpacing.md}
           isDarkMode={isDarkMode}
+          backgroundColor={surfaceColor}
           borderColor={colors.border}
+          borderWidth={1}
+          elevation={4}
+          hoverEffect={false}
         >
           <div style={contentStyle}>
             <div style={iconContainerStyle}>

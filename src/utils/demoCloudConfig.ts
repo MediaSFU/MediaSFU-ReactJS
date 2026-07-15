@@ -7,8 +7,8 @@ export interface DemoCloudConfig {
   connectMediaSFU: boolean;
 }
 
-// Publish-safe defaults. Use scripts/configure-mediasfu-defaults.mjs
-// to temporarily swap in staging or other local test values when needed.
+// Publish-safe defaults for demos and Storybook.
+// Keep real credentials in your own environment or backend when testing cloud flows.
 export const DEMO_MEDIASFU_API_USERNAME = 'your-api-username';
 export const DEMO_MEDIASFU_API_KEY = 'your-api-key';
 export const DEMO_CONNECT_MEDIA_SFU = false;

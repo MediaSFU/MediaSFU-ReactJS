@@ -22,6 +22,8 @@
 
 import React, { useEffect, useState } from "react";
 import { FlexibleVideoOptions } from "../../components/displayComponents/FlexibleVideo";
+import { getContainedContentRect } from "../../components/screenboardComponents/canvasCoordinates";
+import type { ContainRect } from "../../components/screenboardComponents/canvasCoordinates";
 
 // Extended options for modern styling - re-export as ModernFlexibleVideoOptions
 export interface ModernFlexibleVideoOptions extends FlexibleVideoOptions {
@@ -74,30 +76,26 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
   cellBorderRadius = 0,
   enableGlow = false,
 }) => {
-  const [cardWidth, setCardWidth] = useState<number>(0);
-  const [cardHeight, setCardHeight] = useState<number>(0);
-  const [cardLeft, setCardLeft] = useState<number>(0);
-  const [canvasLeft, setCanvasLeft] = useState<number>(0);
+  const [screenContentRect, setScreenContentRect] = useState<ContainRect>(() =>
+    getContainedContentRect(customWidth, customHeight, 0, 0)
+  );
 
   // Derive card size from stream or dimensions (matches original FlexibleVideo)
   useEffect(() => {
     if (annotateScreenStream && localStreamScreen) {
       const videoTrack = localStreamScreen.getVideoTracks()[0];
       if (videoTrack) {
-        const videoHeight = videoTrack.getSettings().height || 0;
-        const videoWidth = videoTrack.getSettings().width || 0;
-        setCardWidth(videoWidth);
-        setCardHeight(videoHeight);
-        const computedLeft = Math.floor((customWidth - videoWidth) / 2);
-        setCardLeft(computedLeft);
-        setCanvasLeft(computedLeft < 0 ? computedLeft : 0);
+        const { width = 0, height = 0 } = videoTrack.getSettings();
+        setScreenContentRect(
+          getContainedContentRect(customWidth, customHeight, width, height)
+        );
+        return;
       }
-    } else {
-      setCardWidth(customWidth);
-      setCardHeight(customHeight);
-      setCardLeft(0);
-      setCanvasLeft(0);
     }
+
+    setScreenContentRect(
+      getContainedContentRect(customWidth, customHeight, 0, 0)
+    );
   }, [customWidth, customHeight, localStreamScreen, annotateScreenStream]);
 
   // Extract props for customization
@@ -120,10 +118,12 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
     position: "relative",
     display: showAspect ? "flex" : "none",
     flexDirection: "column",
+    width: "100%",
+    height: "100%",
     maxWidth: customWidth,
+    maxHeight: customHeight,
     overflowX: "hidden",
-    overflowY: "auto",
-    left: cardLeft > 0 ? cardLeft : 0,
+    overflowY: "hidden",
     borderRadius: cellBorderRadius > 0 ? `${cellBorderRadius}px` : "0px",
     ...(containerStyleOverrides ?? {}),
   };
@@ -143,6 +143,8 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
   const rowStyle: React.CSSProperties = {
     display: "flex",
     flexDirection: "row",
+    width: "100%",
+    height: "100%",
     ...(rowStyleOverrides ?? {}),
   };
 
@@ -176,13 +178,14 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
   // Uses flex: 1 for distribution with cardWidth/cardHeight as constraints
   const getCellStyle = (hasContent: boolean): React.CSSProperties => ({
     flex: 1,
-    width: cardWidth,
-    height: cardHeight,
+    width: customWidth,
+    height: customHeight,
     backgroundColor: getCellBgColor(hasContent),
     margin: "1px",
     padding: 0,
     borderRadius: cellBorderRadius > 0 ? `${cellBorderRadius}px` : "0px",
-    left: cardLeft,
+    position: "relative",
+    left: 0,
     overflow: "hidden",
     display: "flex",
     alignItems: "center",
@@ -347,10 +350,10 @@ const ModernFlexibleVideoComponent: React.FC<ModernFlexibleVideoOptions> = ({
   // Screenboard style - matches original FlexibleVideo with modern additions
   const screenboardStyle: React.CSSProperties = {
     position: "absolute",
-    top: 0,
-    left: canvasLeft,
-    width: cardWidth,
-    height: cardHeight,
+    top: screenContentRect.top,
+    left: screenContentRect.left,
+    width: screenContentRect.width,
+    height: screenContentRect.height,
     backgroundColor: "rgba(0, 0, 0, 0.005)",
     zIndex: 2,
     pointerEvents: "none",

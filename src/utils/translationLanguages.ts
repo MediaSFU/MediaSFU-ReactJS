@@ -1024,6 +1024,11 @@ export function fetchLanguagesViaSocket(
   displayLocale: string = 'en'
 ): Promise<LanguageOption[]> {
   return new Promise((resolve) => {
+    if (!socket || typeof socket.emit !== 'function') {
+      resolve(getSupportedLanguages(displayLocale));
+      return;
+    }
+
     const timeout = setTimeout(() => {
       // On timeout, return static languages
       resolve(getSupportedLanguages(displayLocale));

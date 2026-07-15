@@ -639,6 +639,7 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   const [voicesFetchedForLang, setVoicesFetchedForLang] = useState<string | null>(null);
   const roomSupportsTranslation = translationConfig?.supportTranslation === true;
   const translationAvailable = roomSupportsTranslation || canUsePersonalTranslation;
+  const hasSocketEmit = typeof socket?.emit === 'function';
   const pendingTranslationMessage = personalTranslationUsername
     ? `MediaSFU will try to activate translation using ${personalTranslationUsername} credits for this joiner.`
     : 'MediaSFU will try to activate translation using your personal translation eligibility for this joiner.';
@@ -646,7 +647,7 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
   // Single consolidated effect for fetching voices
   // Handles both initial fetch and language changes
   useEffect(() => {
-    if (!isVisible || !socket || !roomName || voicesLoading) return;
+    if (!isVisible || !roomName || voicesLoading) return;
     
     // Target language for TTS is the speaker's OUTPUT language (what they want to sound in)
     // NOT the spoken language (what they speak) or listen language (for listeners)
@@ -659,6 +660,12 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
     
     // Skip if we already fetched for this exact language
     if (voicesFetchedForLang === targetLanguage) {
+      return;
+    }
+
+    if (!hasSocketEmit) {
+      setVoicesFetched(false);
+      setVoicesLoading(false);
       return;
     }
     
@@ -693,7 +700,7 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
           console.error('[TranslationSettingsModal] Failed to fetch languages:', err);
         });
     }
-  }, [isVisible, socket, roomName, localDefaultOutputLang, voicesFetchedForLang, voicesLoading, translationConfig, selectedTTSProvider, voicesFetched]);
+  }, [hasSocketEmit, isVisible, socket, roomName, localDefaultOutputLang, voicesFetchedForLang, voicesLoading, translationConfig, selectedTTSProvider, voicesFetched]);
 
   // Mount animation
   useEffect(() => {
@@ -852,18 +859,22 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
       } else {
         voiceConfig.voiceGender = selectedVoiceGender;
       }
+
+      const canPersistToSocket = hasSocketEmit && !!roomName;
       
       // Update spoken language and default output language
       if (spokenChanged || localSpokenEnabled) {
-        socket.emit('translation:setMyLanguage', {
-          roomName,
-          language: localSpokenLanguage,
-          defaultOutputLanguage: localDefaultOutputLang, // null means same as spoken language
-          enabled: localSpokenEnabled,
-          producerId: audioProducerId,
-          // Include voice configuration
-          voiceConfig: localSpokenEnabled ? voiceConfig : undefined,
-        });
+        if (canPersistToSocket) {
+          socket.emit('translation:setMyLanguage', {
+            roomName,
+            language: localSpokenLanguage,
+            defaultOutputLanguage: localDefaultOutputLang, // null means same as spoken language
+            enabled: localSpokenEnabled,
+            producerId: audioProducerId,
+            // Include voice configuration
+            voiceConfig: localSpokenEnabled ? voiceConfig : undefined,
+          });
+        }
         updateMySpokenLanguage(localSpokenLanguage);
         updateMyDefaultOutputLanguage(localDefaultOutputLang);
         updateMySpokenLanguageEnabled(localSpokenEnabled);
@@ -875,10 +886,12 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
       if (!perSpeakerMode) {
         // Apply default to all
         if (localDefaultListen !== myDefaultListenLanguage) {
-          socket.emit('translation:setDefaultListenLanguage', {
-            roomName,
-            language: localDefaultListen,
-          });
+          if (canPersistToSocket) {
+            socket.emit('translation:setDefaultListenLanguage', {
+              roomName,
+              language: localDefaultListen,
+            });
+          }
           updateMyDefaultListenLanguage(localDefaultListen);
           updateListenPreferences(new Map()); // Clear per-speaker when using default
           setLastListenChange(now);
@@ -893,16 +906,18 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
         for (const [speakerId, language] of localListenPrefs) {
           const prevLang = listenPreferences.get(speakerId);
           if (prevLang !== language) {
-            if (prevLang) {
+            if (prevLang && canPersistToSocket) {
               socket.emit('translation:unsubscribe', { roomName, speakerId, language: prevLang });
             }
-            socket.emit('translation:subscribe', { roomName, speakerId, language });
+            if (canPersistToSocket) {
+              socket.emit('translation:subscribe', { roomName, speakerId, language });
+            }
           }
         }
         
         // Unsubscribe from removed preferences
         for (const [speakerId, language] of listenPreferences) {
-          if (!localListenPrefs.has(speakerId)) {
+          if (!localListenPrefs.has(speakerId) && canPersistToSocket) {
             socket.emit('translation:unsubscribe', { roomName, speakerId, language });
           }
         }
@@ -913,7 +928,13 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
         }
       }
       
-      showAlert?.({ message: 'Translation settings saved', type: 'success', duration: 2000 });
+      showAlert?.({
+        message: canPersistToSocket
+          ? 'Translation settings saved'
+          : 'Translation preview updated locally',
+        type: 'success',
+        duration: 2000,
+      });
       onClose();
     } catch (error) {
       console.error('Failed to save translation settings:', error);
@@ -922,10 +943,10 @@ export const TranslationSettingsModal: React.FC<TranslationSettingsModalProps> =
       setIsSaving(false);
     }
   }, [
-    localSpokenLanguage, localSpokenEnabled, localDefaultListen, localListenPrefs,
-    mySpokenLanguage, mySpokenLanguageEnabled, myDefaultListenLanguage, listenPreferences,
+    hasSocketEmit, localSpokenLanguage, localSpokenEnabled, localDefaultOutputLang, localDefaultListen, localListenPrefs,
+    mySpokenLanguage, mySpokenLanguageEnabled, myDefaultOutputLanguage, myDefaultListenLanguage, listenPreferences,
     perSpeakerMode, socket, roomName, audioProducerId,
-    updateMySpokenLanguage, updateMySpokenLanguageEnabled, updateMyDefaultListenLanguage, updateListenPreferences,
+    updateMySpokenLanguage, updateMySpokenLanguageEnabled, updateMyDefaultOutputLanguage, updateMyDefaultListenLanguage, updateListenPreferences,
     showAlert, onClose, lastSpokenChange, lastListenChange,
   ]);
 

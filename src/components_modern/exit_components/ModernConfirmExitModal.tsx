@@ -63,6 +63,7 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
   islevel,
   title,
   confirmLabel,
+  leaveLabel,
   cancelLabel,
   message,
   // Modern-specific props
@@ -70,6 +71,7 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
   enableGlassmorphism = true,
 }) => {
   const [isMounted, setIsMounted] = useState(false);
+  const isHostExit = islevel === '2' && !ban;
 
   // Mount animation
   useEffect(() => {
@@ -82,12 +84,13 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
   }, [isConfirmExitModalVisible]);
 
   // Handle confirm
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback((endRoomOnHostExit = true) => {
     exitEventOnConfirm({
       socket,
       member,
       roomName,
       ban,
+      endRoomOnHostExit,
     } as ConfirmExitOptions);
     onConfirmExitClose();
   }, [exitEventOnConfirm, socket, member, roomName, ban, onConfirmExitClose]);
@@ -100,8 +103,8 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
     if (message) {
       return message;
     }
-    return islevel === '2'
-      ? 'Are you sure you want to end the meeting for everyone?'
+    return isHostExit
+      ? 'Leave room keeps the meeting active for everyone else and lets you rejoin. End for everyone closes it for all participants.'
       : 'Are you sure you want to leave the meeting?';
   };
 
@@ -202,6 +205,7 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
     gap: `${MediasfuSpacing.sm}px`,
     padding: `${MediasfuSpacing.md}px`,
     borderTop: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
+    flexWrap: 'wrap',
   };
 
   return (
@@ -222,7 +226,7 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
         <div style={headerStyle}>
           <h2 style={titleStyle}>
             <FontAwesomeIcon icon={faSignOutAlt} />
-            {title || (islevel === '2' ? 'End Meeting' : 'Leave Meeting')}
+            {title || (isHostExit ? 'Leave or end meeting' : 'Leave Meeting')}
           </h2>
           <button style={closeButtonStyle} onClick={onConfirmExitClose}>
             <FontAwesomeIcon icon={faTimes} size="lg" />
@@ -248,17 +252,28 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
           >
             {cancelLabel || 'Cancel'}
           </PremiumButton>
+          {isHostExit && (
+            <PremiumButton
+              variant="outlined"
+              size="md"
+              onPress={() => handleConfirm(false)}
+              isDarkMode={isDarkMode}
+              style={{ flex: 1 }}
+            >
+              {leaveLabel || 'Leave room'}
+            </PremiumButton>
+          )}
           <PremiumButton
             variant="filled"
             size="md"
-            onPress={handleConfirm}
+            onPress={() => handleConfirm(true)}
             isDarkMode={isDarkMode}
             style={{
               flex: 1,
               background: 'linear-gradient(135deg, #EF4444, #DC2626)',
             }}
           >
-            {confirmLabel || (islevel === '2' ? 'End Meeting' : 'Leave')}
+            {confirmLabel || (isHostExit ? 'End for everyone' : 'Leave')}
           </PremiumButton>
         </div>
       </GlassmorphicContainer>

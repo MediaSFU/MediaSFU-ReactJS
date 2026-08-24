@@ -1,0 +1,21 @@
+<link rel="icon" href="./favicon.ico" sizes="any" />
+<link rel="shortcut icon" href="./favicon.ico" />
+<link rel="apple-touch-icon" href="./mediasfu-logo.png" />
+<meta name="theme-color" content="#0a0a1a" />
+<meta name="description" content="MediaSFU React SDK component catalog" />
+<script>
+  (() => {
+    const title = 'MediaSFU React SDK – Component Catalog';
+    const setTitle = () => {
+      if (document.title !== title) {
+        document.title = title;
+      }
+    };
+
+    setTitle();
+    window.addEventListener('DOMContentLoaded', setTitle);
+    window.addEventListener('load', setTitle);
+    window.setInterval(setTitle, 1000);
+  })();
+</script>
+

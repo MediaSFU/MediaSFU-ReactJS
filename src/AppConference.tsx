@@ -57,7 +57,7 @@ const App = () => {
   // Example:
   /*
   const credentials = {};
-  const localLink = 'http://your-ce-server.com'; // http://localhost:3000 for local testing
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = localLink.trim() !== '';
   */
 
@@ -67,9 +67,9 @@ const App = () => {
   /*
   const credentials = {
     apiUserName: 'dummyUsr',
-    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    apiKey: '0'.repeat(64),
   };
-  const localLink = 'http://your-ce-server.com'; // http://localhost:3000 for local testing
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = localLink.trim() !== '';
   */
 

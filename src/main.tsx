@@ -6,6 +6,14 @@ export * from './@types/types';
 // Utility and initial state
 export * from './methods/utils/initialValuesState';
 
+// Headless helpers for `returnUI={false}` integrations.
+// MediaSFU components still publish equivalents of `getParticipantMedia` and
+// `getCurrentParams` through `sourceParameters` for backwards compatibility;
+// these are the supported SDK-level entry points, so a consumer driving the SDK
+// headlessly does not have to reach into the parameter bag to find them.
+export * from './methods/utils/getParticipantMedia';
+export * from './methods/utils/headless';
+
 // Display Components
 export * from './components/displayComponents/LoadingModal';
 export * from './components/displayComponents/MainAspectComponent';

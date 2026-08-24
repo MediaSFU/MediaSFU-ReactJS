@@ -175,9 +175,7 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
 
   const [isAnimating, setIsAnimating] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
-  const [glowValue, setGlowValue] = useState(0.2);
   const dismissTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const glowRef = useRef<number | null>(null);
 
   // Inject animations on mount
   useEffect(() => {

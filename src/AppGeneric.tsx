@@ -52,15 +52,15 @@ const App = () => {
 
   // Scenario A: Using MediaSFU CE only (no MediaSFU Cloud)
   // const credentials = {} as const;
-  // const localLink = 'http://localhost:3000';
+  // const localLink = 'https://your-mediasfu-server.example.com';
   // const connectMediaSFU = false;
 
   // Scenario B: Using MediaSFU CE + MediaSFU Cloud for egress only
   // const credentials = {
   //   apiUserName: 'dummyUsr',
-  //   apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  //   apiKey: '0'.repeat(64),
   // } as const;
-  // const localLink = 'http://your-ce-server.com';
+  // const localLink = 'https://your-mediasfu-server.example.com';
   // const connectMediaSFU = localLink.trim() !== '';
 
   // Scenario C: Using MediaSFU Cloud without your own server.

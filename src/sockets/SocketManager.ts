@@ -166,7 +166,7 @@ async function connectSocket(
  * @example
  * ```typescript
  * const options = {
- *   link: 'http://localhost:3000',
+ *   link: 'https://your-socket-server.example.com',
  * };
  *
  * try {

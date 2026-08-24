@@ -67,8 +67,12 @@ const createLocalSendTransport = async ({
           return;
         }
 
+        // Same teardown race as the remote transport below: this callback can
+        // arrive after the room has been left and `device` cleared.
+        if (!device) return;
+
         // Create local send transport
-        localProducerTransport = await device!.createSendTransport(params);
+        localProducerTransport = await device.createSendTransport(params);
         if (updateLocalProducerTransport) {
           updateLocalProducerTransport(localProducerTransport);
         }
@@ -230,8 +234,18 @@ export const createSendTransport: CreateSendTransportType = async ({
           return;
         }
 
+        // The room can go away while this acknowledgement is in flight.
+        //
+        // `device` is cleared on teardown, and this callback runs whenever the
+        // server answers — so leaving a room at the wrong moment threw
+        // "Cannot read properties of null (reading 'createSendTransport')"
+        // from inside a socket handler, where nothing can catch it. A closed
+        // room has nothing to attach a transport to, so there is nothing to do
+        // but stop.
+        if (!device) return;
+
         // Create a WebRTC send transport
-        producerTransport = await device!.createSendTransport(params);
+        producerTransport = await device.createSendTransport(params);
         updateProducerTransport(producerTransport);
 
         // Handle 'connect' event

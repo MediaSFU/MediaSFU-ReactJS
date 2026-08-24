@@ -301,7 +301,15 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
 }) => {
   const { getUpdatedAllParams } = parameters;
 
-  parameters = getUpdatedAllParams();
+  // Read parameters without republishing. getUpdatedAllParams() notifies
+  // consumers, which is unsafe from this render path; getCurrentParams is the
+  // pure read.
+  const readParams = () =>
+    typeof (parameters as any).getCurrentParams === 'function'
+      ? (parameters as any).getCurrentParams()
+      : getUpdatedAllParams();
+
+  parameters = readParams();
   let {
     reUpdateInter,
     updateParticipantAudioDecibels,
@@ -340,7 +348,7 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
           // Do nothing
         }
 
-        const updatedParams = getUpdatedAllParams();
+        const updatedParams = readParams();
         let {
           eventType,
           meetingDisplayType,

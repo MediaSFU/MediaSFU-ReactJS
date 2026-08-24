@@ -26,6 +26,7 @@ export interface VideoCardParameters {
 
   // mediasfu functions
   getUpdatedAllParams: () => VideoCardParameters;
+  getCurrentParams?: () => VideoCardParameters;
   [key: string]: any;
 }
 
@@ -269,8 +270,12 @@ const VideoCard: React.FC<VideoCardOptions> = ({
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const { getUpdatedAllParams } = parameters;
-      const updatedParams = getUpdatedAllParams();
+      let updatedParams = parameters;
+      try {
+        updatedParams = parameters.getCurrentParams?.() ?? parameters;
+      } catch {
+        // Fall back to the already-held snapshot without publishing.
+      }
       const { audioDecibels, participants } = updatedParams;
 
       const existingEntry =
@@ -304,8 +309,12 @@ const VideoCard: React.FC<VideoCardOptions> = ({
 
   const toggleAudio = async () => {
     if (!participant?.muted) {
-      const { getUpdatedAllParams } = parameters;
-      const updatedParams = getUpdatedAllParams();
+      let updatedParams = parameters;
+      try {
+        updatedParams = parameters.getCurrentParams?.() ?? parameters;
+      } catch {
+        // Fall back to the already-held snapshot without publishing.
+      }
       await controlMedia({
         participantId: participant.id || "",
         participantName: participant.name,
@@ -324,8 +333,12 @@ const VideoCard: React.FC<VideoCardOptions> = ({
 
   const toggleVideo = async () => {
     if (participant?.videoOn) {
-      const { getUpdatedAllParams } = parameters;
-      const updatedParams = getUpdatedAllParams();
+      let updatedParams = parameters;
+      try {
+        updatedParams = parameters.getCurrentParams?.() ?? parameters;
+      } catch {
+        // Fall back to the already-held snapshot without publishing.
+      }
       await controlMedia({
         participantId: participant.id || "",
         participantName: participant.name,

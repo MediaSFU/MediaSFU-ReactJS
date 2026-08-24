@@ -1,7 +1,11 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "4.2.8",
+  "version": "4.3.0",
   "private": false,
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "main": "dist/main.js",
   "module": "dist/main.js",
   "types": "dist/types/main.d.ts",
@@ -25,7 +29,7 @@
   "description": "mediasfu-reactjs – React 18/19 WebRTC SDK for video conferencing, webinars, broadcasts, live streaming, chat, recording, whiteboard, and AI agents. Plug-in prebuilt rooms or build fully custom UIs.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/MediaSFU/MediaSFU-ReactJS"
+    "url": "git+https://github.com/MediaSFU/MediaSFU-ReactJS.git"
   },
   "homepage": "https://www.npmjs.com/package/mediasfu-reactjs",
   "bugs": {
@@ -35,7 +39,8 @@
   "files": [
     "dist/",
     "README.md",
-    "README_DETAILED.md"
+    "README_DETAILED.md",
+    "HEADLESS_GUIDE.md"
   ],
   "keywords": [
     "mediasfu",
@@ -162,11 +167,12 @@
     "build-storybook": "npm run generate-storybook-stories && storybook build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "buildnpm": "rm -rf dist && webpack --config webpack.config.js --mode production && tsc --emitDeclarationOnly -p tsconfig.json",
-    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\"",
-    "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --fix",
+    "buildnpm": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && webpack --config webpack.config.js --mode production && tsc --emitDeclarationOnly -p tsconfig.declarations.json",
+    "check:embedded-container": "node scripts/check-embedded-container-contract.mjs",
+    "check:public-sync": "node scripts/check-public-sync.mjs",
+    "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --ignore-pattern \"src/stories/generated/**\" --ignore-pattern \"src/stories/generated-support/**\"",
+    "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --ignore-pattern \"src/stories/generated/**\" --ignore-pattern \"src/stories/generated-support/**\" --fix",
     "build-docs": "typedoc",
-    "prepublishOnly": "npm run buildnpm",
     "prepack": "npm run buildnpm"
   },
   "eslintConfig": {

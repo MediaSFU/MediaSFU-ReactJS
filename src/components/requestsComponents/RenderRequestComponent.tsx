@@ -65,7 +65,7 @@ export type RenderRequestComponentType = (
  *   { id: "2", name: "Enable Video", icon: "fa-video" }
  * ];
  * 
- * const socket = io("http://localhost:3000");
+ * const socket = io("https://your-socket-server.example.com");
  * 
  * const handleRequestItemPress = ({ request, action }) => {
  *   console.log(`${action} request for ${request.name}`);

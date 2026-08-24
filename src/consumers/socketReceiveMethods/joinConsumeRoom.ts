@@ -51,7 +51,7 @@ export type JoinConsumeRoomType = (options: JoinConsumeRoomOptions) => Promise<J
  * 
  * const apiToken = 'your-api-token';
  * const apiUserName = 'your-api-username';
- * const remote_sock = io("http://localhost:3000");
+ * const remote_sock = io("https://your-socket-server.example.com");
  * 
  * const parameters = {
  *   roomName: 'room-name',

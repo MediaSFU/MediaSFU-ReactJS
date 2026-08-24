@@ -21,6 +21,7 @@ export interface ConfirmExitModalOptions {
   islevel: string;
   title?: React.ReactNode;
   confirmLabel?: React.ReactNode;
+  leaveLabel?: React.ReactNode;
   cancelLabel?: React.ReactNode;
   message?: React.ReactNode | ((context: { islevel: string }) => React.ReactNode);
   overlayProps?: React.HTMLAttributes<HTMLDivElement>;
@@ -34,6 +35,7 @@ export interface ConfirmExitModalOptions {
   messageProps?: React.HTMLAttributes<HTMLParagraphElement>;
   footerProps?: React.HTMLAttributes<HTMLDivElement>;
   cancelButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+  leaveButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   confirmButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   bodyDividerProps?: React.HTMLAttributes<HTMLHRElement>;
   renderHeader?: (options: {
@@ -48,6 +50,7 @@ export interface ConfirmExitModalOptions {
   renderFooter?: (options: {
     defaultFooter: React.ReactNode;
     onCancel: () => void;
+    onLeave: () => void;
     onConfirm: () => void;
   }) => React.ReactNode;
   renderHeaderDivider?: (options: { defaultDivider: React.ReactNode }) => React.ReactNode;
@@ -279,6 +282,7 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
   islevel,
   title = "Confirm Exit",
   confirmLabel,
+  leaveLabel,
   cancelLabel,
   message,
   overlayProps,
@@ -291,6 +295,7 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
   messageProps,
   footerProps,
   cancelButtonProps,
+  leaveButtonProps,
   confirmButtonProps,
   headerDividerProps,
   bodyDividerProps,
@@ -302,7 +307,9 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
   renderMessage,
   renderContent,
 }) => {
-  const defaultConfirmLabel = confirmLabel ?? (islevel === "2" ? "End Event" : "Exit");
+  const isHostExit = islevel === "2" && !ban;
+  const defaultConfirmLabel = confirmLabel ?? (isHostExit ? "End for everyone" : "Leave");
+  const defaultLeaveLabel = leaveLabel ?? "Leave room";
   const defaultCancelLabel = cancelLabel ?? "Cancel";
 
   const resolvedMessage = (() => {
@@ -312,8 +319,8 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
     if (message !== undefined) {
       return message;
     }
-    return islevel === "2"
-      ? "This will end the event for all. Confirm exit."
+    return isHostExit
+      ? "Leave room keeps the event active for everyone else and lets you rejoin. End for everyone closes it for all participants."
       : "Are you sure you want to exit?";
   })();
 
@@ -556,6 +563,28 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
   };
 
   const {
+    className: leaveButtonClassName,
+    style: leaveButtonStyleOverrides,
+    onClick: leaveButtonOnClick,
+    ...restLeaveButtonProps
+  } = leaveButtonProps ?? {};
+
+  const leaveButtonClassNames = [
+    "mediasfu-confirm-exit__leave",
+    leaveButtonClassName,
+  ].filter(Boolean).join(" ") || undefined;
+
+  const leaveButtonStyle: React.CSSProperties = {
+    borderRadius: 6,
+    backgroundColor: "#475569",
+    color: "white",
+    padding: "6px 14px",
+    border: "none",
+    cursor: "pointer",
+    ...leaveButtonStyleOverrides,
+  };
+
+  const {
     className: confirmButtonClassName,
     style: confirmButtonStyleOverrides,
     onClick: confirmButtonOnClick,
@@ -584,14 +613,22 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
     }
   };
 
-  const handleConfirmExit = () => {
+  const handleConfirmExit = (endRoomOnHostExit = true) => {
     exitEventOnConfirm({
       socket,
       member,
       roomName,
       ban,
+      endRoomOnHostExit,
     });
     onConfirmExitClose();
+  };
+
+  const handleLeaveClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
+    leaveButtonOnClick?.(event);
+    if (!event.defaultPrevented) {
+      handleConfirmExit(false);
+    }
   };
 
   const handleConfirmClick: React.MouseEventHandler<HTMLButtonElement> = (event) => {
@@ -600,7 +637,7 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
       return;
     }
 
-    handleConfirmExit();
+    handleConfirmExit(true);
   };
 
   const defaultHeader = (
@@ -674,6 +711,17 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
       >
         {defaultCancelLabel}
       </button>
+      {isHostExit && (
+        <button
+          type="button"
+          onClick={handleLeaveClick}
+          className={leaveButtonClassNames}
+          style={leaveButtonStyle}
+          {...restLeaveButtonProps}
+        >
+          {defaultLeaveLabel}
+        </button>
+      )}
       <button
         type="button"
         onClick={handleConfirmClick}
@@ -690,7 +738,8 @@ const ConfirmExitModal: React.FC<ConfirmExitModalOptions> = ({
     ? renderFooter({
         defaultFooter,
         onCancel: onConfirmExitClose,
-        onConfirm: handleConfirmExit,
+        onLeave: () => handleConfirmExit(false),
+        onConfirm: () => handleConfirmExit(true),
       })
     : defaultFooter;
 

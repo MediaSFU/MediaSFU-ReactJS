@@ -218,33 +218,6 @@ export interface TranslationSettingsModalProps extends TranslationSettingsModalO
 // Helper Functions
 // ============================================================================
 
-/**
- * Get the TTS provider nickname for a language based on providerGroups config
- * Falls back to default provider if language not in any group
- */
-function getTTSNickNameForLanguage(
-  langCode: string,
-  providerGroups: TranslationRoomConfig['providerGroups'],
-  defaultTTSNickName?: string
-): string | null {
-  if (!langCode) return defaultTTSNickName || null;
-  
-  const normalizedLang = langCode.toLowerCase();
-  
-  // Check groupA
-  if (providerGroups?.groupA?.languages?.some(l => l.toLowerCase() === normalizedLang)) {
-    return providerGroups.groupA.ttsNickName || providerGroups.default?.ttsNickName || defaultTTSNickName || null;
-  }
-  
-  // Check groupB
-  if (providerGroups?.groupB?.languages?.some(l => l.toLowerCase() === normalizedLang)) {
-    return providerGroups.groupB.ttsNickName || providerGroups.default?.ttsNickName || defaultTTSNickName || null;
-  }
-  
-  // Fallback to default
-  return providerGroups?.default?.ttsNickName || defaultTTSNickName || null;
-}
-
 // ============================================================================
 // Language Data
 // ============================================================================

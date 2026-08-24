@@ -104,14 +104,19 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Audio level polling - like the original AudioCard
-  // Polls getUpdatedAllParams every second to check for active audio
+  // Audio level polling - like the original AudioCard. Reading must not
+  // republish the shared parameter bag once per second per card.
   // Falls back to audioDecibels prop if parameters not available
   useEffect(() => {
     const interval = setInterval(() => {
       // Try to get live data from parameters
-      if (parameters?.getUpdatedAllParams) {
-        const latestParams = parameters.getUpdatedAllParams();
+      if (parameters) {
+        let latestParams = parameters;
+        try {
+          latestParams = parameters.getCurrentParams?.() ?? parameters;
+        } catch {
+          // Fall back to the already-held snapshot without publishing.
+        }
         const latestAudioDecibels = latestParams?.audioDecibels;
         const participants = latestParams?.participants;
         
@@ -175,7 +180,12 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
   // Media control handlers
   const handleToggleAudio = useCallback(async () => {
     if (!participant?.muted && controlUserMedia) {
-      const updatedParams = parameters.getUpdatedAllParams();
+      let updatedParams = parameters;
+      try {
+        updatedParams = parameters.getCurrentParams?.() ?? parameters;
+      } catch {
+        // Fall back to the already-held snapshot without publishing.
+      }
       await controlUserMedia({
         participantId: participant.id || '',
         participantName: participant.name,
@@ -194,7 +204,12 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
 
   const handleToggleVideo = useCallback(async () => {
     if (participant?.videoOn && controlUserMedia) {
-      const updatedParams = parameters.getUpdatedAllParams();
+      let updatedParams = parameters;
+      try {
+        updatedParams = parameters.getCurrentParams?.() ?? parameters;
+      } catch {
+        // Fall back to the already-held snapshot without publishing.
+      }
       await controlUserMedia({
         participantId: participant.id || '',
         participantName: participant.name,

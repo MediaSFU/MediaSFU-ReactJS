@@ -82,6 +82,29 @@ export const signalNewConsumerTransport = async ({
     const updatedParams = parameters.getUpdatedAllParams();
     device = updatedParams.device;
     consumingTransports = updatedParams.consumingTransports;
+    updateConsumingTransports = updatedParams.updateConsumingTransports;
+
+    // A room can announce producers before its mediasoup Device has finished
+    // loading. The producer announcement is not guaranteed to repeat, so wait
+    // briefly for the Device before giving the producer back to a later
+    // all-members/new-producer retry. Do not reserve the producer during this
+    // wait: a failed readiness window must remain retryable.
+    const requestedWaitMs = Number(updatedParams.consumerDeviceWaitMs);
+    const deviceWaitMs = Number.isFinite(requestedWaitMs)
+      ? Math.max(0, Math.min(10_000, requestedWaitMs))
+      : 5_000;
+    const deviceDeadline = Date.now() + deviceWaitMs;
+    while ((!device || typeof device.createRecvTransport !== "function")
+      && Date.now() < deviceDeadline) {
+      await new Promise((resolve) => setTimeout(resolve, Math.min(50, deviceDeadline - Date.now())));
+      const latestParams = parameters.getUpdatedAllParams();
+      device = latestParams.device;
+      consumingTransports = latestParams.consumingTransports;
+      updateConsumingTransports = latestParams.updateConsumingTransports;
+    }
+    if (!device || typeof device.createRecvTransport !== "function") {
+      return consumingTransports;
+    }
 
     // Check if already consuming
     if (consumingTransports.includes(remoteProducerId)) {
@@ -89,15 +112,40 @@ export const signalNewConsumerTransport = async ({
     }
 
     // Add remote producer ID to consumingTransports array
-    consumingTransports.push(remoteProducerId);
-    updateConsumingTransports(consumingTransports);
+    updateConsumingTransports([...consumingTransports, remoteProducerId]);
+
+    const releaseReservation = () => {
+      const latestParams = parameters.getUpdatedAllParams();
+      const latestTransports = Array.isArray(latestParams.consumingTransports)
+        ? latestParams.consumingTransports
+        : [];
+      if (!latestTransports.includes(remoteProducerId)) return;
+      latestParams.updateConsumingTransports(
+        latestTransports.filter((producerId) => producerId !== remoteProducerId)
+      );
+    };
+
+    const requestedAckWaitMs = Number(updatedParams.consumerTransportAckWaitMs);
+    const transportAckWaitMs = Number.isFinite(requestedAckWaitMs)
+      ? Math.max(1, Math.min(30_000, requestedAckWaitMs))
+      : 8_000;
+    let transportRequestSettled = false;
+    const transportAckTimer = setTimeout(() => {
+      if (transportRequestSettled) return;
+      transportRequestSettled = true;
+      releaseReservation();
+    }, transportAckWaitMs);
 
     // Emit createWebRtcTransport event to signal a new consumer
     nsock.emit(
       "createWebRtcTransport",
       { consumer: true, islevel },
       async ({ params }: { params: CreateWebRTCTransportResponse }) => {
-        if (params.error) {
+        if (transportRequestSettled) return;
+        transportRequestSettled = true;
+        clearTimeout(transportAckTimer);
+        if (!params || params.error) {
+          releaseReservation();
           return;
         }
 
@@ -140,6 +188,7 @@ export const signalNewConsumerTransport = async ({
               case "failed":
                 // Handle failed state
                 consumerTransport.close();
+                releaseReservation();
 
                 // Reorder streams based on conditions
                 if (lock_screen) {
@@ -163,6 +212,7 @@ export const signalNewConsumerTransport = async ({
             parameters,
           });
         } catch (error) {
+          releaseReservation();
           console.log(error, "createRecvTransport error");
           // Handle error
           return;

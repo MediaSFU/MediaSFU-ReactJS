@@ -100,12 +100,12 @@ const connectionPresets: Record<
       apiUserName: "",
       apiKey: "",
     },
-    localLink: "http://localhost:3000",
+    localLink: "https://your-mediasfu-server.example.com",
     connectMediaSFU: true,
   },
   ce: {
     credentials: undefined,
-    localLink: "http://localhost:3000",
+    localLink: "https://your-mediasfu-server.example.com",
     connectMediaSFU: false,
   },
 };

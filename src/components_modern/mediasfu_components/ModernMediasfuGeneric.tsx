@@ -357,6 +357,7 @@ import {
 } from "mediasoup-client/lib/types";
 import { SelfieSegmentation } from "@mediapipe/selfie_segmentation";
 import { createResponseJoinRoom } from "../../methods/utils/createResponseJoinRoom";
+import { getParticipantMedia as resolveParticipantMedia } from "../../methods/utils/getParticipantMedia";
 import {
   CustomVideoCardType,
   CustomAudioCardType,
@@ -391,6 +392,8 @@ export type ModernMediasfuGenericOptions = {
   imgSrc?: string;
   sourceParameters?: { [key: string]: any };
   updateSourceParameters?: (data: { [key: string]: any }) => void;
+  /** Fired after an actual media transition, coalesced outside render. */
+  onMediaChanged?: (data: { reasons: string[]; parameters: { [key: string]: any } }) => void;
   returnUI?: boolean;
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
@@ -409,6 +412,9 @@ export type ModernMediasfuGenericOptions = {
   containerStyle?: React.CSSProperties;
   // UI override entry points
   uiOverrides?: MediasfuUICustomOverrides;
+  /** Fraction of the viewport occupied by an embedded room container. */
+  containerWidthFraction?: number;
+  containerHeightFraction?: number;
   
   // Personal translation (per-joiner)
   // When true, the joiner can request personal translation even if the room host didn't enable it
@@ -508,7 +514,7 @@ export type ModernMediasfuGenericOptions = {
  *
  * <MediasfuGeneric
  *   PrejoinPage={CustomPrejoinPage}
- *   localLink="https://localhost:3000"
+ *   localLink="https://your-mediasfu-server.example.com"
  *   connectMediaSFU={true}
  *   credentials={{ apiUserName: "user", apiKey: "key" }}
  *   useLocalUIMode={true}
@@ -544,6 +550,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   imgSrc = "https://mediasfu.com/images/logo192.png",
   sourceParameters,
   updateSourceParameters,
+  onMediaChanged,
   returnUI = true,
   noUIPreJoinOptions,
   joinMediaSFURoom,
@@ -555,6 +562,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   customComponent,
   containerStyle,
   uiOverrides,
+  containerWidthFraction: containerWidthFractionProp = 1,
+  containerHeightFraction: containerHeightFractionProp = 1,
   canUsePersonalTranslation = false,
   personalTranslationUsername,
   userVoiceClones,
@@ -1582,8 +1591,31 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     screenId.current = value;
   };
 
+  const pendingMediaReasons = useRef<Set<string>>(new Set());
+  const mediaNotifyQueued = useRef(false);
+  const notifyMediaChanged = (reason: string) => {
+    if (!onMediaChanged) return;
+    pendingMediaReasons.current.add(reason);
+    if (mediaNotifyQueued.current) return;
+    mediaNotifyQueued.current = true;
+    Promise.resolve().then(() => {
+      mediaNotifyQueued.current = false;
+      const reasons = Array.from(pendingMediaReasons.current);
+      pendingMediaReasons.current.clear();
+      try {
+        onMediaChanged({
+          reasons,
+          parameters: { ...getAllParams(), ...mediaSFUFunctions() },
+        });
+      } catch {
+        // Consumer observers must never break the media path.
+      }
+    });
+  };
+
   const updateAllVideoStreams = (value: (Participant | Stream)[]) => {
     allVideoStreams.current = value;
+    notifyMediaChanged('video-streams');
   };
 
   const updateNewLimitedStreams = (value: (Participant | Stream)[]) => {
@@ -1660,6 +1692,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateLocalStreamVideo = (value: MediaStream | null) => {
     localStreamVideo.current = value;
+    notifyMediaChanged('local-video');
   };
 
   const updateUserDefaultVideoInputDevice = (value: string) => {
@@ -1764,6 +1797,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateLocalStreamScreen = (value: MediaStream | null) => {
     localStreamScreen.current = value;
+    notifyMediaChanged('screen-share');
   };
 
   const updateScreenAlreadyOn = (value: boolean) => {
@@ -1780,6 +1814,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateOldAllStreams = (value: (Participant | Stream)[]) => {
     oldAllStreams.current = value;
+    notifyMediaChanged('video-streams');
   };
 
   const updateAdminVidID = (value: string) => {
@@ -1816,6 +1851,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateLocalStreamAudio = (value: MediaStream | null) => {
     localStreamAudio.current = value;
+    notifyMediaChanged('local-audio');
   };
 
   const updateDefAudioID = (value: string) => {
@@ -1984,6 +2020,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateAllAudioStreams = (value: (Participant | Stream)[]) => {
     allAudioStreams.current = value;
+    notifyMediaChanged('audio-streams');
   };
 
   const updateRemoteScreenStream = (value: Stream[]) => {
@@ -2028,6 +2065,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateAudioOnlyStreams = (value: React.JSX.Element[]) => {
     audioOnlyStreams.current = value;
+    notifyMediaChanged('audio-streams');
   };
 
   const updateTranslationStreams = (value: React.JSX.Element[]) => {
@@ -2984,6 +3022,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateConsumerTransports = (value: TransportType[]) => {
     consumerTransports.current = value;
+    notifyMediaChanged('consumers');
   };
 
   const updateConsumingTransports = (value: string[]) => {
@@ -3289,6 +3328,34 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     return isPortrait ? "portrait" : "landscape";
   }
 
+  const pendingPublishRef = useRef<{ [key: string]: any } | null>(null);
+  const publishHandleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const publishSourceParameters = (bag: { [key: string]: any }) => {
+    if (!updateSourceParameters) return;
+    pendingPublishRef.current = bag;
+    if (publishHandleRef.current) return;
+    publishHandleRef.current = setTimeout(() => {
+      publishHandleRef.current = null;
+      const next = pendingPublishRef.current;
+      pendingPublishRef.current = null;
+      if (next && updateSourceParameters) {
+        try {
+          updateSourceParameters(next);
+        } catch {
+          // An observer must never be able to break the room.
+        }
+      }
+    }, 0);
+  };
+
+  useEffect(() => () => {
+    if (publishHandleRef.current) {
+      clearTimeout(publishHandleRef.current);
+      publishHandleRef.current = null;
+    }
+  }, []);
+
   const getUpdatedAllParams = () => {
     // Get all the params for the room as well as the update functions for them and Media SFU functions and return them
     try {
@@ -3297,9 +3364,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
           ...getAllParams(),
           ...mediaSFUFunctions(),
         };
-        if (updateSourceParameters){
-          updateSourceParameters(sourceParameters);
-        }
+        publishSourceParameters(sourceParameters);
       }
     } catch {
       // Do nothing
@@ -3310,6 +3375,11 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       ...mediaSFUFunctions(),
     };
   };
+
+  const getCurrentParams = () => ({
+    ...getAllParams(),
+    ...mediaSFUFunctions(),
+  });
 
   const mediaSFUFunctions = () => {
     // Media SFU functions
@@ -4181,6 +4251,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
       showAlert,
       getUpdatedAllParams,
+      getCurrentParams,
 
       // Translation state for new-pipe-producer consumption
       listenPreferences: listenPreferences.current,
@@ -4568,6 +4639,19 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     duration?: number;
     position?: 'top' | 'bottom' | 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left' | 'center';
   }) => {
+    try {
+      if (sourceParameters !== null && updateSourceParameters) {
+        updateSourceParameters({
+          ...getAllParams(),
+          ...mediaSFUFunctions(),
+          alertMessage: message,
+          alertType: type,
+          alertVisible: true,
+        });
+      }
+    } catch {
+      // An observer must never be able to break the alert path.
+    }
     // Show an alert message, type is 'danger', 'success', duration is in milliseconds
     // For danger/warning alerts, default to 'center' position for better visibility
     const effectivePosition = position ?? (type === 'danger' || type === 'warning' ? 'center' : 'top');
@@ -6166,8 +6250,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     }
     const { mainHeight, otherHeight, mainWidth, otherWidth } =
       computeDimensionsMethod({
-        containerWidthFraction: 1,
-        containerHeightFraction: 1,
+        containerWidthFraction: containerWidthFractionProp,
+        containerHeightFraction: containerHeightFractionProp,
         mainSize: tempMainHeightWidth,
         doStack: true,
         defaultFraction:
@@ -6222,55 +6306,23 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     }
   };
 
-  const getParticipantMedia = async (id: string = '', name: string, kind: string = 'video') => {
-    // Get the media stream of a participant by id or name
-    try {
-      let stream = null;
+  const getParticipantMedia = async (
+    idOrOptions: string | { id?: string; name?: string; kind?: 'video' | 'audio' } = '',
+    name = '',
+    kind: 'video' | 'audio' = 'video',
+  ): Promise<MediaStream | null> => {
+    const options = typeof idOrOptions === 'object'
+      ? idOrOptions
+      : { id: idOrOptions, name, kind };
 
-      if (id && id !== '') {
-        if (kind === 'video') {
-          const videoStreamObj = allVideoStreams.current.find(
-            (obj: Participant | Stream) => obj.producerId === id,
-          );
-          if (videoStreamObj) {
-            stream = videoStreamObj.stream;
-          }
-        } else if (kind === 'audio') {
-          const audioStreamObj = allAudioStreams.current.find(
-            (obj: Participant | Stream) => obj.producerId === id,
-          );
-          if (audioStreamObj) {
-            stream = audioStreamObj.stream;
-          }
-        }
-      } else if (name && name !== '') {
-        const participant = participants.current.find(
-          (part: Participant) => part.name === name,
-        );
-        if (participant) {
-          const participantId = participant.id;
-          if (kind === 'video') {
-            const videoStreamObj = allVideoStreams.current.find(
-              (obj: Participant | Stream) => obj.producerId === participantId,
-            );
-            if (videoStreamObj) {
-              stream = videoStreamObj.stream;
-            }
-          } else if (kind === 'audio') {
-            const audioStreamObj = allAudioStreams.current.find(
-              (obj: Participant | Stream) => obj.producerId === participantId,
-            );
-            if (audioStreamObj) {
-              stream = audioStreamObj.stream;
-            }
-          }
-        }
-      }
-
-      return stream;
-    } catch {
-      return null;
-    }
+    return resolveParticipantMedia({
+      ...options,
+      parameters: {
+        participants: participants.current,
+        allVideoStreams: allVideoStreams.current,
+        allAudioStreams: allAudioStreams.current,
+      },
+    });
   };
 
   useEffect(() => {
@@ -8234,10 +8286,10 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     <div
       className="MediaSFU"
       style={{
-        height: "100vh",
-        width: "100vw",
-        maxWidth: "100vw",
-        maxHeight: "100vh",
+        height: containerHeightFractionProp < 1 ? "100%" : "100vh",
+        width: containerWidthFractionProp < 1 ? "100%" : "100vw",
+        maxWidth: containerWidthFractionProp < 1 ? "100%" : "100vw",
+        maxHeight: containerHeightFractionProp < 1 ? "100%" : "100vh",
         overflow: "hidden",
         ...containerStyle,
       }}
@@ -8332,9 +8384,14 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
           />
         )
       ) : returnUI ? (
-  <MainContainer>
+  <MainContainer
+    containerWidthFraction={containerWidthFractionProp}
+    containerHeightFraction={containerHeightFractionProp}
+  >
           {/* Main aspect component contains all but the control buttons (as used for webinar and conference) */}
           <MainAspect
+            containerWidthFraction={containerWidthFractionProp}
+            containerHeightFraction={containerHeightFractionProp}
             backgroundColor={themedSurfaceColor}
             defaultFraction={1 - controlHeight}
             updateIsWideScreen={updateIsWideScreen}
@@ -8356,6 +8413,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
           >
             {/* MainScreenComponent contains the main grid view and the minor grid view */}
             <MainScreen
+              containerWidthFraction={containerWidthFractionProp}
+              containerHeightFraction={containerHeightFractionProp}
               doStack={true}
               mainSize={mainHeightWidth}
               updateComponentSizes={updateComponentSizes}

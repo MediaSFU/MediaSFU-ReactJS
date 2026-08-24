@@ -103,7 +103,7 @@ export type NewPipeProducerType = (options: NewPipeProducerOptions) => Promise<v
  * 
  * const producerId = 'producer-123';
  * const islevel = '2';
- * const nsock = io("http://localhost:3000");
+ * const nsock = io("https://your-socket-server.example.com");
  * 
  * async function init() {
  *   try {

@@ -206,6 +206,8 @@ export const allMembers = async ({
   if (!membersReceived && !onLocal) {
     if (roomRecvIPs.length < 1) {
       let checkIPs = setInterval(async () => {
+        const latestParameters = parameters.getUpdatedAllParams();
+        roomRecvIPs = latestParameters.roomRecvIPs;
         if (roomRecvIPs.length > 0) {
           clearInterval(checkIPs);
 
@@ -214,17 +216,27 @@ export const allMembers = async ({
             updateShareScreenStarted(shareScreenStarted);
           }
 
-          const [sockets_, ips_] = await connectIps({
-            consume_sockets,
-            remIP: roomRecvIPs,
-            parameters,
-            apiUserName,
-            apiKey,
-            apiToken,
-          });
+          const nowLocal = roomRecvIPs.length === 1 && roomRecvIPs[0] === "none";
+          if (nowLocal) {
+            if (latestParameters.connectLocalIps) {
+              await latestParameters.connectLocalIps({
+                socket: latestParameters.socket,
+                parameters: latestParameters,
+              });
+            }
+          } else {
+            const [sockets_, ips_] = await latestParameters.connectIps({
+              consume_sockets: latestParameters.consume_sockets || consume_sockets,
+              remIP: roomRecvIPs,
+              parameters: latestParameters,
+              apiUserName,
+              apiKey,
+              apiToken,
+            });
 
-          updateConsume_sockets(sockets_);
-          updateRoomRecvIPs(ips_);
+            latestParameters.updateConsume_sockets(sockets_);
+            latestParameters.updateRoomRecvIPs(ips_);
+          }
 
           membersReceived = true;
           updateMembersReceived(membersReceived);
@@ -266,6 +278,8 @@ export const allMembers = async ({
     if (connectLocalIps) {
       await connectLocalIps({ socket: socket, parameters });
     }
+    membersReceived = true;
+    updateMembersReceived(membersReceived);
     await sleep({ ms: 50 });
     updateIsLoadingModalVisible(false);
   }

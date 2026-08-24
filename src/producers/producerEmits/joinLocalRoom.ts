@@ -58,7 +58,7 @@ export type CheckMediasfuURLType = (options: CheckMediasfuURLOptions) => Promise
  *   data: {
  *     mediasfuURL: "https://example.com/meet/room123/secret",
  *     allowRecord: true,
- *     apiKey: "1234567890123456789012345678901234567890123456789012345678901234",
+ *     apiKey: "0".repeat(64), // Dummy client value; the backend supplies real credentials.
  *     apiUserName: "user123",
  *   },
  *   member: "user123",

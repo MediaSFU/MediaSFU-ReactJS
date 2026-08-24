@@ -191,12 +191,6 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     appliedBackground,
     videoAlreadyOn,
     audioOnlyRoom,
-    islevel,
-    recordStarted,
-    recordResumed,
-    recordPaused,
-    recordStopped,
-    recordingMediaOptions,
     mediaDevices,
     showAlert,
     localStreamVideo,
@@ -215,25 +209,20 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
 
     updatePrevKeepBackground,
     updateAppliedBackground,
-    videoProducer,
-    transportCreated,
-    videoParams,
     updateVideoParams,
     autoClickBackground,
     updateAutoClickBackground,
 
-    createSendTransport,
-    connectSendTransportVideo,
-    disconnectSendTransportVideo,
-    onScreenChanges,
-    sleep,
   } = parameters;
 
   if(!selfieSegmentation){
     selfieSegmentation = parameters.getUpdatedAllParams().selfieSegmentation;
   }
 
-  const getCurrentParameters = () => parameters.getUpdatedAllParams?.() ?? parameters;
+  // AudioCardParameters predates the full background-runtime bag. Keep this
+  // adapter permissive while preserving the pure-read contract.
+  const getCurrentParameters = (): any =>
+    (parameters as any).getCurrentParams?.() ?? parameters;
 
   // Suppress unused position warning - kept for API compatibility
   void _position;
@@ -1438,6 +1427,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
         ) {
           ctx!.save();
           ctx!.clearRect(0, 0, mediaCanvas.width, mediaCanvas.height);
+          ctx!.globalCompositeOperation = "source-over";
           ctx!.drawImage(
             results.segmentationMask,
             0,
@@ -1446,7 +1436,12 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
             mediaCanvas.height
           );
 
-          ctx!.globalCompositeOperation = "source-out";
+          // The mask is opaque where the person is. Keep the camera only in
+          // that region first, then paint the selected image behind it.
+          ctx!.globalCompositeOperation = "source-in";
+          ctx!.drawImage(results.image, 0, 0, mediaCanvas.width, mediaCanvas.height);
+
+          ctx!.globalCompositeOperation = "destination-over";
           const repeatPattern =
             virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height
               ? "repeat"
@@ -1454,9 +1449,6 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           const pat = ctx!.createPattern(virtualImage, repeatPattern);
           ctx!.fillStyle = pat || "";
           ctx!.fillRect(0, 0, mediaCanvas.width, mediaCanvas.height);
-
-          ctx!.globalCompositeOperation = "destination-atop";
-          ctx!.drawImage(results.image, 0, 0, mediaCanvas.width, mediaCanvas.height);
 
           ctx!.restore();
           markFirstFrameRendered();

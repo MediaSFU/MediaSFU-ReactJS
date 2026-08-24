@@ -36,7 +36,7 @@ import { resolveMediaSFURoomApi } from './resolveMediaSFURoomApi';
 *   },
 *   apiUserName: 'yourAPIUSERNAME',
 *   apiKey: 'yourAPIKEY',
-*   localLink: 'http://localhost:3000', // Optional for Community Edition
+*   localLink: 'https://your-mediasfu-server.example.com', // Optional for Community Edition
 * });
 *
 * if (response.success) {
@@ -155,6 +155,4 @@ export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
         };
     }
 };
-
-
 

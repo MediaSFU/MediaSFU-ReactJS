@@ -111,8 +111,8 @@ const enableFullCustomUI = false;
 
 const connectionPresets = {
   cloud: { credentials: { apiUserName: "your-api-username", apiKey: "your-api-key" }, localLink: "", connectMediaSFU: true },
-  hybrid: { credentials: { apiUserName: "your-api-username", apiKey: "your-api-key" }, localLink: "http://localhost:3000", connectMediaSFU: true },
-  ce: { credentials: undefined, localLink: "http://localhost:3000", connectMediaSFU: false },
+  hybrid: { credentials: { apiUserName: "your-api-username", apiKey: "your-api-key" }, localLink: "https://your-mediasfu-server.example.com", connectMediaSFU: true },
+  ce: { credentials: undefined, localLink: "https://your-mediasfu-server.example.com", connectMediaSFU: false },
 };
 
 const Experience = {
@@ -2405,7 +2405,7 @@ export type PreJoinPageType = (options: PreJoinPageOptions) => React.JSX.Element
  *      userName: "Prince",
  *      }}
  *      connectMediaSFU={true}
- *      localLink="http://localhost:3000"
+ *      localLink="https://your-mediasfu-server.example.com"
  *     />
  *   );
  * };
@@ -2902,7 +2902,7 @@ const App = () => {
   // Example:
   /*
   const credentials = {};
-  const localLink = 'http://your-ce-server.com'; // http://localhost:3000 for local testing
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = localLink.trim() !== '';
   */
 
@@ -2912,9 +2912,9 @@ const App = () => {
   /*
   const credentials = {
     apiUserName: 'dummyUsr',
-    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    apiKey: '0'.repeat(64), // Explicit dummy value; never use a production key here.
   };
-  const localLink = 'http://your-ce-server.com'; // http://localhost:3000 for local testing
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = localLink.trim() !== '';
   */
 
@@ -2922,8 +2922,8 @@ const App = () => {
   // - For development, use your actual or dummy credentials.
   // - In production, securely handle credentials server-side and use custom room functions.
   const credentials = {
-    apiUserName: 'yourDevUser', // 8 chars recommended for dummy
-    apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // 64 chars
+    apiUserName: 'your-api-username',
+    apiKey: 'your-api-key', // Documentation placeholder only; never commit a production key.
   };
   const localLink = ''; // Leave empty if not using your own server
   const connectMediaSFU = true; // Set to true if using MediaSFU Cloud since localLink is empty
@@ -3132,7 +3132,7 @@ const App = () => {
   // Example:
   /*
   const credentials = {};
-  const localLink = 'http://your-ce-server.com'; //http://localhost:3000
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = localLink.trim() !== '';
   */
 
@@ -3142,9 +3142,9 @@ const App = () => {
   /*
   const credentials = {
     apiUserName: 'dummyUsr',
-    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    apiKey: '0'.repeat(64), // Explicit dummy value; never use a production key here.
   };
-  const localLink = 'http://your-ce-server.com'; //http://localhost:3000
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = localLink.trim() !== '';
   */
 
@@ -3152,8 +3152,8 @@ const App = () => {
   // - For development, use your actual or dummy credentials.
   // - In production, securely handle credentials server-side and use custom room functions.
   const credentials = {
-    apiUserName: 'yourDevUser', // 8 chars recommended for dummy
-    apiKey: 'yourDevApiKey1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef', // 64 chars
+    apiUserName: 'your-api-username',
+    apiKey: 'your-api-key', // Documentation placeholder only; never commit a production key.
   };
   const localLink = ''; // Leave empty if not using your own server
   const connectMediaSFU = true; // Set to true if using MediaSFU Cloud since localLink is empty

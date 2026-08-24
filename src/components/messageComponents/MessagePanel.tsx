@@ -78,7 +78,7 @@ export type MessagePanelType = (options: MessagePanelOptions) => React.JSX.Eleme
  * ];
  * 
  * const App = () => {
- *   const socket = io("http://localhost:3000");
+ *   const socket = io("https://your-socket-server.example.com");
  *   const handleSendMessage = async (options) => console.log("Message sent", options);
  *   const handleShowAlert = (options) => console.log("Alert", options);
  * 

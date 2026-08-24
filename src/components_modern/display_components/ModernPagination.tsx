@@ -88,9 +88,14 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Get updated parameters
+  // Pure read: getUpdatedAllParams republishes the shared bag and must not run
+  // during render.
   const params = useMemo(() => {
-    return parameters.getUpdatedAllParams();
+    try {
+      return parameters.getCurrentParams?.() ?? parameters;
+    } catch {
+      return parameters;
+    }
   }, [parameters]);
 
   // Resolve dark mode - prefer explicit prop, fallback to parameters, then default to true
@@ -111,7 +116,12 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
 
   // Page change handler
   const onPageChange = useCallback(async (page: number) => {
-    const updatedParams = parameters.getUpdatedAllParams();
+    let updatedParams = parameters;
+    try {
+      updatedParams = parameters.getCurrentParams?.() ?? parameters;
+    } catch {
+      // The bag already contains the most recent readable snapshot.
+    }
     await handlePageChange({
       page,
       parameters: updatedParams,

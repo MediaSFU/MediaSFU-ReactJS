@@ -556,20 +556,6 @@ const componentConfigs = {
 		parameters: "{ layout: 'fullscreen' }",
 		decorator: 'none',
 	},
-	ModernMediasfuGeneric: {
-		imports: [
-			"import { previewHostSeedData } from '../../generated-support/modernStorybookFixtures';",
-		],
-		args: [
-			'useLocalUIMode: true,',
-			'useSeed: true,',
-			'seedData: previewHostSeedData,',
-			"credentials: { apiUserName: 'demo-user', apiKey: 'demo-key' },",
-			"containerStyle: { minHeight: '100vh' },",
-		],
-		parameters: "{ layout: 'fullscreen' }",
-		decorator: 'none',
-	},
 };
 
 const decorators = {

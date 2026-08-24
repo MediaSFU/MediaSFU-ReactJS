@@ -159,9 +159,9 @@ const AppModern: React.FC = () => {
   /*
   const credentials = {
     apiUserName: 'dummyUsr',
-    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    apiKey: '0'.repeat(64),
   } as const;
-  const localLink = 'http://your-ce-server.com';
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = false;
   */
 
@@ -171,9 +171,9 @@ const AppModern: React.FC = () => {
   /*
   const credentials = {
     apiUserName: 'dummyUsr',
-    apiKey: '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+    apiKey: '0'.repeat(64),
   } as const;
-  const localLink = 'http://your-ce-server.com';
+  const localLink = 'https://your-mediasfu-server.example.com';
   const connectMediaSFU = true;
   */
 

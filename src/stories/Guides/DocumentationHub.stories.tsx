@@ -77,7 +77,7 @@ function DocumentationHub() {
 					<h2 style={{ margin: 0, fontSize: 22 }}>Docs portal</h2>
 					<p style={{ margin: 0, color: '#c7d8e8', lineHeight: 1.6 }}>
 						Start here for the narrative flow: quickstart, secure backend proxying, build-style choice,
-						 and starter screens.
+						and starter screens.
 					</p>
 					<a href={mediaSFUDocsSections.overview} style={linkStyle} target="_blank" rel="noreferrer">
 						Open docs portal

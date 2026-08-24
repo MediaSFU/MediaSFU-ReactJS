@@ -161,3 +161,38 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Default: Story = {};
+
+/**
+ * Regression surface for a 1294px webinar embedded in a 1500px viewport.
+ * Keep this host width and the matching fractions explicit so visual and DOM
+ * acceptance can detect any child that falls back to viewport sizing.
+ */
+export const EmbeddedWebinar1294: Story = {
+	args: {
+		seedData: {
+			...previewHostSeedData,
+			eventType: 'webinar',
+		} as SeedData,
+		containerWidthFraction: 1294 / 1500,
+		containerHeightFraction: 760 / 900,
+		containerStyle: {
+			backgroundColor: '#020617',
+		},
+	},
+	decorators: [
+		(Story) => (
+			<div
+				data-testid="embedded-room-host"
+				style={{
+					width: 1294,
+					height: 760,
+					maxWidth: '100%',
+					overflow: 'hidden',
+					background: '#020617',
+				}}
+			>
+				<Story />
+			</div>
+		),
+	],
+};

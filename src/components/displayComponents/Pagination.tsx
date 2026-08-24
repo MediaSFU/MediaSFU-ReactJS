@@ -24,6 +24,7 @@ export interface PaginationParameters extends GeneratePageContentParameters {
 
   // mediasfu functions
   getUpdatedAllParams: () => PaginationParameters;
+  getCurrentParams?: () => PaginationParameters;
   [key: string]: any;
 }
 export interface PaginationOptions {
@@ -248,11 +249,9 @@ const Pagination: React.FC<PaginationOptions> = ({
   renderPageButton,
   renderPageContent,
 }) => {
-  const { getUpdatedAllParams } = parameters;
-
   const getLatestParameters = () => {
     try {
-      return getUpdatedAllParams ? getUpdatedAllParams() : parameters;
+      return parameters.getCurrentParams?.() ?? parameters;
     } catch {
       return parameters;
     }

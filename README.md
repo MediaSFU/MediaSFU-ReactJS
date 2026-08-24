@@ -40,16 +40,36 @@
 
 ---
 
-# MediaSFU ReactJS SDK
+<p align="center">
+  <a href="https://www.mediasfu.com/quick-usage">
+    <img src="https://raw.githubusercontent.com/MediaSFU/MediaSFU-ReactJS/main/public/readme/mediasfu-platform-capabilities.webp" width="1100" alt="MediaSFU real-time product capabilities including meetings, live broadcasts, classrooms, calling, recording, agents, and live commerce" />
+  </a>
+</p>
 
-`mediasfu-reactjs` is the React 18/19 package for shipping MediaSFU-powered calling, conferencing, webinar, chat, screen sharing, whiteboard, recording, subtitle, translation, and AI-assisted room experiences in the browser.
+<p align="center">
+  Start with a prebuilt room, customize individual surfaces, or own the complete React interface with headless mode.
+</p>
 
-Use this package when you want one of three paths:
+## Build real-time communication into React
 
-- render a prebuilt room fast with `MediasfuGeneric`, `MediasfuConference`, `MediasfuWebinar`, `MediasfuBroadcast`, or `MediasfuChat`
-- render the same room runtime with the modern themed shell via `ModernMediasfuGeneric`
-- keep the MediaSFU runtime and replace targeted UI surfaces with `uiOverrides`, custom cards, and custom shells
-- run MediaSFU headless with `returnUI={false}` and own the full browser experience
+`mediasfu-reactjs` combines a React 18/19 WebRTC client, prebuilt room experiences, and lower-level customization APIs for products that need video meetings, voice and video calls, webinars, interactive broadcasts, chat, screen sharing, recording, whiteboards, live captions, translation, or AI-assisted communication.
+
+Choose the integration depth that matches your product:
+
+- **Prebuilt rooms:** render `MediasfuGeneric`, `MediasfuConference`, `MediasfuWebinar`, `MediasfuBroadcast`, or `MediasfuChat`.
+- **Modern room UI:** use `ModernMediasfuGeneric` for the newer theme-aware meeting shell.
+- **Progressive customization:** keep the room runtime while replacing cards, modals, controls, and layouts through `uiOverrides` and custom components.
+- **Headless React integration:** set `returnUI={false}` and use MediaSFU's room, media, and participant helpers inside your own interface.
+
+### Common React product shapes
+
+| You are building | Start with | Extend with |
+| --- | --- | --- |
+| Team meetings or embedded video calls | `MediasfuGeneric` or `MediasfuConference` | branding, waiting rooms, screen sharing, annotation, recording |
+| A webinar or virtual event | `MediasfuWebinar` | panelists, permissions, audience controls, polls |
+| An interactive livestream or host-led broadcast | `MediasfuBroadcast` | custom host controls, layouts, recording |
+| A support, community, or chat-first room | `MediasfuChat` | audio/video escalation, moderation, custom messages |
+| A fully branded collaboration workspace | `ModernMediasfuGeneric` or headless mode | `uiOverrides`, custom cards, `sourceParameters` |
 
 ## Start Here
 
@@ -88,16 +108,47 @@ export default function App() {
 }
 ```
 
+The direct credential snippets above are for a private local prototype only.
+For a shared or deployed application, keep the real username/key on your
+backend and replace **both** `createMediaSFURoom` and `joinMediaSFURoom` with
+thin adapters to that backend. Never ship a privileged API key in a browser
+bundle.
+
 ## Backend Requirement
 
 This SDK needs a MediaSFU-compatible backend for room lifecycle, signaling, and media routing.
 
 | Option | Use it when | What to pass |
 |---|---|---|
-| MediaSFU Cloud | You want managed infrastructure | `credentials={{ apiUserName, apiKey }}` |
+| MediaSFU Cloud | You want managed infrastructure | Backend-backed `createMediaSFURoom` and `joinMediaSFURoom` callbacks |
 | MediaSFU Open / CE | You want to self-host | `localLink="http://your-server:3000"` and your own server config |
 
-Cloud room helpers in this package target `https://mediasfu.com/v1/rooms/` by default. For self-hosted deployments, pass a non-MediaSFU `localLink`.
+Cloud room helpers target `https://mediasfu.com/v1/rooms/`. Put the real API
+credentials behind a secure proxy for production. MediaSFU Open is the media
+server that **you run and operate locally or in your infrastructure**; point
+`localLink` at that server.
+
+Get Cloud API access at [mediasfu.com](https://mediasfu.com/), explore GET/POST
+requests in the [API Sandbox](https://mediasfu.com/sandbox), and follow the
+[secure backend proxy guide](https://mediasfu.com/docs/usage/secure-backend-proxy/).
+
+## Common questions
+
+### Is MediaSFU ReactJS only a component library?
+
+No. The package includes prebuilt React room UI and the browser-side WebRTC/session runtime. A MediaSFU-compatible backend still handles signaling, room lifecycle, and SFU media routing.
+
+### Can I use MediaSFU with my own React design system?
+
+Yes. Start by replacing individual surfaces through `uiOverrides` and custom cards. Use `returnUI={false}` when your application should own the entire visual shell.
+
+### Can I self-host the backend?
+
+Yes. Point `localLink` at a MediaSFU Open deployment. The same React components can also connect to managed MediaSFU Cloud rooms.
+
+### Does the SDK support more than basic video calls?
+
+Yes. The room runtime includes meeting, webinar, broadcast, and chat experiences with screen sharing and annotation, recording, whiteboards, polls, breakout rooms, live captions, translation, and extensible AI-agent workflows.
 
 ## Integration Paths
 
@@ -105,6 +156,24 @@ Cloud room helpers in this package target `https://mediasfu.com/v1/rooms/` by de
 - Use `ModernMediasfuGeneric` when you want the premium themed shell as your default entry point.
 - Replace targeted surfaces with `uiOverrides`, custom cards, and custom shells.
 - Use `customComponent` or `returnUI={false}` when your app should own the entire shell.
+
+### Embed a room without viewport overflow
+
+Pass the fraction of the browser viewport occupied by the host container. Both
+values default to `1`, so existing full-page rooms are unchanged.
+
+```tsx
+<div style={{ width: 1294, height: 760 }}>
+  <ModernMediasfuGeneric
+    containerWidthFraction={1294 / window.innerWidth}
+    containerHeightFraction={760 / window.innerHeight}
+  />
+</div>
+```
+
+When either fraction is below `1`, the SDK root fills that parent with `100%`
+dimensions. The same boundary is forwarded to `MainContainer`, `MainAspect`,
+`MainScreen`, and UI overrides, including after resize.
 
 ## Package Links
 
@@ -242,7 +311,7 @@ Most applications work perfectly without this import.
 
 ## 📚 Component Storybook
 
-This package owns the React Storybook used for visual inspection of runtime-light MediaSFU surfaces. It is intended to sit beside the main Docusaurus docs portal, not replace it.
+This package includes the React Storybook used to preview MediaSFU components, seeded room shells, and customization surfaces. It complements the main docs portal and gives teams a fast way to inspect UI behavior before wiring a live backend.
 
 Run it from the `MediaSFUReactJS` package directory:
 
@@ -256,35 +325,26 @@ Build the static Storybook output for deployment:
 npm run build-storybook
 ```
 
-For local visual inspection, the most reliable path in this repo is to serve the built `storybook-static` output after that command completes:
+After building, you can preview the deployment output from `storybook-static` with any static file server:
 
 ```bash
 python3 -m http.server 6006 -d storybook-static
 ```
 
-The dev server remains useful for iterative authoring, but its indexer can be stricter than the static build for generated TS-heavy stories.
-
-Baseline stories for safe, presentational, or seeded modern components are generated automatically before both commands run. The current automated targets cover the modern widget barrel, a safe subset of display components, misc entry flows, most exported modal-style modern barrels, the whiteboard configuration modal, and `ModernMediasfuGeneric` in seeded local-UI mode. To refresh them directly:
+Story coverage is split between generated baseline stories for runtime-light components and curated stories for richer meeting surfaces. Generated baseline stories refresh automatically before both Storybook commands run. To refresh them directly:
 
 ```bash
 npm run generate-storybook-stories
 ```
 
-The initial stories live under `src/stories` and focus on components that do not need a live MediaSFU session:
+Story organization:
 
-- `UiOverridesGuide`
-- `PremiumButton`
-- `GradientCard`
-- `GlassmorphicContainer`
-- `ModernBackgroundModal`
+- `src/stories/Guides` covers onboarding, build-style choices, and override guidance.
+- `src/stories/MediaSFUComponents` houses the curated `ModernMediasfuGeneric` room-shell preview.
+- `src/stories/DisplayComponents`, `src/stories/InternalComponents`, and `src/stories/WhiteboardComponents` cover stateful visual surfaces that benefit from hand-tuned fixtures.
+- `src/stories/generated` contains safely stubbed baseline stories for runtime-light modern components.
 
-Curated internal modal stories also live under `src/stories/InternalComponents` for `ModernPermissionsModal`, `ModernPanelistsModal`, and `TranslationSettingsModal`.
-
-Curated display and canvas stories live under `src/stories/DisplayComponents` and `src/stories/WhiteboardComponents` for surfaces that are too stateful for the generated baseline set, including `ModernVideoCard`, `ModernAudioCard`, `ModernControlButtonsComponent`, `ModernPagination`, `ModernFlexibleGrid`, `ModernFlexibleVideo`, `ModernMainContainerComponent`, and the collaborative `Whiteboard` canvas.
-
-That same display story surface now also includes classic display primitives that are still relevant in the mixed modern/classic room stack, including `MiniAudio`, `MiniCardAudio`, `ControlButtonsComponent`, `ControlButtonsAltComponent`, and `ControlButtonsComponentTouch`.
-
-Generated baseline coverage is written to `src/stories/generated` and is intended for runtime-light or safely stubbed components only. Media-stream-driven and highly stateful meeting surfaces such as video grids, control stacks, pagination, and virtual-background flows still need curated stories with explicit fixtures.
+Curated stories cover flagship meeting shells, video and audio cards, control surfaces, pagination, whiteboard flows, and other stateful experiences that are better represented with explicit fixtures than auto-generated examples.
 
 If you want the public docs site to expose Storybook in navigation, deploy the generated `storybook-static` output separately and point the docs portal at it with `MEDIASFU_STORYBOOK_URL`.
 
@@ -426,37 +486,39 @@ function App() {
 ### Headless Mode (Custom UI)
 
 ```tsx
-import { MediasfuGeneric } from 'mediasfu-reactjs';
-import { useState, useCallback } from 'react';
+import { ModernMediasfuGeneric, useMediasfuHeadless } from 'mediasfu-reactjs';
 
 function CustomApp() {
-  const [helpers, setHelpers] = useState<Record<string, unknown>>({});
-  
-  const updateSourceParameters = useCallback((data: Record<string, unknown>) => {
-    setHelpers(data);
-  }, []);
+  const room = useMediasfuHeadless();
   
   return (
     <>
-      <MediasfuGeneric
-        credentials={{ apiUserName: "user", apiKey: "key" }}
-        returnUI={false}  // No default UI
+      <ModernMediasfuGeneric
+        credentials={{ apiUserName: 'client00', apiKey: '0'.repeat(64) }}
+        createMediaSFURoom={createRoomViaBackend}
+        joinMediaSFURoom={joinRoomViaBackend}
+        returnUI={false}
         noUIPreJoinOptions={{
-          action: "create",
+          action: 'create',
           capacity: 10,
-          eventType: "conference",
-          userName: "Host"
+          duration: 30,
+          eventType: 'conference',
+          userName: 'Host',
         }}
-        sourceParameters={helpers}
-        updateSourceParameters={updateSourceParameters}
+        sourceParameters={room.sourceParameters}
+        updateSourceParameters={room.updateSourceParameters}
+        onMediaChanged={room.onMediaChanged}
       />
       
-      {/* Use `helpers` to build your completely custom UI */}
-      {/* helpers.clickVideo(), helpers.clickAudio(), helpers.participants, etc. */}
+      <MyRoomUI room={room} />
     </>
   );
 }
 ```
+
+`createRoomViaBackend` and `joinRoomViaBackend` are your server-proxy adapters;
+the placeholder object is inert and must never be replaced with a real key in
+public source.
 
 ### UI Overrides
 
@@ -826,47 +888,75 @@ Features include:
 
 ## 🔧 sourceParameters - The Power API
 
-When building custom UIs or using headless mode (`returnUI={false}`), you need **both** props:
+For a custom UI, use `useMediasfuHeadless()`. It keeps the SDK seed stable,
+accepts every publication, exposes pure current state and actions, and wires the
+explicit media-change signal. Pass **all three** bridge props to the room:
 
 | Prop | Purpose |
 |------|---------|
-| `sourceParameters` | Initial state object (can be empty `{}`) |
-| `updateSourceParameters` | Callback that receives the complete helper bundle |
+| `sourceParameters` | Stable seed object from the hook |
+| `updateSourceParameters` | Receives every complete parameter publication |
+| `onMediaChanged` | Reports coalesced video, audio, screen, and consumer transitions |
 
-The `updateSourceParameters` callback delivers a comprehensive object containing **all room state, methods, and streams**. This is your bridge to building completely custom UIs.
+The callbacks deliver the room state, methods, and streams needed by a custom
+interface. A published parameter bag is a snapshot: do not retain it outside
+the hook and do not deep-deduplicate publications.
 
 ```tsx
-import { MediasfuGeneric } from 'mediasfu-reactjs';
-import { useState, useCallback } from 'react';
+import {
+  AudioGrid,
+  ModernMediasfuGeneric,
+  useMediasfuHeadless,
+} from 'mediasfu-reactjs';
+import { createRoom, joinRoom } from './roomProxy';
 
 function CustomUI() {
-  const [helpers, setHelpers] = useState<Record<string, unknown>>({});
-
-  // This callback receives ALL MediaSFU state and methods
-  const updateSourceParameters = useCallback((data: Record<string, unknown>) => {
-    setHelpers(data);
-  }, []);
+  const room = useMediasfuHeadless();
+  const primary = room.screenShare.stream
+    ?? room.remoteVideos[0]?.stream
+    ?? room.localVideo;
 
   return (
     <>
-      <MediasfuGeneric
-        credentials={{ apiUserName: "user", apiKey: "key" }}
-        returnUI={false}  // Headless mode - no UI rendered
+      <ModernMediasfuGeneric
+        credentials={{ apiUserName: 'client00', apiKey: '0'.repeat(64) }}
+        createMediaSFURoom={createRoom}
+        joinMediaSFURoom={joinRoom}
+        returnUI={false}
         noUIPreJoinOptions={{
-          action: "create",
+          action: 'create',
           capacity: 10,
-          eventType: "conference",
-          userName: "Host"
+          duration: 30,
+          eventType: 'conference',
+          userName: 'Host',
         }}
-        sourceParameters={helpers}           // Required: pass state object
-        updateSourceParameters={updateSourceParameters}  // Required: receive updates
+        sourceParameters={room.sourceParameters}
+        updateSourceParameters={room.updateSourceParameters}
+        onMediaChanged={room.onMediaChanged}
       />
-      
-      {helpers.validated && <MyCustomMeetingUI sourceParameters={helpers} />}
+
+      {primary && <MyVideo stream={primary} />}
+      <button disabled={!room.ready} onClick={room.controls.toggleMic}>
+        {room.micOn ? 'Mute' : 'Unmute'}
+      </button>
+
+      {/* Mount every audio component, even when the audio surface is hidden. */}
+      <div style={{ position: 'fixed', width: 1, height: 1, opacity: 0 }}>
+        <AudioGrid componentsToRender={room.audioComponents} />
+      </div>
     </>
   );
 }
 ```
+
+The inert credential object only satisfies the SDK prop shape because **both**
+room callbacks have been replaced. `createRoom` and `joinRoom` must call your
+backend, where real MediaSFU credentials remain server-side. See the
+[secure backend proxy guide](https://mediasfu.com/docs/usage/secure-backend-proxy/).
+
+Use `room.parameters.getCurrentParams()` when you need an unprojected pure read.
+Never call `getUpdatedAllParams()` from render, polling, pagination, or a
+selector: it republishes the shared parameter bag and can create an update loop.
 
 ### Key sourceParameters Properties
 
@@ -1238,9 +1328,9 @@ function CustomMeetingApp() {
 
 ---
 
-## �️ SDKs for Every Framework
+## SDKs across frameworks
 
-MediaSFU isn't just React. The same communication platform is available across 7 frameworks — same API surface, same capabilities, same pricing:
+MediaSFU is available across web, mobile, and native platforms. The integration model and feature evidence vary by SDK, so use each package's documentation when choosing a target:
 
 | Framework | Package |
 |-----------|---------|
@@ -1254,7 +1344,7 @@ MediaSFU isn't just React. The same communication platform is available across 7
 
 ---
 
-## �🔗 Links
+## Useful links
 
 - **Website**: [mediasfu.com](https://www.mediasfu.com)
 - **Documentation**: [mediasfu.com/reactjs](https://www.mediasfu.com/reactjs/)
@@ -1283,7 +1373,19 @@ MIT © [MediaSFU](https://www.mediasfu.com)
 
 ---
 
+## Host leave and rejoin
+
+Hosts now get two explicit choices: **Leave room** disconnects only the host and keeps the room available for rejoin, while **End for everyone** preserves the historical room-ending behavior. Existing integrations remain backward compatible because `endRoomOnHostExit` defaults to `true`.
+
+```ts
+await actions.leave(false, false); // ban=false, endRoomOnHostExit=false
+```
+
+![Host leave and end choices](https://raw.githubusercontent.com/MediaSFU/MediaSFU-ReactJS/main/public/readme/host-leave-without-ending.png)
+
+---
+
 <p align="center">
   <strong>Built with ❤️ by MediaSFU</strong><br/>
-  Voice · Video · AI · Translation · 7 Frameworks · $0.10/1K min
+  Voice · Video · AI · Translation · Cloud or self-hosted
 </p>

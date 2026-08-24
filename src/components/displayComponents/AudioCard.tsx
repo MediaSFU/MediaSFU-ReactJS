@@ -34,6 +34,7 @@ export interface AudioCardParameters {
   
   // mediasfu functions
   getUpdatedAllParams(): AudioCardParameters;
+  getCurrentParams?: () => AudioCardParameters;
 }
 
 export interface AudioCardOptions {
@@ -271,7 +272,13 @@ const AudioCard: React.FC<AudioCardOptions> = ({
   const [showWaveform, setShowWaveform] = useState(true);
 
   const latestParametersSnapshot = useMemo(
-    () => parameters.getUpdatedAllParams(),
+    () => {
+      try {
+        return parameters.getCurrentParams?.() ?? parameters;
+      } catch {
+        return parameters;
+      }
+    },
     [parameters]
   );
 
@@ -280,7 +287,13 @@ const AudioCard: React.FC<AudioCardOptions> = ({
   }, [barCount]);
 
   const getLatestParameters = useCallback(
-    () => parameters.getUpdatedAllParams(),
+    () => {
+      try {
+        return parameters.getCurrentParams?.() ?? parameters;
+      } catch {
+        return parameters;
+      }
+    },
     [parameters]
   );
 

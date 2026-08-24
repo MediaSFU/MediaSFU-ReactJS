@@ -280,6 +280,7 @@ export type MediasfuWebinarOptions = {
   imgSrc?: string;
   sourceParameters?: { [key: string]: any };
   updateSourceParameters?: (data: { [key: string]: any }) => void;
+  onMediaChanged?: (data: { reasons: string[]; parameters: { [key: string]: any } }) => void;
   returnUI?: boolean;
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
@@ -289,6 +290,8 @@ export type MediasfuWebinarOptions = {
   customAudioCard?: CustomAudioCardType;
   customMiniCard?: CustomMiniCardType;
   containerStyle?: React.CSSProperties;
+  containerWidthFraction?: number;
+  containerHeightFraction?: number;
   uiOverrides?: MediasfuUICustomOverrides;
 };
 
@@ -324,7 +327,7 @@ export type MediasfuWebinarOptions = {
  * ```tsx
  * <MediasfuWebinar
  *   PrejoinPage={CustomPrejoinPage}
- *   localLink="https://localhost:3000"
+ *   localLink="https://your-mediasfu-server.example.com"
  *   connectMediaSFU={true}
  *   credentials={{ apiUserName: "user", apiKey: "key" }}
  *   useLocalUIMode={true}
@@ -359,6 +362,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
   imgSrc = "https://mediasfu.com/images/logo192.png",
   sourceParameters,
   updateSourceParameters,
+  onMediaChanged,
   returnUI = true,
   noUIPreJoinOptions,
   joinMediaSFURoom,
@@ -368,6 +372,8 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
   customAudioCard,
   customMiniCard,
   containerStyle,
+  containerWidthFraction = 1,
+  containerHeightFraction = 1,
   uiOverrides,
 }) => {
   const MainContainer = useMemo(
@@ -1217,8 +1223,28 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
     screenId.current = value;
   };
 
+  const pendingMediaReasons = useRef<Set<string>>(new Set());
+  const mediaNotifyQueued = useRef(false);
+  const notifyMediaChanged = (reason: string) => {
+    if (!onMediaChanged) return;
+    pendingMediaReasons.current.add(reason);
+    if (mediaNotifyQueued.current) return;
+    mediaNotifyQueued.current = true;
+    Promise.resolve().then(() => {
+      mediaNotifyQueued.current = false;
+      const reasons = Array.from(pendingMediaReasons.current);
+      pendingMediaReasons.current.clear();
+      try {
+        onMediaChanged({ reasons, parameters: { ...getAllParams(), ...mediaSFUFunctions() } });
+      } catch {
+        // Consumer observers must never break the media path.
+      }
+    });
+  };
+
   const updateAllVideoStreams = (value: (Participant | Stream)[]) => {
     allVideoStreams.current = value;
+    notifyMediaChanged('video-streams');
   };
 
   const updateNewLimitedStreams = (value: (Participant | Stream)[]) => {
@@ -1295,6 +1321,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
   const updateLocalStreamVideo = (value: MediaStream | null) => {
     localStreamVideo.current = value;
+    notifyMediaChanged('local-video');
   };
 
   const updateUserDefaultVideoInputDevice = (value: string) => {
@@ -1399,6 +1426,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
   const updateLocalStreamScreen = (value: MediaStream | null) => {
     localStreamScreen.current = value;
+    notifyMediaChanged('screen-share');
   };
 
   const updateScreenAlreadyOn = (value: boolean) => {
@@ -1415,6 +1443,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
   const updateOldAllStreams = (value: (Participant | Stream)[]) => {
     oldAllStreams.current = value;
+    notifyMediaChanged('video-streams');
   };
 
   const updateAdminVidID = (value: string) => {
@@ -1451,6 +1480,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
   const updateLocalStreamAudio = (value: MediaStream | null) => {
     localStreamAudio.current = value;
+    notifyMediaChanged('local-audio');
   };
 
   const updateDefAudioID = (value: string) => {
@@ -1619,6 +1649,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
   const updateAllAudioStreams = (value: (Participant | Stream)[]) => {
     allAudioStreams.current = value;
+    notifyMediaChanged('audio-streams');
   };
 
   const updateRemoteScreenStream = (value: Stream[]) => {
@@ -1663,6 +1694,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
   const updateAudioOnlyStreams = (value: React.JSX.Element[]) => {
     audioOnlyStreams.current = value;
+    notifyMediaChanged('audio-streams');
   };
 
   const updateVideoInputs = (value: MediaDeviceInfo[]) => {
@@ -2328,6 +2360,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
   const updateConsumerTransports = (value: TransportType[]) => {
     consumerTransports.current = value;
+    notifyMediaChanged('consumers');
   };
 
   const updateConsumingTransports = (value: string[]) => {
@@ -2564,6 +2597,11 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
       ...mediaSFUFunctions(),
     };
   };
+
+  const getCurrentParams = () => ({
+    ...getAllParams(),
+    ...mediaSFUFunctions(),
+  });
 
   const mediaSFUFunctions = () => {
     // Media SFU functions
@@ -3408,6 +3446,7 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
       showAlert,
       getUpdatedAllParams,
+      getCurrentParams,
 
       // Custom Component Builders
       customVideoCard,
@@ -3425,6 +3464,19 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
     type: "success" | "danger" | "info" | "warning";
     duration?: number;
   }) => {
+    try {
+      if (sourceParameters !== null && updateSourceParameters) {
+        updateSourceParameters({
+          ...getAllParams(),
+          ...mediaSFUFunctions(),
+          alertMessage: message,
+          alertType: type,
+          alertVisible: true,
+        });
+      }
+    } catch {
+      // An observer must never be able to break the alert path.
+    }
     // Show an alert message, type is 'danger', 'success', duration is in milliseconds
     setAlertMessage(message);
     setAlertType(type);
@@ -4230,8 +4282,8 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
 
     const { mainHeight, otherHeight, mainWidth, otherWidth } =
       computeDimensionsMethod({
-        containerWidthFraction: 1,
-        containerHeightFraction: 1,
+        containerWidthFraction,
+        containerHeightFraction,
         mainSize: mainHeightWidth,
         doStack: true,
         defaultFraction:
@@ -4952,10 +5004,10 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
     <div
       className="MediaSFU"
       style={{
-        height: "100vh",
-        width: "100vw",
-        maxWidth: "100vw",
-        maxHeight: "100vh",
+              height: containerHeightFraction < 1 ? "100%" : "100vh",
+              width: containerWidthFraction < 1 ? "100%" : "100vw",
+              maxWidth: containerWidthFraction < 1 ? "100%" : "100vw",
+              maxHeight: containerHeightFraction < 1 ? "100%" : "100vh",
         overflow: "hidden",
         ...containerStyle,
       }}
@@ -4993,9 +5045,11 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
           createMediaSFURoom={createMediaSFURoom}
         />
       ) : returnUI ? (
-        <MainContainer>
+        <MainContainer containerWidthFraction={containerWidthFraction} containerHeightFraction={containerHeightFraction}>
           {/* Main aspect component containsa ll but the control buttons (as used for webinar and conference) */}
           <MainAspect
+            containerWidthFraction={containerWidthFraction}
+            containerHeightFraction={containerHeightFraction}
             backgroundColor="rgba(217, 227, 234, 0.99)"
             defaultFraction={1 - controlHeight}
             updateIsWideScreen={updateIsWideScreen}
@@ -5008,6 +5062,8 @@ const MediasfuWebinar: React.FC<MediasfuWebinarOptions> = ({
           >
             {/* MainScreenComponent contains the main grid view and the minor grid view */}
             <MainScreen
+              containerWidthFraction={containerWidthFraction}
+              containerHeightFraction={containerHeightFraction}
               doStack={true}
               mainSize={mainHeightWidth}
               updateComponentSizes={updateComponentSizes}

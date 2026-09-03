@@ -179,7 +179,7 @@ export const ModernLoadingModal: React.FC<ModernLoadingModalProps> = ({
   const contentWrapperStyle: React.CSSProperties = {
     transform: isAnimating ? 'scale(1)' : 'scale(0.8)',
     opacity: isAnimating ? 1 : 0,
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
   };
 
   // Spinner container styles

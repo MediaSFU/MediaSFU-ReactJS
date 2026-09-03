@@ -171,12 +171,12 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
   };
 
   const contentStyle: CSSProperties = {
-    width: 360,
-    padding: MediasfuSpacing.xl,
+    width: 340,
+    padding: `${MediasfuSpacing.xl}px ${MediasfuSpacing.xl}px ${MediasfuSpacing.lg}px`,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    gap: MediasfuSpacing.lg,
+    gap: MediasfuSpacing.md,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.9) translateY(20px)',
     transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
     background: isDarkMode 
@@ -203,7 +203,7 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
   const counterTextStyle: CSSProperties = {
     position: 'absolute',
     ...MediasfuTypography.getHeadlineLarge(isDarkMode),
-    fontSize: 28,
+    fontSize: MediasfuTypography.sizeDisplay,
     fontWeight: 700,
     color: counter <= 30
       ? MediasfuColors.danger
@@ -227,23 +227,34 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
 
   const buttonStyle: CSSProperties = {
     width: '100%',
-    padding: `${MediasfuSpacing.md}px ${MediasfuSpacing.lg}px`,
-    borderRadius: 12,
+    // Deliberately shallow: this is a single confirmation, not a primary CTA,
+    // and the previous 16px vertical padding made it the heaviest thing on a
+    // card whose real subject is the countdown.
+    padding: '11px 20px',
+    borderRadius: 10,
     border: 'none',
     background: `linear-gradient(135deg, ${MediasfuColors.success} 0%, ${MediasfuColors.successDark} 100%)`,
     color: '#ffffff',
-    fontSize: 16,
+    fontSize: MediasfuTypography.sizeTitleSmall,
     fontWeight: 600,
+    letterSpacing: 0.2,
+    lineHeight: 1.2,
     cursor: 'pointer',
     transition: 'transform 0.2s ease, box-shadow 0.3s ease',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
+    // Tinted with the button's own colour so it reads as lit rather than
+    // dropped onto the card.
+    boxShadow: `0 6px 18px ${MediasfuColors.success}59, 0 1px 2px rgba(0,0,0,0.18)`,
   };
 
   const warningStyle: CSSProperties = {
     ...MediasfuTypography.getBodySmall(isDarkMode),
-    color: counter <= 30 ? MediasfuColors.danger : (isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'),
+    fontSize: MediasfuTypography.sizeBodySmall,
+    letterSpacing: 0.1,
+    color: counter <= 30
+      ? MediasfuColors.danger
+      : (isDarkMode ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.45)'),
     textAlign: 'center',
-    marginTop: MediasfuSpacing.sm,
+    marginTop: 2,
   };
 
   // Get stroke color based on time remaining
@@ -306,7 +317,7 @@ const ModernConfirmHereModal: React.FC<ModernConfirmHereModalOptions> = ({
               alignItems: 'center',
               gap: 8,
               cursor: 'pointer',
-              fontSize: 13,
+              fontSize: MediasfuTypography.sizeBodyCompact,
               color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
               userSelect: 'none',
             }}

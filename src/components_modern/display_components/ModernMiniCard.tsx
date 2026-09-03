@@ -21,6 +21,7 @@ import { MiniCardOptions } from '../../components/displayComponents/MiniCard';
 import { MediasfuColors } from '../core/theme/MediasfuColors';
 import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 import { MediasfuAnimations } from '../core/theme/MediasfuAnimations';
+import { stageCardPropsEqual } from './stageCardMemo';
 
 export interface ModernMiniCardOptions extends Partial<MiniCardOptions> {
   /** Initials to display when no image */
@@ -53,7 +54,7 @@ export interface ModernMiniCardOptions extends Partial<MiniCardOptions> {
 
 export type ModernMiniCardType = (options: ModernMiniCardOptions) => React.JSX.Element;
 
-export const ModernMiniCard: React.FC<ModernMiniCardOptions> = ({
+const ModernMiniCardComponent: React.FC<ModernMiniCardOptions> = ({
   initials = '',
   imageSource,
   fontSize = 14,
@@ -138,7 +139,7 @@ export const ModernMiniCard: React.FC<ModernMiniCardOptions> = ({
     color: '#FFFFFF',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1)' : 'scale(0.8)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.smooth),
     cursor: onClick ? 'pointer' : 'default',
     ...mergedStyle,
   };
@@ -268,5 +269,12 @@ export const ModernMiniCard: React.FC<ModernMiniCardOptions> = ({
     </div>
   );
 };
+
+/**
+ * Rendered per participant in the compact layouts.
+ */
+export const ModernMiniCard = React.memo(ModernMiniCardComponent, stageCardPropsEqual);
+
+ModernMiniCard.displayName = 'ModernMiniCard';
 
 export default ModernMiniCard;

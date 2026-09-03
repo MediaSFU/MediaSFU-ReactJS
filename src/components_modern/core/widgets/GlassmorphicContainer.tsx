@@ -119,7 +119,7 @@ export const GlassmorphicContainer: React.FC<GlassmorphicContainerProps> = ({
     boxShadow: MediasfuColors.elevation(elevation, isDarkMode),
     backdropFilter: `blur(${blur}px)`,
     WebkitBackdropFilter: `blur(${blur}px)`,
-    transition: `all ${animationDuration}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(animationDuration, MediasfuAnimations.smooth),
     cursor: onClick ? 'pointer' : 'default',
     opacity: isMounted ? 1 : 0,
     transform: isMounted 

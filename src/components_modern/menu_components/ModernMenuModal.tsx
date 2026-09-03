@@ -304,7 +304,7 @@ export const ModernMenuModal: React.FC<ModernMenuModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.xs,
     color: MediasfuColors.primary,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const shareButtonsStyle: React.CSSProperties = {
@@ -324,7 +324,7 @@ export const ModernMenuModal: React.FC<ModernMenuModalProps> = ({
     border: 'none',
     cursor: 'pointer',
     color: color,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   });
 
   const customButtonsStyle: React.CSSProperties = {
@@ -357,7 +357,7 @@ export const ModernMenuModal: React.FC<ModernMenuModalProps> = ({
           display: 'flex', 
           alignItems: 'center', 
           gap: 4, 
-          fontSize: 10, 
+          fontSize: MediasfuTypography.sizeMicro,
           color: MediasfuColors.danger,
           background: `${MediasfuColors.danger}15`,
           padding: '2px 6px',
@@ -387,7 +387,7 @@ export const ModernMenuModal: React.FC<ModernMenuModalProps> = ({
         </div>
       </div>
       <div style={{ 
-        fontSize: 11, 
+        fontSize: MediasfuTypography.sizeCaption,
         color: isDarkMode ? MediasfuColors.textSecondaryDark : MediasfuColors.textSecondary,
         marginTop: 4,
         fontStyle: 'italic'
@@ -542,7 +542,7 @@ export const ModernMenuModal: React.FC<ModernMenuModalProps> = ({
                 : 'rgba(0,0,0,0.08)',
               color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.7)',
               cursor: 'pointer',
-              fontSize: '18px',
+              fontSize: MediasfuTypography.sizeTitleMedium,
               fontWeight: 300,
               transition: 'background-color 0.15s ease',
             }}
@@ -609,7 +609,7 @@ export const ModernMenuModal: React.FC<ModernMenuModalProps> = ({
       : position === 'center'
         ? 'translate(-50%, -50%) scale(0.95)'
         : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -638,7 +638,7 @@ export const ModernMenuModal: React.FC<ModernMenuModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const bodyStyle: React.CSSProperties = {

@@ -223,16 +223,23 @@ export const createSendTransport: CreateSendTransportType = async ({
       console.log("Error creating local send transport:", error);
     }
 
-    // Emit createWebRtcTransport event to the server
-    socket.emit(
+    // Wait for the socket acknowledgement and for the first producer to be
+    // attached before resolving. Previously this function returned as soon as
+    // `socket.emit()` was called. A second media action could then observe
+    // `transportCreated === true` while `producerTransport` was still null and
+    // fail while trying to produce (most often when mic and camera were enabled
+    // together from a custom UI).
+    await new Promise<void>((resolve, reject) => socket.emit(
       "createWebRtcTransport",
       { consumer: false, islevel: islevel },
       async ({ params }: { params: any }) => {
-        // Check if there is an error in the response
-        if (params && params.error) {
-          console.error("Error in createWebRtcTransport:", params.error);
-          return;
-        }
+        try {
+          // Check if there is an error in the response
+          if (params && params.error) {
+            console.error("Error in createWebRtcTransport:", params.error);
+            reject(new Error(String(params.error)));
+            return;
+          }
 
         // The room can go away while this acknowledgement is in flight.
         //
@@ -242,14 +249,17 @@ export const createSendTransport: CreateSendTransportType = async ({
         // from inside a socket handler, where nothing can catch it. A closed
         // room has nothing to attach a transport to, so there is nothing to do
         // but stop.
-        if (!device) return;
+          if (!device) {
+            resolve();
+            return;
+          }
 
-        // Create a WebRTC send transport
-        producerTransport = await device.createSendTransport(params);
-        updateProducerTransport(producerTransport);
+          // Create a WebRTC send transport
+          producerTransport = await device.createSendTransport(params);
+          updateProducerTransport(producerTransport);
 
-        // Handle 'connect' event
-        producerTransport.on(
+          // Handle 'connect' event
+          producerTransport.on(
           "connect",
           async ({ dtlsParameters }: { dtlsParameters: DtlsParameters }, callback: () => void, errback: (error: Error) => void) => {
             try {
@@ -261,8 +271,8 @@ export const createSendTransport: CreateSendTransportType = async ({
           }
         );
 
-        // Handle 'produce' event
-        producerTransport.on(
+          // Handle 'produce' event
+          producerTransport.on(
           "produce",
           async (
             parameters: { kind: string; rtpParameters: any; appData: any },
@@ -289,8 +299,8 @@ export const createSendTransport: CreateSendTransportType = async ({
           }
         );
 
-        // Handle 'connectionstatechange' event
-        producerTransport.on("connectionstatechange", async (state: string) => {
+          // Handle 'connectionstatechange' event
+          producerTransport.on("connectionstatechange", async (state: string) => {
           switch (state) {
             case "connecting":
               break;
@@ -305,20 +315,24 @@ export const createSendTransport: CreateSendTransportType = async ({
           }
         });
 
-        // Update transport creation state
-        transportCreated = true;
-        parameters = parameters.getUpdatedAllParams();
-        await connectSendTransport({
-          targetOption: "remote",
-          option,
-          parameters: {
-            ...parameters,
-            producerTransport,
-          },
-        });
-        updateTransportCreated(transportCreated);
+          // Update transport creation state
+          transportCreated = true;
+          parameters = parameters.getUpdatedAllParams();
+          await connectSendTransport({
+            targetOption: "remote",
+            option,
+            parameters: {
+              ...parameters,
+              producerTransport,
+            },
+          });
+          updateTransportCreated(transportCreated);
+          resolve();
+        } catch (error) {
+          reject(error);
+        }
       }
-    );
+    ));
 
   } catch (error) {
     console.log("Error creating send transport:", error);

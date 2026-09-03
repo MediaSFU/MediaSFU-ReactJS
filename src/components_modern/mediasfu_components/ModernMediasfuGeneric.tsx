@@ -40,6 +40,7 @@ import {
   faStop,
 } from "@fortawesome/free-solid-svg-icons";
 import '../../components/mediasfuComponents/MediasfuCSS.css';
+import { resolveEmbeddedControlFractions } from "./embeddedContainerSizing";
 
 //initial values
 import { initialValuesState } from "../../methods/utils/initialValuesState";
@@ -395,6 +396,13 @@ export type ModernMediasfuGenericOptions = {
   /** Fired after an actual media transition, coalesced outside render. */
   onMediaChanged?: (data: { reasons: string[]; parameters: { [key: string]: any } }) => void;
   returnUI?: boolean;
+  /** Reload the browser after leaving when the SDK owns a visible UI. Defaults to true. */
+  reloadOnExit?: boolean;
+  /**
+   * Keeps the standard UI routing contract active while the UI is rendered by
+   * ModernMediasfuGenericHead from this engine's published parameter bag.
+   */
+  renderUIExternally?: boolean;
   noUIPreJoinOptions?: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
   joinMediaSFURoom?: JoinRoomOnMediaSFUType;
   createMediaSFURoom?: CreateRoomOnMediaSFUType;
@@ -447,6 +455,7 @@ export type ModernMediasfuGenericOptions = {
  * @property {Object} [sourceParameters={}] - Shared helper bag (devices, participants, layout handlers). Pair with updateSourceParameters.
  * @property {function} [updateSourceParameters] - Callback receiving latest helper bundle for bridging MediaSFU logic into custom components.
  * @property {boolean} [returnUI=true] - When false, mounts logic only (headless mode).
+ * @property {boolean} [renderUIExternally=false] - Keep standard modal/sidebar routing active when ModernMediasfuGenericHead renders this engine's UI.
  * @property {CreateMediaSFURoomOptions | JoinMediaSFURoomOptions} [noUIPreJoinOptions] - Pre-join data for headless mode (bypass wizard).
  * @property {JoinRoomOnMediaSFUType} [joinMediaSFURoom] - Custom room-join function (replace default networking).
  * @property {CreateRoomOnMediaSFUType} [createMediaSFURoom] - Custom room-create function (replace default networking).
@@ -552,6 +561,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   updateSourceParameters,
   onMediaChanged,
   returnUI = true,
+  reloadOnExit = true,
+  renderUIExternally = false,
   noUIPreJoinOptions,
   joinMediaSFURoom,
   createMediaSFURoom,
@@ -569,6 +580,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   userVoiceClones,
   optimizeVideoRecord = false,
 }) => {
+  const hasStandardUI = returnUI || renderUIExternally;
   const normalizeListenPreferences = (
     value?: Map<string, string> | Array<[string, string]> | Record<string, string>
   ): Map<string, string> => {
@@ -887,8 +899,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const shouldUseSidebar = useMemo(() => {
     const isLandscape = windowWidth > windowHeight;
     const isWide = windowWidth >= 1200;
-    return isLandscape && isWide;
-  }, [windowWidth, windowHeight]);
+    return hasStandardUI && isLandscape && isWide;
+  }, [hasStandardUI, windowWidth, windowHeight]);
 
   // Show button labels on larger screens (576px+), not just when sidebar is available
   const showButtonLabels = useMemo(() => {
@@ -919,13 +931,13 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   // Track if sidebar is visible
   const isSidebarVisible = useMemo(() => {
-    return activeSidebarContent !== 'none' && shouldUseSidebar;
-  }, [activeSidebarContent, shouldUseSidebar]);
+    return hasStandardUI && activeSidebarContent !== 'none' && shouldUseSidebar;
+  }, [hasStandardUI, activeSidebarContent, shouldUseSidebar]);
 
   // Track if sidebar modal (mobile) is visible
   const isSidebarModalVisible = useMemo(() => {
-    return activeSidebarContent !== 'none' && !shouldUseSidebar;
-  }, [activeSidebarContent, shouldUseSidebar]);
+    return hasStandardUI && activeSidebarContent !== 'none' && !shouldUseSidebar;
+  }, [hasStandardUI, activeSidebarContent, shouldUseSidebar]);
 
   // Theme-aware colors helper
   const themedSurfaceColor = useMemo(() => {
@@ -2726,10 +2738,12 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateIsMenuModalVisible = (value: boolean) => {
     setIsMenuModalVisible(value);
+    publishHeadlessModalVisibility('isMenuModalVisible', value);
   };
 
   const updateIsRecordingModalVisible = (value: boolean) => {
     setIsRecordingModalVisible(value);
+    publishHeadlessModalVisibility('isRecordingModalVisible', value);
     if (value == true) {
       updateConfirmedToRecord(false);
     } else {
@@ -2745,48 +2759,58 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateIsSettingsModalVisible = (value: boolean) => {
     setIsSettingsModalVisible(value);
+    publishHeadlessModalVisibility('isSettingsModalVisible', value);
   };
 
   const updateIsRequestsModalVisible = (value: boolean) => {
     setIsRequestsModalVisible(value);
+    publishHeadlessModalVisibility('isRequestsModalVisible', value);
   };
 
   const updateIsWaitingModalVisible = (value: boolean) => {
     setIsWaitingModalVisible(value);
+    publishHeadlessModalVisibility('isWaitingModalVisible', value);
   };
 
   const updateIsCoHostModalVisible = (value: boolean) => {
     setIsCoHostModalVisible(value);
+    publishHeadlessModalVisibility('isCoHostModalVisible', value);
   };
 
   const updateIsMediaSettingsModalVisible = (value: boolean) => {
     setIsMediaSettingsModalVisible(value);
+    publishHeadlessModalVisibility('isMediaSettingsModalVisible', value);
   };
 
   const updateIsDisplaySettingsModalVisible = (value: boolean) => {
     setIsDisplaySettingsModalVisible(value);
+    publishHeadlessModalVisibility('isDisplaySettingsModalVisible', value);
   };
 
   const updateIsParticipantsModalVisible = (value: boolean) => {
     setIsParticipantsModalVisible(value);
+    publishHeadlessModalVisibility('isParticipantsModalVisible', value);
   };
 
   const updateIsMessagesModalVisible = (value: boolean) => {
     setIsMessagesModalVisible(value);
-    if (value) {
+    if (value && hasStandardUI) {
       // When opening messages, also switch sidebar content to messages for modern UI
       updateActiveSidebarContent('messages');
     } else {
       updateShowMessagesBadge(false);
     }
+    publishHeadlessModalVisibility('isMessagesModalVisible', value);
   };
 
   const updateIsConfirmExitModalVisible = (value: boolean) => {
     setIsConfirmExitModalVisible(value);
+    publishHeadlessModalVisibility('isConfirmExitModalVisible', value);
   };
 
   const updateIsConfirmHereModalVisible = (value: boolean) => {
     setIsConfirmHereModalVisible(value);
+    publishHeadlessModalVisibility('isConfirmHereModalVisible', value);
   };
 
   // Session-level suppress flag for "Are you still here?" modal
@@ -2794,10 +2818,12 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateIsLoadingModalVisible = (value: boolean) => {
     setIsLoadingModalVisible(value);
+    publishHeadlessModalVisibility('isLoadingModalVisible', value);
   };
 
   const updateIsShareEventModalVisible = (value: boolean) => {
     setIsShareEventModalVisible(value);
+    publishHeadlessModalVisibility('isShareEventModalVisible', value);
   };
 
   const updateRecordingMediaOptions = (value: string) => {
@@ -3041,7 +3067,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
   const updateIsPollModalVisible = useCallback((value: boolean) => {
     const isLandscape = windowWidth > windowHeight;
     const isWide = windowWidth >= 1200;
-    const useSidebar = isLandscape && isWide;
+    const useSidebar = hasStandardUI && isLandscape && isWide;
 
     if (value && useSidebar) {
       setActiveSidebarContent('polls');
@@ -3053,7 +3079,8 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     } else {
       setIsPollModalVisible(value);
     }
-  }, [windowWidth, windowHeight, activeSidebarContent]);
+    publishHeadlessModalVisibility('isPollModalVisible', value);
+  }, [hasStandardUI, windowWidth, windowHeight, activeSidebarContent]);
 
   const updatePermissionConfig = (value: PermissionConfig | null) => {
     permissionConfig.current = value;
@@ -3177,10 +3204,11 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       }
 
       setIsBackgroundModalVisible(true);
+      publishHeadlessModalVisibility('isBackgroundModalVisible', true);
       return;
     }
 
-    if (value && (shouldUseSidebar || activeSidebarContent !== 'none')) {
+    if (value && hasStandardUI && (shouldUseSidebar || activeSidebarContent !== 'none')) {
       setIsBackgroundModalVisible(false);
       if (activeSidebarContent !== 'background') {
         setSidebarNavigationStack([]);
@@ -3195,10 +3223,12 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       setActiveSidebarContent('none');
       setSidebarNavigationStack([]);
     }
+    publishHeadlessModalVisibility('isBackgroundModalVisible', value);
   };
 
   const updateAutoClickBackground = (value: boolean) => {
     autoClickBackground.current = value;
+    publishHeadlessModalVisibility('autoClickBackground', value);
   };
 
   const updateBreakoutRooms = (value: BreakoutParticipant[][]) => {
@@ -3239,6 +3269,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateIsBreakoutRoomsModalVisible = (value: boolean) => {
     setIsBreakoutRoomsModalVisible(value);
+    publishHeadlessModalVisibility('isBreakoutRoomsModalVisible', value);
   };
 
   const updateWhiteboardUsers = (value: WhiteboardUser[]) => {
@@ -3270,10 +3301,12 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateIsWhiteboardModalVisible = (value: boolean) => {
     setIsWhiteboardModalVisible(value);
+    publishHeadlessModalVisibility('isWhiteboardModalVisible', value);
   };
 
   const updateIsConfigureWhiteboardModalVisible = (value: boolean) => {
     setIsConfigureWhiteboardModalVisible(value);
+    publishHeadlessModalVisibility('isConfigureWhiteboardModalVisible', value);
   };
 
   const updateShapes = (value: Shape[]) => {
@@ -3319,6 +3352,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
   const updateIsScreenboardModalVisible = (value: boolean) => {
     setIsScreenboardModalVisible(value);
+    publishHeadlessModalVisibility('isScreenboardModalVisible', value);
   };
 
   function checkOrientation() {
@@ -3349,12 +3383,43 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     }, 0);
   };
 
+  /**
+   * A returnUI=false consumer owns the visible surface. State updates inside
+   * this engine still have to cross updateSourceParameters so that consumer
+   * can render the matching SDK modal with the engine-owned visibility flag.
+   */
+  function publishHeadlessModalVisibility(field: string, value: boolean) {
+    if (returnUI || sourceParameters === null || !updateSourceParameters) return;
+    publishSourceParameters({
+      ...getAllParams(),
+      ...mediaSFUFunctions(),
+      [field]: value,
+    });
+  }
+
   useEffect(() => () => {
     if (publishHandleRef.current) {
       clearTimeout(publishHandleRef.current);
       publishHandleRef.current = null;
     }
   }, []);
+
+  // React state setters do not change the snapshot captured by an event
+  // handler. Publish once more after commit so getCurrentParams on the new bag
+  // reads the same visibility that an SDK-owned modal would render.
+  useEffect(() => {
+    if (returnUI || sourceParameters === null || !updateSourceParameters) return;
+    publishSourceParameters({ ...getAllParams(), ...mediaSFUFunctions() });
+    // Only visibility transitions publish here; a new callback/bag identity
+    // must not turn publication into a render feedback loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [returnUI, isMenuModalVisible, isRecordingModalVisible, isSettingsModalVisible,
+    isRequestsModalVisible, isWaitingModalVisible, isCoHostModalVisible,
+    isMediaSettingsModalVisible, isDisplaySettingsModalVisible, isParticipantsModalVisible,
+    isMessagesModalVisible, isConfirmExitModalVisible, isConfirmHereModalVisible,
+    isLoadingModalVisible, isShareEventModalVisible, isPollModalVisible,
+    isBackgroundModalVisible, isBreakoutRoomsModalVisible, isWhiteboardModalVisible,
+    isConfigureWhiteboardModalVisible, isScreenboardModalVisible]);
 
   const getUpdatedAllParams = () => {
     // Get all the params for the room as well as the update functions for them and Media SFU functions and return them
@@ -3376,16 +3441,26 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     };
   };
 
-  const getCurrentParams = () => ({
-    ...getAllParams(),
-    ...mediaSFUFunctions(),
-  });
+  // A caller can retain this getter across publications. Read through the
+  // latest render closure so React state (including modal visibility) is fresh,
+  // just like the ref-backed media fields. This read never publishes.
+  const currentParamsReaderRef = useRef<() => any>(() => ({}));
+  currentParamsReaderRef.current = () => ({ ...getAllParams(), ...mediaSFUFunctions() });
+  const getCurrentParams = useCallback(() => currentParamsReaderRef.current(), []);
 
   const mediaSFUFunctions = () => {
     // Media SFU functions
 
     return {
+      // Renderer-only entry point consumed by ModernMediasfuGenericHead. It
+      // closes over this engine, so mounting the renderer never creates a
+      // second room connection or a second state store.
+      renderModernMediasfuUI: () => renderModernMediasfuUI(true),
       updateMiniCardsGrid,
+      // Hosted-surface state is public so custom/headless UIs can mirror the
+      // SDK's sidebar without guessing which modal is currently active.
+      updateActiveSidebarContent,
+      closeSidebar,
       updatePrimaryGridLayoutMeta,
       updateAltGridLayoutMeta,
       mixStreams,
@@ -3484,6 +3559,10 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       miniAudioComponent: MiniAudioComponentOverride,
       miniAudioPlayerComponent: MiniAudioPlayerComponent,
       meetingProgressTimerComponent: MeetingProgressTimerComponent,
+      activeSidebarContent,
+      isSidebarVisible,
+      isSidebarModalVisible,
+      shouldUseSidebar,
 
       //Room Details
       roomName: roomName.current,
@@ -6125,7 +6204,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     setTimeout(async function () {
       updateValidated(false);
       //if on web, reload the page
-      if (returnUI){
+      if (hasStandardUI && reloadOnExit){
         window.location.reload();
       }
     }, 500);
@@ -6248,16 +6327,20 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         tempMainHeightWidth = 0;
         setMainHeightWidth(0);
     }
+    const usesFixedControlStrip =
+      eventType.current == "webinar" || eventType.current == "conference";
+    const { mainFraction } = resolveEmbeddedControlFractions({
+      containerHeightFraction: containerHeightFractionProp,
+      controlViewportFraction: fraction,
+      showControls: usesFixedControlStrip,
+    });
     const { mainHeight, otherHeight, mainWidth, otherWidth } =
       computeDimensionsMethod({
         containerWidthFraction: containerWidthFractionProp,
         containerHeightFraction: containerHeightFractionProp,
         mainSize: tempMainHeightWidth,
         doStack: true,
-        defaultFraction:
-          eventType.current == "webinar" || eventType.current == "conference"
-            ? 1 - fraction
-            : 1,
+        defaultFraction: mainFraction,
       });
 
     // Use the computed dimensions as needed
@@ -6476,7 +6559,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         socketDefault.on("disconnect", async () => {
           await disconnect({
             showAlert,
-            redirectURL: redirectURL.current,
+            redirectURL: reloadOnExit ? redirectURL.current : undefined,
             onWeb: true,
             updateValidated,
           });
@@ -6828,7 +6911,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         socketDefault.on("meetingEnded", async function () {
           await meetingEnded({
             showAlert,
-            redirectURL: redirectURL.current,
+            redirectURL: reloadOnExit ? redirectURL.current : undefined,
             onWeb: true,
             eventType: eventType.current,
             updateValidated,
@@ -8282,15 +8365,38 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     );
   }, [activeSidebarContent, sidebarNavigationStack.length, isDarkMode, sidebarNavigateBack, closeSidebar]);
 
-  return (
+  function renderModernMediasfuUI(forceVisible = false): React.ReactElement {
+    const renderSurface = returnUI || forceVisible;
+    const usesFixedControlStrip =
+      eventType.current == "webinar" || eventType.current == "conference";
+    const embeddedControlFractions = resolveEmbeddedControlFractions({
+      containerHeightFraction: containerHeightFractionProp,
+      controlViewportFraction: controlHeight,
+      showControls: usesFixedControlStrip,
+    });
+
+    return (
     <div
       className="MediaSFU"
       style={{
-        height: containerHeightFractionProp < 1 ? "100%" : "100vh",
-        width: containerWidthFractionProp < 1 ? "100%" : "100vw",
-        maxWidth: containerWidthFractionProp < 1 ? "100%" : "100vw",
-        maxHeight: containerHeightFractionProp < 1 ? "100%" : "100vh",
-        overflow: "hidden",
+        ...(renderSurface === false && !customComponent
+          ? {
+              position: "absolute",
+              height: 0,
+              width: 0,
+              maxWidth: 0,
+              maxHeight: 0,
+              overflow: "hidden",
+              opacity: 0,
+              pointerEvents: "none" as const,
+            }
+          : {
+              height: containerHeightFractionProp < 1 ? "100%" : "100vh",
+              width: containerWidthFractionProp < 1 ? "100%" : "100vw",
+              maxWidth: containerWidthFractionProp < 1 ? "100%" : "100vw",
+              maxHeight: containerHeightFractionProp < 1 ? "100%" : "100vh",
+              overflow: "hidden",
+            }),
         ...containerStyle,
       }}
     >
@@ -8325,7 +8431,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
                 updateSelfieSegmentation,
               },
               credentials: credentials,
-              returnUI: returnUI,
+              returnUI: renderSurface,
               noUIPreJoinOptions: noUIPreJoinOptions,
               createMediaSFURoom: createMediaSFURoom,
               joinMediaSFURoom: joinMediaSFURoom,
@@ -8377,13 +8483,13 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             credentials={credentials}
             localLink={localLink}
             connectMediaSFU={connectMediaSFU}
-            returnUI={returnUI}
+            returnUI={renderSurface}
             noUIPreJoinOptions={noUIPreJoinOptions}
             joinMediaSFURoom={joinMediaSFURoom}
             createMediaSFURoom={createMediaSFURoom}
           />
         )
-      ) : returnUI ? (
+      ) : renderSurface ? (
   <MainContainer
     containerWidthFraction={containerWidthFractionProp}
     containerHeightFraction={containerHeightFractionProp}
@@ -8393,7 +8499,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
             containerWidthFraction={containerWidthFractionProp}
             containerHeightFraction={containerHeightFractionProp}
             backgroundColor={themedSurfaceColor}
-            defaultFraction={1 - controlHeight}
+            defaultFraction={embeddedControlFractions.mainFraction}
             updateIsWideScreen={updateIsWideScreen}
             updateIsMediumScreen={updateIsMediumScreen}
             updateIsSmallScreen={updateIsSmallScreen}
@@ -8418,7 +8524,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
               doStack={true}
               mainSize={mainHeightWidth}
               updateComponentSizes={updateComponentSizes}
-              defaultFraction={1 - controlHeight}
+              defaultFraction={embeddedControlFractions.mainFraction}
               componentSizes={componentSizes}
               sidebarWidth={shouldUseSidebar && isSidebarVisible ? sidebarWidth : 0}
               showControls={
@@ -8675,7 +8781,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
               eventType.current == "webinar" ||
               eventType.current == "conference"
             }
-            defaultFractionSub={controlHeight}
+            defaultFractionSub={embeddedControlFractions.subViewportFraction}
           >
             <ControlButtons
               buttons={controlButtons}
@@ -8714,7 +8820,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         <> </>
       )}
 
-      {returnUI && !customComponent && (
+      {renderSurface && !customComponent && (
         <>
           {/* ConfirmExitModal - always render (not a sidebar content type) */}
           <ConfirmExitModalComponent
@@ -8786,7 +8892,7 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
 
       {/* Mobile sidebar modal - slide-in overlay for screens < 1200px */}
       {/* Only render when validated (in a meeting) to prevent showing blank sidebar slot after reset */}
-      {validated && !shouldUseSidebar && (
+      {renderSurface && validated && !shouldUseSidebar && (
         <div
           style={{
             position: 'fixed',
@@ -8910,7 +9016,10 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
         `}
       </style>
     </div>
-  );
+    );
+  }
+
+  return renderModernMediasfuUI(false);
 };
 
 export default ModernMediasfuGeneric;

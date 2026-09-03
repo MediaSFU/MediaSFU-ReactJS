@@ -16,7 +16,13 @@ const normalizeManagedRoomApi = (normalizedLink: string): string => {
 export const resolveMediaSFURoomApi = (
   localLink: string | undefined,
   action: MediaSFURoomApiAction,
+  roomsEndpoint?: string,
 ): string => {
+  const explicitRoomsEndpoint = roomsEndpoint?.trim();
+  if (explicitRoomsEndpoint) {
+    return explicitRoomsEndpoint;
+  }
+
   const normalizedLink = localLink?.trim();
 
   if (!normalizedLink) {

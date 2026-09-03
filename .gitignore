@@ -21,6 +21,7 @@ __MACOSX/
 .env.test.local
 .env.production.local
 /dist/
+*.tgz
 
 npm-debug.log*
 yarn-debug.log*
@@ -37,4 +38,3 @@ assets/
 
 # local-only validation scratch space
 /.local-validation/
-mediasfu-reactjs-4.3.0.tgz

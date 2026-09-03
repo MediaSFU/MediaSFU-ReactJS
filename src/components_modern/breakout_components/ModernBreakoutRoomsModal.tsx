@@ -43,6 +43,7 @@ import { MediasfuBorders } from '../core/theme/MediasfuBorders';
 import { GlassmorphicContainer } from '../core/widgets/GlassmorphicContainer';
 import { PremiumButton } from '../core/widgets/PremiumButton';
 import { ModernTooltip } from '../core/widgets/ModernTooltip';
+import { getCurrentParams } from '../../methods/utils/headless/getCurrentParams';
 
 export interface ModernBreakoutRoomsModalProps extends BreakoutRoomsModalOptions {
   /** Use dark mode styling */
@@ -87,14 +88,15 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
   const getParamsRef = useRef(() => parameters.getUpdatedAllParams());
   getParamsRef.current = () => parameters.getUpdatedAllParams();
 
-  // Memoized current params for render - avoid calling getParams in render body
+  // Render reads must stay pure. `getUpdatedAllParams` republishes the shared
+  // bag and can re-enter the consumer render path; keep it for event-time reads.
   const currentParams = useMemo(() => {
     // Only compute when visible to avoid unnecessary work
     if (!isVisible && renderMode !== 'sidebar' && renderMode !== 'inline') {
       return null;
     }
-    return getParamsRef.current();
-  }, [isVisible, renderMode]);
+    return getCurrentParams({ parameters });
+  }, [isVisible, renderMode, parameters]);
 
   // Initialize rooms when modal becomes visible OR when breakoutRooms change while visible
   useEffect(() => {
@@ -454,7 +456,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
       padding: MediasfuSpacing.xs,
       borderRadius: MediasfuBorders.sm,
       color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     };
 
     const sidebarControlsStyle: React.CSSProperties = {
@@ -473,13 +475,14 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
       border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
       borderRadius: MediasfuBorders.sm,
       color: isDarkMode ? '#FFFFFF' : '#1F2937',
-      fontSize: 14,
+      fontSize: MediasfuTypography.sizeBodyMedium,
       outline: 'none',
       textAlign: 'center',
     };
 
     const sidebarContentStyle: React.CSSProperties = {
       flex: 1,
+      minHeight: 0,
       overflowY: 'auto',
       padding: `${MediasfuSpacing.md}px`,
       display: 'flex',
@@ -512,7 +515,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
 
     const sidebarParticipantStyle: React.CSSProperties = {
       padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.md}px`,
-      fontSize: 13,
+      fontSize: MediasfuTypography.sizeBodyCompact,
       color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)',
       display: 'flex',
       alignItems: 'center',
@@ -521,13 +524,14 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
 
     const sidebarFooterStyle: React.CSSProperties = {
       display: 'flex',
+      flexShrink: 0,
       gap: `${MediasfuSpacing.sm}px`,
       padding: `${MediasfuSpacing.md}px`,
       borderTop: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
     };
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0, overflow: 'hidden' }}>
         {/* Header */}
         <div style={sidebarHeaderStyle}>
           <h2 style={sidebarTitleStyle}>
@@ -541,7 +545,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
 
         {/* Controls */}
         <div style={sidebarControlsStyle}>
-          <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', fontSize: 13 }}>
+          <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', fontSize: MediasfuTypography.sizeBodyCompact }}>
             Number of rooms:
           </span>
           <ModernTooltip message="Set between 1 and 20 breakout rooms" position="top" isDarkMode={isDarkMode}>
@@ -623,7 +627,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                     <span style={sidebarRoomTitleStyle}>
                       <FontAwesomeIcon icon={faUsers} />
                       Room {roomIndex + 1}
-                      <span style={{ opacity: 0.6, fontSize: 12 }}>
+                      <span style={{ opacity: 0.6, fontSize: MediasfuTypography.sizeBodySmall }}>
                         ({room.length} participants)
                       </span>
                     </span>
@@ -700,7 +704,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                           }}
                         >
                           {room.length === 0 ? (
-                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: 12, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>No participants</div>
+                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: MediasfuTypography.sizeBodySmall, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>No participants</div>
                           ) : (
                             room.map((participant) => (
                               <div
@@ -711,7 +715,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                                   justifyContent: 'space-between',
                                   padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
                                   borderBottom: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
-                                  fontSize: 13,
+                                  fontSize: MediasfuTypography.sizeBodyCompact,
                                   color: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
                                 }}
                               >
@@ -750,7 +754,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                           }}
                         >
                           {participants.filter((p) => p.breakRoom == null).length === 0 ? (
-                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: 12, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>None available</div>
+                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: MediasfuTypography.sizeBodySmall, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>None available</div>
                           ) : (
                             participants
                               .filter((p) => p.breakRoom == null)
@@ -763,7 +767,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                                     justifyContent: 'space-between',
                                     padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
                                     borderBottom: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
-                                    fontSize: 13,
+                                    fontSize: MediasfuTypography.sizeBodyCompact,
                                     color: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
                                   }}
                                 >
@@ -822,7 +826,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                   onPress={handleStart}
                   isDarkMode={isDarkMode}
                   style={{ width: '100%' }}
-                  disabled={localRooms.length === 0 || !localRooms.some((r) => r.length > 0)}
+                  disabled={localRooms.length === 0 || !localRooms.some((r) => r.length > 0) || !currentParams?.canStartBreakout}
                 >
                   <FontAwesomeIcon icon={faPlay} style={{ marginRight: MediasfuSpacing.xs }} />
                   Start
@@ -892,7 +896,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
     maxHeight: 'min(600px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -921,7 +925,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const controlsStyle: React.CSSProperties = {
@@ -940,7 +944,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
     border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     outline: 'none',
     textAlign: 'center',
   };
@@ -979,7 +983,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
 
   const participantStyle: React.CSSProperties = {
     padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.md}px`,
-    fontSize: 13,
+    fontSize: MediasfuTypography.sizeBodyCompact,
     color: isDarkMode ? 'rgba(255,255,255,0.8)' : 'rgba(0,0,0,0.8)',
     display: 'flex',
     alignItems: 'center',
@@ -1020,7 +1024,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
 
         {/* Controls */}
         <div style={controlsStyle}>
-          <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', fontSize: 13 }}>
+          <span style={{ color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)', fontSize: MediasfuTypography.sizeBodyCompact }}>
             Number of rooms:
           </span>
           <ModernTooltip message="Set between 1 and 20 breakout rooms" position="top" isDarkMode={isDarkMode}>
@@ -1102,7 +1106,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                     <span style={roomTitleStyle}>
                       <FontAwesomeIcon icon={faUsers} />
                       Room {roomIndex + 1}
-                      <span style={{ opacity: 0.6, fontSize: 12 }}>
+                      <span style={{ opacity: 0.6, fontSize: MediasfuTypography.sizeBodySmall }}>
                         ({room.length} participants)
                       </span>
                     </span>
@@ -1179,7 +1183,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                           }}
                         >
                           {room.length === 0 ? (
-                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: 13, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>No participants</div>
+                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: MediasfuTypography.sizeBodyCompact, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>No participants</div>
                           ) : (
                             room.map((participant) => (
                               <div
@@ -1190,7 +1194,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                                   justifyContent: 'space-between',
                                   padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
                                   borderBottom: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
-                                  fontSize: 13,
+                                  fontSize: MediasfuTypography.sizeBodyCompact,
                                   color: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
                                 }}
                               >
@@ -1229,7 +1233,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                           }}
                         >
                           {participants.filter((p) => p.breakRoom == null).length === 0 ? (
-                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: 13, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>None available</div>
+                            <div style={{ padding: MediasfuSpacing.sm, opacity: 0.5, fontSize: MediasfuTypography.sizeBodyCompact, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>None available</div>
                           ) : (
                             participants
                               .filter((p) => p.breakRoom == null)
@@ -1242,7 +1246,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                                     justifyContent: 'space-between',
                                     padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
                                     borderBottom: `1px solid ${MediasfuColors.glassBorder(isDarkMode)}`,
-                                    fontSize: 13,
+                                    fontSize: MediasfuTypography.sizeBodyCompact,
                                     color: isDarkMode ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.9)',
                                   }}
                                 >
@@ -1301,7 +1305,7 @@ export const ModernBreakoutRoomsModal: React.FC<ModernBreakoutRoomsModalProps> =
                   onPress={handleStart}
                   isDarkMode={isDarkMode}
                   style={{ width: '100%' }}
-                  disabled={localRooms.length === 0 || !localRooms.some((r) => r.length > 0)}
+                disabled={localRooms.length === 0 || !localRooms.some((r) => r.length > 0) || !currentParams?.canStartBreakout}
                 >
                   <FontAwesomeIcon icon={faPlay} style={{ marginRight: MediasfuSpacing.xs }} />
                   Start

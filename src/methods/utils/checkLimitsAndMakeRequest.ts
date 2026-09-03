@@ -49,7 +49,10 @@ export const checkLimitsAndMakeRequest = async ({
   
     try {
       parameters.updateIsLoadingModalVisible(true);
-      const socketPromise = await parameters.connectSocket({
+      // Deliberately NOT awaited: awaiting here defeated the race below, so
+      // the 10s timeout could never fire and a connection that hung left the
+      // loading modal up forever with no error.
+      const socketPromise = parameters.connectSocket({
         apiUserName,
         apiKey,
         apiToken,

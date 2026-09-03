@@ -19,7 +19,8 @@
  * ```
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useRef } from "react";
+import { useGridReflow } from "./useGridReflow";
 import { FlexibleGridOptions } from "../../components/displayComponents/FlexibleGrid";
 
 // Extended options for modern styling
@@ -30,6 +31,11 @@ export interface ModernFlexibleGridOptions extends FlexibleGridOptions {
   enableGlassmorphism?: boolean;
   /** Border radius for cells in pixels (default: 8) */
   cellBorderRadius?: number;
+  /**
+   * Glide tiles to their new positions when the grid re-lays out, instead of
+   * snapping (default: true). Honours `prefers-reduced-motion` regardless.
+   */
+  animateLayout?: boolean;
 }
 
 export type ModernFlexibleGridType = React.FC<ModernFlexibleGridOptions>;
@@ -70,12 +76,8 @@ const ModernFlexibleGridComponent: React.FC<ModernFlexibleGridOptions> = ({
   isDarkMode = true,
   enableGlassmorphism = true,
   cellBorderRadius = 8,
+  animateLayout = true,
 }) => {
-  // Early return if invalid dimensions (matches original FlexibleGrid)
-  if (rows <= 0 || columns <= 0) {
-    return <></>;
-  }
-
   // Extract props for customization
   const {
     className: gridClassName,
@@ -230,6 +232,7 @@ const ModernFlexibleGridComponent: React.FC<ModernFlexibleGridOptions> = ({
         const defaultCell = (
           <div
             key={cellKey as React.Key}
+            data-mediasfu-cell={String(cellKey)}
             className={cellClassNames}
             style={getCellStyle(hasContent)}
             {...restCellProps}
@@ -322,8 +325,29 @@ const ModernFlexibleGridComponent: React.FC<ModernFlexibleGridOptions> = ({
     enableGlassmorphism,
   ]);
 
+  const gridRef = useRef<HTMLDivElement | null>(null);
+
+  // Changes whenever a tile is added, removed, reordered, or the grid shape
+  // changes — which is exactly when a reflow is worth animating.
+  const layoutSignature = useMemo(() => {
+    const keys = componentsToRender.map((component, index) =>
+      React.isValidElement(component) && component.key != null
+        ? String(component.key)
+        : `#${index}`
+    );
+    return `${rows}x${columns}|${keys.join(",")}`;
+  }, [rows, columns, componentsToRender]);
+
+  useGridReflow(gridRef, layoutSignature, animateLayout);
+
   const defaultGrid = (
-    <div className={gridClassNames} style={gridStyle} {...restGridWrapperProps}>
+    <div
+      ref={gridRef}
+      data-mediasfu-grid=""
+      className={gridClassNames}
+      style={gridStyle}
+      {...restGridWrapperProps}
+    >
       {gridRows}
     </div>
   );
@@ -331,6 +355,12 @@ const ModernFlexibleGridComponent: React.FC<ModernFlexibleGridOptions> = ({
   const gridNode = renderGrid
     ? renderGrid({ defaultGrid, rows: gridRows })
     : defaultGrid;
+
+  // Deferred to here so the hook count stays constant: this used to return
+  // before three useMemo calls, which threw once a grid went empty and back.
+  if (rows <= 0 || columns <= 0) {
+    return <></>;
+  }
 
   return <>{gridNode}</>;
 };
@@ -354,7 +384,8 @@ const arePropsEqual = (
     prev.renderGrid !== next.renderGrid ||
     prev.isDarkMode !== next.isDarkMode ||
     prev.enableGlassmorphism !== next.enableGlassmorphism ||
-    prev.cellBorderRadius !== next.cellBorderRadius
+    prev.cellBorderRadius !== next.cellBorderRadius ||
+    prev.animateLayout !== next.animateLayout
   ) {
     return false;
   }

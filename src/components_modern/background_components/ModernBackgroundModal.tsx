@@ -19,6 +19,8 @@ import {
 import { Producer, ProducerOptions } from "mediasoup-client/lib/types";
 import { ModalRenderMode } from "../../components/menuComponents/MenuModal";
 import { ModernTooltip } from "../core/widgets/ModernTooltip";
+import { compositeVirtualBackgroundFrame } from "../../methods/utils/virtualBackgroundCompositor";
+import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 
 export interface ModernBackgroundModalParameters
   extends CreateSendTransportParameters,
@@ -212,17 +214,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     updateVideoParams,
     autoClickBackground,
     updateAutoClickBackground,
-
   } = parameters;
 
-  if(!selfieSegmentation){
-    selfieSegmentation = parameters.getUpdatedAllParams().selfieSegmentation;
-  }
-
-  // AudioCardParameters predates the full background-runtime bag. Keep this
-  // adapter permissive while preserving the pure-read contract.
-  const getCurrentParameters = (): any =>
-    (parameters as any).getCurrentParams?.() ?? parameters;
+  const getCurrentParameters = (): any => (parameters as any).getCurrentParams?.() ?? parameters;
+  // Hidden and visible renders must read without republishing room state.
+  if (!selfieSegmentation) selfieSegmentation = getCurrentParameters().selfieSegmentation;
 
   // Suppress unused position warning - kept for API compatibility
   void _position;
@@ -240,6 +236,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   const previewCaptureTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [uploadFileName, setUploadFileName] = React.useState("No file selected");
   const [isAutoApplyingBackground, setIsAutoApplyingBackground] = React.useState(false);
+  const autoApplyInFlightRef = useRef(false);
 
   // Modern modal width - similar to sidebar
   const modalWidth = typeof window !== "undefined" ? Math.min(window.innerWidth * 0.85, 420) : 380;
@@ -418,7 +415,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     color: isDarkMode ? "#94a3b8" : "#64748b",
     borderRadius: 8,
     transition: "all 150ms ease",
-    fontSize: 16,
+    fontSize: MediasfuTypography.sizeTitleSmall,
     ...closeButtonStyleOverrides,
   };
 
@@ -608,7 +605,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     background: isDarkMode ? "rgba(59, 130, 246, 0.18)" : "rgba(59, 130, 246, 0.12)",
     border: `1px solid ${isDarkMode ? "rgba(96,165,250,0.35)" : "rgba(59,130,246,0.18)"}`,
     color: isDarkMode ? "#dbeafe" : "#1d4ed8",
-    fontSize: 13,
+    fontSize: MediasfuTypography.sizeBodyCompact,
     fontWeight: 700,
     cursor: "pointer",
   };
@@ -616,7 +613,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   const uploadFileNameStyle: React.CSSProperties = {
     flex: 1,
     minWidth: 0,
-    fontSize: 13,
+    fontSize: MediasfuTypography.sizeBodyCompact,
     lineHeight: 1.4,
     color: isDarkMode ? "#cbd5e1" : "#334155",
     overflow: "hidden",
@@ -626,7 +623,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
 
   const uploadHelperTextStyle: React.CSSProperties = {
     margin: 0,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     lineHeight: 1.45,
     color: isDarkMode ? "#94a3b8" : "#64748b",
   };
@@ -880,9 +877,6 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
         if (applyBackgroundButtonRef.current) applyBackgroundButtonRef.current.innerText = previewLabel;
       }
 
-      if (autoClickBackground) {
-        void handleAutoClickBackground();
-      }
     } else {
       try {
         if (
@@ -941,6 +935,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       } catch { /* Handle error */}
     }
   }, [isVisible]);
+
+  // Restoration can be requested while the picker is already visible.
+  useEffect(() => {
+    if (isVisible && autoClickBackground) void handleAutoClickBackground();
+  }, [isVisible, autoClickBackground]);
 
   const clonedStream = useRef<MediaStream | null>(null);
   const clonedTrack = useRef<MediaStreamTrack | null>(null);
@@ -1425,32 +1424,19 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           virtualImage.width > 0 &&
           virtualImage.height > 0
         ) {
-          ctx!.save();
-          ctx!.clearRect(0, 0, mediaCanvas.width, mediaCanvas.height);
-          ctx!.globalCompositeOperation = "source-over";
-          ctx!.drawImage(
-            results.segmentationMask,
-            0,
-            0,
-            mediaCanvas.width,
-            mediaCanvas.height
-          );
-
-          // The mask is opaque where the person is. Keep the camera only in
-          // that region first, then paint the selected image behind it.
-          ctx!.globalCompositeOperation = "source-in";
-          ctx!.drawImage(results.image, 0, 0, mediaCanvas.width, mediaCanvas.height);
-
-          ctx!.globalCompositeOperation = "destination-over";
           const repeatPattern =
             virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height
               ? "repeat"
               : "no-repeat";
-          const pat = ctx!.createPattern(virtualImage, repeatPattern);
-          ctx!.fillStyle = pat || "";
-          ctx!.fillRect(0, 0, mediaCanvas.width, mediaCanvas.height);
-
-          ctx!.restore();
+          compositeVirtualBackgroundFrame({
+            ctx: ctx!,
+            segmentationMask: results.segmentationMask,
+            sourceImage: results.image,
+            backgroundImage: virtualImage,
+            width: mediaCanvas.width,
+            height: mediaCanvas.height,
+            repeatPattern,
+          });
           markFirstFrameRendered();
         }
       } catch (error) {
@@ -1765,10 +1751,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   };
 
   const handleAutoClickBackground = async () => {
-    if (!autoClickBackground || !isVisible) {
+    if (!autoClickBackground || !isVisible || autoApplyInFlightRef.current) {
       return;
     }
 
+    autoApplyInFlightRef.current = true;
     setIsAutoApplyingBackground(true);
     const refsReady = await waitForInteractiveView();
 
@@ -1776,6 +1763,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       console.error("Background modal refs not ready after waiting");
       updateAutoClickBackground(false);
       setIsAutoApplyingBackground(false);
+      autoApplyInFlightRef.current = false;
       onClose();
       return;
     }
@@ -1798,6 +1786,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       });
       console.error("Error auto-applying background:", error);
     } finally {
+      autoApplyInFlightRef.current = false;
       updateAutoClickBackground(false);
       setIsAutoApplyingBackground(false);
       if (shouldClose) {
@@ -1946,10 +1935,10 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           gap: 8,
         }}
       >
-        <span style={{ fontSize: 18 }}>📷</span>
+        <span style={{ fontSize: MediasfuTypography.sizeTitleMedium }}>📷</span>
         <span
           style={{
-            fontSize: 13,
+            fontSize: MediasfuTypography.sizeBodyCompact,
             fontWeight: 600,
             color: isDarkMode ? '#93c5fd' : '#2563eb',
           }}
@@ -1962,7 +1951,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       <p
         style={{
           margin: 0,
-          fontSize: 12,
+          fontSize: MediasfuTypography.sizeBodySmall,
           lineHeight: 1.5,
           color: isDarkMode ? '#cbd5e1' : '#475569',
         }}
@@ -1986,10 +1975,10 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           alignSelf: 'flex-start',
         }}
       >
-        <span style={{ fontSize: 12 }}>🔒</span>
+        <span style={{ fontSize: MediasfuTypography.sizeBodySmall }}>🔒</span>
         <span
           style={{
-            fontSize: 11,
+            fontSize: MediasfuTypography.sizeCaption,
             fontWeight: 500,
             color: isDarkMode ? '#86efac' : '#16a34a',
           }}
@@ -2001,7 +1990,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   );
 
   // Saved background indicator when camera is off but background is selected
-  const savedBackgroundIndicator = !videoAlreadyOn && (selectedImage || customImage) && (
+  const savedBackgroundIndicator = !videoAlreadyOn && appliedBackground && keepBackground && (selectedImage || customImage) && (
     <div
       style={{
         display: 'flex',
@@ -2016,10 +2005,10 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
         border: `1px solid ${isDarkMode ? 'rgba(34, 197, 94, 0.25)' : 'rgba(34, 197, 94, 0.15)'}`,
       }}
     >
-      <span style={{ fontSize: 14 }}>✓</span>
+      <span style={{ fontSize: MediasfuTypography.sizeBodyMedium }}>✓</span>
       <span
         style={{
-          fontSize: 12,
+          fontSize: MediasfuTypography.sizeBodySmall,
           color: isDarkMode ? '#86efac' : '#15803d',
           fontWeight: 500,
         }}

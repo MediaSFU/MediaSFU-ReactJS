@@ -80,6 +80,9 @@ export type ConnectLocalSocketType = (options: ConnectLocalSocketOptions) => Pro
  * ```
  */
 
+/** How long to wait for `connection-success` before giving up. */
+const CONNECT_TIMEOUT_MS = 12000;
+
 async function connectSocket(
   { apiUserName, apiKey, apiToken, link }: ConnectSocketOptions,
 ): Promise<Socket> {
@@ -132,6 +135,16 @@ async function connectSocket(
       });
     }
 
+    // Every path below runs at most once, and always clears the timer.
+    let settled = false;
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const settle = (action: () => void) => {
+      if (settled) return;
+      settled = true;
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      action();
+    };
+
     // Handle socket connection events
     socket.on('connection-success', ({ socketId }: { socketId: string }) => {
       //check if link contains mediasfu.com and contains more than one c
@@ -145,12 +158,41 @@ async function connectSocket(
       }
 
       console.log(`Connected to ${conn} socket with ID: ${socketId}`);
-      resolve(socket);
+      settle(() => resolve(socket));
     });
 
     socket.on('connect_error', (error: Error) => {
-      reject(new Error('Error connecting to media socket: ' + error.message));
+      settle(() =>
+        reject(new Error('Error connecting to media socket: ' + error.message))
+      );
     });
+
+    // The transport can connect and then be dropped by the server before it
+    // ever sends `connection-success` — a rejected room, an expired token, a
+    // bad handshake. Without this the promise stayed pending forever, so the
+    // caller's loading modal never came down and no error was ever surfaced.
+    socket.on('disconnect', (reason: string) => {
+      settle(() =>
+        reject(
+          new Error(
+            'Media socket closed before the room was ready (' + reason + ').'
+          )
+        )
+      );
+    });
+
+    // Last resort, for the case where the socket neither connects, errors nor
+    // disconnects. Nothing above guarantees a settle on its own.
+    timeoutHandle = setTimeout(() => {
+      settle(() => {
+        try {
+          socket.disconnect();
+        } catch {
+          // Nothing useful to do here.
+        }
+        reject(new Error('Timed out connecting to media socket.'));
+      });
+    }, CONNECT_TIMEOUT_MS);
   });
 }
 
@@ -166,7 +208,7 @@ async function connectSocket(
  * @example
  * ```typescript
  * const options = {
- *   link: 'https://your-socket-server.example.com',
+ *   link: 'http://localhost:3000',
  * };
  *
  * try {

@@ -15,6 +15,11 @@ export interface ConfirmHereModalOptions {
   isConfirmHereModalVisible: boolean;
   onConfirmHereClose: () => void;
   backgroundColor?: string;
+  /**
+   * Forwarded to modern/override implementations so the prompt matches the
+   * meeting's theme. The base implementation ignores it.
+   */
+  isDarkMode?: boolean;
   countdownDuration?: number;
   socket: Socket;
   localSocket?: Socket;

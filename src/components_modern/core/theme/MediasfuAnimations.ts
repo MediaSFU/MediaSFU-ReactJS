@@ -166,6 +166,29 @@ export class MediasfuAnimations {
       .join(', ');
   }
 
+  /**
+   * The properties an interactive surface actually animates.
+   *
+   * `all` is a trap on the meeting stage: it asks the browser to watch every
+   * animatable property, so any layout change animates width, height and
+   * padding — the properties that force layout on every frame — and does it
+   * around live video. This list covers everything these components genuinely
+   * transition while leaving geometry alone.
+   */
+  static readonly interactiveProperties: readonly string[] = [
+    'transform',
+    'opacity',
+    'background-color',
+    'border-color',
+    'box-shadow',
+    'color',
+  ];
+
+  /** Build a transition over {@link interactiveProperties}. */
+  static transitionInteractive(duration = this.normal, easing = this.smooth): string {
+    return this.transition([...this.interactiveProperties], duration, easing);
+  }
+
   /** Build all-property transition */
   static transitionAll(duration = this.normal, easing = this.smooth): string {
     return `all ${duration}ms ${easing}`;
@@ -574,6 +597,32 @@ export class MediasfuAnimations {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /** Get all keyframe definitions combined */
+  /**
+   * Speaking level bars.
+   *
+   * Animates `transform` only, so the bars stay on the compositor and never
+   * trigger layout. Previously these bars were driven by a requestAnimationFrame
+   * loop that called setState 60 times a second — re-rendering the whole video
+   * card, per speaking participant — and transitioned `height`, which forces
+   * layout on every frame of every bar.
+   */
+  static readonly speakingBarKeyframes = `
+    @keyframes speakingBar {
+      0%, 100% { transform: scaleY(0.28); }
+      50%      { transform: scaleY(1); }
+    }
+    .mediasfu-speaking-bar {
+      transform-origin: center;
+      will-change: transform;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .mediasfu-speaking-bar {
+        animation: none !important;
+        transform: scaleY(0.6);
+      }
+    }
+  `;
+
   static getAllKeyframes(): string {
     return `
       ${this.fadeInKeyframes}
@@ -593,6 +642,7 @@ export class MediasfuAnimations {
       ${this.modalEnterKeyframes}
       ${this.modalExitKeyframes}
       ${this.backdropEnterKeyframes}
+      ${this.speakingBarKeyframes}
     `;
   }
 }

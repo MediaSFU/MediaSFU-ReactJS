@@ -256,7 +256,7 @@ export const PremiumTextField: React.FC<PremiumTextFieldProps> = ({
     width: fullWidth ? '100%' : 'auto',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'translateY(0)' : 'translateY(8px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.smooth),
     ...style,
   };
 
@@ -278,7 +278,7 @@ export const PremiumTextField: React.FC<PremiumTextFieldProps> = ({
     alignItems: 'center',
     gap: `${MediasfuSpacing.sm}px`,
     padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     opacity: disabled ? 0.5 : 1,
     cursor: disabled ? 'not-allowed' : 'text',
     ...variantStyles.container,
@@ -291,7 +291,7 @@ export const PremiumTextField: React.FC<PremiumTextFieldProps> = ({
     background: 'transparent',
     border: 'none',
     outline: 'none',
-    fontSize: '14px',
+    fontSize: MediasfuTypography.sizeBodyMedium,
     fontFamily: MediasfuTypography.fontFamily,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
     cursor: disabled ? 'not-allowed' : 'text',

@@ -238,7 +238,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
           : position === 'center'
             ? 'translate(-50%, -50%) scale(0.95)'
             : 'scale(0.95) translateY(-10px)',
-        transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+        transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
         zIndex: 1001,
         display: 'flex',
         flexDirection: 'column',
@@ -264,7 +264,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
     background: MediasfuColors.brandGradient(isDarkMode),
     padding: `2px ${MediasfuSpacing.sm}px`,
     borderRadius: MediasfuBorders.full,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     fontWeight: 700,
     color: '#FFFFFF',
   };
@@ -276,7 +276,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? MediasfuColors.textSecondaryDark : MediasfuColors.textSecondary,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const bodyStyle: React.CSSProperties = {
@@ -321,7 +321,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
     border: 'none',
     outline: 'none',
     color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
   };
 
   const focusHeader = (
@@ -364,7 +364,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
               alignItems: 'center',
               gap: MediasfuSpacing.sm,
               color: isDarkMode ? MediasfuColors.textSecondaryDark : MediasfuColors.textSecondary,
-              fontSize: 13,
+              fontSize: MediasfuTypography.sizeBodyCompact,
               cursor: 'pointer',
             }}
           >
@@ -384,7 +384,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
               alignItems: 'center',
               gap: MediasfuSpacing.sm,
               color: isDarkMode ? MediasfuColors.textSecondaryDark : MediasfuColors.textSecondary,
-              fontSize: 13,
+              fontSize: MediasfuTypography.sizeBodyCompact,
               cursor: 'pointer',
             }}
           >
@@ -434,7 +434,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
               padding: MediasfuSpacing.md,
               textAlign: 'center',
               color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
-              fontSize: 13,
+              fontSize: MediasfuTypography.sizeBodyCompact,
             }}
           >
             No panelists selected yet
@@ -444,7 +444,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
             {localPanelists.map((panelist) => (
               <div key={panelist.id} style={listItemStyle}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: MediasfuSpacing.sm }}>
-                  <FontAwesomeIcon icon={faStar} style={{ color: MediasfuColors.warning, fontSize: 12 }} />
+                  <FontAwesomeIcon icon={faStar} style={{ color: MediasfuColors.warning, fontSize: MediasfuTypography.sizeBodySmall }} />
                   <span style={{ ...MediasfuTypography.getBodyMedium(isDarkMode) }}>
                     {panelist.name}
                   </span>
@@ -482,7 +482,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
           <div style={searchWrapStyle}>
             <FontAwesomeIcon
               icon={faSearch}
-              style={{ color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted, fontSize: 14 }}
+              style={{ color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted, fontSize: MediasfuTypography.sizeBodyMedium }}
             />
             <input
               type="text"
@@ -500,7 +500,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
                   padding: MediasfuSpacing.md,
                   textAlign: 'center',
                   color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
-                  fontSize: 13,
+                  fontSize: MediasfuTypography.sizeBodyCompact,
                 }}
               >
                 {searchFilter ? 'No matching participants' : 'No available participants to add'}
@@ -531,7 +531,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
                           color: participant.islevel === '1' ? MediasfuColors.secondary : (isDarkMode ? MediasfuColors.textSecondaryDark : MediasfuColors.textSecondary),
                           padding: `2px ${MediasfuSpacing.xs}px`,
                           borderRadius: MediasfuBorders.sm,
-                          fontSize: 11,
+                          fontSize: MediasfuTypography.sizeCaption,
                           fontWeight: 700,
                         }}
                       >
@@ -567,7 +567,7 @@ export const ModernPanelistsModal: React.FC<ModernPanelistsModalProps> = ({
             color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
           }}
         >
-          <div style={{ color: MediasfuColors.warningDark, fontWeight: 700, fontSize: 13, textAlign: 'center' }}>
+          <div style={{ color: MediasfuColors.warningDark, fontWeight: 700, fontSize: MediasfuTypography.sizeBodyCompact, textAlign: 'center' }}>
             Maximum panelist limit ({itemPageLimit}) reached. Remove a panelist to add more.
           </div>
         </div>

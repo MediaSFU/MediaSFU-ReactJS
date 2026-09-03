@@ -19,7 +19,7 @@
  * ```
  */
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMicrophone,
@@ -40,6 +40,7 @@ import { MediasfuAnimations } from '../core/theme/MediasfuAnimations';
 import { MediasfuBorders } from '../core/theme/MediasfuBorders';
 import { ModernTooltip } from '../core/widgets/ModernTooltip';
 import { SubtitleOverlay } from './SubtitleOverlay';
+import { SpeakingWaveform } from './SpeakingWaveform';
 
 export interface ModernVideoCardOptions extends VideoCardOptions {
   /** Use dark mode styling */
@@ -65,7 +66,7 @@ export type ModernVideoCardType = (options: ModernVideoCardOptions) => React.JSX
 /**
  * ModernVideoCard displays participant video with premium glassmorphic styling.
  */
-export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
+const ModernVideoCardComponent: React.FC<ModernVideoCardOptions> = ({
   customStyle,
   name,
   barColor = MediasfuColors.primary,
@@ -107,9 +108,7 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [showWaveform, setShowWaveform] = useState(false);
-  const [waveformValues, setWaveformValues] = useState<number[]>(Array(5).fill(0));
   const [showCropIndicator, setShowCropIndicator] = useState(true);
-  const animationRef = useRef<number | null>(null);
   
   // Suppress unused variable warnings - these are kept for backwards compatibility
   void liveSubtitleProp;
@@ -121,20 +120,30 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Audio level polling - like the original VideoCard. Reading must not
-  // republish the shared parameter bag once per second per card.
+  // Audio level polling - like the original VideoCard
+  // Polls getUpdatedAllParams every second to check for active audio
   useEffect(() => {
     const interval = setInterval(() => {
       if (!participant) return;
       
       // Try to get live data from parameters
-      if (parameters) {
-        let latestParams = parameters;
-        try {
-          latestParams = parameters.getCurrentParams?.() ?? parameters;
-        } catch {
-          // Fall back to the already-held snapshot without publishing.
+      {
+      // A read, not an update: `getUpdatedAllParams()` republishes the bag to
+      // every consumer, and doing that once a second per card is a re-render
+      // storm for data nobody asked to be pushed. `getCurrentParams()` is the
+      // pure equivalent on the same bag.
+      const readParams = () => {
+        if (typeof parameters?.getCurrentParams === 'function') {
+          try {
+            const current = parameters.getCurrentParams();
+            if (current && typeof current === 'object') return current;
+          } catch {
+            // Fall through.
+          }
         }
+        return parameters;
+      };
+        const latestParams = readParams();
         const latestAudioDecibels = latestParams?.audioDecibels;
         const participants = latestParams?.participants;
         
@@ -152,49 +161,19 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
           updatedParticipant &&
           !updatedParticipant.muted
         ) {
-          if (!showWaveform) {
-            setShowWaveform(true);
-          }
+          setShowWaveform(true);
         } else {
           setShowWaveform(false);
         }
-      } else if (audioDecibels) {
-        // Fallback to audioDecibels prop
-        const participantEntry = audioDecibels.find(
-          (entry) => entry.name === participant.name
-        );
-        const averageLoudness = participantEntry?.averageLoudness ?? 0;
-        const shouldShow = averageLoudness > 127.5 && !participant?.muted;
-        setShowWaveform(shouldShow);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [parameters, participant, showWaveform, audioDecibels]);
+    // `showWaveform` is deliberately absent: including it tore down and
+    // recreated the interval every time the participant started or stopped
+    // talking. The setter is idempotent, so reading a stale value is safe.
+  }, [parameters, participant, audioDecibels]);
 
-  // Waveform bar animation when showWaveform is active
-  useEffect(() => {
-    if (showWaveform) {
-      const animate = () => {
-        setWaveformValues((prev) =>
-          prev.map(() => Math.random() * 12 + 4)
-        );
-        animationRef.current = requestAnimationFrame(animate);
-      };
-      animationRef.current = requestAnimationFrame(animate);
-    } else {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      setWaveformValues(Array(5).fill(0));
-    }
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [showWaveform]);
 
   // Media control handlers
   const handleToggleAudio = useCallback(async () => {
@@ -285,13 +264,13 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
           {/* Warning/crop icon */}
           <FontAwesomeIcon
             icon={faCrop}
-            style={{ color: MediasfuColors.warning, fontSize: 14 }}
+            style={{ color: MediasfuColors.warning, fontSize: MediasfuTypography.sizeBodyMedium }}
           />
           {/* Text */}
           <span
             style={{
               color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: 11,
+              fontSize: MediasfuTypography.sizeCaption,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -315,7 +294,7 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
                 border: 'none',
                 borderRadius: 6,
                 color: '#FFFFFF',
-                fontSize: 10,
+                fontSize: MediasfuTypography.sizeMicro,
                 fontWeight: 600,
                 cursor: 'pointer',
               }}
@@ -339,7 +318,7 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
           >
             <FontAwesomeIcon
               icon={faTimes}
-              style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: 12 }}
+              style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: MediasfuTypography.sizeBodySmall }}
             />
           </button>
         </div>
@@ -387,13 +366,13 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
           {/* Eye icon for self-awareness */}
           <FontAwesomeIcon
             icon={faVideo}
-            style={{ color: MediasfuColors.primary, fontSize: 14 }}
+            style={{ color: MediasfuColors.primary, fontSize: MediasfuTypography.sizeBodyMedium }}
           />
           {/* Text */}
           <span
             style={{
               color: 'rgba(255, 255, 255, 0.9)',
-              fontSize: 11,
+              fontSize: MediasfuTypography.sizeCaption,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -432,7 +411,10 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
       ? (isHovered ? 'scale(1.01)' : 'scale(1)')
       : 'scale(0.98)',
     opacity: isMounted ? 1 : 0,
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+    // Explicitly transform/opacity/box-shadow — never `all`. This container
+    // holds a live <video>; `all` animated width and height on every layout
+    // change, forcing layout each frame around the video surface.
+    transition: `transform ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}, opacity ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}, box-shadow ${MediasfuAnimations.fast}ms ${MediasfuAnimations.easeOut}`,
     ...customStyle,
   };
 
@@ -466,19 +448,10 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     fontWeight: 600,
     letterSpacing: '0.3px',
     textShadow: '0 1px 4px rgba(0, 0, 0, 0.7)',
-    fontSize: '12.5px',
+    fontSize: MediasfuTypography.sizeBodySmall,
   };
 
   // Waveform styles
-  const waveformContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '2px',
-    height: '16px',
-    opacity: showWaveform ? 1 : 0,
-    transition: `opacity ${MediasfuAnimations.fast}ms`,
-  };
-
   // Controls overlay styles
   const controlsOverlayStyle: React.CSSProperties = {
     ...getPositionStyle(controlsPosition),
@@ -508,8 +481,8 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     cursor: 'pointer',
     background: 'rgba(0, 0, 0, 0.55)',
     color: isActive ? MediasfuColors.success : MediasfuColors.danger,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-    fontSize: '14px',
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
+    fontSize: MediasfuTypography.sizeBodyMedium,
   });
 
   // Status indicator styles
@@ -580,22 +553,13 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
                 />
               )}
               <span style={nameStyle}>{name}</span>
-              <div style={waveformContainerStyle} {...waveformContainerProps}>
-                {waveformValues.map((value, index) => (
-                  <div
-                    key={index}
-                    className={waveformBarClassName}
-                    style={{
-                      width: 3,
-                      height: `${Math.max(4, value)}px`,
-                      backgroundColor: barColor,
-                      borderRadius: 2,
-                      transition: 'height 50ms linear',
-                      ...waveformBarStyle,
-                    }}
-                  />
-                ))}
-              </div>
+              <SpeakingWaveform
+                active={showWaveform}
+                barColor={barColor}
+                barStyle={waveformBarStyle}
+                barClassName={waveformBarClassName}
+                containerProps={waveformContainerProps}
+              />
             </>
           )}
         </div>
@@ -665,5 +629,110 @@ export const ModernVideoCard: React.FC<ModernVideoCardOptions> = ({
     </>
   );
 };
+
+/**
+ * Loudness for one participant, or undefined when there is no entry.
+ *
+ * The `audioDecibels` array is rebuilt upstream on every tick, so comparing it
+ * by identity would re-render every tile once a second. Only this card's own
+ * entry can change what it draws.
+ */
+const loudnessFor = (
+  entries: ModernVideoCardOptions['audioDecibels'],
+  name: string | undefined,
+): number | undefined => {
+  if (!entries || !name) return undefined;
+  return entries.find((entry) => entry.name === name)?.averageLoudness;
+};
+
+/**
+ * Props that change what the card paints.
+ *
+ * `parameters` is excluded on purpose: it is a live getter bag whose identity
+ * changes constantly by design, and every read inside the card goes through
+ * `getCurrentParams()`, which returns fresh state even
+ * from a closure captured several renders ago. Comparing it would defeat
+ * memoisation entirely while buying nothing.
+ */
+const arePropsEqual = (
+  prev: Readonly<ModernVideoCardOptions>,
+  next: Readonly<ModernVideoCardOptions>,
+): boolean => {
+  if (
+    prev.name !== next.name ||
+    prev.remoteProducerId !== next.remoteProducerId ||
+    prev.videoStream !== next.videoStream ||
+    prev.eventType !== next.eventType ||
+    prev.forceFullDisplay !== next.forceFullDisplay ||
+    prev.doMirror !== next.doMirror ||
+    prev.barColor !== next.barColor ||
+    prev.textColor !== next.textColor ||
+    prev.backgroundColor !== next.backgroundColor ||
+    prev.showControls !== next.showControls ||
+    prev.showInfo !== next.showInfo ||
+    prev.controlsPosition !== next.controlsPosition ||
+    prev.infoPosition !== next.infoPosition ||
+    prev.isDarkMode !== next.isDarkMode ||
+    prev.enableGlassmorphism !== next.enableGlassmorphism ||
+    prev.enableGlow !== next.enableGlow ||
+    prev.borderRadius !== next.borderRadius ||
+    prev.showStatusIndicator !== next.showStatusIndicator ||
+    prev.showSubtitles !== next.showSubtitles
+  ) {
+    return false;
+  }
+
+  // Only the fields the card actually reads off the participant.
+  const a = prev.participant;
+  const b = next.participant;
+  if (a !== b) {
+    if (!a || !b) return false;
+    if (
+      a.id !== b.id ||
+      a.name !== b.name ||
+      a.muted !== b.muted ||
+      a.videoOn !== b.videoOn
+    ) {
+      return false;
+    }
+  }
+
+  if (
+    loudnessFor(prev.audioDecibels, prev.participant?.name) !==
+    loudnessFor(next.audioDecibels, next.participant?.name)
+  ) {
+    return false;
+  }
+
+  // Slots and escape hatches: identity is the only safe test. A caller passing
+  // inline JSX here opts that card out of memoisation, which is correct.
+  return (
+    prev.customStyle === next.customStyle &&
+    prev.videoInfoComponent === next.videoInfoComponent &&
+    prev.videoControlsComponent === next.videoControlsComponent &&
+    prev.extraWidgets === next.extraWidgets &&
+    prev.children === next.children &&
+    prev.containerProps === next.containerProps &&
+    prev.infoOverlayProps === next.infoOverlayProps &&
+    prev.controlsOverlayProps === next.controlsOverlayProps &&
+    prev.waveformContainerProps === next.waveformContainerProps &&
+    prev.waveformBarStyle === next.waveformBarStyle &&
+    prev.videoDisplayProps === next.videoDisplayProps &&
+    prev.onToggleSelfViewFit === next.onToggleSelfViewFit &&
+    prev.liveSubtitle === next.liveSubtitle
+  );
+};
+
+/**
+ * One instance renders per participant, so this is the most-instanced component
+ * on the stage. Without memoisation any state change in the meeting shell
+ * re-rendered every tile and rebuilt every style object inside it.
+ */
+export const ModernVideoCard = React.memo(
+  ModernVideoCardComponent,
+  arePropsEqual,
+);
+
+ModernVideoCard.displayName = 'ModernVideoCard';
 
 export default ModernVideoCard;

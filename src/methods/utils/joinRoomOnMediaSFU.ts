@@ -10,6 +10,8 @@ export type CreateJoinRoomType = (options: {
   apiUserName: string;
   apiKey: string;
   localLink?: string;
+  /** Full Cloud rooms endpoint or compatible backend proxy URL. */
+  roomsEndpoint?: string;
 }) => Promise<{
   data: CreateJoinRoomResponse | CreateJoinRoomError | null;
   success: boolean;
@@ -20,6 +22,8 @@ export type CreateRoomOnMediaSFUType = (options: {
   apiUserName: string;
   apiKey: string;
   localLink?: string;
+  /** Full Cloud rooms endpoint or compatible backend proxy URL. */
+  roomsEndpoint?: string;
 }) => Promise<{
   data: CreateJoinRoomResponse | CreateJoinRoomError | null;
   success: boolean;
@@ -46,6 +50,8 @@ export type JoinRoomOnMediaSFUType = (options: {
   apiUserName: string;
   apiKey: string;
   localLink?: string;
+  /** Full Cloud rooms endpoint or compatible backend proxy URL. */
+  roomsEndpoint?: string;
 }) => Promise<{
   data: CreateJoinRoomResponse | CreateJoinRoomError | null;
   success: boolean;
@@ -100,11 +106,13 @@ export const joinRoomOnMediaSFU: CreateJoinRoomType = async ({
   apiUserName,
   apiKey,
   localLink = "",
+  roomsEndpoint = "",
 }: {
   payload: JoinMediaSFURoomOptions | CreateMediaSFURoomOptions;
   apiUserName: string;
   apiKey: string;
   localLink?: string;
+  roomsEndpoint?: string;
 }): Promise<{
   data: CreateJoinRoomResponse | CreateJoinRoomError | null;
   success: boolean;
@@ -121,7 +129,7 @@ export const joinRoomOnMediaSFU: CreateJoinRoomType = async ({
       return { data: { error: "Invalid credentials" }, success: false };
     }
 
-    const finalLink = resolveMediaSFURoomApi(localLink, 'joinRoom');
+    const finalLink = resolveMediaSFURoomApi(localLink, 'joinRoom', roomsEndpoint);
 
     const response = await fetch(finalLink,
       {

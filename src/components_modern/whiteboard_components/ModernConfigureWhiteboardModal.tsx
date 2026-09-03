@@ -118,7 +118,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
     gap: MediasfuSpacing.xs,
     padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.md}px`,
     color: isDarkMode ? 'rgba(255,255,255,0.75)' : 'rgba(0,0,0,0.65)',
-    fontSize: 13,
+    fontSize: MediasfuTypography.sizeBodyCompact,
     fontWeight: 500,
   }), [isDarkMode]);
 
@@ -400,7 +400,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
       padding: MediasfuSpacing.xs,
       borderRadius: MediasfuBorders.sm,
       color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     };
 
     const sidebarSearchContainerStyle: React.CSSProperties = {
@@ -416,7 +416,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
       border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
       borderRadius: MediasfuBorders.md,
       color: isDarkMode ? '#FFFFFF' : '#1F2937',
-      fontSize: 14,
+      fontSize: MediasfuTypography.sizeBodyMedium,
       outline: 'none',
     };
 
@@ -449,7 +449,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
       marginBottom: MediasfuSpacing.xs,
       cursor: 'pointer',
       opacity: 1,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     });
 
     const sidebarCheckboxStyle = (isChecked: boolean): React.CSSProperties => ({
@@ -469,7 +469,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
             : 'rgba(0,0,0,0.3)'
       }`,
       borderRadius: 4,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     });
 
     const sidebarFooterStyle: React.CSSProperties = {
@@ -491,7 +491,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
       marginBottom: MediasfuSpacing.md,
       textAlign: 'center',
       color: isStarted ? '#10B981' : isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
-      fontSize: 13,
+      fontSize: MediasfuTypography.sizeBodyCompact,
       fontWeight: 500,
     };
 
@@ -670,7 +670,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
     maxHeight: 'min(550px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -699,7 +699,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const searchContainerStyle: React.CSSProperties = {
@@ -715,7 +715,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
     border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
     borderRadius: MediasfuBorders.md,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     outline: 'none',
   };
 
@@ -748,7 +748,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
     marginBottom: MediasfuSpacing.xs,
     cursor: 'pointer',
     opacity: 1,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   });
 
   const checkboxStyle = (isChecked: boolean): React.CSSProperties => ({
@@ -768,7 +768,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
           : 'rgba(0,0,0,0.3)'
     }`,
     borderRadius: 4,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   });
 
   const footerStyle: React.CSSProperties = {
@@ -790,7 +790,7 @@ export const ModernConfigureWhiteboardModal: React.FC<ModernConfigureWhiteboardM
     marginBottom: MediasfuSpacing.md,
     textAlign: 'center',
     color: isStarted ? '#10B981' : isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
-    fontSize: 13,
+    fontSize: MediasfuTypography.sizeBodyCompact,
     fontWeight: 500,
   };
 

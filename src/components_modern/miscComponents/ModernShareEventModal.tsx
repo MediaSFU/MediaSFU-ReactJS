@@ -219,7 +219,7 @@ export const ModernShareEventModal: React.FC<ModernShareEventModalProps> = ({
     alignItems: 'center',
     justifyContent: 'center',
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const contentStyle: React.CSSProperties = {
@@ -368,7 +368,7 @@ export const ModernShareEventModal: React.FC<ModernShareEventModalProps> = ({
                             border: 'none',
                             cursor: 'pointer',
                             color: button.color || MediasfuColors.primary,
-                            transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+                            transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.style.transform = 'translateY(-2px)';
@@ -409,7 +409,7 @@ export const ModernShareEventModal: React.FC<ModernShareEventModalProps> = ({
                         border: 'none',
                         cursor: 'pointer',
                         color: button.color || MediasfuColors.primary,
-                        transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+                        transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.transform = 'translateY(-2px)';
@@ -468,7 +468,7 @@ export const ModernShareEventModal: React.FC<ModernShareEventModalProps> = ({
     boxShadow: `0 20px 50px rgba(0,0,0,0.3), 0 0 0 1px ${MediasfuColors.glassBorder(isDarkMode)}`,
     transform: isMounted ? 'scale(1)' : 'scale(0.95)',
     opacity: isMounted ? 1 : 0,
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     overflow: 'hidden',
   };
 

@@ -71,6 +71,32 @@ Choose the integration depth that matches your product:
 | A support, community, or chat-first room | `MediasfuChat` | audio/video escalation, moderation, custom messages |
 | A fully branded collaboration workspace | `ModernMediasfuGeneric` or headless mode | `uiOverrides`, custom cards, `sourceParameters` |
 
+## Choose a starter project
+
+**Want a working application to build on? Start with a GitHub project below.**
+Choose the product closest to yours, run its React client and backend, then
+customize the interface. Each repository documents its own setup and supported
+platforms; a multi-SDK repository does not imply identical features on every SDK.
+
+| Build this | GitHub starter | Useful patterns to reuse |
+| --- | --- | --- |
+| An interactive classroom | [Interactive Classroom](https://github.com/MediaSFU/mediasfu-interactive-classroom) | React teacher/learner views; headless, hybrid, and standard UI; backgrounds, polls, whiteboard, and breakouts |
+| One-to-one voice and video calls | [Familiar Calls](https://github.com/MediaSFU/mediasfu-familiar-calls) | Call screens, participant lifecycle, media controls |
+| Live shopping or auctions | [Live Auction](https://github.com/MediaSFU/mediasfu-live-auction) | Host and bidder views, timed lots, live media |
+| A watch party or broadcast with conversation | [Watch Together](https://github.com/MediaSFU/mediasfu-watch-together) | Program video versus participant cameras, WHIP input, HLS audience |
+| Voice, vision, or chat agents | [Agents](https://github.com/MediaSFU/Agents) | Headless room UI, agent playback, voice and chat starter screens |
+| Browser calling and SIP/PSTN workflows | [VOIP](https://github.com/MediaSFU/VOIP) | Dialing, call state, telephony controls, backend integration |
+| Social audio/video spaces | [SpacesTek Final](https://github.com/MediaSFU/SpacesTekFinal) / [Advanced](https://github.com/MediaSFU/SpacesTekAdvanced) | Secure room proxies; headless layouts, roles, admission, and moderation |
+| Embeddable widgets | [MediaSFU widgets](https://github.com/MediaSFU/mediasfu-widgets) | Six web components, React composition, customizable controls |
+| Recording your own room layout | [Custom UI Recording](https://github.com/MediaSFU/mediasfu-custom-ui-recording) | App-defined recording scenes and recording controls |
+| A small SDK integration baseline | [QuickStart Apps](https://github.com/MediaSFU/MediaSFU-QuickStart-Apps) | Framework-specific setup and room examples |
+
+For a classroom, [try the Interactive Classroom showcase](https://mediasfu.com/showcases/interactive-classroom)
+and follow the [virtual-background](HEADLESS_GUIDE.md#virtual-backgrounds-headless-and-hybrid)
+and [breakout-room](HEADLESS_GUIDE.md#breakout-rooms-in-a-custom-classroom) recipes.
+Keep your authentication, room authorization, and reusable credentials on your
+backend when adapting any starter.
+
 ## Start Here
 
 ```bash
@@ -107,6 +133,48 @@ export default function App() {
   );
 }
 ```
+
+### Render the standard UI from the same headless room
+
+Use `ModernMediasfuGenericHead` when you want one headless room engine but also
+want to place MediaSFU's complete modern interface inside your own layout. The
+Head component owns no room state or socket; it reads the current publication
+from the engine and renders the same component tree as
+`ModernMediasfuGeneric`.
+
+```tsx
+import {
+  ModernMediasfuGeneric,
+  ModernMediasfuGenericHead,
+  useMediasfuHeadless,
+} from 'mediasfu-reactjs';
+
+function RoomLayout({ connectionOptions }) {
+function RoomLayout({ connectionOptions }) {
+  const room = useMediasfuHeadless();
+
+  return (
+    <>
+    <ModernMediasfuGeneric
+      {...connectionOptions}
+      returnUI={false}
+      renderUIExternally
+      sourceParameters={room.sourceParameters}
+      updateSourceParameters={room.updateSourceParameters}
+      onMediaChanged={room.onMediaChanged}
+    />
+    <ModernMediasfuGenericHead parameters={room} />
+    </>
+  );
+}
+}
+```
+
+This is useful for progressive customization: start with the complete UI,
+replace individual panels or controls with your own components, and keep all
+remaining modals, sidebars, media surfaces, and lifecycle behavior attached to
+the same room engine. See [HEADLESS_GUIDE.md](./HEADLESS_GUIDE.md) for the full
+contract and modal-visibility guidance.
 
 The direct credential snippets above are for a private local prototype only.
 For a shared or deployed application, keep the real username/key on your
@@ -188,6 +256,7 @@ dimensions. The same boundary is forwarded to `MainContainer`, `MainAspect`,
 
 ## 📖 Table of Contents
 
+- [Choose a starter project](#choose-a-starter-project)
 - [Quick Start](#-quick-start)
 - [Installation](#-installation)
 - [Component Storybook](#-component-storybook)
@@ -1114,217 +1183,227 @@ function AudioParticipantsView({ sourceParameters }) {
 
 ## 🎬 Using Modals Standalone
 
-You can use any modal component independently with `sourceParameters`:
+Keep the room engine mounted with `returnUI={false}`, then place its exported
+components inside your layout. Accept every `updateSourceParameters`
+publication and pass the latest room parameters back to the component.
+
+The room owns visibility as well as media state. Use its matching updater to
+open and close a modal; do not create a second `useState` visibility flag.
+This is especially important for virtual-background restoration and recording
+confirmation. A visible settings panel does not mean media has been published
+or recording has started.
+
+### Virtual Background Modal
+
+`sourceParameters` below is the latest published room bag, not the initial seed.
+
+```tsx
+import type { ComponentProps } from 'react';
+import { getCurrentParams, ModernBackgroundModal } from 'mediasfu-reactjs';
+
+type BackgroundRoom = ComponentProps<typeof ModernBackgroundModal>['parameters'];
+
+function BackgroundSelector({ sourceParameters }: { sourceParameters: BackgroundRoom }) {
+  const room = getCurrentParams({ parameters: sourceParameters });
+  return (
+    <>
+      <button onClick={() => room.updateIsBackgroundModalVisible(true)}>
+        Change background
+      </button>
+      <ModernBackgroundModal
+        isVisible={room.isBackgroundModalVisible === true}
+        onClose={() => room.updateIsBackgroundModalVisible(false)}
+        parameters={room as BackgroundRoom}
+        renderMode="inline"
+        contentProps={{ className: 'my-background-panel' }}
+      />
+    </>
+  );
+}
+```
+
+Keep `ModernBackgroundModal` mounted for the lifetime of the room; let
+`isVisible` control its lifecycle. Choose `renderMode="modal"` for an overlay
+or `"inline"` for a panel. Its title, content, preview and button props let you
+restyle the UI without replacing camera processing. Display local media through
+the headless media resolver so the preview follows the published processed track.
 
 ### Recording Modal
 
 ```tsx
-import { ModernRecordingModal } from 'mediasfu-reactjs';
+import type { ComponentProps } from 'react';
+import { getCurrentParams, ModernRecordingModal } from 'mediasfu-reactjs';
 
-function MyRecordingButton({ sourceParameters }) {
-  const [showRecording, setShowRecording] = useState(false);
-  
+type RecordingRoom = ComponentProps<typeof ModernRecordingModal>['parameters'];
+
+function RecordingSettings({ sourceParameters }: { sourceParameters: RecordingRoom }) {
+  const room = getCurrentParams({ parameters: sourceParameters });
   return (
     <>
-      <button onClick={() => setShowRecording(true)}>
-        🔴 Recording Settings
+      <button onClick={() => room.updateIsRecordingModalVisible(true)}>
+        Recording settings
       </button>
-      
       <ModernRecordingModal
-        isVisible={showRecording}
-        onClose={() => setShowRecording(false)}
-        parameters={sourceParameters}
-        position="center"
+        isRecordingModalVisible={room.isRecordingModalVisible === true}
+        onClose={() => room.updateIsRecordingModalVisible(false)}
+        confirmRecording={room.confirmRecording}
+        startRecording={room.startRecording}
+        parameters={room as RecordingRoom}
       />
     </>
   );
 }
 ```
 
-### Virtual Background Modal
+The component retains the SDK's confirmation and start workflow. Opening it
+does not bypass recording permissions or start recording automatically.
 
-```tsx
-import { ModernBackgroundModal } from 'mediasfu-reactjs';
+### Device settings and other components
 
-function BackgroundSelector({ sourceParameters }) {
-  const [showBg, setShowBg] = useState(false);
-  
-  return (
-    <>
-      <button onClick={() => setShowBg(true)}>
-        🖼️ Change Background
-      </button>
-      
-      <ModernBackgroundModal
-        isVisible={showBg}
-        onClose={() => setShowBg(false)}
-        parameters={sourceParameters}
-      />
-    </>
-  );
-}
-```
+Match the exact props used by the room engine; modal prop names are not uniform:
 
-### Media Settings Modal
+| Component | Visibility prop | Close callback |
+| --- | --- | --- |
+| `ModernBackgroundModal` | `isVisible` | `onClose` → `updateIsBackgroundModalVisible(false)` |
+| `ModernRecordingModal` | `isRecordingModalVisible` | `onClose` → `updateIsRecordingModalVisible(false)` |
+| `ModernMediaSettingsModal` | `isMediaSettingsModalVisible` | `onMediaSettingsClose` → `updateIsMediaSettingsModalVisible(false)` |
 
-```tsx
-import { ModernMediaSettingsModal } from 'mediasfu-reactjs';
+Each component receives the same current room parameters. Do not route a
+headless action into an invisible built-in sidebar. If you build your own
+sidebar, the exported `SidebarPanel` supplies the shell; you supply its content
+and navigation. Keep the underlying modal visibility connected to the room.
 
-function DeviceSelector({ sourceParameters }) {
-  const [showSettings, setShowSettings] = useState(false);
-  
-  return (
-    <>
-      <button onClick={() => setShowSettings(true)}>
-        ⚙️ Audio/Video Settings
-      </button>
-      
-      <ModernMediaSettingsModal
-        isVisible={showSettings}
-        onClose={() => setShowSettings(false)}
-        parameters={sourceParameters}
-      />
-    </>
-  );
-}
-```
+See the [headless guide](HEADLESS_GUIDE.md) for parameter publication and media rendering.
 
 ---
 
 ## 🏗️ Building Your Own UI
 
-Here's a complete example of building a custom meeting interface:
+For a complete application, choose a [GitHub starter](#choose-a-starter-project)
+first. The following custom-room component shows the essential wiring: one
+mounted engine, live parameter publications, resolved video, one remote-audio
+playback path, and a background modal controlled by the room.
+
+Pass stable `noUIPreJoinOptions` and authenticated backend adapters as props.
+The adapter types are the SDK's own contracts; see the
+[backend proxy guide](https://mediasfu.com/docs/usage/secure-backend-proxy/).
+Do not replace the inert credential placeholders with reusable secrets.
+
+<!-- checked-example: custom-meeting -->
 
 ```tsx
-import { 
-  MediasfuGeneric,
-  VideoCard,
-  AudioCard,
-  ModernMessagesModal,
-  ModernParticipantsModal,
-  ModernRecordingModal,
+import { useEffect, useRef, useState, type ComponentProps } from 'react';
+import {
+  AudioGrid,
+  ModernBackgroundModal,
+  ModernMediasfuGeneric,
+  getCurrentParams,
+  useMediasfuHeadless,
 } from 'mediasfu-reactjs';
-import { useState, useEffect } from 'react';
 
-function CustomMeetingApp() {
-  const [params, setParams] = useState<any>(null);
-  const [showChat, setShowChat] = useState(false);
-  const [showParticipants, setShowParticipants] = useState(false);
-  const [showRecording, setShowRecording] = useState(false);
+type EngineProps = ComponentProps<typeof ModernMediasfuGeneric>;
+type CallProps = Required<Pick<EngineProps,
+  'noUIPreJoinOptions' | 'createMediaSFURoom' | 'joinMediaSFURoom'
+>> & { onLeft: () => void };
+type BackgroundRoom = ComponentProps<typeof ModernBackgroundModal>['parameters'];
 
-  if (!params?.validated) {
-    return (
-      <MediasfuGeneric
-        credentials={{ apiUserName: "user", apiKey: "key" }}
-        returnUI={true}  // Show pre-join UI
-        updateSourceParameters={setParams}
-      />
+function VideoSurface({ stream }: { stream: MediaStream }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  const [needsPlay, setNeedsPlay] = useState(false);
+  useEffect(() => {
+    const video = ref.current;
+    if (!video) return;
+    let disposed = false;
+    video.srcObject = stream;
+    void video.play().then(
+      () => { if (!disposed) setNeedsPlay(false); },
+      () => { if (!disposed) setNeedsPlay(true); },
     );
-  }
+    return () => { disposed = true; video.srcObject = null; };
+  }, [stream]);
+  return (
+    <>
+      {/* AudioGrid owns remote sound; never play it again from these videos. */}
+      <video ref={ref} autoPlay playsInline muted style={{ width: '100%' }} />
+      {needsPlay && <button onClick={() => {
+        void ref.current?.play().then(() => setNeedsPlay(false)).catch(() => {});
+      }}>Play video</button>}
+    </>
+  );
+}
 
-  const {
-    participants,
-    allVideoStreams,
-    allAudioStreams,
-    member,
-    roomName,
-    clickVideo,
-    clickAudio,
-    clickScreenShare,
-    videoAlreadyOn,
-    audioAlreadyOn,
-    shareScreenStarted,
-    recordStarted,
-  } = params;
+export function CustomMeetingApp({ onLeft, ...connection }: CallProps) {
+  const room = useMediasfuHeadless();
+  const [leaving, setLeaving] = useState(false);
+  const [notice, setNotice] = useState('');
+  const live = getCurrentParams({ parameters: room.parameters });
+
+  const leave = async () => {
+    if (leaving) return;
+    setLeaving(true);
+    const result = await room.controls.leave(false, false);
+    if (result.ok) onLeft(); // Parent unmounts this entire room component.
+    else { setNotice(result.error); setLeaving(false); }
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#0f172a' }}>
-      {/* Header */}
-      <header style={{ padding: 16, borderBottom: '1px solid #334155', display: 'flex', justifyContent: 'space-between' }}>
-        <h1 style={{ color: 'white', margin: 0 }}>{roomName}</h1>
-        <span style={{ color: '#94a3b8' }}>{participants.length} participants</span>
-      </header>
-
-      {/* Video Grid */}
-      <main style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16, padding: 16 }}>
-        {allVideoStreams.map((stream, i) => {
-          const participant = participants.find(p => p.videoID === stream.producerId);
-          return (
-            <VideoCard
-              key={stream.producerId || i}
-              videoStream={stream.stream}
-              name={participant?.name || 'Unknown'}
-              customStyle={{ borderRadius: 16, overflow: 'hidden' }}
-            />
-          );
-        })}
-      </main>
-
-      {/* Controls */}
-      <footer style={{ padding: 16, borderTop: '1px solid #334155', display: 'flex', justifyContent: 'center', gap: 16 }}>
-        <button 
-          onClick={() => clickVideo({ parameters: params })}
-          style={{ 
-            padding: '12px 24px', 
-            borderRadius: 12,
-            background: videoAlreadyOn ? '#22c55e' : '#ef4444',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          {videoAlreadyOn ? '📹 Video On' : '📹 Video Off'}
-        </button>
-
-        <button 
-          onClick={() => clickAudio({ parameters: params })}
-          style={{ 
-            padding: '12px 24px', 
-            borderRadius: 12,
-            background: audioAlreadyOn ? '#22c55e' : '#ef4444',
-            color: 'white',
-            border: 'none',
-            cursor: 'pointer'
-          }}
-        >
-          {audioAlreadyOn ? '🎤 Mic On' : '🎤 Mic Off'}
-        </button>
-
-        <button onClick={() => setShowParticipants(true)} style={{ padding: '12px 24px', borderRadius: 12, background: '#3b82f6', color: 'white', border: 'none', cursor: 'pointer' }}>
-          👥 Participants
-        </button>
-
-        <button onClick={() => setShowChat(true)} style={{ padding: '12px 24px', borderRadius: 12, background: '#8b5cf6', color: 'white', border: 'none', cursor: 'pointer' }}>
-          💬 Chat
-        </button>
-
-        <button onClick={() => setShowRecording(true)} style={{ padding: '12px 24px', borderRadius: 12, background: recordStarted ? '#ef4444' : '#6b7280', color: 'white', border: 'none', cursor: 'pointer' }}>
-          🔴 Record
-        </button>
-      </footer>
-
-      {/* Modals */}
-      <ModernMessagesModal
-        isVisible={showChat}
-        onClose={() => setShowChat(false)}
-        parameters={params}
+    <main>
+      {/* Never replace or unmount this engine when the room becomes ready. */}
+      <ModernMediasfuGeneric
+        {...connection}
+        credentials={{ apiUserName: 'client00', apiKey: '0'.repeat(64) }}
+        returnUI={false}
+        sourceParameters={room.sourceParameters}
+        updateSourceParameters={room.updateSourceParameters}
+        onMediaChanged={room.onMediaChanged}
       />
+      <h1>{live.roomName || 'Connecting to your room'}</h1>
+      {!room.ready && <p role="status">{room.readiness.reason}</p>}
+      {notice && <p role="status">{notice}</p>}
+      {live.alertVisible && <p role="status">{live.alertMessage}</p>}
 
-      <ModernParticipantsModal
-        isVisible={showParticipants}
-        onClose={() => setShowParticipants(false)}
-        parameters={params}
-      />
+      {room.screenShare.stream && <VideoSurface stream={room.screenShare.stream} />}
+      {room.cameraOn && room.localVideo && <VideoSurface stream={room.localVideo} />}
+      {room.remoteVideos.map(({ producerId, stream }) => (
+        <VideoSurface key={producerId || stream.id} stream={stream} />
+      ))}
+      <AudioGrid componentsToRender={room.audioComponents} />
 
-      <ModernRecordingModal
-        isVisible={showRecording}
-        onClose={() => setShowRecording(false)}
-        parameters={params}
-      />
-    </div>
+      <button disabled={!room.ready} onClick={room.controls.toggleMic}>
+        {room.micOn ? 'Mute' : 'Unmute'}
+      </button>
+      <button disabled={!room.ready} onClick={room.controls.toggleCamera}>
+        {room.cameraOn ? 'Camera off' : 'Camera on'}
+      </button>
+      <button disabled={!room.ready} onClick={() => live.updateIsBackgroundModalVisible(true)}>
+        Background
+      </button>
+      <button disabled={leaving} onClick={leave}>Leave room</button>
+
+      {/* Mount when parameters are ready; keep mounted while hidden. */}
+      {live.getUpdatedAllParams && <ModernBackgroundModal
+        isVisible={live.isBackgroundModalVisible === true}
+        onClose={() => live.updateIsBackgroundModalVisible(false)}
+        parameters={live as BackgroundRoom}
+      />}
+    </main>
   );
 }
 ```
+
+This is a room UI, not an authentication backend. Mount it after your user has
+chosen to create or join; unmount it after leaving. Host **End for everyone**
+is a separate action (`room.controls.leave(false, true)`).
+
+- **Hybrid UI:** reuse the [SDK modal components](#-using-modals-standalone)
+  with the exact room parameters and visibility updaters; style their containers.
+- **Fully custom backgrounds:** use `applyVirtualBackground` and
+  `clearVirtualBackground`; render `room.localVideo`, not raw `localStreamVideo`.
+  Follow the [background recipe](HEADLESS_GUIDE.md#virtual-backgrounds-headless-and-hybrid).
+- **Breakout classrooms:** follow the [assignment, Save/Start, and media-page recipe](HEADLESS_GUIDE.md#breakout-rooms-in-a-custom-classroom).
+  Filtering participant cards alone does not change breakout membership or resume media.
+- **Visible feedback:** headless mode does not mount the SDK alert UI. Render
+  its alert state or supply a custom `showAlert` surface; keep Save and Start reachable.
 
 ---
 

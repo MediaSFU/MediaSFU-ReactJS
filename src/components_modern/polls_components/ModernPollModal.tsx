@@ -288,7 +288,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
       padding: MediasfuSpacing.xs,
       borderRadius: MediasfuBorders.sm,
       color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     };
 
     const sidebarTabsStyle: React.CSSProperties = {
@@ -311,8 +311,8 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
       cursor: 'pointer',
       color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
       fontWeight: isActive ? 600 : 400,
-      fontSize: 13,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      fontSize: MediasfuTypography.sizeBodyCompact,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
       boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.08)' : 'none',
     });
 
@@ -329,7 +329,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
       border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
       borderRadius: MediasfuBorders.md,
       color: isDarkMode ? '#FFFFFF' : '#1F2937',
-      fontSize: 14,
+      fontSize: MediasfuTypography.sizeBodyMedium,
       outline: 'none',
       marginBottom: MediasfuSpacing.sm,
       boxSizing: 'border-box' as const,
@@ -379,7 +379,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
       transform: 'translateY(-50%)',
       pointerEvents: 'none',
       color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-      fontSize: 12,
+      fontSize: MediasfuTypography.sizeBodySmall,
     };
 
     const sidebarOptionStyle = (isSelected: boolean): React.CSSProperties => ({
@@ -402,7 +402,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
       cursor: 'pointer',
       marginBottom: MediasfuSpacing.xs,
       color: isDarkMode ? '#FFFFFF' : '#1F2937',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -654,7 +654,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
                         <span style={{
                           padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
                           borderRadius: MediasfuBorders.sm,
-                          fontSize: 11,
+                          fontSize: MediasfuTypography.sizeCaption,
                           fontWeight: 600,
                           textTransform: 'uppercase' as const,
                           letterSpacing: 0.5,
@@ -678,7 +678,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
                         background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                         borderRadius: MediasfuBorders.sm,
                       }}>
-                        <FontAwesomeIcon icon={faVoteYea} style={{ fontSize: 12, opacity: 0.6 }} />
+                        <FontAwesomeIcon icon={faVoteYea} style={{ fontSize: MediasfuTypography.sizeBodySmall, opacity: 0.6 }} />
                         <span style={{ ...MediasfuTypography.getLabelSmall(isDarkMode), opacity: 0.7 }}>
                           {stats.totalVotes} {stats.totalVotes === 1 ? 'vote' : 'votes'}
                         </span>
@@ -754,7 +754,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
     maxHeight: 'min(600px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -783,7 +783,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const tabsStyle: React.CSSProperties = {
@@ -806,8 +806,8 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
     cursor: 'pointer',
     color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     fontWeight: isActive ? 600 : 400,
-    fontSize: 13,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    fontSize: MediasfuTypography.sizeBodyCompact,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     boxShadow: isActive ? '0 1px 4px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.08)' : 'none',
   });
 
@@ -825,7 +825,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
     border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
     borderRadius: MediasfuBorders.md,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     outline: 'none',
     marginBottom: MediasfuSpacing.sm,
     boxSizing: 'border-box' as const,
@@ -875,7 +875,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
     transform: 'translateY(-50%)',
     pointerEvents: 'none',
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
   };
 
   const optionStyle = (isSelected: boolean): React.CSSProperties => ({
@@ -898,7 +898,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
     cursor: 'pointer',
     marginBottom: MediasfuSpacing.xs,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -1163,7 +1163,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
                         <span style={{
                           padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
                           borderRadius: MediasfuBorders.sm,
-                          fontSize: 11,
+                          fontSize: MediasfuTypography.sizeCaption,
                           fontWeight: 600,
                           textTransform: 'uppercase' as const,
                           letterSpacing: 0.5,
@@ -1187,7 +1187,7 @@ export const ModernPollModal: React.FC<ModernPollModalProps> = ({
                         background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
                         borderRadius: MediasfuBorders.sm,
                       }}>
-                        <FontAwesomeIcon icon={faVoteYea} style={{ fontSize: 12, opacity: 0.6 }} />
+                        <FontAwesomeIcon icon={faVoteYea} style={{ fontSize: MediasfuTypography.sizeBodySmall, opacity: 0.6 }} />
                         <span style={{ ...MediasfuTypography.getLabelSmall(isDarkMode), opacity: 0.7 }}>
                           {stats.totalVotes} {stats.totalVotes === 1 ? 'vote' : 'votes'}
                         </span>

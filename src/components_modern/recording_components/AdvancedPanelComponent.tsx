@@ -56,7 +56,7 @@ const labelStyle = (isDarkMode: boolean) => ({
   ...MediasfuTypography.getBodyMedium(isDarkMode),
   fontWeight: 600,
   marginBottom: 8,
-  fontSize: 13,
+  fontSize: MediasfuTypography.sizeBodyCompact,
   letterSpacing: '0.02em',
   color: isDarkMode ? 'rgba(255,255,255,0.75)' : '#334155',
 });
@@ -72,7 +72,7 @@ const selectStyle = (isDarkMode: boolean): React.CSSProperties => ({
   appearance: 'none',
   boxShadow: isDarkMode ? 'inset 0 1px 3px rgba(0,0,0,0.2)' : 'inset 0 1px 2px rgba(0,0,0,0.06)',
   cursor: 'pointer',
-  fontSize: 14,
+  fontSize: MediasfuTypography.sizeBodyMedium,
   transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
 });
 
@@ -81,7 +81,7 @@ const inputStyle = (isDarkMode: boolean): React.CSSProperties => ({
 });
 
 const helperTextStyle = (isDarkMode: boolean): React.CSSProperties => ({
-  fontSize: 11,
+  fontSize: MediasfuTypography.sizeCaption,
   marginTop: 6,
   fontStyle: 'italic',
   color: isDarkMode ? 'rgba(255,255,255,0.45)' : 'rgba(15,23,42,0.6)',
@@ -224,7 +224,7 @@ const AdvancedPanelComponent: React.FC<AdvancedPanelOptions> = ({ parameters, is
             borderRadius: MediasfuBorders.sm,
             border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}`,
             marginBottom: MediasfuSpacing.xs,
-            fontSize: 13,
+            fontSize: MediasfuTypography.sizeBodyCompact,
             color: isDarkMode ? '#e2e8f0' : '#1e293b',
           }}
         >

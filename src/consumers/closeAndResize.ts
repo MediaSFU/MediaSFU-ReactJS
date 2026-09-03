@@ -8,6 +8,7 @@ import {
 
 export interface CloseAndResizeParameters extends ReorderStreamsParameters, PrepopulateUserMediaParameters, RePortParameters {
   allAudioStreams: (Stream | Participant)[];
+  audioOnlyStreams?: any[];
   allVideoStreams: (Stream | Participant)[];
   activeNames: string[];
   participants: Participant[];
@@ -32,6 +33,7 @@ export interface CloseAndResizeParameters extends ReorderStreamsParameters, Prep
   updateMainWindow: boolean;
   updateActiveNames: (activeNames: string[]) => void;
   updateAllAudioStreams: (allAudioStreams: (Stream | Participant)[]) => void;
+  updateAudioOnlyStreams?: (audioOnlyStreams: any[]) => void;
   updateShareScreenStarted: (shareScreenStarted: boolean) => void;
   updateUpdateMainWindow: (updateMainWindow: boolean) => void;
   updateNewLimitedStreams: (newLimitedStreams: (Stream | Participant)[]) => void;
@@ -176,6 +178,7 @@ export const closeAndResize = async ({ producerId, kind, parameters }: CloseAndR
 
   let {
     allAudioStreams,
+    audioOnlyStreams = [],
     allVideoStreams,
     activeNames,
     participants,
@@ -201,6 +204,7 @@ export const closeAndResize = async ({ producerId, kind, parameters }: CloseAndR
     updateMainWindow,
     updateActiveNames,
     updateAllAudioStreams,
+    updateAudioOnlyStreams,
     updateAllVideoStreams,
 
     updateShareScreenStarted,
@@ -234,6 +238,15 @@ export const closeAndResize = async ({ producerId, kind, parameters }: CloseAndR
     });
 
     updateAllAudioStreams(allAudioStreams);
+
+    // MiniAudioPlayer elements are stored separately from allAudioStreams.
+    // Leaving one mounted after its producer closes means a rejoin adds a
+    // second player, which is heard as echo or duplicate speech.
+    audioOnlyStreams = audioOnlyStreams.filter((element: any) =>
+      element?.props?.remoteProducerId !== producerId &&
+      String(element?.key ?? '') !== producerId
+    );
+    updateAudioOnlyStreams?.(audioOnlyStreams);
 
     if (recordingDisplayType == "video" && recordingVideoOptimized == true) {
       // optimize the video display

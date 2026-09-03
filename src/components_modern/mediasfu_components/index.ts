@@ -8,6 +8,13 @@
  */
 
 export { default as ModernMediasfuGeneric } from './ModernMediasfuGeneric';
+export {
+  default as ModernMediasfuGenericHead,
+} from './ModernMediasfuGenericHead';
+export type {
+  ModernMediasfuGenericHeadOptions,
+  ModernMediasfuGenericHeadParameters,
+} from './ModernMediasfuGenericHead';
 // Note: MediasfuGenericOptions is intentionally not re-exported to avoid conflicts
 // with the same type exported from the classic MediasfuGeneric component.
 // Import MediasfuGenericOptions from 'mediasfu-reactjs' if needed.

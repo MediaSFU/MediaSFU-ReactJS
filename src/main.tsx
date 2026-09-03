@@ -171,6 +171,10 @@ export * from './components/mediasfuComponents/MediasfuChat';
 
 // Modern UI Event Rooms
 export * from './components_modern/mediasfu_components/ModernMediasfuGeneric';
+export * from './components_modern/mediasfu_components/ModernMediasfuGenericHead';
+// Optional hosted-surface building block for custom UIs
+export { SidebarPanel } from './components_modern/core/widgets/SidebarPanel';
+export type { SidebarPanelProps } from './components_modern/core/widgets/SidebarPanel';
 
 // Random Data
 export * from './methods/utils/generateRandomParticipants';

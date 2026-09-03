@@ -7,6 +7,7 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { MediasfuColors } from '../theme/MediasfuColors';
+import { MediasfuTypography } from '../../core/theme/MediasfuTypography';
 
 export interface ModernTooltipOptions {
   /** Tooltip message */
@@ -19,6 +20,14 @@ export interface ModernTooltipOptions {
   children: React.ReactNode;
   /** Delay before showing tooltip (ms) */
   delay?: number;
+  /**
+   * How long the tooltip stays up with no further interaction, in ms.
+   *
+   * A touch device fires `mouseenter` on tap but never `mouseleave`, so
+   * without this the tooltip opened on tap and stayed up forever. Set to 0 to
+   * keep it visible until the pointer leaves.
+   */
+  autoHideDelay?: number;
   /** Additional styles for tooltip container */
   style?: React.CSSProperties;
   /** Use React Portal to render tooltip (prevents clipping) */
@@ -43,12 +52,14 @@ const ModernTooltipComponent: React.FC<ModernTooltipOptions> = ({
   position = 'top',
   children,
   delay = 300,
+  autoHideDelay = 3000,
   style,
   usePortal = false,
 }) => {
   const [visible, setVisible] = useState(false);
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const autoHideRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const updatePosition = useCallback(() => {
@@ -83,20 +94,58 @@ const ModernTooltipComponent: React.FC<ModernTooltipOptions> = ({
     }
   }, [position, usePortal]);
 
-  const showTooltip = useCallback(() => {
-    updatePosition();
-    timeoutRef.current = setTimeout(() => {
-      setVisible(true);
-    }, delay);
-  }, [delay, updatePosition]);
-
-  const hideTooltip = useCallback(() => {
+  const clearTimers = useCallback(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
       timeoutRef.current = null;
     }
-    setVisible(false);
+    if (autoHideRef.current) {
+      clearTimeout(autoHideRef.current);
+      autoHideRef.current = null;
+    }
   }, []);
+
+  /** Starts the countdown that takes the tooltip back down on its own. */
+  const scheduleAutoHide = useCallback(() => {
+    if (autoHideRef.current) {
+      clearTimeout(autoHideRef.current);
+      autoHideRef.current = null;
+    }
+    if (autoHideDelay <= 0) return;
+    autoHideRef.current = setTimeout(() => {
+      autoHideRef.current = null;
+      setVisible(false);
+    }, autoHideDelay);
+  }, [autoHideDelay]);
+
+  const showTooltip = useCallback(() => {
+    updatePosition();
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      timeoutRef.current = null;
+      setVisible(true);
+      scheduleAutoHide();
+    }, delay);
+  }, [delay, updatePosition, scheduleAutoHide]);
+
+  /**
+   * Touch has no hover, so a tap shows the tooltip straight away rather than
+   * waiting out the hover delay, and the auto-hide is what dismisses it.
+   */
+  const showTooltipNow = useCallback(() => {
+    updatePosition();
+    clearTimers();
+    setVisible(true);
+    scheduleAutoHide();
+  }, [updatePosition, clearTimers, scheduleAutoHide]);
+
+  const hideTooltip = useCallback(() => {
+    clearTimers();
+    setVisible(false);
+  }, [clearTimers]);
+
+  // Timers outlive the component otherwise.
+  useEffect(() => clearTimers, [clearTimers]);
 
   // Update position on scroll/resize if visible and using portal
   useEffect(() => {
@@ -246,7 +295,14 @@ const ModernTooltipComponent: React.FC<ModernTooltipOptions> = ({
     ...positionStyles,
     ...tooltipStyles,
     whiteSpace: 'normal',
+    // Without an intrinsic width the box shrink-to-fits against its containing
+    // block — usually a ~40px icon button — and renders one word per line as a
+    // tall column. `max-content` sizes it to the text, still capped below.
+    width: 'max-content',
     maxWidth: '280px',
+    padding: '6px 10px',
+    fontSize: MediasfuTypography.sizeBodySmall,
+    lineHeight: 1.35,
     textAlign: 'center',
     zIndex: 99999,
     pointerEvents: 'none',
@@ -274,6 +330,7 @@ const ModernTooltipComponent: React.FC<ModernTooltipOptions> = ({
       onMouseLeave={hideTooltip}
       onFocus={showTooltip}
       onBlur={hideTooltip}
+      onTouchStart={showTooltipNow}
     >
       {children}
       {usePortal ? createPortal(tooltipContent, document.body) : tooltipContent}

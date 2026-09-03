@@ -383,7 +383,7 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
       : position === 'center'
         ? 'translate(-50%, -50%) scale(0.95)'
         : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -412,7 +412,7 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const tabsStyle: React.CSSProperties = {
@@ -437,8 +437,8 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
     cursor: 'pointer',
     color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     fontWeight: isActive ? 600 : 400,
-    fontSize: 14,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    fontSize: MediasfuTypography.sizeBodyMedium,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -478,13 +478,13 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
   };
 
   const senderStyle: React.CSSProperties = {
-    fontSize: 11,
+    fontSize: MediasfuTypography.sizeCaption,
     fontWeight: 600,
     opacity: 0.8,
   };
 
   const receiversStyle: React.CSSProperties = {
-    fontSize: 10,
+    fontSize: MediasfuTypography.sizeMicro,
     fontWeight: 600,
     opacity: 0.7,
     marginLeft: 6,
@@ -497,7 +497,7 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
   };
 
   const timestampStyle: React.CSSProperties = {
-    fontSize: 10,
+    fontSize: MediasfuTypography.sizeMicro,
     opacity: 0.5,
   };
 
@@ -518,7 +518,7 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
     background: isDarkMode ? 'rgba(59, 130, 246, 0.15)' : 'rgba(59, 130, 246, 0.1)',
     borderRadius: MediasfuBorders.sm,
     marginBottom: MediasfuSpacing.xs,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     border: `1px solid ${isDarkMode ? 'rgba(59, 130, 246, 0.3)' : 'rgba(59, 130, 246, 0.2)'}`,
   };
 
@@ -540,14 +540,14 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
     display: 'flex',
     alignItems: 'center',
     gap: 6,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     fontWeight: 600,
     color: isDarkMode ? '#93c5fd' : '#2563eb',
   };
 
   const infoBoxTextStyle: React.CSSProperties = {
     margin: 0,
-    fontSize: 11,
+    fontSize: MediasfuTypography.sizeCaption,
     lineHeight: 1.4,
     color: isDarkMode ? '#cbd5e1' : '#475569',
   };
@@ -574,7 +574,7 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
     border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
     borderRadius: MediasfuBorders.md,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     outline: 'none',
   };
 
@@ -621,7 +621,7 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
     height: 18,
     padding: '0 5px',
     borderRadius: 9,
-    fontSize: 11,
+    fontSize: MediasfuTypography.sizeCaption,
     fontWeight: 700,
     marginLeft: 6,
   };
@@ -736,21 +736,21 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
         }}>
           <FontAwesomeIcon 
             icon={activeTab === 'direct' ? faUser : faUsers} 
-            style={{ fontSize: 32, opacity: 0.4 }} 
+            style={{ fontSize: MediasfuTypography.sizeDisplay, opacity: 0.4 }}
           />
-          <span style={{ fontSize: 14 }}>
+          <span style={{ fontSize: MediasfuTypography.sizeBodyMedium }}>
             {activeTab === 'direct' 
               ? 'No direct messages yet'
               : 'No group messages yet'
             }
           </span>
           {activeTab === 'direct' && islevel === '2' && (
-            <span style={{ fontSize: 12, opacity: 0.7 }}>
+            <span style={{ fontSize: MediasfuTypography.sizeBodySmall, opacity: 0.7 }}>
               Start a conversation from the Participants panel
             </span>
           )}
           {activeTab === 'group' && (
-            <span style={{ fontSize: 12, opacity: 0.7 }}>
+            <span style={{ fontSize: MediasfuTypography.sizeBodySmall, opacity: 0.7 }}>
               Send a message to everyone in the room
             </span>
           )}
@@ -806,7 +806,7 @@ export const ModernMessagesModal: React.FC<ModernMessagesModalProps> = ({
             style={{ 
               marginRight: 6, 
               color: isDarkMode ? '#93c5fd' : '#2563eb',
-              fontSize: 11,
+              fontSize: MediasfuTypography.sizeCaption,
             }} 
           />
           <span style={{ 

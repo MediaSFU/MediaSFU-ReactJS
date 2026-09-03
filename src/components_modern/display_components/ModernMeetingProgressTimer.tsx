@@ -137,7 +137,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
       display: 'flex',
       alignItems: 'center',
       gap: `${MediasfuSpacing.xs}px`,
-      transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.smooth),
     };
 
     switch (variant) {
@@ -192,7 +192,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
     borderRadius: '50%',
     backgroundColor: MediasfuColors.hexToRgba(statusColor, 0.25),
     color: statusColor,
-    fontSize: '10px',
+    fontSize: MediasfuTypography.sizeMicro,
     animation: isRecording && pulse ? 'modernTimerPulse 1s ease-in-out' : 'none',
     boxShadow: 'none',
   };
@@ -204,7 +204,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
     fontWeight: 600,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
     letterSpacing: '0.5px',
-    fontSize: '16px', // Increased size
+    fontSize: MediasfuTypography.sizeTitleSmall, // Increased size
     ...textStyle,
   };
 
@@ -235,7 +235,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
           {isRecording ? (
             <div style={recordingDotStyle} />
           ) : (
-            <FontAwesomeIcon icon={faClock} style={{ fontSize: '12px' }} />
+            <FontAwesomeIcon icon={faClock} style={{ fontSize: MediasfuTypography.sizeBodySmall }} />
           )}
         </div>
       )}
@@ -253,7 +253,7 @@ export const ModernMeetingProgressTimer: React.FC<ModernMeetingProgressTimerOpti
             color: MediasfuColors.danger,
             fontWeight: 600,
             marginLeft: MediasfuSpacing.xs,
-            fontSize: '12px', // Increased size
+            fontSize: MediasfuTypography.sizeBodySmall, // Increased size
           }}
         >
           REC

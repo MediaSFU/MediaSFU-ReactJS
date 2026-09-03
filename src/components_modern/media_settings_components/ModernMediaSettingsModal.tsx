@@ -231,7 +231,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
       padding: MediasfuSpacing.xs,
       borderRadius: MediasfuBorders.sm,
       color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     };
 
     const sidebarTabsStyle: React.CSSProperties = {
@@ -254,8 +254,8 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
       cursor: 'pointer',
       color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
       fontWeight: isActive ? 600 : 400,
-      fontSize: 14,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      fontSize: MediasfuTypography.sizeBodyMedium,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -305,9 +305,9 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: `${MediasfuSpacing.sm}px`,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
       color: isDarkMode ? '#FFFFFF' : '#1F2937',
-      fontSize: 14,
+      fontSize: MediasfuTypography.sizeBodyMedium,
       overflow: 'hidden',
     });
 
@@ -338,7 +338,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
           icon={faCamera}
           style={{
             color: isDarkMode ? '#60a5fa' : '#3b82f6',
-            fontSize: 16,
+            fontSize: MediasfuTypography.sizeTitleSmall,
             marginTop: 2,
           }}
         />
@@ -346,7 +346,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
           <div
             style={{
               fontWeight: 600,
-              fontSize: 13,
+              fontSize: MediasfuTypography.sizeBodyCompact,
               color: isDarkMode ? '#93c5fd' : '#2563eb',
               marginBottom: 4,
             }}
@@ -355,7 +355,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
           </div>
           <div
             style={{
-              fontSize: 12,
+              fontSize: MediasfuTypography.sizeBodySmall,
               color: isDarkMode ? '#bfdbfe' : '#3b82f6',
               lineHeight: 1.4,
             }}
@@ -532,7 +532,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
     maxHeight: 'min(500px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -561,7 +561,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const tabsStyle: React.CSSProperties = {
@@ -584,8 +584,8 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
     cursor: 'pointer',
     color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     fontWeight: isActive ? 600 : 400,
-    fontSize: 14,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    fontSize: MediasfuTypography.sizeBodyMedium,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -635,9 +635,9 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: `${MediasfuSpacing.sm}px`,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     overflow: 'hidden',
   });
 
@@ -781,7 +781,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
                 icon={faCamera}
                 style={{
                   color: isDarkMode ? '#60a5fa' : '#3b82f6',
-                  fontSize: 16,
+                  fontSize: MediasfuTypography.sizeTitleSmall,
                   marginTop: 2,
                 }}
               />
@@ -789,7 +789,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
                 <div
                   style={{
                     fontWeight: 600,
-                    fontSize: 13,
+                    fontSize: MediasfuTypography.sizeBodyCompact,
                     color: isDarkMode ? '#93c5fd' : '#2563eb',
                     marginBottom: 4,
                   }}
@@ -798,7 +798,7 @@ export const ModernMediaSettingsModal: React.FC<ModernMediaSettingsModalProps> =
                 </div>
                 <div
                   style={{
-                    fontSize: 12,
+                    fontSize: MediasfuTypography.sizeBodySmall,
                     color: isDarkMode ? '#bfdbfe' : '#3b82f6',
                     lineHeight: 1.4,
                   }}

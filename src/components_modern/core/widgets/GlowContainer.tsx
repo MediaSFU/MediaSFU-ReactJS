@@ -190,7 +190,7 @@ export const GlowContainer: React.FC<GlowContainerProps> = ({
     cursor: onClick ? 'pointer' : 'default',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1)' : 'scale(0.98)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     ...style,
   };
 

@@ -3,6 +3,7 @@ import ControlButtonsComponentTouch, {
   ControlButtonsComponentTouchOptions,
 } from "../../components/displayComponents/ControlButtonsComponentTouch";
 import { ModernTooltip } from "../core/widgets/ModernTooltip";
+import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 
 const ModernControlButtonsComponentTouch: React.FC<
   ControlButtonsComponentTouchOptions
@@ -57,7 +58,7 @@ const ModernControlButtonsComponentTouch: React.FC<
 
   // Override text style for larger font
   const textStyle: React.CSSProperties = {
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     fontWeight: "600",
     marginTop: 5,
     display: 'none', // Hide text label to ensure icon is centered

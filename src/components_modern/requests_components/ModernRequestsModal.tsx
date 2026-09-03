@@ -207,7 +207,7 @@ export const ModernRequestsModal: React.FC<ModernRequestsModalOptions> = ({
     maxHeight: 'min(500px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -234,7 +234,7 @@ export const ModernRequestsModal: React.FC<ModernRequestsModalOptions> = ({
     color: '#FFFFFF',
     borderRadius: MediasfuBorders.full,
     padding: `2px ${MediasfuSpacing.sm}px`,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     fontWeight: 600,
   };
 
@@ -245,7 +245,7 @@ export const ModernRequestsModal: React.FC<ModernRequestsModalOptions> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const searchContainerStyle: React.CSSProperties = {
@@ -261,7 +261,7 @@ export const ModernRequestsModal: React.FC<ModernRequestsModalOptions> = ({
     border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)'}`,
     borderRadius: MediasfuBorders.md,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     outline: 'none',
   };
 
@@ -307,7 +307,7 @@ export const ModernRequestsModal: React.FC<ModernRequestsModalOptions> = ({
     borderRadius: MediasfuBorders.sm,
     cursor: 'pointer',
     color: '#FFFFFF',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   });
 
   const emptyStyle: React.CSSProperties = {

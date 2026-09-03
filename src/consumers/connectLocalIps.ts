@@ -10,6 +10,8 @@ import { Socket } from "socket.io-client";
 
 export interface ConnectLocalIpsParameters extends ReorderStreamsParameters, ProducerClosedParameters, NewPipeProducerParameters,
 ReceiveAllPipedTransportsParameters {
+  audioOnlyStreams: NewPipeProducerParameters['audioOnlyStreams'];
+  updateAudioOnlyStreams: NewPipeProducerParameters['updateAudioOnlyStreams'];
   socket: Socket;
 
   // mediasfu functions

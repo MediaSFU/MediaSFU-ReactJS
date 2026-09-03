@@ -10,6 +10,8 @@ import {
 } from '../@types/types';
 
 export interface ConnectIpsParameters extends ReorderStreamsParameters, JoinConsumeRoomParameters, ProducerClosedParameters, NewPipeProducerParameters {
+  audioOnlyStreams: NewPipeProducerParameters['audioOnlyStreams'];
+  updateAudioOnlyStreams: NewPipeProducerParameters['updateAudioOnlyStreams'];
   device: Device | null;
   roomRecvIPs: string[];
   updateRoomRecvIPs: (roomRecvIPs: string[]) => void;
@@ -118,6 +120,20 @@ export const connectIps = async ({
         const remote_sock = await connectSocket({ apiUserName, apiKey, apiToken, link: `https://${ip}.mediasfu.com` });
 
         if (remote_sock.id) {
+          let consumeRoomReady = false;
+          const pendingProducers: Array<{
+            producerId: string;
+            islevel: string;
+            isTranslation?: boolean;
+            translationMeta?: {
+              speakerId: string;
+              speakerName: string;
+              language: string;
+              originalProducerId?: string;
+              isSpeakerControlled?: boolean;
+            };
+          }> = [];
+
           // Check if the IP is in the roomRecvIPs, if not, add it
           if (!roomRecvIPs.includes(ip)) {
             roomRecvIPs.push(ip);
@@ -125,7 +141,11 @@ export const connectIps = async ({
           }
 
           // Handle new pipe producer event
-          remote_sock.on("new-pipe-producer", async ({ producerId, islevel, isTranslation, translationMeta }: { producerId: string; islevel: string; isTranslation?: boolean; translationMeta?: { speakerId: string; speakerName: string; language: string; originalProducerId?: string; isSpeakerControlled?: boolean } }) => {
+          const consumeProducer = async ({ producerId, islevel, isTranslation, translationMeta }: { producerId: string; islevel: string; isTranslation?: boolean; translationMeta?: { speakerId: string; speakerName: string; language: string; originalProducerId?: string; isSpeakerControlled?: boolean } }) => {
+            if (!consumeRoomReady) {
+              pendingProducers.push({ producerId, islevel, isTranslation, translationMeta });
+              return;
+            }
             if (newProducerMethod) {
               await newProducerMethod({
                 producerId,
@@ -136,7 +156,8 @@ export const connectIps = async ({
                 translationMeta,
               });
             }
-          });
+          };
+          remote_sock.on("new-pipe-producer", consumeProducer);
 
           // Handle producer closed event
           remote_sock.on("producer-closed", async ({ remoteProducerId }: { remoteProducerId: string }) => {
@@ -156,6 +177,18 @@ export const connectIps = async ({
             if (!data.rtpCapabilities) {
               return [consume_sockets, roomRecvIPs];
             }
+          }
+
+          // Events can arrive after the socket connects but before it has
+          // joined the consuming room. Emitting transport requests during that
+          // window receives no acknowledgement and poisons global de-duplication.
+          // The join's producer sweep covers current producers; flushing the
+          // queue closes the event/sweep gap, and signal-level de-duplication
+          // makes overlap harmless.
+          const queuedProducers = pendingProducers.splice(0);
+          consumeRoomReady = true;
+          for (const producer of queuedProducers) {
+            await consumeProducer(producer);
           }
 
           // Add the remote socket to the consume_sockets array

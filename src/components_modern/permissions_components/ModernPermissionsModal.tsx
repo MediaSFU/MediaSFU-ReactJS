@@ -371,7 +371,7 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
           : position === 'center'
             ? 'translate(-50%, -50%) scale(0.95)'
             : 'scale(0.95) translateY(-10px)',
-        transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+        transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
         zIndex: 1001,
         display: 'flex',
         flexDirection: 'column',
@@ -400,7 +400,7 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? MediasfuColors.textSecondaryDark : MediasfuColors.textSecondary,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const tabRowStyle: React.CSSProperties = {
@@ -430,7 +430,7 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
     alignItems: 'center',
     justifyContent: 'center',
     gap: MediasfuSpacing.xs,
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     fontWeight: 600,
   });
 
@@ -450,7 +450,7 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
     border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'}`,
     backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)',
     color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     outline: 'none',
   };
 
@@ -458,7 +458,7 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
     background: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
     padding: `2px ${MediasfuSpacing.sm}px`,
     borderRadius: MediasfuBorders.full,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     fontWeight: 600,
     color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
   };
@@ -494,7 +494,7 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
     border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.14)'}`,
     backgroundColor: isDarkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)',
     color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     cursor: 'pointer',
     outline: 'none',
   };
@@ -581,7 +581,7 @@ export const ModernPermissionsModal: React.FC<ModernPermissionsModalProps> = ({
                 padding: MediasfuSpacing.md,
                 textAlign: 'center',
                 color: isDarkMode ? MediasfuColors.textMutedDark : MediasfuColors.textMuted,
-                fontSize: 13,
+                fontSize: MediasfuTypography.sizeBodyCompact,
               }}
             >
               No participants at this level

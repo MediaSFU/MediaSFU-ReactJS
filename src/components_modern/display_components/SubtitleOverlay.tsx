@@ -10,6 +10,7 @@ import { useLiveSubtitles } from '../../contexts/LiveSubtitleContext';
 import { isSubtitleExpired } from '../../producers/socketReceiveMethods/translationReceiveMethods';
 import { MediasfuSpacing } from '../core/theme/MediasfuSpacing';
 import { MediasfuBorders } from '../core/theme/MediasfuBorders';
+import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 
 export interface SubtitleOverlayProps {
   /** Speaker's ID for subtitle lookup */
@@ -75,7 +76,7 @@ export const SubtitleOverlay: React.FC<SubtitleOverlayProps> = ({
         <span
           style={{
             color: '#FFFFFF',
-            fontSize: 13,
+            fontSize: MediasfuTypography.sizeBodyCompact,
             fontWeight: 500,
             textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)',
             textAlign: 'center',

@@ -87,7 +87,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     borderRadius: 999,
     background: isDarkMode ? 'rgba(14, 165, 233, 0.2)' : 'rgba(37, 99, 235, 0.12)',
     color: isDarkMode ? '#bae6fd' : '#1d4ed8',
-    fontSize: 10,
+    fontSize: MediasfuTypography.sizeMicro,
     fontWeight: 800,
     letterSpacing: '0.06em',
     lineHeight: 1,
@@ -196,7 +196,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
       padding: MediasfuSpacing.xs,
       borderRadius: MediasfuBorders.sm,
       color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     };
 
     const sidebarContentStyle: React.CSSProperties = {
@@ -246,9 +246,9 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
       alignItems: 'center',
       justifyContent: 'center',
       gap: `${MediasfuSpacing.xs}px`,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
       color: isSelected ? (isDarkMode ? '#f8fafc' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
-      fontSize: 12,
+      fontSize: MediasfuTypography.sizeBodySmall,
       fontWeight: isSelected ? 700 : 500,
       textAlign: 'center',
       minHeight: 92,
@@ -272,7 +272,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
       alignItems: 'center',
       gap: `${MediasfuSpacing.sm}px`,
       color: isDarkMode ? '#FFFFFF' : '#1F2937',
-      fontSize: 14,
+      fontSize: MediasfuTypography.sizeBodyMedium,
     };
 
     const sidebarSwitchStyle = (isOn: boolean): React.CSSProperties => ({
@@ -286,7 +286,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
           : 'rgba(0,0,0,0.2)',
       position: 'relative',
       cursor: 'pointer',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     });
 
     const sidebarSwitchKnobStyle = (isOn: boolean): React.CSSProperties => ({
@@ -333,7 +333,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
                 >
                   {displayType === option.value && (
                     <span style={selectedDisplayOptionBadgeStyle}>
-                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
+                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: MediasfuTypography.sizeMicro }} />
                       Active
                     </span>
                   )}
@@ -437,7 +437,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     maxHeight: 'min(500px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -466,7 +466,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const contentStyle: React.CSSProperties = {
@@ -516,9 +516,9 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     alignItems: 'center',
     justifyContent: 'center',
     gap: `${MediasfuSpacing.xs}px`,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     color: isSelected ? (isDarkMode ? '#f8fafc' : '#0f172a') : isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     fontWeight: isSelected ? 700 : 500,
     textAlign: 'center',
     minHeight: 92,
@@ -542,7 +542,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
     alignItems: 'center',
     gap: `${MediasfuSpacing.sm}px`,
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
   };
 
   const switchStyle = (isOn: boolean): React.CSSProperties => ({
@@ -556,7 +556,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
         : 'rgba(0,0,0,0.2)',
     position: 'relative',
     cursor: 'pointer',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   });
 
   const switchKnobStyle = (isOn: boolean): React.CSSProperties => ({
@@ -616,7 +616,7 @@ export const ModernDisplaySettingsModal: React.FC<ModernDisplaySettingsModalProp
                 >
                   {displayType === option.value && (
                     <span style={selectedDisplayOptionBadgeStyle}>
-                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: 9 }} />
+                      <FontAwesomeIcon icon={faCheck} style={{ fontSize: MediasfuTypography.sizeMicro }} />
                       Active
                     </span>
                   )}

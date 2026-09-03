@@ -33,6 +33,16 @@ export interface SidebarPanelProps {
   width: number;
   /** Dark mode toggle */
   isDarkMode?: boolean;
+  /** Position inside the caller's boundary. Use `fixed` for viewport UI. */
+  position?: 'absolute' | 'fixed';
+  /** Height of the hosted surface. Defaults to the parent container. */
+  height?: number | string;
+  /** Optional outer-surface style overrides. */
+  style?: React.CSSProperties;
+  /** Optional scrollable-content style overrides. */
+  contentStyle?: React.CSSProperties;
+  /** Optional class name for product-specific styling. */
+  className?: string;
   /** Children content to render */
   children: React.ReactNode;
 }
@@ -58,6 +68,9 @@ const getSidebarTitle = (content: SidebarContent): string => {
     shareEvent: 'Share Event',
     configureWhiteboard: 'Whiteboard',
     background: 'Background',
+    permissions: 'Permissions',
+    panelists: 'Panelists',
+    translation: 'Translation',
   };
   return titles[content] || '';
 };
@@ -70,22 +83,22 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
   width,
   isDarkMode = true,
   children,
+  position = 'absolute',
+  height = '100%',
+  style,
+  contentStyle: contentStyleOverride,
+  className,
 }) => {
-  // Hide if no content
-  if (activeSidebarContent === 'none' || width === 0) {
-    return null;
-  }
-
   const title = getSidebarTitle(activeSidebarContent);
 
   // Styles
   const containerStyle: React.CSSProperties = useMemo(
     () => ({
-      position: 'fixed' as const,
+      position,
       top: 0,
       right: 0,
       width: `${width}px`,
-      height: '100vh',
+      height,
       display: 'flex',
       flexDirection: 'column',
       background: isDarkMode
@@ -99,8 +112,9 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
         : '-8px 0 32px rgba(0, 0, 0, 0.1)',
       zIndex: 100,
       animation: `slideInRight ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+      ...style,
     }),
-    [width, isDarkMode]
+    [width, height, isDarkMode, position, style]
   );
 
   const headerStyle: React.CSSProperties = useMemo(
@@ -142,7 +156,7 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
       borderRadius: MediasfuBorders.md,
       cursor: 'pointer',
       color: isDarkMode ? MediasfuColors.textPrimaryDark : MediasfuColors.textPrimary,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     }),
     [isDarkMode]
   );
@@ -151,10 +165,14 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
     flex: 1,
     overflow: 'auto',
     padding: MediasfuSpacing.md,
+    ...contentStyleOverride,
   };
 
+  // Visibility changes must not change hook order.
+  if (activeSidebarContent === 'none' || width === 0) return null;
+
   return (
-    <div style={containerStyle}>
+    <aside className={className} style={containerStyle} aria-label={title || 'Room tools'}>
       {/* Header */}
       <div style={headerStyle}>
         <div style={headerLeftStyle}>
@@ -200,7 +218,7 @@ export const SidebarPanel: React.FC<SidebarPanelProps> = ({
 
       {/* Content */}
       <div style={contentStyle}>{children}</div>
-    </div>
+    </aside>
   );
 };
 

@@ -326,6 +326,34 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
   const [showWaveModal, setShowWaveModal] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const autoWaveCheck = useRef(false);
+  const audioElementRef = useRef<HTMLAudioElement | null>(null);
+
+  // A remote stream can arrive before the participant's first interaction.
+  // Browsers reject that initial play() call; swallowing the rejection without
+  // retrying leaves a healthy consumer permanently silent. Retry on the next
+  // real gesture and remove the listeners as soon as playback starts.
+  useEffect(() => {
+    const audio = audioElementRef.current;
+    if (!audio || !stream) return;
+    audio.srcObject = stream;
+
+    const removeUnlockListeners = () => {
+      document.removeEventListener('pointerdown', unlock, true);
+      document.removeEventListener('keydown', unlock, true);
+      document.removeEventListener('touchend', unlock, true);
+    };
+    const unlock = () => {
+      void audio.play().then(removeUnlockListeners).catch(() => {});
+    };
+
+    void audio.play().then(removeUnlockListeners).catch(() => {
+      document.addEventListener('pointerdown', unlock, true);
+      document.addEventListener('keydown', unlock, true);
+      document.addEventListener('touchend', unlock, true);
+    });
+
+    return removeUnlockListeners;
+  }, [stream]);
 
   useEffect(() => {
     if (stream) {
@@ -555,12 +583,7 @@ const MiniAudioPlayer: React.FC<MiniAudioPlayerOptions> = ({
           autoPlay
           data-mini-audio-player="true"
           data-producer-id={remoteProducerId}
-          ref={(ref) => {
-            if (ref) {
-              ref.srcObject = stream;
-              ref.play().catch(() => {});
-            }
-          }}
+          ref={audioElementRef}
         />
       )}
       {renderMiniAudioComponent()}

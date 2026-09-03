@@ -267,7 +267,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
       : position === 'center'
         ? 'translate(-50%, -50%) scale(0.95)'
         : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -293,7 +293,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
     background: MediasfuColors.brandGradient(isDarkMode),
     padding: `2px ${MediasfuSpacing.sm}px`,
     borderRadius: MediasfuBorders.full,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     fontWeight: 600,
     color: '#FFFFFF',
   };
@@ -305,7 +305,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const bodyStyle: React.CSSProperties = {
@@ -333,7 +333,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
     border: 'none',
     outline: 'none',
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
   };
 
   const participantStyle: React.CSSProperties = {
@@ -343,7 +343,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
     padding: `${MediasfuSpacing.sm}px ${MediasfuSpacing.md}px`,
     background: isDarkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
     borderRadius: MediasfuBorders.sm,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const participantInfoStyle: React.CSSProperties = {
@@ -362,7 +362,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
     justifyContent: 'center',
     color: '#FFFFFF',
     fontWeight: 600,
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
   };
 
   const nameStyle: React.CSSProperties = {
@@ -385,7 +385,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.xs,
     color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   // Default header
@@ -438,7 +438,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
                   ? `${participant.name} (host)`
                   : participant.name}
                 {participant.islevel === '2' && (
-                  <FontAwesomeIcon icon={faCrown} style={{ color: MediasfuColors.warning, fontSize: 12 }} />
+                  <FontAwesomeIcon icon={faCrown} style={{ color: MediasfuColors.warning, fontSize: MediasfuTypography.sizeBodySmall }} />
                 )}
               </span>
             </div>
@@ -450,7 +450,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
                   <FontAwesomeIcon
                     icon={faDotCircle}
                     style={{
-                      fontSize: 12,
+                      fontSize: MediasfuTypography.sizeBodySmall,
                       color: participant.muted ? MediasfuColors.danger : MediasfuColors.success,
                       marginRight: MediasfuSpacing.xs,
                     }}
@@ -506,7 +506,7 @@ export const ModernParticipantsModal: React.FC<ModernParticipantsModalProps> = (
                 <FontAwesomeIcon
                   icon={faDotCircle}
                   style={{
-                    fontSize: 12,
+                    fontSize: MediasfuTypography.sizeBodySmall,
                     color: participant.muted ? MediasfuColors.danger : MediasfuColors.success,
                   }}
                 />

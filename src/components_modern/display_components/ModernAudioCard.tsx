@@ -15,7 +15,7 @@
  * ```
  */
 
-import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faMicrophone,
@@ -29,6 +29,8 @@ import type { LiveSubtitle } from '../../producers/socketReceiveMethods/translat
 import { MediasfuSpacing } from '../core/theme/MediasfuSpacing';
 import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 import { MediasfuAnimations } from '../core/theme/MediasfuAnimations';
+import { stageCardPropsEqual } from './stageCardMemo';
+import { SpeakingWaveform } from './SpeakingWaveform';
 import { MediasfuBorders } from '../core/theme/MediasfuBorders';
 import { ModernTooltip } from '../core/widgets/ModernTooltip';
 import { ModernMiniCard } from './ModernMiniCard';
@@ -56,7 +58,7 @@ export type ModernAudioCardType = (options: ModernAudioCardOptions) => React.JSX
 /**
  * ModernAudioCard displays participant audio with premium glassmorphic styling.
  */
-export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
+const ModernAudioCardComponent: React.FC<ModernAudioCardOptions> = ({
   controlUserMedia,
   customStyle,
   name,
@@ -91,8 +93,6 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [showWaveform, setShowWaveform] = useState(false);
-  const [waveformValues, setWaveformValues] = useState<number[]>(Array(waveformBarCount).fill(0));
-  const animationRef = useRef<number | null>(null);
   
   // Suppress unused variable warnings - these are kept for backwards compatibility
   void liveSubtitleProp;
@@ -104,19 +104,29 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Audio level polling - like the original AudioCard. Reading must not
-  // republish the shared parameter bag once per second per card.
+  // Audio level polling - like the original AudioCard
+  // Polls getUpdatedAllParams every second to check for active audio
   // Falls back to audioDecibels prop if parameters not available
   useEffect(() => {
     const interval = setInterval(() => {
       // Try to get live data from parameters
-      if (parameters) {
-        let latestParams = parameters;
-        try {
-          latestParams = parameters.getCurrentParams?.() ?? parameters;
-        } catch {
-          // Fall back to the already-held snapshot without publishing.
+      {
+      // A read, not an update: `getUpdatedAllParams()` republishes the bag to
+      // every consumer, and doing that once a second per card is a re-render
+      // storm for data nobody asked to be pushed. `getCurrentParams()` is the
+      // pure equivalent on the same bag.
+      const readParams = () => {
+        if (typeof parameters?.getCurrentParams === 'function') {
+          try {
+            const current = parameters.getCurrentParams();
+            if (current && typeof current === 'object') return current;
+          } catch {
+            // Fall through.
+          }
         }
+        return parameters;
+      };
+        const latestParams = readParams();
         const latestAudioDecibels = latestParams?.audioDecibels;
         const participants = latestParams?.participants;
         
@@ -140,42 +150,14 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
         } else {
           setShowWaveform(false);
         }
-      } else if (audioDecibels) {
-        // Fallback to audioDecibels prop
-        const averageLoudness = audioDecibels.averageLoudness ?? 0;
-        const shouldShow = averageLoudness > 127.5 && !participant?.muted;
-        setShowWaveform(shouldShow);
       }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [parameters, name, showWaveform, audioDecibels, participant?.muted]);
+    // `showWaveform` is deliberately absent: including it rebuilt the interval
+    // every time the participant started or stopped talking.
+  }, [parameters, name, audioDecibels, participant?.muted]);
 
-  // Waveform bar animation when showWaveform is active
-  useEffect(() => {
-    if (showWaveform) {
-      // Use setInterval instead of requestAnimationFrame for controlled timing
-      // This gives the bars time to animate smoothly between values
-      const interval = setInterval(() => {
-        setWaveformValues((prev) =>
-          prev.map(() => Math.random() * 22 + 2) // Range: 2px to 24px
-        );
-      }, 150); // Update every 150ms for bouncy effect
-      
-      return () => clearInterval(interval);
-    } else {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-      setWaveformValues(Array(waveformBarCount).fill(3));
-    }
-
-    return () => {
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-  }, [showWaveform, waveformBarCount]);
 
   // Media control handlers
   const handleToggleAudio = useCallback(async () => {
@@ -272,7 +254,7 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
       ? (isHovered ? 'scale(1.02)' : 'scale(1)')
       : 'scale(0.95)',
     opacity: isMounted ? 1 : 0,
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.smooth),
     ...customStyle,
   };
 
@@ -299,7 +281,7 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     padding: '3px',
     boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     transform: showWaveform ? 'scale(1.02)' : 'scale(1)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+    transition: `transform ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
     animation: 'none',
   };
 
@@ -313,31 +295,43 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     justifyContent: 'center',
   };
 
-  // Generate waveform ring bars positioned in a circle
+  // Waveform ring bars positioned in a circle.
+  //
+  // Placement and motion are split across two elements on purpose: the outer
+  // div owns the static rotate/translate that puts the bar on the ring, and the
+  // inner one owns the scaleY keyframe. That keeps the animation to `transform`
+  // on a single element — the previous version animated `height`, which forces
+  // layout for all nine bars on every tick.
   const waveformRingBars = useMemo(() => {
     const bars = [];
     const numBars = 9;
     for (let i = 0; i < numBars; i++) {
-      const height = waveformValues[i % waveformValues.length] || 8;
       bars.push(
         <div
           key={i}
           style={{
             position: 'absolute',
             width: '4px',
-            height: `${Math.max(8, Math.min(28, height))}px`,
-            backgroundColor: barColor,
-            borderRadius: '2px',
-            boxShadow: 'none',
+            height: '28px',
             transform: `rotate(${i * 40}deg) translateY(-90px)`,
             transformOrigin: 'center',
-            transition: 'height 100ms linear',
           }}
-        />
+        >
+          <div
+            className="mediasfu-speaking-bar"
+            style={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: barColor,
+              borderRadius: '2px',
+              animation: `speakingBar ${520 + ((i * 70) % 260)}ms ease-in-out ${(i * 90) % 360}ms infinite`,
+            }}
+          />
+        </div>
       );
     }
     return bars;
-  }, [waveformValues, barColor]);
+  }, [barColor]);
 
   // Glass overlay
   const glassOverlayStyle: React.CSSProperties = {
@@ -366,7 +360,7 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
   // Name text style
   const nameStyle: React.CSSProperties = {
     ...MediasfuTypography.toStyle(MediasfuTypography.labelSmall),
-    fontSize: 12.5,
+    fontSize: MediasfuTypography.sizeBodySmall,
     color: textColor,
     fontWeight: 600,
     textShadow: '0 1px 4px rgba(0,0,0,0.7)',
@@ -376,15 +370,6 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
   };
 
   // Waveform styles
-  const waveformContainerStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1px',
-    height: 14,
-    opacity: showWaveform ? 1 : 0,
-    transition: `opacity ${MediasfuAnimations.fast}ms`,
-  };
-
   // Controls overlay styles
   const controlsOverlayStyle: React.CSSProperties = {
     ...getPositionStyle(controlsPosition),
@@ -410,8 +395,8 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     backdropFilter: 'blur(6px)',
     WebkitBackdropFilter: 'blur(6px)',
     color: isActive ? MediasfuColors.success : MediasfuColors.danger,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
-    fontSize: 12,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
+    fontSize: MediasfuTypography.sizeBodySmall,
   });
 
   const handleMouseEnter = useCallback(() => setIsHovered(true), []);
@@ -480,21 +465,14 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
                   />
                 )}
                 <span style={nameStyle}>{name}</span>
-                <div style={waveformContainerStyle} {...waveformContainerProps}>
-                  {waveformValues.map((value, index) => (
-                    <div
-                      key={index}
-                      style={{
-                        width: 3,
-                        height: showWaveform ? `${Math.max(2, Math.min(24, value))}px` : '3px',
-                        backgroundColor: barColor,
-                        borderRadius: 2,
-                        transition: 'height 120ms cubic-bezier(0.34, 1.56, 0.64, 1)', // Bouncy spring effect
-                        ...waveformBarStyle,
-                      }}
-                    />
-                  ))}
-                </div>
+                <SpeakingWaveform
+                  active={showWaveform}
+                  barColor={barColor}
+                  barCount={waveformBarCount}
+                  height={14}
+                  barStyle={waveformBarStyle}
+                  containerProps={waveformContainerProps}
+                />
               </>
             )}
           </div>
@@ -548,5 +526,13 @@ export const ModernAudioCard: React.FC<ModernAudioCardOptions> = ({
     </>
   );
 };
+
+/**
+ * Renders once per audio-only participant, so it carries the same
+ * re-render cost as the video card.
+ */
+export const ModernAudioCard = React.memo(ModernAudioCardComponent, stageCardPropsEqual);
+
+ModernAudioCard.displayName = 'ModernAudioCard';
 
 export default ModernAudioCard;

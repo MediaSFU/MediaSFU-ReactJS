@@ -159,7 +159,7 @@ export const NeumorphicContainer: React.FC<NeumorphicContainerProps> = ({
         ? 'scale(0.98)'
         : 'scale(1)'
       : 'scale(0.98)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.snappy),
     userSelect: 'none',
     ...style,
   };

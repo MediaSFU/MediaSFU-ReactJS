@@ -146,7 +146,7 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
       : position === 'center'
         ? 'translate(-50%, -50%) scale(0.95)'
         : 'scale(0.95)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
   };
 
@@ -174,7 +174,7 @@ export const ModernConfirmExitModal: React.FC<ModernConfirmExitModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const bodyStyle: React.CSSProperties = {

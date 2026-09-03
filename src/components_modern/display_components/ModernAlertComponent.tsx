@@ -277,7 +277,7 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
   const alertWrapperStyle: React.CSSProperties = {
     transform: `${getAnimationTransform()} scale(${isAnimating ? 1 : 0.95})`,
     opacity: isAnimating ? 1 : 0,
-    transition: `all 250ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(250, MediasfuAnimations.snappy),
     boxShadow: isDarkMode
       ? '0 18px 45px rgba(2, 6, 23, 0.5), 0 3px 10px rgba(2, 6, 23, 0.35)'
       : '0 18px 45px rgba(15, 23, 42, 0.2), 0 3px 10px rgba(15, 23, 42, 0.12)',
@@ -329,7 +329,7 @@ export const ModernAlertComponent: React.FC<ModernAlertComponentProps> = ({
     border: `1px solid ${isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(15, 23, 42, 0.08)'}`,
     cursor: 'pointer',
     color: secondaryControlColor,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     flexShrink: 0,
   };
 

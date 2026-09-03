@@ -191,7 +191,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
     maxHeight: 'min(600px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -220,7 +220,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const contentStyle: React.CSSProperties = {
@@ -256,7 +256,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
     transform: 'translateY(-50%)',
     pointerEvents: 'none',
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.6)',
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
   };
 
   const selectStyle = (state: { isHovered: boolean; isFocused: boolean }): React.CSSProperties => {
@@ -268,7 +268,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
       border: `1px solid ${isDarkMode ? 'rgba(255,255,255,0.2)' : 'rgba(17,24,39,0.12)'}`,
       borderRadius: MediasfuBorders.md,
       color: isDarkMode ? '#F9FAFB' : '#0F172A',
-      fontSize: 14,
+      fontSize: MediasfuTypography.sizeBodyMedium,
       outline: 'none',
       cursor: 'pointer',
       boxShadow: state.isFocused
@@ -276,7 +276,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
         : state.isHovered
           ? '0 10px 30px rgba(0,0,0,0.16)'
           : '0 2px 8px rgba(0,0,0,0.08)',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
       appearance: 'none',
       WebkitAppearance: 'none',
       MozAppearance: 'none',
@@ -322,7 +322,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
     }`,
     borderRadius: 4,
     cursor: 'pointer',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   });
 
   const footerStyle: React.CSSProperties = {
@@ -392,7 +392,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
               </span>
               <div style={{ display: 'flex', gap: MediasfuSpacing.md, alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: MediasfuSpacing.xs }}>
-                  <span style={{ fontSize: 12, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>
+                  <span style={{ fontSize: MediasfuTypography.sizeBodySmall, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>
                     Enabled
                   </span>
                   <div
@@ -403,7 +403,7 @@ export const ModernCoHostModal: React.FC<ModernCoHostModalProps> = ({
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: MediasfuSpacing.xs }}>
-                  <span style={{ fontSize: 12, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>
+                  <span style={{ fontSize: MediasfuTypography.sizeBodySmall, color: isDarkMode ? 'rgba(255,255,255,0.6)' : 'rgba(0,0,0,0.6)' }}>
                     Dedicated
                   </span>
                   <div

@@ -18,6 +18,7 @@
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUsers } from '@fortawesome/free-solid-svg-icons';
+import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 
 export type BadgePosition = 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 
@@ -102,13 +103,13 @@ export const ParticipantsCounterBadge: React.FC<ParticipantsCounterBadgeProps> =
 
   const iconStyle: React.CSSProperties = {
     color: textColor,
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     opacity: 0.9,
   };
 
   const countStyle: React.CSSProperties = {
     color: textColor,
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     fontWeight: 600,
     letterSpacing: '0.5px',
   };

@@ -40,6 +40,10 @@ export { ModernMiniCard } from './ModernMiniCard';
 export type { ModernMiniCardOptions, ModernMiniCardType } from './ModernMiniCard';
 
 export { ModernVideoCard } from './ModernVideoCard';
+export { SpeakingWaveform } from './SpeakingWaveform';
+export type { SpeakingWaveformOptions } from './SpeakingWaveform';
+export { useGridReflow } from './useGridReflow';
+export { stageCardPropsEqual } from './stageCardMemo';
 export type { ModernVideoCardOptions, ModernVideoCardType } from './ModernVideoCard';
 
 export { ModernAudioCard } from './ModernAudioCard';

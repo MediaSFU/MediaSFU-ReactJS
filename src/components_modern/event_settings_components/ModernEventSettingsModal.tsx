@@ -221,7 +221,7 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
       padding: MediasfuSpacing.xs,
       borderRadius: MediasfuBorders.sm,
       color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     };
 
     const sidebarContentStyle: React.CSSProperties = {
@@ -273,9 +273,9 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
       flexDirection: 'column',
       alignItems: 'center',
       gap: `${MediasfuSpacing.xs}px`,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
       color: isSelected ? (isDarkMode ? '#FFFFFF' : '#1F2937') : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-      fontSize: 11,
+      fontSize: MediasfuTypography.sizeCaption,
       fontWeight: isSelected ? 600 : 400,
     });
 
@@ -398,7 +398,7 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
     maxHeight: 'min(600px, calc(100vh - 100px))',
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -427,7 +427,7 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
   };
 
   const contentStyle: React.CSSProperties = {
@@ -479,9 +479,9 @@ export const ModernEventSettingsModal: React.FC<ModernEventSettingsModalProps> =
     flexDirection: 'column',
     alignItems: 'center',
     gap: `${MediasfuSpacing.xs}px`,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     color: isSelected ? (isDarkMode ? '#FFFFFF' : '#1F2937') : isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    fontSize: 11,
+    fontSize: MediasfuTypography.sizeCaption,
     fontWeight: isSelected ? 600 : 400,
   });
 

@@ -124,7 +124,7 @@ export const GradientCard: React.FC<GradientCardProps> = ({
     boxShadow: MediasfuColors.elevation(elevation, isDarkMode),
     display: 'flex',
     flexDirection: 'column',
-    transition: `all ${animationDuration}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(animationDuration, MediasfuAnimations.smooth),
     cursor: onClick ? 'pointer' : 'default',
     opacity: isMounted ? 1 : 0,
     transform: isMounted 

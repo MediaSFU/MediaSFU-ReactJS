@@ -88,14 +88,27 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
     return () => clearTimeout(timer);
   }, []);
 
-  // Pure read: getUpdatedAllParams republishes the shared bag and must not run
-  // during render.
+  // Read, do not republish.
+  //
+  // `getUpdatedAllParams()` looks like a getter and is not one: it reassigns
+  // the shared bag and calls `updateSourceParameters`. Calling it here ran that
+  // during render, so a consumer's state update landed while React was
+  // rendering a different component — and because each publication re-rendered
+  // the consumer, which produced a fresh `parameters` identity, this memo
+  // re-ran and published again. The visible result was "Maximum update depth
+  // exceeded" thrown from this file, which points nowhere near the cause.
+  //
+  // `getCurrentParams()` is the pure equivalent published on the same bag.
   const params = useMemo(() => {
-    try {
-      return parameters.getCurrentParams?.() ?? parameters;
-    } catch {
-      return parameters;
+    if (typeof parameters?.getCurrentParams === 'function') {
+      try {
+        const current = parameters.getCurrentParams();
+        if (current && typeof current === 'object') return current;
+      } catch {
+        // Fall through to the bag we already hold.
+      }
     }
+    return parameters;
   }, [parameters]);
 
   // Resolve dark mode - prefer explicit prop, fallback to parameters, then default to true
@@ -120,7 +133,7 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
     try {
       updatedParams = parameters.getCurrentParams?.() ?? parameters;
     } catch {
-      // The bag already contains the most recent readable snapshot.
+      // Fall back to the already-held snapshot without publishing.
     }
     await handlePageChange({
       page,
@@ -208,7 +221,7 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
     boxShadow: MediasfuColors.elevation(2, resolvedIsDarkMode),
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'translateY(0)' : 'translateY(10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.smooth),
     ...buttonsContainerStyle,
   };
 
@@ -227,7 +240,7 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
       ? (resolvedIsDarkMode ? 'rgba(255, 255, 255, 0.3)' : 'rgba(15, 23, 42, 0.3)')
       : (resolvedIsDarkMode ? 'rgba(255, 255, 255, 0.8)' : 'rgba(15, 23, 42, 0.8)'),
     opacity: disabled ? 0.5 : 1,
-    transition: `all ${MediasfuAnimations.fast}ms`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast),
   });
 
   // Page button styles
@@ -244,7 +257,7 @@ export const ModernPagination: React.FC<ModernPaginationOptions> = ({
       cursor: 'pointer',
       ...MediasfuTypography.toStyle(MediasfuTypography.labelSmall),
       fontWeight: isActive ? 700 : 500,
-      transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+      transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     };
 
     if (isActive) {

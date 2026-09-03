@@ -33,7 +33,10 @@ export type SidebarContent =
   | 'breakoutRooms'
   | 'shareEvent'
   | 'configureWhiteboard'
-  | 'background';
+  | 'background'
+  | 'permissions'
+  | 'panelists'
+  | 'translation';
 
 /**
  * Default render mode constants

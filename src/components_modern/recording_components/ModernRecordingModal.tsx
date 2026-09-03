@@ -227,7 +227,7 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
       : position === 'center'
         ? 'translate(-50%, -50%) scale(0.95)'
         : 'scale(0.95) translateY(-10px)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     zIndex: 1001,
     display: 'flex',
     flexDirection: 'column',
@@ -296,7 +296,7 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
     padding: MediasfuSpacing.xs,
     borderRadius: MediasfuBorders.sm,
     color: isDarkMode ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.7)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     ...closeButtonStyleOverrides,
   };
 
@@ -363,8 +363,8 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
     cursor: 'pointer',
     color: isActive ? (isDarkMode ? '#FFFFFF' : '#0f172a') : isDarkMode ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)',
     fontWeight: isActive ? 600 : 400,
-    fontSize: 14,
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    fontSize: MediasfuTypography.sizeBodyMedium,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -496,7 +496,7 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
         >
           <span
             style={{
-              fontSize: 11,
+              fontSize: MediasfuTypography.sizeCaption,
               fontWeight: 800,
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
@@ -507,7 +507,7 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
           </span>
           <span
             style={{
-              fontSize: 13,
+              fontSize: MediasfuTypography.sizeBodyCompact,
               fontWeight: 600,
               lineHeight: 1.5,
             }}

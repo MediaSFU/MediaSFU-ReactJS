@@ -16,12 +16,16 @@
  * ```
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { MediasfuColors } from '../core/theme/MediasfuColors';
 import { MediasfuSpacing } from '../core/theme/MediasfuSpacing';
+/** How long a control-bar tooltip stays up before taking itself down. */
+const TOOLTIP_AUTO_HIDE_MS = 3000;
+
 import { MediasfuAnimations } from '../core/theme/MediasfuAnimations';
 import { GlassmorphicContainer } from '../core/widgets/GlassmorphicContainer';
 import { injectModernAnimations } from '../utils/injectAnimations';
+import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 
 /** Single control button configuration */
 export interface ControlButton {
@@ -106,6 +110,35 @@ const PremiumControlButton: React.FC<PremiumControlButtonProps> = ({
   const [isPressed, setIsPressed] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
+  // Tooltip visibility is tracked separately from hover. A touch device fires
+  // mouseenter on tap but never mouseleave, so a tooltip bound directly to
+  // hover state stayed on screen forever after the first tap.
+  const [isTipVisible, setIsTipVisible] = useState(false);
+  const tipTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTipTimer = useCallback(() => {
+    if (tipTimer.current) {
+      clearTimeout(tipTimer.current);
+      tipTimer.current = null;
+    }
+  }, []);
+
+  const revealTip = useCallback(() => {
+    clearTipTimer();
+    setIsTipVisible(true);
+    tipTimer.current = setTimeout(() => {
+      tipTimer.current = null;
+      setIsTipVisible(false);
+    }, TOOLTIP_AUTO_HIDE_MS);
+  }, [clearTipTimer]);
+
+  const hideTip = useCallback(() => {
+    clearTipTimer();
+    setIsTipVisible(false);
+  }, [clearTipTimer]);
+
+  useEffect(() => clearTipTimer, [clearTipTimer]);
+
   if (button.customComponent) {
     return <>{button.customComponent}</>;
   }
@@ -122,6 +155,8 @@ const PremiumControlButton: React.FC<PremiumControlButtonProps> = ({
     : isDarkMode
       ? 'rgba(255, 255, 255, 0.1)'
       : 'rgba(0, 0, 0, 0.06)');
+
+  const glowColor = isActive ? activeColor : 'transparent';
 
   // Button container styles
   const buttonStyle: React.CSSProperties = {
@@ -140,7 +175,7 @@ const PremiumControlButton: React.FC<PremiumControlButtonProps> = ({
     cursor: isDisabled ? 'not-allowed' : 'pointer',
     opacity: isDisabled ? 0.5 : 1,
     transform: isPressed ? 'scale(0.9)' : isHovered ? 'scale(1.05)' : 'scale(1)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.snappy),
     border: 'none',
     outline: 'none',
     padding: 0,
@@ -168,13 +203,20 @@ const PremiumControlButton: React.FC<PremiumControlButtonProps> = ({
     padding: '4px 8px',
     background: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)',
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: '12px',
+    fontSize: MediasfuTypography.sizeBodySmall,
+    lineHeight: 1.35,
     borderRadius: '6px',
-    whiteSpace: 'nowrap',
+    // The tooltip is absolutely positioned inside a ~48px button, so without
+    // an explicit intrinsic width it shrink-to-fits against that and renders
+    // one word per line as a tall column.
+    width: 'max-content',
+    maxWidth: '200px',
+    whiteSpace: 'normal',
+    textAlign: 'center',
     pointerEvents: 'none',
-    opacity: isHovered && tooltipText ? 1 : 0,
-    visibility: isHovered && tooltipText ? 'visible' : 'hidden',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    opacity: isTipVisible && tooltipText ? 1 : 0,
+    visibility: isTipVisible && tooltipText ? 'visible' : 'hidden',
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     boxShadow: MediasfuColors.elevation(2, isDarkMode),
     zIndex: 1000,
   };
@@ -192,8 +234,13 @@ const PremiumControlButton: React.FC<PremiumControlButtonProps> = ({
       onClick={handleClick}
       onMouseDown={() => !isDisabled && setIsPressed(true)}
       onMouseUp={() => setIsPressed(false)}
-      onMouseEnter={() => !isDisabled && setIsHovered(true)}
-      onMouseLeave={() => { setIsHovered(false); setIsPressed(false); }}
+      onMouseEnter={() => {
+        if (isDisabled) return;
+        setIsHovered(true);
+        revealTip();
+      }}
+      onMouseLeave={() => { setIsHovered(false); setIsPressed(false); hideTip(); }}
+      onTouchStart={() => !isDisabled && revealTip()}
       disabled={isDisabled}
       aria-label={button.tooltip || button.name}
       aria-pressed={isActive}
@@ -256,7 +303,7 @@ export const ModernControlButtonsComponent: React.FC<ModernControlButtonsCompone
   const wrapperStyle: React.CSSProperties = {
     opacity: isMounted ? 1 : 0,
     transform: isMounted ? 'scale(1)' : 'scale(0.8)',
-    transition: `all ${MediasfuAnimations.normal}ms ${MediasfuAnimations.snappy}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.normal, MediasfuAnimations.snappy),
     boxShadow: '0 4px 16px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.10)',
     borderRadius: 32,
   };

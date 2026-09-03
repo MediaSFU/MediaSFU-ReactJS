@@ -51,11 +51,14 @@ export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
     apiUserName,
     apiKey,
     localLink = '',
+    roomsEndpoint = '',
 }: {
     payload: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
     apiUserName: string;
     apiKey: string;
     localLink?: string;
+    /** Full Cloud rooms endpoint or compatible backend proxy URL. */
+    roomsEndpoint?: string;
 }): Promise<{
     data: CreateJoinRoomResponse | CreateJoinRoomError | null;
     success: boolean;
@@ -97,7 +100,7 @@ export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
             return { data: { error: 'Invalid credentials' }, success: false };
         }
 
-        const finalLink = resolveMediaSFURoomApi(localLink, 'createRoom');
+        const finalLink = resolveMediaSFURoomApi(localLink, 'createRoom', roomsEndpoint);
 
 
     // Mark request as pending

@@ -35,6 +35,43 @@ export class MediasfuTypography {
   // ═══════════════════════════════════════════════════════════════════════════
 
   /** Display Large - For hero sections and major headings */
+  // ═══════════════════════════════════════════════════════════════════════
+  // TYPE RAMP
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // Mirrors the Flutter ramp step for step, so a size means the same thing on
+  // both platforms. Derived from what the components actually used: 12 appeared
+  // 51 times, 14 forty-two, 13 thirty-four, 11 seventeen, 10 eleven. Only
+  // 8/9 -> 10, 12.5 -> 12, 15 -> 16 and 24 -> 22 move at all, and none by more
+  // than a couple of pixels. A value off this ramp should now look wrong.
+
+  /** Badges, counters, timestamps. 10 */
+  static readonly sizeMicro = 10;
+
+  /** Captions and helper text under a control. 11 */
+  static readonly sizeCaption = 11;
+
+  /** The workhorse body size. 12 */
+  static readonly sizeBodySmall = 12;
+
+  /** Body text that needs a little more presence. 13 */
+  static readonly sizeBodyCompact = 13;
+
+  /** Default body and list rows. 14 */
+  static readonly sizeBodyMedium = 14;
+
+  /** Section headings inside a panel. 16 */
+  static readonly sizeTitleSmall = 16;
+
+  /** Modal titles. 18 */
+  static readonly sizeTitleMedium = 18;
+
+  /** Screen and sheet titles. 22 */
+  static readonly sizeTitleLarge = 22;
+
+  /** Countdowns and single big numbers. 32 */
+  static readonly sizeDisplay = 32;
+
   static readonly displayLarge: TextStyleConfig = {
     fontSize: 57,
     fontWeight: 600,

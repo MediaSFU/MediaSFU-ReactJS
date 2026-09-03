@@ -695,7 +695,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
     >
       <button
         id="annotateScreen"
-        className="btn btn-primary btnBoardScreen annotateScreenBtn"
+        className="btn btn-primary btnBoard annotateScreenBtn"
         style={{
           position: "absolute",
           top: "5px",
@@ -730,7 +730,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
         {annotateScreenStream && (
           <button
             id="toolbarToggleScreen"
-            className="btn btnBoardScreen btn-primary"
+            className="btn btnBoard btn-primary"
             style={{
               position: "absolute",
               top: "5px",
@@ -758,7 +758,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
         >
           <div className="btn-group" role="group">
             <button
-              className="btn btnBoardScreen btn-secondary dropdown-toggle"
+              className="btn btnBoard btn-secondary dropdown-toggle"
               id="drawModeScreen"
               onClick={() => handleDropdownClick("drawModeScreen")}
             >
@@ -780,7 +780,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
           </div>
           <div className="btn-group" role="group">
             <button
-              className="btn btnBoardScreen btn-dark dropdown-toggle"
+              className="btn btnBoard btn-dark dropdown-toggle"
               id="freehandModeScreen"
               onClick={() => handleDropdownClick("freehandModeScreen")}
             >
@@ -801,7 +801,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
           </div>
           <div className="btn-group" role="group">
             <button
-              className="btn btnBoardScreen btn-dark dropdown-toggle"
+              className="btn btnBoard btn-dark dropdown-toggle"
               id="shapeModeScreen"
               onClick={() => handleDropdownClick("shapeModeScreen")}
             >
@@ -917,7 +917,7 @@ const Screenboard: React.FC<ScreenboardOptions> = ({
           </div>
           <div className="btn-group" role="group">
             <button
-              className="btn btnBoardScreen btn-danger dropdown-toggle"
+              className="btn btnBoard btn-danger dropdown-toggle"
               id="eraseModeScreen"
               onClick={() => handleDropdownClick("eraseModeScreen")}
             >

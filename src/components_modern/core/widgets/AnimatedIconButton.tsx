@@ -21,6 +21,7 @@ import { MediasfuColors } from '../theme/MediasfuColors';
 import { MediasfuSpacing } from '../theme/MediasfuSpacing';
 import { MediasfuAnimations } from '../theme/MediasfuAnimations';
 import { injectModernAnimations } from '../../utils/injectAnimations';
+import { MediasfuTypography } from '../../core/theme/MediasfuTypography';
 
 export interface AnimatedIconButtonProps {
   /** Icon element to display */
@@ -114,7 +115,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
         ? 'scale(0.94)'
         : 'scale(1)'
       : 'scale(0.9)',
-    transition: `all ${duration}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(duration, MediasfuAnimations.smooth),
     outline: 'none',
     border: 'none',
     position: 'relative',
@@ -142,13 +143,13 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
     padding: `${MediasfuSpacing.xs}px ${MediasfuSpacing.sm}px`,
     background: isDarkMode ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)',
     color: isDarkMode ? '#FFFFFF' : '#1F2937',
-    fontSize: '12px',
+    fontSize: MediasfuTypography.sizeBodySmall,
     borderRadius: `${MediasfuSpacing.xs}px`,
     whiteSpace: 'nowrap',
     pointerEvents: 'none',
     opacity: showTooltip ? 1 : 0,
     visibility: showTooltip ? 'visible' : 'hidden',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     boxShadow: MediasfuColors.elevation(2, isDarkMode),
     zIndex: 1000,
   };

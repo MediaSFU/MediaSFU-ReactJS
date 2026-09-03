@@ -1737,7 +1737,7 @@ const Whiteboard: React.FC<WhiteboardOptions> = ({ customWidth, customHeight, pa
   };
 
   return (
-    <div id="witehboard-interface" style={{ position: 'relative', display: showAspect ? 'block' : 'none', justifyContent: 'center', alignItems: 'center', border: `1px solid ${isDarkMode ? 'rgba(100, 116, 139, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`, backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(248, 250, 252, 0.98)', borderRadius: '8px', width: customWidth, height: customHeight }}>
+    <div id="whiteboard-interface" style={{ position: 'relative', display: showAspect ? 'block' : 'none', justifyContent: 'center', alignItems: 'center', border: `1px solid ${isDarkMode ? 'rgba(100, 116, 139, 0.2)' : 'rgba(0, 0, 0, 0.1)'}`, backgroundColor: isDarkMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(248, 250, 252, 0.98)', borderRadius: '8px', width: customWidth, height: customHeight }}>
       <div id="whiteboardContent" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', height: '100%', maxWidth: '100%', maxHeight: '100%', overflow: 'auto', backgroundColor: 'transparent' }}>
         {toolbarVisible.current && (
           <div className="toolbar mb-3" id="toolbar" style={{ 

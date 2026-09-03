@@ -93,35 +93,35 @@ const SIZE_CONFIG: Record<PremiumButtonSize, {
 }> = {
   xs: {
     height: 28,
-    fontSize: 12,
+    fontSize: MediasfuTypography.sizeBodySmall,
     iconSize: 14,
     paddingHorizontal: 10,
     borderRadius: 6,
   },
   sm: {
     height: 32,
-    fontSize: 13,
+    fontSize: MediasfuTypography.sizeBodyCompact,
     iconSize: 16,
     paddingHorizontal: 12,
     borderRadius: 8,
   },
   md: {
     height: 40,
-    fontSize: 14,
+    fontSize: MediasfuTypography.sizeBodyMedium,
     iconSize: 18,
     paddingHorizontal: 16,
     borderRadius: 10,
   },
   lg: {
     height: 48,
-    fontSize: 15,
+    fontSize: MediasfuTypography.sizeTitleSmall,
     iconSize: 20,
     paddingHorizontal: 20,
     borderRadius: 12,
   },
   xl: {
     height: 56,
-    fontSize: 16,
+    fontSize: MediasfuTypography.sizeTitleSmall,
     iconSize: 22,
     paddingHorizontal: 24,
     borderRadius: 14,
@@ -283,7 +283,7 @@ export const PremiumButton: React.FC<PremiumButtonProps> = ({
           ? 'translateY(-1px)'
           : 'scale(1)'
       : 'scale(0.95)',
-    transition: `all ${MediasfuAnimations.fast}ms ${MediasfuAnimations.smooth}`,
+    transition: MediasfuAnimations.transitionInteractive(MediasfuAnimations.fast, MediasfuAnimations.smooth),
     outline: 'none',
     userSelect: 'none',
     whiteSpace: 'nowrap',

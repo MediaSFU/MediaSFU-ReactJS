@@ -1,20 +1,20 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "4.3.1",
+  "version": "4.3.2",
   "private": false,
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "main": "dist/main.js",
-  "module": "dist/main.js",
+  "module": "dist/main.mjs",
   "types": "dist/types/main.d.ts",
   "exports": {
     ".": {
       "types": "./dist/types/main.d.ts",
-      "import": "./dist/main.js",
+      "import": "./dist/main.mjs",
       "require": "./dist/main.js",
-      "default": "./dist/main.js"
+      "default": "./dist/main.mjs"
     },
     "./dist/main.css": "./dist/main.css",
     "./package.json": "./package.json"
@@ -22,7 +22,8 @@
   "sideEffects": [
     "**/*.css",
     "./src/utils/injectCriticalStyles.ts",
-    "./dist/main.js"
+    "./dist/main.js",
+    "./dist/main.mjs"
   ],
   "author": "MediaSFU",
   "license": "MIT",
@@ -168,7 +169,7 @@
     "build-storybook": "npm run generate-storybook-stories && storybook build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "buildnpm": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && webpack --config webpack.config.js --mode production && tsc --emitDeclarationOnly -p tsconfig.declarations.json",
+    "buildnpm": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && webpack --config webpack.config.js --mode production && webpack --config webpack.esm.config.js --mode production && tsc --emitDeclarationOnly -p tsconfig.declarations.json",
     "check:embedded-container": "node scripts/check-embedded-container-contract.mjs",
     "check:public-sync": "node scripts/check-public-sync.mjs",
     "check:custom-ui-docs": "node scripts/check-custom-ui-docs.mjs",

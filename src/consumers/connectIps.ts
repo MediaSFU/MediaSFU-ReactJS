@@ -38,6 +38,66 @@ export interface ConnectIpsOptions {
 // Export the type definition for the function
 export type ConnectIpsType = (options: ConnectIpsOptions) => Promise<[Record<string, any>[], string[]]>;
 
+// Scope pending connections to the caller's socket collection. This prevents
+// overlapping room/domain updates from opening the same consume endpoint more
+// than once without sharing sockets between independent room engines.
+const pendingConsumeConnections = new WeakMap<
+  object,
+  Map<string, Promise<boolean>>
+>();
+
+const normalizeConsumeEndpoint = (ip: string): string =>
+  ip.trim().toLowerCase().replace(/\.$/, "");
+
+const hasConsumeEndpoint = (
+  consumeSockets: ConsumeSocket[],
+  endpoint: string
+): boolean => consumeSockets.some((socketObj) => {
+  const ip = Object.keys(socketObj)[0];
+  return Boolean(ip) && normalizeConsumeEndpoint(ip) === endpoint;
+});
+
+async function reserveConsumeEndpoint(
+  consumeSockets: ConsumeSocket[],
+  ip: string,
+  reservationOwner: object = consumeSockets
+): Promise<((connected?: boolean) => void) | null> {
+  const endpoint = normalizeConsumeEndpoint(ip);
+  if (!endpoint || endpoint === "none") return null;
+
+  let pendingForSockets = pendingConsumeConnections.get(reservationOwner);
+  if (!pendingForSockets) {
+    pendingForSockets = new Map<string, Promise<boolean>>();
+    pendingConsumeConnections.set(reservationOwner, pendingForSockets);
+  }
+
+  while (true) {
+    if (hasConsumeEndpoint(consumeSockets, endpoint)) return null;
+
+    const pending = pendingForSockets.get(endpoint);
+    if (pending) {
+      if (await pending) return null;
+      continue;
+    }
+
+    let resolvePending!: (connected: boolean) => void;
+    const reservation = new Promise<boolean>((resolve) => {
+      resolvePending = resolve;
+    });
+    pendingForSockets.set(endpoint, reservation);
+
+    return (didConnect = false) => {
+      if (pendingForSockets?.get(endpoint) === reservation) {
+        pendingForSockets.delete(endpoint);
+        if (pendingForSockets.size === 0) {
+          pendingConsumeConnections.delete(reservationOwner);
+        }
+      }
+      resolvePending(didConnect === true);
+    };
+  }
+}
+
 /**
  * Connects to remote IPs and manages socket connections.
  *
@@ -107,15 +167,15 @@ export const connectIps = async ({
     }
 
     for (const ip of remIP) {
+      const releaseReservation = await reserveConsumeEndpoint(
+        consume_sockets,
+        ip,
+        parameters?.socket || consume_sockets
+      );
+      if (!releaseReservation) continue;
+
+      let connected = false;
       try {
-        // Check if the IP is already connected
-        const matching = consume_sockets.find((socketObj) => Object.keys(socketObj)[0] === ip);
-
-        if (matching || !ip) {
-          // Skip if the IP is already connected or invalid
-          continue;
-        }
-
         // Connect to the remote socket using socket.io-client
         const remote_sock = await connectSocket({ apiUserName, apiKey, apiToken, link: `https://${ip}.mediasfu.com` });
 
@@ -194,10 +254,13 @@ export const connectIps = async ({
           // Add the remote socket to the consume_sockets array
           consume_sockets.push({ [ip]: remote_sock });
           updateConsume_sockets(consume_sockets);
+          connected = true;
         }
       } catch (error) {
         // Handle the error
         console.log("connectIps error", error);
+      } finally {
+        releaseReservation(connected);
       }
     }
 

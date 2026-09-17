@@ -62,6 +62,13 @@ export async function joinConRoom(
   { socket, roomName, islevel, member, sec, apiUserName }: JoinConRoomOptions
 ): Promise<JoinConRoomResponse> {
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(new Error("Room server did not respond to the join request."));
+    }, 15000);
+    const rejectJoin = (error: unknown) => {
+      clearTimeout(timeout);
+      reject(error);
+    };
     // Validate inputs
     if (!(sec && roomName && islevel && apiUserName && member)) {
       const validationError: JoinConRoomResponse = {
@@ -69,7 +76,7 @@ export async function joinConRoom(
         rtpCapabilities: null,
         reason: "Missing required parameters",
       };
-      reject(validationError);
+      rejectJoin(validationError);
       return;
     }
 
@@ -84,7 +91,7 @@ export async function joinConRoom(
         rtpCapabilities: null,
         reason: "Invalid roomName or apiUserName or member",
       };
-      reject(validationError);
+      rejectJoin(validationError);
       return;
     }
 
@@ -95,7 +102,7 @@ export async function joinConRoom(
         rtpCapabilities: null,
         reason: "Invalid roomName, must start with s or p or d",
       };
-      reject(validationError);
+      rejectJoin(validationError);
       return;
     }
 
@@ -114,7 +121,7 @@ export async function joinConRoom(
         rtpCapabilities: null,
         reason: "Invalid roomName or islevel or apiUserName or secret",
       };
-      reject(validationError);
+      rejectJoin(validationError);
       return;
     }
 
@@ -123,6 +130,10 @@ export async function joinConRoom(
       { roomName, islevel, member, sec, apiUserName },
       async (data: JoinConRoomResponse) => {
         try {
+          clearTimeout(timeout);
+          if (!data || data.success === false) {
+            throw new Error(data?.reason || "Room server rejected the join request.");
+          }
           // Check if rtpCapabilities is null
           if (data.rtpCapabilities == null) {
             // Check if banned, suspended, or noAdmin
@@ -143,9 +154,7 @@ export async function joinConRoom(
             resolve(data);
           }
         } catch (error) {
-          // Handle errors during the joinConRoom process
-          console.log("Error joining room:", error);
-          reject(error);
+          rejectJoin(error);
         }
       }
     );

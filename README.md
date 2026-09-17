@@ -50,6 +50,32 @@
   Start with a prebuilt room, customize individual surfaces, or own the complete React interface with headless mode.
 </p>
 
+## 📖 Table of Contents
+
+- [Start Here](#start-here)
+- [Backend Requirement](#backend-requirement)
+- [Common questions](#common-questions)
+- [Troubleshooting](#troubleshooting)
+- [Choose a starter project](#choose-a-starter-project)
+- [Quick Start](#-quick-start)
+- [Installation](#-installation)
+- [Component Storybook](#-component-storybook)
+- [Prebuilt Event Rooms](#-prebuilt-event-rooms)
+- [Modern UI Components](#-modern-ui-components)
+- [Usage Examples](#-usage-examples)
+- [Key Components](#-key-components)
+- [Customization](#-customization)
+- [API Reference](#-api-reference)
+- [Self-Hosting / Community Edition](#-self-hosting--community-edition)
+- [Advanced Features](#-advanced-features) *(Panelists, Permissions, Translation)*
+- [sourceParameters - The Power API](#-sourceparameters---the-power-api)
+- [AudioGrid - Display All Audio Participants](#-audiogrid---display-all-audio-participants)
+- [Using Modals Standalone](#-using-modals-standalone)
+- [Building Your Own UI](#-building-your-own-ui)
+- [Host leave and rejoin](#host-leave-and-rejoin)
+- [SDKs across frameworks](#sdks-across-frameworks)
+- [Detailed Documentation](#-detailed-documentation)
+
 ## Build real-time communication into React
 
 `mediasfu-reactjs` combines a React 18/19 WebRTC client, prebuilt room experiences, and lower-level customization APIs for products that need video meetings, voice and video calls, webinars, interactive broadcasts, chat, screen sharing, recording, whiteboards, live captions, translation, or AI-assisted communication.
@@ -104,34 +130,35 @@ npm install mediasfu-reactjs
 ```
 
 ```tsx
-import { MediasfuGeneric } from "mediasfu-reactjs";
+import { ModernMediasfuGeneric } from "mediasfu-reactjs";
 
 export default function App() {
   return (
-    <MediasfuGeneric
+    <ModernMediasfuGeneric
       credentials={{ apiUserName: "your-api-username", apiKey: "your-api-key" }}
       connectMediaSFU={true}
+      containerStyle={{ minHeight: "100vh" }}
     />
   );
 }
 ```
 
-Prefer the themed modern shell? Start with `ModernMediasfuGeneric` instead of `MediasfuGeneric`:
+> **Local prototypes only.** Passing credentials in the browser is fine for a
+> private local prototype. For a shared or deployed app, keep the real username
+> and key on your backend and replace **both** `createMediaSFURoom` and
+> `joinMediaSFURoom` with thin adapters to it — see
+> [Backend Requirement](#backend-requirement). Never ship a privileged API key
+> in a browser bundle.
+
+Prefer the classic interface? `MediasfuGeneric` accepts the same props:
 
 ```tsx
-import { ModernMediasfuGeneric } from 'mediasfu-reactjs';
+import { MediasfuGeneric } from "mediasfu-reactjs";
 
-export default function App() {
-  return (
-    <ModernMediasfuGeneric
-      credentials={{ apiUserName: 'your-api-username', apiKey: 'your-api-key' }}
-      containerStyle={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0f172a, #1e3a8a)',
-      }}
-    />
-  );
-}
+<MediasfuGeneric
+  credentials={{ apiUserName: "your-api-username", apiKey: "your-api-key" }}
+  connectMediaSFU={true}
+/>;
 ```
 
 ### Render the standard UI from the same headless room
@@ -147,26 +174,24 @@ import {
   ModernMediasfuGeneric,
   ModernMediasfuGenericHead,
   useMediasfuHeadless,
-} from 'mediasfu-reactjs';
+} from "mediasfu-reactjs";
 
-function RoomLayout({ connectionOptions }) {
 function RoomLayout({ connectionOptions }) {
   const room = useMediasfuHeadless();
 
   return (
     <>
-    <ModernMediasfuGeneric
-      {...connectionOptions}
-      returnUI={false}
-      renderUIExternally
-      sourceParameters={room.sourceParameters}
-      updateSourceParameters={room.updateSourceParameters}
-      onMediaChanged={room.onMediaChanged}
-    />
-    <ModernMediasfuGenericHead parameters={room} />
+      <ModernMediasfuGeneric
+        {...connectionOptions}
+        returnUI={false}
+        renderUIExternally
+        sourceParameters={room.sourceParameters}
+        updateSourceParameters={room.updateSourceParameters}
+        onMediaChanged={room.onMediaChanged}
+      />
+      <ModernMediasfuGenericHead parameters={room} />
     </>
   );
-}
 }
 ```
 
@@ -175,12 +200,6 @@ replace individual panels or controls with your own components, and keep all
 remaining modals, sidebars, media surfaces, and lifecycle behavior attached to
 the same room engine. See [HEADLESS_GUIDE.md](./HEADLESS_GUIDE.md) for the full
 contract and modal-visibility guidance.
-
-The direct credential snippets above are for a private local prototype only.
-For a shared or deployed application, keep the real username/key on your
-backend and replace **both** `createMediaSFURoom` and `joinMediaSFURoom` with
-thin adapters to that backend. Never ship a privileged API key in a browser
-bundle.
 
 ## Backend Requirement
 
@@ -218,6 +237,18 @@ Yes. Point `localLink` at a MediaSFU Open deployment. The same React components 
 
 Yes. The room runtime includes meeting, webinar, broadcast, and chat experiences with screen sharing and annotation, recording, whiteboards, polls, breakout rooms, live captions, translation, and extensible AI-agent workflows.
 
+## Troubleshooting
+
+| What you see | Likely cause | What to do |
+|---|---|---|
+| "Unable to connect. Check your credentials and try again." | The room service rejected the credentials, or your create/join backend returned an error. | Check the API username and key on your server, and make sure your create/join adapters pass the room service's response through. For MediaSFU Open, confirm that `localLink` points to a server the browser can reach. |
+| The camera or microphone never starts | The page is not a secure context, or the browser permission was denied. | Serve the app over HTTPS (or `localhost` during development) and allow camera and microphone access for the site. |
+| "You must turn on your video before you can start recording" | The recording is set to capture video while your camera is off. | Turn the camera on first, or switch the recording to audio only. The same applies to audio recordings and the microphone. |
+| "You can only re-configure recording after pausing it" | Recording settings are locked while a recording is running. | Pause the recording, change the settings, then resume. |
+| "You cannot turn off your camera while recording video…" | Turning the camera off would interrupt the recording. | Pause or stop the recording first. |
+| A message ending in "Access denied by host." | The host has restricted that action for participants. | Ask the host to change the participant's permissions. |
+| "Screen share is not allowed when whiteboard is active" | Screen sharing and the whiteboard cannot run at the same time. | Close the whiteboard, then start screen sharing. |
+
 ## Integration Paths
 
 - Keep the bundled room UI for the fastest route to production.
@@ -249,31 +280,7 @@ dimensions. The same boundary is forwarded to `MainContainer`, `MainAspect`,
 - User guide: [https://mediasfu.com/user-guide](https://mediasfu.com/user-guide)
 - Storybook: [https://mediasfu.com/storybook](https://mediasfu.com/storybook)
 - Detailed guide: [README_DETAILED.md](README_DETAILED.md)
-
----
-
----
-
-## 📖 Table of Contents
-
-- [Choose a starter project](#choose-a-starter-project)
-- [Quick Start](#-quick-start)
-- [Installation](#-installation)
-- [Component Storybook](#-component-storybook)
-- [Prebuilt Event Rooms](#-prebuilt-event-rooms)
-- [Modern UI Components](#-modern-ui-components)
-- [Usage Examples](#-usage-examples)
-- [Key Components](#-key-components)
-- [Customization](#-customization)
-- [API Reference](#-api-reference)
-- [Self-Hosting / Community Edition](#-self-hosting--community-edition)
-- [Advanced Features](#-advanced-features) *(Panelists, Permissions, Translation)*
-- [sourceParameters - The Power API](#-sourceparameters---the-power-api)
-- [AudioGrid - Display All Audio Participants](#-audiogrid---display-all-audio-participants)
-- [Using Modals Standalone](#-using-modals-standalone)
-- [Building Your Own UI](#-building-your-own-ui)
-- [SDKs for Every Framework](#-sdks-for-every-framework)
-- [Detailed Documentation](#-detailed-documentation)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
 
 ---
 
@@ -290,16 +297,20 @@ npm install mediasfu-reactjs
 **2. Import & Render**
 
 ```tsx
-import { MediasfuGeneric } from 'mediasfu-reactjs';
+import { ModernMediasfuGeneric } from 'mediasfu-reactjs';
 
 function App() {
   return (
-    <MediasfuGeneric
+    <ModernMediasfuGeneric
       credentials={{ apiUserName: "yourUsername", apiKey: "yourAPIKey" }}
     />
   );
 }
 ```
+
+> Use browser-side credentials only for a private local prototype. Before you
+> share or deploy the app, move them behind your backend as described in
+> [Backend Requirement](#backend-requirement).
 
 **3. Run**
 
@@ -313,7 +324,7 @@ That's it. You have a fully-featured video conferencing room with screen sharing
 
 > **Want to try without a server?** Use demo mode:
 > ```tsx
-> <MediasfuGeneric
+> <ModernMediasfuGeneric
 >   useLocalUIMode={true}
 >   useSeed={true}
 >   seedData={{ member: "DemoUser", eventType: "conference" }}
@@ -1414,11 +1425,12 @@ MediaSFU is available across web, mobile, and native platforms. The integration 
 | Framework | Package |
 |-----------|---------|
 | **React** | [mediasfu-reactjs](https://www.npmjs.com/package/mediasfu-reactjs) (you are here) |
-| **React Native** | [@mediasfu/mediasfu-reactnative](https://www.npmjs.com/package/@mediasfu/mediasfu-reactnative) |
-| **Expo** | [@mediasfu/mediasfu-reactnative-expo](https://www.npmjs.com/package/@mediasfu/mediasfu-reactnative-expo) |
+| **React Native** | [mediasfu-reactnative](https://www.npmjs.com/package/mediasfu-reactnative) |
+| **Expo** | [mediasfu-reactnative-expo](https://www.npmjs.com/package/mediasfu-reactnative-expo) |
 | **Flutter** | [mediasfu_sdk](https://pub.dev/packages/mediasfu_sdk) |
-| **Angular** | [@mediasfu/mediasfu-angular](https://www.npmjs.com/package/@mediasfu/mediasfu-angular) |
-| **Vue** | [@mediasfu/mediasfu-vue](https://www.npmjs.com/package/@mediasfu/mediasfu-vue) |
+| **Angular** | [mediasfu-angular](https://www.npmjs.com/package/mediasfu-angular) |
+| **Vue** | [mediasfu-vue](https://www.npmjs.com/package/mediasfu-vue) |
+| **Framework-agnostic runtime** | [mediasfu-shared](https://www.npmjs.com/package/mediasfu-shared) |
 | **Android (Kotlin)** | MediaSFU Android |
 
 ---
@@ -1435,32 +1447,21 @@ MediaSFU is available across web, mobile, and native platforms. The integration 
 
 ---
 
-## 📄 License
-
-MIT © [MediaSFU](https://www.mediasfu.com)
-
----
-
-## Related SDKs
-
-| Package | Framework | npm |
-|---------|-----------|-----|
-| **[mediasfu-reactjs](https://github.com/MediaSFU/MediaSFU-ReactJS)** | **React 18/19** | **this package** |
-| [mediasfu-vue](https://github.com/MediaSFU/MediaSFU-Vue) | Vue 3 | [`npm install mediasfu-vue`](https://www.npmjs.com/package/mediasfu-vue) |
-| [mediasfu-angular](https://github.com/MediaSFU/MediaSFU-Angular) | Angular 17+ | [`npm install mediasfu-angular`](https://www.npmjs.com/package/mediasfu-angular) |
-| [mediasfu-shared](https://github.com/MediaSFU/MediaSFU-Shared) | Framework-agnostic | [`npm install mediasfu-shared`](https://www.npmjs.com/package/mediasfu-shared) |
-
----
-
 ## Host leave and rejoin
 
-Hosts now get two explicit choices: **Leave room** disconnects only the host and keeps the room available for rejoin, while **End for everyone** preserves the historical room-ending behavior. Existing integrations remain backward compatible because `endRoomOnHostExit` defaults to `true`.
+Hosts get two explicit choices: **Leave room** disconnects only the host and keeps the room available for rejoin, while **End for everyone** preserves the historical room-ending behavior. Existing integrations remain backward compatible because `endRoomOnHostExit` defaults to `true`.
 
 ```ts
 await actions.leave(false, false); // ban=false, endRoomOnHostExit=false
 ```
 
 ![Host leave and end choices](https://raw.githubusercontent.com/MediaSFU/MediaSFU-ReactJS/main/public/readme/host-leave-without-ending.png)
+
+---
+
+## 📄 License
+
+MIT © [MediaSFU](https://www.mediasfu.com)
 
 ---
 

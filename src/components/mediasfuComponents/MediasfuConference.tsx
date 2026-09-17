@@ -4121,21 +4121,25 @@ const MediasfuConference: React.FC<MediasfuConferenceOptions> = ({
       if (
         link.current !== "" &&
         link.current!.includes("mediasfu.com") &&
-        !isLocal
+        !isLocal &&
+        roomData.current?.success
       ) {
-        // join local room only
-        await updateAndComplete(roomData.current!);
+        // Community Edition can keep the already-joined local room when its
+        // optional MediaSFU bridge rejects the second join.
+        await updateAndComplete(roomData.current);
         return;
       }
 
-      //might be a wrong room name or room is full or other error; check reason in data object if available
-      // updateValidated(false);
-      try {
-        if (showAlert) {
-          showAlert({ message: data!.reason!, type: "danger", duration: 3000 });
-        }
-      } catch {
-        // Handle error
+      // A direct hosted join has no local room to fall back to. Leave the
+      // connecting state and surface the server's reason instead of silently
+      // calling updateAndComplete(null) and keeping the pre-join spinner alive.
+      const reason =
+        data?.reason ||
+        "Failed to join the room. Please check your connection and try again.";
+      updateValidated(false);
+      updateIsLoadingModalVisible(false);
+      if (showAlert) {
+        showAlert({ message: reason, type: "danger", duration: 5000 });
       }
     }
   }

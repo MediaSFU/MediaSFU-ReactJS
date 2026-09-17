@@ -456,9 +456,9 @@ export const ModernRecordingModal: React.FC<ModernRecordingModalProps> = ({
           {...panelsContainerProps}
         >
           {activeTab === 'standard' ? (
-            <StandardPanelComponent parameters={params} />
+            <StandardPanelComponent parameters={params} isDarkMode={isDarkMode} />
           ) : (
-            <AdvancedPanelComponent parameters={params} />
+            <AdvancedPanelComponent parameters={params} isDarkMode={isDarkMode} />
           )}
         </div>
       </div>

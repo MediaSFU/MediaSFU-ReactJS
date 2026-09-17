@@ -72,9 +72,20 @@ export const joinRoomClient = async ({
 
     return data;
   } catch (error) {
-    // Handle and log errors during the joinRoom process
-    console.log(error);
-    throw new Error("Failed to join the room. Please check your connection and try again.");
+    // Return a normal failed acknowledgement so every UI path handles local
+    // validation, server rejection, and transport errors through the same
+    // visible join-failure branch. Preserve the server reason when available.
+    const reason =
+      error instanceof Error
+        ? error.message
+        : typeof error === "object" && error !== null && "reason" in error
+          ? String((error as { reason?: unknown }).reason || "")
+          : "";
+    return {
+      success: false,
+      rtpCapabilities: null,
+      reason: reason || "Failed to join the room. Please check your connection and try again.",
+    };
   }
 };
 

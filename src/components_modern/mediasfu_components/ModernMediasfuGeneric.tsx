@@ -5469,6 +5469,21 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     },
   ];
 
+  // Pause / Stop inside the recording pill: a 28px target around a 14px glyph,
+  // so a near-miss still lands on the control rather than on dead space.
+  const recordPillButtonStyle: React.CSSProperties = {
+    width: 28,
+    height: 28,
+    display: 'inline-flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 0,
+    border: 'none',
+    borderRadius: 6,
+    background: 'transparent',
+    cursor: 'pointer',
+  };
+
   const controlButtons = [
     // control buttons for webinar and conference events
     //Replace or remove any of the buttons as you wish
@@ -5677,42 +5692,46 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
     // Additional sidebar buttons - only show when shouldUseSidebar is true
     ...(shouldUseSidebar ? [
       // Recording controls - for hosts (when recording)
+      // `passive`: rendered without the bar's wrapping <button> (see
+      // renderButton below), so only Pause and Stop respond. Previously any tap
+      // that missed the two icons opened the Recording sidebar, and during a
+      // live recording that just raised "You can only re-configure recording
+      // after pausing it".
       ...(islevel.current === '2' && recordStarted.current && !recordStopped.current ? [{
+        passive: true,
         customComponent: (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                    <span style={{ color: recordPaused.current ? 'yellow' : 'red', fontSize: '14px', fontWeight: 'bold' }}>{recordingProgressTime}</span>
-                    <FontAwesomeIcon 
-                        icon={recordPaused.current ? faPlay : faPause} 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            updateRecording({
-                                parameters: { ...getAllParams(), ...mediaSFUFunctions() }
-                            });
-                        }}
-                        style={{ cursor: 'pointer', fontSize: '14px', color: 'white' }}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: '3px 6px', borderRadius: '5px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+                    <span style={{ color: recordPaused.current ? 'yellow' : 'red', fontSize: '14px', fontWeight: 'bold', padding: '0 4px', userSelect: 'none' }}>{recordingProgressTime}</span>
+                    <button
+                        type="button"
+                        onClick={() => updateRecording({
+                            parameters: { ...getAllParams(), ...mediaSFUFunctions() }
+                        })}
+                        style={recordPillButtonStyle}
                         title={recordPaused.current ? "Resume" : "Pause"}
-                    />
-                    <FontAwesomeIcon 
-                        icon={faStop} 
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            stopRecording({
-                                parameters: { ...getAllParams(), ...mediaSFUFunctions() }
-                            });
-                        }}
-                        style={{ cursor: 'pointer', fontSize: '14px', color: 'red' }}
+                        aria-label={recordPaused.current ? "Resume recording" : "Pause recording"}
+                    >
+                        <FontAwesomeIcon icon={recordPaused.current ? faPlay : faPause} style={{ fontSize: '14px', color: 'white' }} />
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => stopRecording({
+                            parameters: { ...getAllParams(), ...mediaSFUFunctions() }
+                        })}
+                        style={recordPillButtonStyle}
                         title="Stop"
-                    />
+                        aria-label="Stop recording"
+                    >
+                        <FontAwesomeIcon icon={faStop} style={{ fontSize: '14px', color: 'red' }} />
+                    </button>
                 </div>
                 {showButtonLabels && (
-                    <span style={{ fontSize: '8px', color: 'white', marginTop: '2px' }}>Recording</span>
+                    <span style={{ fontSize: '8px', color: 'white', marginTop: '2px', userSelect: 'none' }}>Recording</span>
                 )}
             </div>
         ),
         name: undefined,
-        tooltip: recordPaused.current ? 'Resume recording session' : 'Recording in progress - click to manage',
-        onPress: () => updateActiveSidebarContent('recording'),
         show: true,
       }] : []),
 
@@ -5967,21 +5986,25 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
       if (
         link.current !== "" &&
         link.current!.includes("mediasfu.com") &&
-        !isLocal
+        !isLocal &&
+        roomData.current?.success
       ) {
-        // join local room only
-        await updateAndComplete(roomData.current!);
+        // Community Edition can keep the already-joined local room when its
+        // optional MediaSFU bridge rejects the second join.
+        await updateAndComplete(roomData.current);
         return;
       }
 
-      //might be a wrong room name or room is full or other error; check reason in data object if available
-      // updateValidated(false);
-      try {
-        if (showAlert) {
-          showAlert({ message: data!.reason!, type: "danger", duration: 3000 });
-        }
-      } catch {
-        // Handle error
+      // A direct hosted join has no local room to fall back to. Leave the
+      // connecting state and surface the server's reason instead of silently
+      // calling updateAndComplete(null) and keeping the pre-join spinner alive.
+      const reason =
+        data?.reason ||
+        "Failed to join the room. Please check your connection and try again.";
+      updateValidated(false);
+      updateIsLoadingModalVisible(false);
+      if (showAlert) {
+        showAlert({ message: reason, type: "danger", duration: 5000 });
       }
     }
   }
@@ -8798,6 +8821,16 @@ const ModernMediasfuGeneric: React.FC<ModernMediasfuGenericOptions> = ({
                 backgroundColor: "transparent",
               }} // Set styles for the buttons container
               renderButton={({ defaultButton, button, index }) => {
+                // Passive items (the live recording pill) carry their own
+                // controls; wrapping them in the bar's <button> would make every
+                // miss a click, and would nest buttons inside a button.
+                if ((button as any).passive) {
+                  return (
+                    <div key={index} style={{ display: 'flex', alignItems: 'center', cursor: 'default' }}>
+                      {button.customComponent}
+                    </div>
+                  );
+                }
                 const tooltipText = (button as any).tooltip || (button as any).name || '';
                 if (tooltipText) {
                   return (

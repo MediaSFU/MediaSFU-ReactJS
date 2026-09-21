@@ -3773,6 +3773,8 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
         const ip = Object.keys(socket)[0];
 
         // Assuming each socket has a disconnect method
+        socket[ip].removeAllListeners?.();
+        socket[ip].removeAllListeners?.();
         socket[ip].disconnect();
       } catch (error) {
         console.log(
@@ -3798,6 +3800,8 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
     updateIsShareEventModalVisible(false);
     updateIsConfirmExitModalVisible(false);
     await disconnectAllSockets(consume_sockets.current);
+    consume_sockets.current = [];
+    consume_sockets.current = [];
     await updateStatesToInitialValues();
     updateMeetingProgressTime("00:00:00");
     updateMeetingElapsedTime(0);

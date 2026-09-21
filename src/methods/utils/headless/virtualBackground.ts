@@ -3,7 +3,10 @@ import { HeadlessOptions } from './headlessTypes';
 import { getCurrentParams } from './getCurrentParams';
 import { getLocalVideoStream } from './getMediaStreams';
 import { HeadlessActionResult } from './roomActions';
-import { compositeVirtualBackgroundFrame } from '../virtualBackgroundCompositor';
+import {
+  compositeVirtualBackgroundFrame,
+  DEFAULT_BACKGROUND_BLUR_PIXELS,
+} from '../virtualBackgroundCompositor';
 
 const MEDIAPIPE_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation';
 
@@ -56,6 +59,11 @@ export interface ApplyVirtualBackgroundOptions extends HeadlessOptions {
    * A trailing slash is added if missing.
    */
   assetPath?: string;
+  /**
+   * Blur the area behind the segmented person by this many pixels. When this
+   * is greater than zero it takes precedence over `image`. Defaults to 0.
+   */
+  blurPixels?: number;
 }
 
 export type ApplyVirtualBackgroundType = (
@@ -97,6 +105,7 @@ export async function applyVirtualBackground({
   modelSelection = 1,
   publish = true,
   assetPath = MEDIAPIPE_CDN,
+  blurPixels = 0,
 }: ApplyVirtualBackgroundOptions): Promise<HeadlessActionResult & { stream: MediaStream | null }> {
   const live = getCurrentParams({ parameters });
   if (live.audioOnlyRoom) {
@@ -123,7 +132,10 @@ export async function applyVirtualBackground({
     const width = Number(settings.width) || 640;
     const height = Number(settings.height) || 360;
 
-    const backgroundImage = typeof image === 'string' ? await loadImage(image) : image;
+    const resolvedBlurPixels = Math.max(0, Number(blurPixels) || 0);
+    const backgroundImage = resolvedBlurPixels > 0
+      ? null
+      : (typeof image === 'string' ? await loadImage(image) : image);
     const producer = publish ? (live.videoProducer || live.localVideoProducer) : null;
     // The producer may stop its old track during replaceTrack. Process an
     // isolated clone and keep another raw clone for restoring the camera.
@@ -166,6 +178,7 @@ export async function applyVirtualBackground({
           backgroundImage: backgroundImage as CanvasImageSource | null,
           width: canvas.width,
           height: canvas.height,
+          blurFallbackPixels: resolvedBlurPixels,
         });
       } catch {
         // A dropped frame must never kill the loop.
@@ -231,6 +244,25 @@ export async function applyVirtualBackground({
     };
   }
 }
+
+export interface ApplyBackgroundBlurOptions extends Omit<ApplyVirtualBackgroundOptions, 'image'> {
+  /** Blur strength in CSS pixels. Defaults to 16. */
+  blurPixels?: number;
+}
+
+/** Apply person-aware background blur through the standard processed-track lifecycle. */
+export function applyBackgroundBlur({
+  blurPixels = DEFAULT_BACKGROUND_BLUR_PIXELS,
+  ...options
+}: ApplyBackgroundBlurOptions): ReturnType<ApplyVirtualBackgroundType> {
+  return applyVirtualBackground({
+    ...options,
+    image: null,
+    blurPixels,
+  });
+}
+
+export type ApplyBackgroundBlurType = typeof applyBackgroundBlur;
 
 export type ClearVirtualBackgroundType = (
   options: HeadlessOptions

@@ -1,4 +1,4 @@
-import { applyVirtualBackground, clearVirtualBackground } from './virtualBackground';
+import { applyBackgroundBlur, applyVirtualBackground, clearVirtualBackground } from './virtualBackground';
 
 jest.mock('@mediapipe/selfie_segmentation', () => ({
   SelfieSegmentation: class {
@@ -82,4 +82,20 @@ test('keeps a live segmentation input and raw restoration track when producer re
   expect(current).toBe(camera.getVideoTracks()[0]);
   expect(current.readyState).toBe('live');
   expect(parameters.keepBackground).toBe(false);
+});
+
+test('applies background blur through the same processed-track lifecycle', async () => {
+  const camera = new FakeStream([new FakeTrack('blur-raw')]);
+  const parameters: any = {
+    localStreamVideo: camera,
+    updateVirtualStream: (value: any) => { parameters.virtualStream = value; },
+    updateProcessedStream: (value: any) => { parameters.processedStream = value; },
+    updateKeepBackground: (value: boolean) => { parameters.keepBackground = value; },
+  };
+
+  const applied = await applyBackgroundBlur({ parameters, publish: false });
+  expect(applied.ok).toBe(true);
+  expect(applied.stream?.getVideoTracks()[0]?.id).toBe('processed');
+  expect(parameters.keepBackground).toBe(true);
+  await clearVirtualBackground({ parameters });
 });

@@ -248,7 +248,7 @@ helper's `assetPath` option supports hosting those assets yourself.
 ```tsx
 import { useState } from 'react';
 import {
-  applyVirtualBackground, clearVirtualBackground, getCurrentParams,
+  applyBackgroundBlur, applyVirtualBackground, clearVirtualBackground, getCurrentParams,
   type HeadlessParameters,
 } from 'mediasfu-reactjs';
 
@@ -280,6 +280,16 @@ export function BackgroundActions({ parameters, imageUrl }: {
   </section>;
 }
 ```
+
+For person-aware blur, use the same lifecycle without supplying an image:
+
+```ts
+await applyBackgroundBlur({ parameters: live, blurPixels: 16, publish: true });
+```
+
+`blurPixels` defaults to `16`. Image replacement and blur are mutually
+exclusive within one background pipeline, so switching effects replaces the
+existing processed track instead of stacking processors.
 
 `publish: true` replaces an existing video producer's track. `publish: false`
 is a local processing/preview operation, not evidence that remote users see

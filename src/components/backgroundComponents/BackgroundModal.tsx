@@ -8,6 +8,12 @@ import { ConnectSendTransportVideoType, CreateSendTransportType, CreateSendTrans
   DisconnectSendTransportVideoType, OnScreenChangesParameters, ShowAlert, SleepType, VidCons, ConnectSendTransportVideoParameters, DisconnectSendTransportVideoParameters, } from "../../@types/types";
 import { Producer, ProducerOptions } from "mediasoup-client/lib/types";
 import { ModalRenderMode } from '../menuComponents/MenuModal';
+import {
+  compositeVirtualBackgroundFrame,
+  DEFAULT_BACKGROUND_BLUR_PIXELS,
+  isVirtualBackgroundBlur,
+  VIRTUAL_BACKGROUND_BLUR,
+} from "../../methods/utils/virtualBackgroundCompositor";
 
 export interface BackgroundModalParameters extends CreateSendTransportParameters, ConnectSendTransportVideoParameters, DisconnectSendTransportVideoParameters, OnScreenChangesParameters {
 
@@ -101,6 +107,8 @@ export interface BackgroundModalOptions {
   applyButtonLabel?: string;
   applyButtonAppliedLabel?: string;
   saveButtonLabel?: string;
+  /** Person-aware background blur strength in pixels. Defaults to 16. */
+  blurPixels?: number;
   renderHeader?: (options: {
     defaultHeader: React.ReactNode;
     onClose: () => void;
@@ -434,6 +442,7 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
   applyButtonLabel = "Preview Background",
   applyButtonAppliedLabel = "Apply Background",
   saveButtonLabel = "Save Background",
+  blurPixels = DEFAULT_BACKGROUND_BLUR_PIXELS,
   renderHeader,
   renderButtons,
   renderBody,
@@ -950,7 +959,11 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
       }
       renderDefaultImages();
       if (selectedImage) {
-        loadImageToCanvas(selectedImage, selectedImage);
+        if (isVirtualBackgroundBlur(selectedImage)) {
+          selectBlurBackground();
+        } else {
+          loadImageToCanvas(selectedImage, selectedImage);
+        }
       } else {
         clearCanvas();
       }
@@ -1087,6 +1100,20 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
       defaultImagesContainer.appendChild(img);
     });
 
+    const blurBackground = document.createElement("button");
+    blurBackground.type = "button";
+    blurBackground.classList.add("img-thumbnail", "m-1");
+    blurBackground.setAttribute("aria-label", "Blur background");
+    blurBackground.style.width = "76px";
+    blurBackground.style.minHeight = "60px";
+    blurBackground.style.cursor = "pointer";
+    blurBackground.style.color = "#fff";
+    blurBackground.style.fontWeight = "600";
+    blurBackground.style.background = "linear-gradient(135deg, #64748b, #1e293b)";
+    blurBackground.textContent = "Blur";
+    blurBackground.addEventListener("click", selectBlurBackground);
+    defaultImagesContainer.appendChild(blurBackground);
+
     const noBackgroundImg = document.createElement("div");
     noBackgroundImg.classList.add(
       "img-thumbnail",
@@ -1130,6 +1157,31 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
       });
       defaultImagesContainer.appendChild(img);
     }
+  };
+
+  const selectBlurBackground = () => {
+    selectedImage = VIRTUAL_BACKGROUND_BLUR;
+    updateSelectedImage(selectedImage);
+    showLoading();
+    videoPreviewRef.current?.classList.add("d-none");
+    backgroundCanvasRef.current?.classList.remove("d-none");
+    const canvas = backgroundCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (canvas && ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#64748b";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "600 24px Arial";
+      ctx.fillStyle = "#fff";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Background blur", canvas.width / 2, canvas.height / 2);
+    }
+    saveBackgroundButtonRef.current?.classList.add("d-none");
+    if (saveBackgroundButtonRef.current) saveBackgroundButtonRef.current.disabled = true;
+    applyBackgroundButtonRef.current?.classList.remove("d-none");
+    if (applyBackgroundButtonRef.current) applyBackgroundButtonRef.current.disabled = false;
+    hideLoading();
   };
 
   async function preloadModel() {
@@ -1351,7 +1403,8 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
     const previewVideo = videoPreviewRef.current;
     const virtualImage = new Image();
     virtualImage.crossOrigin = "anonymous";
-    virtualImage.src = selectedImage || "";
+    const useBlur = isVirtualBackgroundBlur(selectedImage);
+    virtualImage.src = useBlur ? "" : (selectedImage || "");
 
     if (!mainCanvas) {
       mainCanvas = mainCanvasRef.current;
@@ -1509,9 +1562,9 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
       } catch { /* Handle error */}
     }
 
-    let repeatPattern = 'no-repeat';
+    let repeatPattern: "repeat" | "no-repeat" = 'no-repeat';
     try {
-      if (virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height) {
+      if (!useBlur && (virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height)) {
         repeatPattern = 'repeat'; 
       }
     } catch {
@@ -1525,30 +1578,18 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
           mediaCanvas &&
           mediaCanvas.width > 0 &&
           mediaCanvas.height > 0 &&
-          virtualImage &&
-          virtualImage.width > 0 &&
-          virtualImage.height > 0
+          (useBlur || (virtualImage && virtualImage.width > 0 && virtualImage.height > 0))
         ) {
-          ctx!.save();
-          ctx!.clearRect(0, 0, mediaCanvas.width, mediaCanvas.height);
-          ctx!.globalCompositeOperation = "source-over";
-          ctx!.drawImage(
-            results.segmentationMask,
-            0,
-            0,
-            mediaCanvas.width,
-            mediaCanvas.height
-          );
-
-          ctx!.globalCompositeOperation = "source-in";
-          ctx!.drawImage(results.image, 0, 0, mediaCanvas.width, mediaCanvas.height);
-
-          ctx!.globalCompositeOperation = "destination-over";
-          const pat = ctx!.createPattern(virtualImage, repeatPattern);
-          ctx!.fillStyle = pat || "";
-          ctx!.fillRect(0, 0, mediaCanvas.width, mediaCanvas.height);
-
-          ctx!.restore();
+          compositeVirtualBackgroundFrame({
+            ctx: ctx!,
+            segmentationMask: results.segmentationMask,
+            sourceImage: results.image,
+            backgroundImage: useBlur ? null : virtualImage,
+            width: mediaCanvas.width,
+            height: mediaCanvas.height,
+            repeatPattern,
+            blurFallbackPixels: useBlur ? Math.max(1, Number(blurPixels) || DEFAULT_BACKGROUND_BLUR_PIXELS) : 0,
+          });
         }
       } catch (error) {
         console.log("Error applying background:", error);

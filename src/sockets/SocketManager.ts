@@ -135,18 +135,26 @@ async function connectSocket(
       });
     }
 
-    // Every path below runs at most once, and always clears the timer.
+    // Every path below runs at most once, clears handshake listeners/timers,
+    // and closes failed clients so Socket.IO cannot keep reconnecting an
+    // orphan that the room lifecycle never received.
     let settled = false;
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const cleanupHandshake = () => {
+      if (timeoutHandle) clearTimeout(timeoutHandle);
+      socket.off('connection-success', handleConnectionSuccess);
+      socket.off('connect_error', handleConnectError);
+      socket.off('disconnect', handleDisconnectBeforeReady);
+    };
     const settle = (action: () => void) => {
       if (settled) return;
       settled = true;
-      if (timeoutHandle) clearTimeout(timeoutHandle);
+      cleanupHandshake();
       action();
     };
 
     // Handle socket connection events
-    socket.on('connection-success', ({ socketId }: { socketId: string }) => {
+    const handleConnectionSuccess = ({ socketId }: { socketId: string }) => {
       //check if link contains mediasfu.com and contains more than one c
       let conn = 'media';
       try {
@@ -159,19 +167,20 @@ async function connectSocket(
 
       console.log(`Connected to ${conn} socket with ID: ${socketId}`);
       settle(() => resolve(socket));
-    });
+    };
 
-    socket.on('connect_error', (error: Error) => {
-      settle(() =>
-        reject(new Error('Error connecting to media socket: ' + error.message))
-      );
-    });
+    const handleConnectError = (error: Error) => {
+      settle(() => {
+        socket.disconnect();
+        reject(new Error('Error connecting to media socket: ' + error.message));
+      });
+    };
 
     // The transport can connect and then be dropped by the server before it
     // ever sends `connection-success` — a rejected room, an expired token, a
     // bad handshake. Without this the promise stayed pending forever, so the
     // caller's loading modal never came down and no error was ever surfaced.
-    socket.on('disconnect', (reason: string) => {
+    const handleDisconnectBeforeReady = (reason: string) => {
       settle(() =>
         reject(
           new Error(
@@ -179,7 +188,11 @@ async function connectSocket(
           )
         )
       );
-    });
+    };
+
+    socket.on('connection-success', handleConnectionSuccess);
+    socket.on('connect_error', handleConnectError);
+    socket.on('disconnect', handleDisconnectBeforeReady);
 
     // Last resort, for the case where the socket neither connects, errors nor
     // disconnects. Nothing above guarantees a settle on its own.

@@ -1238,6 +1238,11 @@ Keep `ModernBackgroundModal` mounted for the lifetime of the room; let
 or `"inline"` for a panel. Its title, content, preview and button props let you
 restyle the UI without replacing camera processing. Display local media through
 the headless media resolver so the preview follows the published processed track.
+The built-in **Blur** tile applies person-aware background blur through the same
+preview, save, publishing, restoration, and camera-off lifecycle as image
+backgrounds. Set the modal's optional `blurPixels` prop to tune its strength.
+Fully custom UIs can call `applyBackgroundBlur({ parameters,
+blurPixels: 16, publish: true })` and clear it with `clearVirtualBackground`.
 
 ### Recording Modal
 

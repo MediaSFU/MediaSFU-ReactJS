@@ -182,7 +182,18 @@ const AppModern: React.FC = () => {
    * - Fill credentials from `REACT_APP_MEDIASFU_*` environment variables before using direct cloud create/join flows.
    * - Keep real production credentials on your server and use custom room functions in public apps.
    */
-  const { credentials, localLink, connectMediaSFU } = getDemoCloudConfig();
+  const { credentials, localLink, roomsEndpoint, connectMediaSFU } = getDemoCloudConfig();
+
+  const createMediaSFURoom = useCallback(
+    (options: Parameters<typeof createRoomOnMediaSFU>[0]) =>
+      createRoomOnMediaSFU({ ...options, roomsEndpoint }),
+    [roomsEndpoint],
+  );
+  const joinMediaSFURoom = useCallback(
+    (options: Parameters<typeof joinRoomOnMediaSFU>[0]) =>
+      joinRoomOnMediaSFU({ ...options, roomsEndpoint }),
+    [roomsEndpoint],
+  );
 
   // =========================================================
   //                    UI RENDERING OPTIONS
@@ -291,9 +302,9 @@ const AppModern: React.FC = () => {
       // Source parameters for custom UI integration
       sourceParameters={!returnUI ? sourceParameters : undefined}
       updateSourceParameters={!returnUI ? updateSourceParameters : undefined}
-      // Provide custom room functions
-      // createMediaSFURoom={createRoomOnMediaSFU}
-      // joinMediaSFURoom={joinRoomOnMediaSFU}
+      // Keep a managed Cloud REST endpoint separate from `localLink` (CE media origin).
+      createMediaSFURoom={createMediaSFURoom}
+      joinMediaSFURoom={joinMediaSFURoom}
       // Optional: Container styling for custom layouts
     />
   );

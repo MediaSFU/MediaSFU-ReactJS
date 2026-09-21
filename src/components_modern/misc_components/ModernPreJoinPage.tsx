@@ -202,6 +202,8 @@ const ModernPreJoinPage: React.FC<ModernPreJoinPageOptions> = ({
       localLink: localLink,
     });
     if (response.success && response.data && 'roomName' in response.data) {
+      // The creator marker is split by the room lifecycle to assign host role.
+      // It is not a replacement for the exact name bound to the Cloud credential.
       updateMember(payload.userName + "_2");
       await checkLimitsAndMakeRequest({
         apiUserName: response.data.roomName,

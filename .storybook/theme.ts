@@ -29,4 +29,3 @@ const mediaSFUTheme = create({
 });
 
 export default mediaSFUTheme;
-

@@ -82,3 +82,10 @@ test.each([false, true])('automatic restore calls SDK onClose once (request arri
   expect(onClose).toHaveBeenCalledTimes(1);
   expect(room.getUpdatedAllParams).not.toHaveBeenCalled();
 });
+
+test('offers blur as a first-class background selection', () => {
+  render(<ModernBackgroundModal isVisible parameters={room} onClose={jest.fn()} renderMode="inline" />);
+  fireEvent.click(screen.getByRole('button', { name: 'Blur background' }));
+  expect(room.updateSelectedImage).toHaveBeenCalledWith('blur');
+  expect(room.selectedImage).toBe('blur');
+});

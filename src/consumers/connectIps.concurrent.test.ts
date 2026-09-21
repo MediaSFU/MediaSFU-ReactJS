@@ -18,11 +18,17 @@ function deferred<T>() {
 }
 
 function fakeSocket(id: string) {
+  const handlers = new Map<string, (...args: any[]) => void>();
   return {
     id,
     connected: true,
-    on: jest.fn(),
+    on: jest.fn((event: string, handler: (...args: any[]) => void) => {
+      handlers.set(event, handler);
+    }),
     emit: jest.fn(),
+    removeAllListeners: jest.fn(),
+    disconnect: jest.fn(),
+    trigger: (event: string, ...args: any[]) => handlers.get(event)?.(...args),
   } as any;
 }
 
@@ -104,5 +110,48 @@ describe('connectIps concurrent endpoint reservation', () => {
     ]);
 
     expect(mockedConnectSocket).toHaveBeenCalledTimes(2);
+  });
+
+  it('closes a socket that connected but could not join the consuming room', async () => {
+    const consumeSockets: any[] = [];
+    const options = createOptions(consumeSockets);
+    const socket = fakeSocket('failed-consume');
+    options.joinConsumeRoomMethod.mockResolvedValue({});
+    mockedConnectSocket.mockResolvedValue(socket);
+
+    await connectIps(options);
+
+    expect(socket.removeAllListeners).toHaveBeenCalled();
+    expect(socket.disconnect).toHaveBeenCalled();
+    expect(consumeSockets).toHaveLength(0);
+  });
+
+  it('prunes a disconnected endpoint so the next room can reconnect', async () => {
+    const stale = fakeSocket('stale-consume');
+    stale.connected = false;
+    const consumeSockets: any[] = [{ sc00001: stale }];
+    const replacement = fakeSocket('replacement-consume');
+    mockedConnectSocket.mockResolvedValue(replacement);
+
+    await connectIps(createOptions(consumeSockets));
+
+    expect(stale.removeAllListeners).toHaveBeenCalled();
+    expect(stale.disconnect).toHaveBeenCalled();
+    expect(mockedConnectSocket).toHaveBeenCalledTimes(1);
+    expect(consumeSockets).toEqual([{ sc00001: replacement }]);
+  });
+
+  it('removes a registered endpoint when its socket disconnects', async () => {
+    const consumeSockets: any[] = [];
+    const options = createOptions(consumeSockets);
+    const socket = fakeSocket('consume-1');
+    mockedConnectSocket.mockResolvedValue(socket);
+
+    await connectIps(options);
+    socket.trigger('disconnect', 'transport close');
+
+    expect(consumeSockets).toHaveLength(0);
+    expect(options.parameters.updateConsume_sockets).toHaveBeenLastCalledWith([]);
+    expect(options.parameters.updateRoomRecvIPs).toHaveBeenLastCalledWith([]);
   });
 });

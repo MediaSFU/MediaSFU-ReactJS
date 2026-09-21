@@ -3564,6 +3564,8 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
         const ip = Object.keys(socket)[0];
 
         // Assuming each socket has a disconnect method
+        socket[ip].removeAllListeners?.();
+        socket[ip].removeAllListeners?.();
         socket[ip].disconnect();
       } catch (error) {
         console.log(
@@ -3589,6 +3591,8 @@ const MediasfuChat: React.FC<MediasfuChatOptions> = ({
     updateIsShareEventModalVisible(false);
     updateIsConfirmExitModalVisible(false);
     await disconnectAllSockets(consume_sockets.current);
+    consume_sockets.current = [];
+    consume_sockets.current = [];
     await updateStatesToInitialValues();
     updateMeetingProgressTime("00:00:00");
     updateMeetingElapsedTime(0);

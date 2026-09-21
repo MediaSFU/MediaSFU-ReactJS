@@ -19,7 +19,12 @@ import {
 import { Producer, ProducerOptions } from "mediasoup-client/lib/types";
 import { ModalRenderMode } from "../../components/menuComponents/MenuModal";
 import { ModernTooltip } from "../core/widgets/ModernTooltip";
-import { compositeVirtualBackgroundFrame } from "../../methods/utils/virtualBackgroundCompositor";
+import {
+  compositeVirtualBackgroundFrame,
+  DEFAULT_BACKGROUND_BLUR_PIXELS,
+  isVirtualBackgroundBlur,
+  VIRTUAL_BACKGROUND_BLUR,
+} from "../../methods/utils/virtualBackgroundCompositor";
 import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 
 export interface ModernBackgroundModalParameters
@@ -113,6 +118,8 @@ export interface ModernBackgroundModalOptions {
   applyButtonLabel?: string;
   applyButtonAppliedLabel?: string;
   saveButtonLabel?: string;
+  /** Person-aware background blur strength in pixels. Defaults to 16. */
+  blurPixels?: number;
   renderHeader?: (options: { defaultHeader: React.ReactNode; onClose: () => void }) => React.ReactNode;
   renderButtons?: (options: {
     defaultButtons: React.ReactNode;
@@ -168,6 +175,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   applyButtonLabel = "Preview Background",
   applyButtonAppliedLabel = "Apply Background",
   saveButtonLabel = "Save Background",
+  blurPixels = DEFAULT_BACKGROUND_BLUR_PIXELS,
   renderHeader,
   renderButtons,
   renderBody,
@@ -857,7 +865,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
         preloadModel().catch(() => console.log("Error preloading model:"));
       }
       if (selectedImage) {
-        loadImageToCanvas(selectedImage, selectedImage);
+        if (isVirtualBackgroundBlur(selectedImage)) {
+          selectBlurBackground();
+        } else {
+          loadImageToCanvas(selectedImage, selectedImage);
+        }
       } else {
         clearCanvas();
       }
@@ -1261,8 +1273,53 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     hideLoading();
   };
 
+  const selectBlurBackground = () => {
+    selectedImage = VIRTUAL_BACKGROUND_BLUR;
+    updateSelectedImage(selectedImage);
+    showLoading();
+    videoPreviewRef.current?.classList.add("d-none");
+    backgroundCanvasRef.current?.classList.remove("d-none");
+    const canvas = backgroundCanvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (canvas && ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = isDarkMode ? "#334155" : "#cbd5e1";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.font = "600 24px Arial";
+      ctx.fillStyle = isDarkMode ? "#f8fafc" : "#0f172a";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText("Background blur", canvas.width / 2, canvas.height / 2);
+    }
+    saveBackgroundButtonRef.current?.classList.add("d-none");
+    if (saveBackgroundButtonRef.current) saveBackgroundButtonRef.current.disabled = true;
+    applyBackgroundButtonRef.current?.classList.remove("d-none");
+    if (applyBackgroundButtonRef.current) applyBackgroundButtonRef.current.disabled = false;
+    hideLoading();
+  };
+
   const renderThumbnailTiles = () => {
-    const tiles = defaultBackgroundEntries.map((baseName) => {
+    const tiles: React.ReactElement[] = [
+      <button
+        key="blur"
+        type="button"
+        aria-label="Blur background"
+        style={thumbnailButtonStyle(isVirtualBackgroundBlur(selectedImage))}
+        onClick={selectBlurBackground}
+      >
+        <span
+          style={{
+            ...thumbnailLabelStyle,
+            background: "linear-gradient(135deg, #64748b, #1e293b)",
+            color: "#f8fafc",
+            filter: "blur(0.25px)",
+          }}
+        >
+          Blur
+        </span>
+      </button>,
+    ];
+    tiles.push(...defaultBackgroundEntries.map((baseName) => {
       const { thumb, previewSrc, fullSrc } = resolveDefaultBackgroundSources(baseName);
       const isActive = selectedImage.includes(baseName);
 
@@ -1278,7 +1335,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           <img src={thumb} alt={`${baseName} background`} style={thumbnailImageStyle} />
         </button>
       );
-    });
+    }));
 
     tiles.push(
       <button
@@ -1358,9 +1415,10 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     const previewVideo = videoPreviewRef.current;
     const virtualImage = new Image();
     virtualImage.crossOrigin = "anonymous";
-    virtualImage.src = selectedImage || "";
+    const useBlur = isVirtualBackgroundBlur(selectedImage);
+    virtualImage.src = useBlur ? "" : (selectedImage || "");
 
-    if (doSegmentation && selectedImage) {
+    if (doSegmentation && selectedImage && !useBlur) {
       await new Promise<void>((resolve) => {
         if (virtualImage.complete && virtualImage.naturalWidth > 0) {
           resolve();
@@ -1420,22 +1478,21 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
           mediaCanvas &&
           mediaCanvas.width > 0 &&
           mediaCanvas.height > 0 &&
-          virtualImage &&
-          virtualImage.width > 0 &&
-          virtualImage.height > 0
+          (useBlur || (virtualImage && virtualImage.width > 0 && virtualImage.height > 0))
         ) {
           const repeatPattern =
-            virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height
+            !useBlur && (virtualImage.width < mediaCanvas.width || virtualImage.height < mediaCanvas.height)
               ? "repeat"
               : "no-repeat";
           compositeVirtualBackgroundFrame({
             ctx: ctx!,
             segmentationMask: results.segmentationMask,
             sourceImage: results.image,
-            backgroundImage: virtualImage,
+            backgroundImage: useBlur ? null : virtualImage,
             width: mediaCanvas.width,
             height: mediaCanvas.height,
             repeatPattern,
+            blurFallbackPixels: useBlur ? Math.max(1, Number(blurPixels) || DEFAULT_BACKGROUND_BLUR_PIXELS) : 0,
           });
           markFirstFrameRendered();
         }

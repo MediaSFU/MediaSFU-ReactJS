@@ -44,4 +44,3 @@ for (const boundary of ['MainContainer', 'MainAspect', 'MainScreen']) {
 }
 
 console.log(`Embedded-container contract passed for ${genericFiles.length} public React generic surfaces.`);
-

@@ -52,10 +52,23 @@ const normalizeConsumeEndpoint = (ip: string): string =>
 const hasConsumeEndpoint = (
   consumeSockets: ConsumeSocket[],
   endpoint: string
-): boolean => consumeSockets.some((socketObj) => {
-  const ip = Object.keys(socketObj)[0];
-  return Boolean(ip) && normalizeConsumeEndpoint(ip) === endpoint;
-});
+): boolean => {
+  for (let index = consumeSockets.length - 1; index >= 0; index -= 1) {
+    const socketObj = consumeSockets[index];
+    const ip = Object.keys(socketObj)[0];
+    if (!ip || normalizeConsumeEndpoint(ip) !== endpoint) continue;
+
+    const socket = socketObj[ip];
+    if (socket?.connected && socket.id) return true;
+
+    // A dead entry must not suppress the next room's connection attempt.
+    socket?.removeAllListeners?.();
+    socket?.disconnect?.();
+    consumeSockets.splice(index, 1);
+  }
+
+  return false;
+};
 
 async function reserveConsumeEndpoint(
   consumeSockets: ConsumeSocket[],
@@ -175,9 +188,10 @@ export const connectIps = async ({
       if (!releaseReservation) continue;
 
       let connected = false;
+      let remote_sock: Awaited<ReturnType<typeof connectSocket>> | null = null;
       try {
         // Connect to the remote socket using socket.io-client
-        const remote_sock = await connectSocket({ apiUserName, apiKey, apiToken, link: `https://${ip}.mediasfu.com` });
+        remote_sock = await connectSocket({ apiUserName, apiKey, apiToken, link: `https://${ip}.mediasfu.com` });
 
         if (remote_sock.id) {
           let consumeRoomReady = false;
@@ -210,7 +224,7 @@ export const connectIps = async ({
               await newProducerMethod({
                 producerId,
                 islevel,
-                nsock: remote_sock,
+                nsock: remote_sock!,
                 parameters,
                 isTranslation,
                 translationMeta,
@@ -235,7 +249,7 @@ export const connectIps = async ({
               parameters,
             });
             if (!data.rtpCapabilities) {
-              return [consume_sockets, roomRecvIPs];
+              throw new Error(`Consume room ${ip} did not return RTP capabilities.`);
             }
           }
 
@@ -255,11 +269,34 @@ export const connectIps = async ({
           consume_sockets.push({ [ip]: remote_sock });
           updateConsume_sockets(consume_sockets);
           connected = true;
+
+          remote_sock.on("disconnect", () => {
+            const socketIndex = consume_sockets.findIndex(
+              (socketObj) => socketObj[ip] === remote_sock
+            );
+            if (socketIndex >= 0) {
+              consume_sockets.splice(socketIndex, 1);
+              updateConsume_sockets(consume_sockets);
+            }
+
+            const recvIndex = roomRecvIPs.indexOf(ip);
+            if (recvIndex >= 0) {
+              roomRecvIPs.splice(recvIndex, 1);
+              updateRoomRecvIPs(roomRecvIPs);
+            }
+
+            remote_sock?.removeAllListeners?.();
+            remote_sock?.disconnect();
+          });
         }
       } catch (error) {
         // Handle the error
         console.log("connectIps error", error);
       } finally {
+        if (!connected && remote_sock) {
+          remote_sock.removeAllListeners?.();
+          remote_sock.disconnect();
+        }
         releaseReservation(connected);
       }
     }

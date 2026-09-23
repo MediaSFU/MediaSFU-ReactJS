@@ -154,7 +154,7 @@ test.each(['server-error', 'device-error'])('releases a failed %s reservation so
   expect(testState.state.consumingTransports).toEqual([]);
 });
 
-test('releases the reservation when an established receive transport fails', async () => {
+test('releases the reservation after bounded receive recovery fails', async () => {
   const handlers: Record<string, (...args: any[]) => any> = {};
   const consumerTransport = {
     on: jest.fn((event: string, handler: (...args: any[]) => any) => { handlers[event] = handler; }),
@@ -164,6 +164,7 @@ test('releases the reservation when an established receive transport fails', asy
   const nsock: any = {
     emit: jest.fn((event: string, _payload: unknown, callback: (...args: any[]) => any) => {
       if (event === 'createWebRtcTransport') void callback({ params: { id: 'transport-a' } });
+      if (event === 'transport-restart-ice') callback({ error: 'Transport unavailable' });
     }),
   };
 
@@ -175,6 +176,9 @@ test('releases the reservation when an established receive transport fails', asy
   });
   await flush();
   await handlers.connectionstatechange('failed');
+  await flush();
+  await flush();
+  await new Promise(resolve => setTimeout(resolve, 2200));
 
   expect(consumerTransport.close).toHaveBeenCalled();
   expect(testState.state.consumingTransports).toEqual([]);

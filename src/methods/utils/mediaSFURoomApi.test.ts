@@ -97,6 +97,27 @@ describe('MediaSFU room helpers', () => {
     expect(localStorage.getItem(createPendingKey(createPayload))).toBeNull();
   });
 
+  it('forwards explicit room audio denoising opt-in and opt-out without changing defaults', async () => {
+    fetchMock.mockResolvedValue(mockSuccessResponse());
+
+    for (const policy of [{ enabled: true } as const, { enabled: false } as const]) {
+      const payload: CreateMediaSFURoomOptions = {
+        ...createPayload,
+        backendAudioDenoise: policy,
+      };
+      const result = await createRoomOnMediaSFU({
+        payload,
+        apiUserName: validApiUserName,
+        apiKey: validApiKey,
+      });
+      expect(result.success).toBe(true);
+      expect(JSON.parse(fetchMock.mock.lastCall?.[1].body)).toMatchObject({
+        backendAudioDenoise: policy,
+      });
+    }
+    expect(createPayload.backendAudioDenoise).toBeUndefined();
+  });
+
   it('blocks duplicate in-flight create requests', async () => {
     localStorage.setItem(
       createPendingKey(createPayload),

@@ -7,6 +7,7 @@ import {
   compositeVirtualBackgroundFrame,
   DEFAULT_BACKGROUND_BLUR_PIXELS,
 } from '../virtualBackgroundCompositor';
+import { startVirtualBackgroundFrameLoop } from '../virtualBackgroundFrameLoop';
 
 const MEDIAPIPE_CDN = 'https://cdn.jsdelivr.net/npm/@mediapipe/selfie_segmentation';
 
@@ -64,6 +65,8 @@ export interface ApplyVirtualBackgroundOptions extends HeadlessOptions {
    * is greater than zero it takes precedence over `image`. Defaults to 0.
    */
   blurPixels?: number;
+  /** Best-effort hidden-tab processing for blur and image backgrounds. Defaults to true. */
+  keepProcessingWhenHidden?: boolean;
 }
 
 export type ApplyVirtualBackgroundType = (
@@ -106,6 +109,7 @@ export async function applyVirtualBackground({
   publish = true,
   assetPath = MEDIAPIPE_CDN,
   blurPixels = 0,
+  keepProcessingWhenHidden = true,
 }: ApplyVirtualBackgroundOptions): Promise<HeadlessActionResult & { stream: MediaStream | null }> {
   const live = getCurrentParams({ parameters });
   if (live.audioOnlyRoom) {
@@ -186,27 +190,31 @@ export async function applyVirtualBackground({
     });
 
     let stopped = false;
-    let frameHandle = 0;
-    const pump = async () => {
-      if (stopped) return;
-      try {
-        if (video.readyState >= 2) await segmentation.send({ image: video });
-      } catch {
-        // Ignore a single failed frame; the next one is already queued.
-      }
-      frameHandle = window.requestAnimationFrame(() => { void pump(); });
-    };
-    void pump();
+    const stopFrameLoop = startVirtualBackgroundFrameLoop({
+      owner: segmentation,
+      keepProcessingWhenHidden,
+      shouldContinue: () => !stopped && processingTrack.readyState === 'live',
+      processFrame: () => video.readyState >= 2
+        ? segmentation.send({ image: video })
+        : undefined,
+    });
 
-    const processed: MediaStream = (canvas as any).captureStream(frameRate);
+    let processed: MediaStream;
+    try {
+      processed = (canvas as any).captureStream(frameRate);
+    } catch (error) {
+      stopFrameLoop();
+      throw error;
+    }
     if (!processed?.getVideoTracks?.().length) {
+      stopFrameLoop();
       throw new Error('The processed background stream produced no video track.');
     }
 
     const stop = () => {
       if (stopped) return;
       stopped = true;
-      window.cancelAnimationFrame(frameHandle);
+      stopFrameLoop();
       try { segmentation.close(); } catch { /* already closed */ }
       processed.getTracks().forEach((track) => track.stop());
       processingTrack.stop();

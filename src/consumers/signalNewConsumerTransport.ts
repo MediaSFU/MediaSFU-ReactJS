@@ -1,4 +1,5 @@
 import { Socket } from "socket.io-client";
+import { attachTransportRecovery } from './transportRecovery';
 import { ReorderStreamsParameters, ReorderStreamsType, ConnectRecvTransportType,
    ConnectRecvTransportParameters, CreateWebRTCTransportResponse } from "../@types/types";
 import { Device, DtlsParameters  } from 'mediasoup-client/lib/types';
@@ -175,32 +176,12 @@ export const signalNewConsumerTransport = async ({
           );
 
           // Listen for connection state change
-          consumerTransport.on("connectionstatechange", async (state: string) => {
-            switch (state) {
-              case "connecting":
-                // Handle connecting state
-                break;
-
-              case "connected":
-                // Handle connected state
-                break;
-
-              case "failed":
-                // Handle failed state
-                consumerTransport.close();
-                releaseReservation();
-
-                // Reorder streams based on conditions
-                if (lock_screen) {
-                  await reorderStreams({ add: true, parameters });
-                } else {
-                  await reorderStreams({ add: false, parameters });
-                }
-                break;
-
-              default:
-                break;
-            }
+          attachTransportRecovery(consumerTransport, nsock, () => {
+            const live: any = parameters.getCurrentParams?.() ?? parameters.getUpdatedAllParams?.() ?? parameters;
+            live.updateConsumingTransports?.((live.consumingTransports || []).filter((id: string) => id !== remoteProducerId));
+            live.updateConsumerTransports?.((live.consumerTransports || []).filter((entry: any) => entry.consumerTransport !== consumerTransport));
+            live.showAlert?.({ message: 'A remote media connection could not recover. Rejoin to restore it.', type: 'danger', duration: 10000 });
+            void Promise.resolve(reorderStreams({ add: Boolean(lock_screen), parameters })).catch(() => {});
           });
 
           // Connect the receiving transport

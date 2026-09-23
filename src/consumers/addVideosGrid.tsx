@@ -23,7 +23,7 @@ import {
   CustomMiniCardType,
 } from "../@types/types";
 import type { LiveSubtitle } from '../producers/socketReceiveMethods/translationReceiveMethods';
-import { buildAddVideosGridPlan } from './gridLayout/addVideosGrid.engine';
+import { buildAddVideosGridPlan, resolveSidePanelForceFullDisplay } from './gridLayout/addVideosGrid.engine';
 
 export interface AddVideosGridParameters
   extends UpdateMiniCardsGridParameters,
@@ -37,6 +37,8 @@ export interface AddVideosGridParameters
   keepBackground: boolean;
   virtualStream: MediaStream | null;
   forceFullDisplay: boolean;
+  shared?: boolean;
+  shareScreenStarted?: boolean;
   otherGridStreams: React.JSX.Element[][];
   updateOtherGridStreams: (otherGridStreams: React.JSX.Element[][]) => void;
 
@@ -209,6 +211,8 @@ export async function addVideosGrid({
     keepBackground,
     virtualStream,
     forceFullDisplay,
+    shared,
+    shareScreenStarted,
     otherGridStreams,
     updateOtherGridStreams,
     updateMiniCardsGrid,
@@ -266,6 +270,11 @@ export async function addVideosGrid({
 
   const mainEntries = gridPlan.mainEntries;
   const altEntries = gridPlan.altEntries;
+  const sidePanelForceFullDisplay = resolveSidePanelForceFullDisplay({
+    forceFullDisplay,
+    screenShareActive: !!(shared || shareScreenStarted),
+    itemCount: mainEntries.length + (removeAltGrid ? 0 : altEntries.length),
+  });
 
   numtoadd = mainEntries.length;
 
@@ -404,7 +413,7 @@ export async function addVideosGrid({
           // If selfViewForceFull is false, use normal forceFullDisplay
           const selfViewForceFullDisplay = selfViewForceFull
             ? false
-            : (eventType === "webinar" ? false : forceFullDisplay);
+            : (eventType === "webinar" ? false : sidePanelForceFullDisplay);
 
           const videoCardComponent = customVideoCard
             ? React.createElement(customVideoCard as any, {
@@ -474,7 +483,7 @@ export async function addVideosGrid({
                 videoStream: participant.stream || new MediaStream(),
                 remoteProducerId: remoteProducerId || "",
                 eventType: eventType,
-                forceFullDisplay: forceFullDisplay,
+                forceFullDisplay: sidePanelForceFullDisplay,
                 customStyle: {
                   border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
@@ -495,7 +504,7 @@ export async function addVideosGrid({
                   videoStream={participant.stream || new MediaStream()}
                   remoteProducerId={remoteProducerId || ""}
                   eventType={eventType}
-                  forceFullDisplay={forceFullDisplay}
+                  forceFullDisplay={sidePanelForceFullDisplay}
                   customStyle={{
                     border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}
@@ -635,7 +644,7 @@ export async function addVideosGrid({
                 videoStream: participant.stream || new MediaStream(),
                 remoteProducerId: remoteProducerId || "",
                 eventType: eventType,
-                forceFullDisplay: forceFullDisplay,
+                forceFullDisplay: sidePanelForceFullDisplay,
                 customStyle: {
                   border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                 },
@@ -656,7 +665,7 @@ export async function addVideosGrid({
                   videoStream={participant.stream || new MediaStream()}
                   remoteProducerId={remoteProducerId || ""}
                   eventType={eventType}
-                  forceFullDisplay={forceFullDisplay}
+                  forceFullDisplay={sidePanelForceFullDisplay}
                   customStyle={{
                     border: eventType !== "broadcast" ? `2px solid ${borderColorThemed}` : "0px solid transparent",
                   }}

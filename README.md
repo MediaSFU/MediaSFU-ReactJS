@@ -783,6 +783,8 @@ import type {
 
 ### Utilities
 
+For optional server-side room audio denoising, pass `backendAudioDenoise: { enabled: true }` in a create-room payload (or `{ enabled: false }` to opt out). The only supported profile is `arnndn`; omit the field to use the account's room preset. MediaSFU's backend validates availability and entitlement. The SDK forwards this room policy; it does not denoise audio locally.
+
 ```tsx
 import {
   // Room management
@@ -1243,6 +1245,12 @@ preview, save, publishing, restoration, and camera-off lifecycle as image
 backgrounds. Set the modal's optional `blurPixels` prop to tune its strength.
 Fully custom UIs can call `applyBackgroundBlur({ parameters,
 blurPixels: 16, publish: true })` and clear it with `clearVirtualBackground`.
+Image and blur backgrounds continue processing at a reduced rate when the
+browser tab is hidden. This is best-effort: browser power-saving policies can
+still throttle camera capture and timers. Set
+`keepProcessingWhenHidden={false}` on either background modal, or pass
+`keepProcessingWhenHidden: false` to the headless background helper, to use
+the browser's normal hidden-tab behavior.
 
 ### Recording Modal
 

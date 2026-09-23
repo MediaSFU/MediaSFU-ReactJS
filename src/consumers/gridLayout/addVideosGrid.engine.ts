@@ -14,6 +14,19 @@ export interface AddVideosGridPlan<T> {
   altEntries: GridPlanEntry<T>[];
 }
 
+/** A lone side-panel tile must remain fully visible during screen sharing. */
+export function resolveSidePanelForceFullDisplay({
+  forceFullDisplay,
+  screenShareActive,
+  itemCount,
+}: {
+  forceFullDisplay: boolean;
+  screenShareActive: boolean;
+  itemCount: number;
+}): boolean {
+  return forceFullDisplay && !(screenShareActive && itemCount < 2);
+}
+
 /**
  * ReactJS-local mirror of shared addVideosGrid planning logic.
  * Keep this aligned with mediasfu-shared/src/consumers/gridLayout/addVideosGrid.engine.ts.

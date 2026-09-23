@@ -1,4 +1,5 @@
 import { ShowAlert, StreamSuccessAudioSwitchType, RequestPermissionAudioType, StreamSuccessAudioSwitchParameters } from "../@types/types";
+import { AudioProcessingOptions, audioProcessingConstraints } from './audioProcessing';
 
 
 export interface SwitchUserAudioParameters extends StreamSuccessAudioSwitchParameters {
@@ -18,6 +19,7 @@ export interface SwitchUserAudioParameters extends StreamSuccessAudioSwitchParam
 }
 
 export interface SwitchUserAudioOptions {
+  audioProcessing?: AudioProcessingOptions;
   audioPreference: string;
   parameters: SwitchUserAudioParameters;
 }
@@ -63,7 +65,7 @@ export type SwitchUserAudioType = (options: SwitchUserAudioOptions) => Promise<v
  */
 
 
-export async function switchUserAudio({ audioPreference, parameters }: SwitchUserAudioOptions): Promise<void> {
+export async function switchUserAudio({ audioPreference, parameters, audioProcessing }: SwitchUserAudioOptions): Promise<void> {
   const {
     mediaDevices,
     prevAudioInputDevice,
@@ -94,12 +96,23 @@ export async function switchUserAudio({ audioPreference, parameters }: SwitchUse
       }
     }
 
+    // Preserve the microphone's processing policy, not its old deviceId.
+    // Omit unknown values so the browser retains its normal defaults.
+    const track = parameters.localStreamAudio?.getAudioTracks?.()[0]
+      ?? parameters.localStream?.getAudioTracks?.()[0]
+      ?? parameters.audioProducer?.track;
+    const previousConstraints = track?.getConstraints?.() ?? {};
+    const previousSettings = track?.getSettings?.() ?? {};
+    const processing: MediaTrackConstraints = {};
+    for (const key of ['echoCancellation', 'noiseSuppression', 'autoGainControl'] as const) {
+      const value = previousConstraints[key] ?? previousSettings[key];
+      if (value !== undefined) processing[key] = value;
+    }
     const mediaConstraints: MediaStreamConstraints = {
       audio: {
         deviceId: { exact: audioPreference },
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
+        ...processing,
+        ...audioProcessingConstraints(audioProcessing),
       },
       video: false,
     };

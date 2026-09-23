@@ -25,6 +25,7 @@ import {
   isVirtualBackgroundBlur,
   VIRTUAL_BACKGROUND_BLUR,
 } from "../../methods/utils/virtualBackgroundCompositor";
+import { startVirtualBackgroundFrameLoop } from "../../methods/utils/virtualBackgroundFrameLoop";
 import { MediasfuTypography } from '../core/theme/MediasfuTypography';
 
 export interface ModernBackgroundModalParameters
@@ -120,6 +121,8 @@ export interface ModernBackgroundModalOptions {
   saveButtonLabel?: string;
   /** Person-aware background blur strength in pixels. Defaults to 16. */
   blurPixels?: number;
+  /** Best-effort hidden-tab processing for blur and images; defaults to true. */
+  keepProcessingWhenHidden?: boolean;
   renderHeader?: (options: { defaultHeader: React.ReactNode; onClose: () => void }) => React.ReactNode;
   renderButtons?: (options: {
     defaultButtons: React.ReactNode;
@@ -176,6 +179,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   applyButtonAppliedLabel = "Apply Background",
   saveButtonLabel = "Save Background",
   blurPixels = DEFAULT_BACKGROUND_BLUR_PIXELS,
+  keepProcessingWhenHidden = true,
   renderHeader,
   renderButtons,
   renderBody,
@@ -240,7 +244,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
   const saveBackgroundButtonRef = useRef<HTMLButtonElement>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const previewLoopVersionRef = useRef(0);
-  const previewAnimationFrameIdRef = useRef<number | null>(null);
+  const previewFrameLoopStopRef = useRef<(() => void) | null>(null);
   const previewCaptureTimeoutIdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [uploadFileName, setUploadFileName] = React.useState("No file selected");
   const [isAutoApplyingBackground, setIsAutoApplyingBackground] = React.useState(false);
@@ -751,7 +755,7 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
 
   const buttonsWrapperStyle: React.CSSProperties = {
     display: "flex",
-    gap: 10,
+    gap: 8,
     flexWrap: "wrap",
     ...buttonsWrapperStyleOverrides,
   };
@@ -769,18 +773,21 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     .trim() || undefined;
 
   const applyButtonStyle: React.CSSProperties = {
-    flex: 1,
-    minWidth: 140,
+    flex: "1 1 130px",
+    minWidth: 110,
     background: enableGlassmorphism
       ? "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)"
       : "#2563eb",
     color: "white",
     border: "none",
-    borderRadius: 12,
-    padding: "12px 16px",
-    fontWeight: 700,
+    borderRadius: 999,
+    padding: "7px 14px",
+    minHeight: 34,
+    fontSize: 13,
+    lineHeight: 1.15,
+    fontWeight: 600,
     cursor: "pointer",
-    boxShadow: enableGlow ? "0 4px 16px rgba(0,0,0,0.3)" : undefined,
+    boxShadow: enableGlow ? "0 2px 8px rgba(0,0,0,0.16)" : undefined,
     ...applyButtonStyleOverrides,
   };
 
@@ -797,18 +804,21 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     .trim() || undefined;
 
   const saveButtonStyle: React.CSSProperties = {
-    flex: 1,
-    minWidth: 140,
+    flex: "1 1 130px",
+    minWidth: 110,
     background: enableGlassmorphism
       ? "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)"
       : "#16a34a",
     color: "white",
     border: "none",
-    borderRadius: 12,
-    padding: "12px 16px",
-    fontWeight: 700,
+    borderRadius: 999,
+    padding: "7px 14px",
+    minHeight: 34,
+    fontSize: 13,
+    lineHeight: 1.15,
+    fontWeight: 600,
     cursor: "pointer",
-    boxShadow: enableGlow ? "0 4px 16px rgba(0,0,0,0.3)" : undefined,
+    boxShadow: enableGlow ? "0 2px 8px rgba(0,0,0,0.16)" : undefined,
     ...saveButtonStyleOverrides,
   };
 
@@ -898,10 +908,8 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
         ) {
           previewLoopVersionRef.current += 1;
 
-          if (previewAnimationFrameIdRef.current !== null) {
-            cancelAnimationFrame(previewAnimationFrameIdRef.current);
-            previewAnimationFrameIdRef.current = null;
-          }
+          previewFrameLoopStopRef.current?.();
+          previewFrameLoopStopRef.current = null;
 
           if (previewCaptureTimeoutIdRef.current !== null) {
             clearTimeout(previewCaptureTimeoutIdRef.current);
@@ -1462,6 +1470,9 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
     updatePrevKeepBackground(keepBackground);
 
     if (!doSegmentation) {
+      previewLoopVersionRef.current += 1;
+      previewFrameLoopStopRef.current?.();
+      previewFrameLoopStopRef.current = null;
       const tracks = processedStream?.getVideoTracks();
       tracks?.forEach((track: MediaStreamTrack) => track.stop());
       processedStream = null;
@@ -1515,10 +1526,8 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
       try {
         previewLoopVersionRef.current += 1;
 
-        if (previewAnimationFrameIdRef.current !== null) {
-          cancelAnimationFrame(previewAnimationFrameIdRef.current);
-          previewAnimationFrameIdRef.current = null;
-        }
+        previewFrameLoopStopRef.current?.();
+        previewFrameLoopStopRef.current = null;
 
         if (previewCaptureTimeoutIdRef.current !== null) {
           clearTimeout(previewCaptureTimeoutIdRef.current);
@@ -1528,29 +1537,26 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
         const loopVersion = previewLoopVersionRef.current;
         let startedProcessing = false;
 
-        const processFrame = () => {
-          if (
-            loopVersion !== previewLoopVersionRef.current ||
-            !selfieSegmentation ||
-            pauseSegmentation ||
-            !videoElement ||
-            videoElement.videoWidth === 0 ||
-            videoElement.videoHeight === 0
-          ) {
-            return;
-          }
-
-          void selfieSegmentation.send({ image: videoElement }).catch(() => undefined);
-          previewAnimationFrameIdRef.current = requestAnimationFrame(processFrame);
-        };
-
         const startProcessing = () => {
           if (startedProcessing) {
             return;
           }
 
           startedProcessing = true;
-          processFrame();
+          const segmentation = selfieSegmentation;
+          if (!segmentation) return;
+          previewFrameLoopStopRef.current = startVirtualBackgroundFrameLoop({
+            owner: segmentation,
+            keepProcessingWhenHidden,
+            shouldContinue: () => {
+              const cameraTrack = (videoElement.srcObject as MediaStream | null)?.getVideoTracks?.()[0];
+              return loopVersion === previewLoopVersionRef.current &&
+                !pauseSegmentation && cameraTrack?.readyState === "live";
+            },
+            processFrame: () => videoElement.videoWidth > 0 && videoElement.videoHeight > 0
+              ? segmentation.send({ image: videoElement })
+              : undefined,
+          });
         };
 
         videoElement.onloadeddata = startProcessing;

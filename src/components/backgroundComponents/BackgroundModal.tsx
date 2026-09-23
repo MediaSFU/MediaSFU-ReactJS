@@ -14,6 +14,7 @@ import {
   isVirtualBackgroundBlur,
   VIRTUAL_BACKGROUND_BLUR,
 } from "../../methods/utils/virtualBackgroundCompositor";
+import { startVirtualBackgroundFrameLoop } from "../../methods/utils/virtualBackgroundFrameLoop";
 
 export interface BackgroundModalParameters extends CreateSendTransportParameters, ConnectSendTransportVideoParameters, DisconnectSendTransportVideoParameters, OnScreenChangesParameters {
 
@@ -109,6 +110,8 @@ export interface BackgroundModalOptions {
   saveButtonLabel?: string;
   /** Person-aware background blur strength in pixels. Defaults to 16. */
   blurPixels?: number;
+  /** Best-effort hidden-tab processing for blur and images; defaults to true. */
+  keepProcessingWhenHidden?: boolean;
   renderHeader?: (options: {
     defaultHeader: React.ReactNode;
     onClose: () => void;
@@ -443,6 +446,7 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
   applyButtonAppliedLabel = "Apply Background",
   saveButtonLabel = "Save Background",
   blurPixels = DEFAULT_BACKGROUND_BLUR_PIXELS,
+  keepProcessingWhenHidden = true,
   renderHeader,
   renderButtons,
   renderBody,
@@ -511,6 +515,7 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
   const applyBackgroundButtonRef = useRef<HTMLButtonElement>(null);
   const saveBackgroundButtonRef = useRef<HTMLButtonElement>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
+  const previewFrameLoopStopRef = useRef<(() => void) | null>(null);
 
   const defaultOverlayWidth =
     typeof window !== "undefined" ? Math.min(window.innerWidth * 0.8, 500) : 360;
@@ -1423,6 +1428,8 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
     updatePrevKeepBackground(keepBackground);
 
     if (!doSegmentation) {
+      previewFrameLoopStopRef.current?.();
+      previewFrameLoopStopRef.current = null;
       const tracks = processedStream?.getVideoTracks();
       tracks?.forEach((track: MediaStreamTrack) => track.stop());
       processedStream = null;
@@ -1434,24 +1441,22 @@ const BackgroundModal: React.FC<BackgroundModalOptions> = ({
 
     const segmentImage = async (videoElement: HTMLVideoElement) => {
       try {
-        const processFrame = () => {
-          if (
-            !selfieSegmentation ||
-            pauseSegmentation ||
-            !videoElement ||
-            videoElement.videoWidth === 0 ||
-            videoElement.videoHeight === 0
-          ) {
-            return;
-          }
-          
-            selfieSegmentation.send({ image: videoElement });
-            requestAnimationFrame(processFrame);
+        previewFrameLoopStopRef.current?.();
+        const segmentation = selfieSegmentation;
+        const startProcessing = () => {
+          if (!segmentation) return;
+          previewFrameLoopStopRef.current = startVirtualBackgroundFrameLoop({
+            owner: segmentation,
+            keepProcessingWhenHidden,
+            shouldContinue: () => !pauseSegmentation &&
+              (videoElement.srcObject as MediaStream | null)?.getVideoTracks?.()[0]?.readyState === "live",
+            processFrame: () => videoElement.videoWidth > 0 && videoElement.videoHeight > 0
+              ? segmentation.send({ image: videoElement })
+              : undefined,
+          });
         };
-
-        videoElement.onloadeddata = () => {
-          processFrame();
-        };
+        videoElement.onloadeddata = startProcessing;
+        if (videoElement.readyState >= 2) startProcessing();
 
         setTimeout(async () => {
           processedStream = mediaCanvas.captureStream(frameRate || 5);

@@ -27,6 +27,22 @@ import { aParams as audio_Params, AParamsType } from "../../methods/utils/produc
 import { RtpCapabilities } from "mediasoup-client/lib/types";
 import { MeetingRoomParams, VidCons, ShowAlert, ResponseJoinRoom, EventType } from "../../@types/types";
 
+// Preserve custom encoding presets, but never scale the same room's bitrate
+// objects twice when room parameters are refreshed or the room is rejoined.
+const roomVideoParamBases = new WeakMap<object, object>();
+
+export function freshRoomVideoParams<T extends HParamsType | VParamsType>(current: T, fallback: T): T {
+  const source = current?.encodings?.length ? current : fallback;
+  const base = (roomVideoParamBases.get(source) as T | undefined) ?? source;
+  const fresh = {
+    ...base,
+    encodings: base.encodings.map((encoding) => ({ ...encoding })),
+    codecOptions: base.codecOptions ? { ...base.codecOptions } : undefined,
+  } as T;
+  roomVideoParamBases.set(fresh, base);
+  return fresh;
+}
+
 export interface UpdateRoomParametersClientParameters {
   rtpCapabilities: RtpCapabilities | null;
   roomRecvIPs: string[];
@@ -376,16 +392,8 @@ export const updateRoomParametersClient = ({ parameters }: UpdateRoomParametersC
 
     let frameRateValue = frameRate ? frameRate : 10;
 
-    let vParamsValue = { ...vParams };
-    let hParamsValue = { ...hParams };
- 
-    if (Object.keys(vParamsValue).length == 0) {
-      vParamsValue = { ...video_Params };
-    }
-
-    if (Object.keys(hParamsValue).length == 0) {
-      hParamsValue = { ...host_Params };
-    }
+    let vParamsValue = freshRoomVideoParams(vParams, video_Params);
+    let hParamsValue = freshRoomVideoParams(hParams, host_Params);
 
     if (targetResolution == "hd") {
       frameRateValue = hdFrameRate;

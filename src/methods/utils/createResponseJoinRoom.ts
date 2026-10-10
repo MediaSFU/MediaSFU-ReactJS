@@ -39,6 +39,7 @@ export const createResponseJoinRoom: CreateResponseJoinRoomType = async ({
   localRoom,
 }: CreateResponseJoinRoomOptions): Promise<ResponseJoinRoom> => {
   return {
+    capacity: localRoom.capacity,
     rtpCapabilities: localRoom.rtpCapabilities ?? null,
     success: localRoom.rtpCapabilities !== null,
     roomRecvIPs: [], // Placeholder; populate with necessary values

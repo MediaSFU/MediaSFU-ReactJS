@@ -31,7 +31,7 @@ export function startVirtualBackgroundFrameLoop({ owner, processFrame, shouldCon
   const schedule = () => {
     if (stopped || inFlight) return;
     if (!shouldContinue()) { stop(); return; }
-    if (document.hidden && keepProcessingWhenHidden) timeoutId = setTimeout(() => { void runFrame(); }, 1000);
+    if (document.hidden && keepProcessingWhenHidden) timeoutId = setTimeout(() => { void runFrame(); }, 200);
     else animationFrameId = requestAnimationFrame(() => { void runFrame(); });
   };
   const runFrame = async () => {

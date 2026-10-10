@@ -1245,8 +1245,9 @@ preview, save, publishing, restoration, and camera-off lifecycle as image
 backgrounds. Set the modal's optional `blurPixels` prop to tune its strength.
 Fully custom UIs can call `applyBackgroundBlur({ parameters,
 blurPixels: 16, publish: true })` and clear it with `clearVirtualBackground`.
-Image and blur backgrounds continue processing at a reduced rate when the
-browser tab is hidden. This is best-effort: browser power-saving policies can
+Image and blur backgrounds target up to 5 processed frames per second when the
+browser tab is hidden (a 200 ms delay after each completed frame). This is
+best-effort: browser power-saving policies can
 still throttle camera capture and timers. Set
 `keepProcessingWhenHidden={false}` on either background modal, or pass
 `keepProcessingWhenHidden: false` to the headless background helper, to use
@@ -1482,3 +1483,15 @@ MIT © [MediaSFU](https://www.mediasfu.com)
   <strong>Built with ❤️ by MediaSFU</strong><br/>
   Voice · Video · AI · Translation · Cloud or self-hosted
 </p>
+
+## Camera simulcast and recording bitrate
+
+Camera simulcast is disabled automatically for `chat` rooms and rooms with a configured capacity of exactly two. This uses the room's configured capacity, not the number of participants currently connected. Larger rooms retain simulcast unless `simulcastOff: true` is supplied.
+
+Single-encoding mode uses the full-resolution camera layer and preserves its bitrate and frame-rate limits. Screen-sharing and audio encodings are unchanged. Enabling recording no longer adds a 20% camera bitrate or initial-bitrate uplift.
+
+The server's join-response `capacity` takes precedence. For servers that omit it, supply `roomCapacity: 2` as a client-side hint. Programmatic room creation also uses `noUIPreJoinOptions.capacity` as the hint. This option does not change server-side capacity or authorization.
+
+```tsx
+<ModernMediasfuGeneric simulcastOff={true} roomCapacity={2} />
+```

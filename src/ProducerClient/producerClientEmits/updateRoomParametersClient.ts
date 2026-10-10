@@ -1,3 +1,4 @@
+import { applyCameraEncodingPolicy, cameraSimulcastOff } from './roomVideoPolicy';
 import {
   QnHDCons,
   sdCons,
@@ -76,6 +77,10 @@ export interface UpdateRoomParametersClientParameters {
   islevel: string;
   showAlert?: ShowAlert;
   data: ResponseJoinRoom;
+  /** Disable camera simulcast even in larger rooms. */
+  simulcastOff?: boolean;
+  /** Capacity hint used only when the server does not return capacity. */
+  roomCapacity?: number;
   // update functions
   updateRtpCapabilities: (rtpCapabilities: RtpCapabilities | null) => void;
   updateRoomRecvIPs: (roomRecvIPs: string[]) => void;
@@ -129,6 +134,10 @@ export interface UpdateRoomParametersClientParameters {
 
 export type UpdateRoomParametersClientOptions = {
   parameters: UpdateRoomParametersClientParameters;
+  /** Disable camera simulcast even in larger rooms. */
+  simulcastOff?: boolean;
+  /** Capacity hint used only when the server does not return capacity. */
+  roomCapacity?: number;
 };
 
 // Export type definition for the function
@@ -237,7 +246,7 @@ export type UpdateRoomParametersClientType = (options: UpdateRoomParametersClien
  * });
  */
 
-export const updateRoomParametersClient = ({ parameters }: UpdateRoomParametersClientOptions): void => {
+export const updateRoomParametersClient = ({ parameters, simulcastOff = parameters.simulcastOff, roomCapacity = parameters.roomCapacity }: UpdateRoomParametersClientOptions): void => {
   try {
     const {
       screenPageLimit,
@@ -456,26 +465,11 @@ export const updateRoomParametersClient = ({ parameters }: UpdateRoomParametersC
       });
     }
 
-    if (data.recordingParams.recordingVideoSupport) {
-      vParamsValue.encodings.forEach((encoding: Partial<VParamsType["encodings"][0]>) => {
-        if (encoding.maxBitrate) {
-          encoding.maxBitrate *= 1.2;
-        }
-      });
-
-      hParamsValue.encodings.forEach((encoding: Partial<HParamsType["encodings"][0]>) => {
-        if (encoding.maxBitrate) {
-          encoding.maxBitrate *= 1.2;
-        }
-      });
-
-      if (hParamsValue.codecOptions && hParamsValue.codecOptions.videoGoogleStartBitrate) {
-        hParamsValue.codecOptions.videoGoogleStartBitrate *= 1.2;
-      }
-      if (vParamsValue.codecOptions && vParamsValue.codecOptions.videoGoogleStartBitrate) {
-        vParamsValue.codecOptions.videoGoogleStartBitrate *= 1.2;
-      }
-    }
+    const singleCameraEncoding = cameraSimulcastOff(data.meetingRoomParams.type, data.capacity, {
+      simulcastOff, roomCapacity,
+    });
+    applyCameraEncodingPolicy(hParamsValue, singleCameraEncoding);
+    applyCameraEncodingPolicy(vParamsValue, singleCameraEncoding);
 
     updateVidCons(vidCons);
     updateFrameRate(frameRateValue);

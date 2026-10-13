@@ -14,6 +14,7 @@ import { GlassmorphicContainer } from '../core';
 import { MediasfuColors } from '../core/theme/MediasfuColors';
 import { MediasfuSpacing } from '../core/theme/MediasfuSpacing';
 import { MediasfuTypography } from '../core/theme/MediasfuTypography';
+import { describeMediaSocketError } from '../../sockets/mediaSocketErrors';
 
 const cookies = new Cookies();
 const MAX_ATTEMPTS = 10;
@@ -158,9 +159,9 @@ const ModernWelcomePage: React.FC<ModernWelcomePageOptions> = ({
           });
         }
       }
-    } catch {
+    } catch (error) {
       showAlert?.({
-        message: 'Unable to connect. Check your credentials and try again.',
+        message: describeMediaSocketError(error),
         type: 'danger',
         duration: 3000,
       });

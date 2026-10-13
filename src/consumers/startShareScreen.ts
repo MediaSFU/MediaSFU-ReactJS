@@ -1,5 +1,13 @@
 
 import { StreamSuccessScreenType, StreamSuccessScreenParameters, ShowAlert } from "../@types/types";
+import {
+  buildDisplayMediaOptions,
+  canCaptureDisplayAudio,
+  shouldShareScreenAudio,
+  ScreenAudioChoice,
+  ScreenAudioMode,
+} from "./screenAudio";
+import { promptScreenAudioChoice } from "../components/miscComponents/ScreenAudioPrompt";
 export interface StartShareScreenParameters extends StreamSuccessScreenParameters {
   shared: boolean;
   showAlert?: ShowAlert;
@@ -8,6 +16,17 @@ export interface StartShareScreenParameters extends StreamSuccessScreenParameter
   onWeb: boolean;
   targetWidth?: number;
   targetHeight?: number;
+  /** Set from the join response: the media server accepts screen audio. */
+  supportsScreenAudio?: boolean;
+  /** Ask the browser for the screen's audio too (default true; the browser's picker still lets the user decide). */
+  screenAudioEnabled?: boolean;
+  /** `ask` (default): offer "Screen + audio" / "Screen only" first; `always`: request audio; `never`: video only. */
+  screenAudioMode?: ScreenAudioMode;
+  /** Replace the default "share audio too?" dialog; resolve `audio`, `video` or `null` (cancel). */
+  screenAudioPrompt?: () => Promise<ScreenAudioChoice>;
+  /** Override browser detection of display-audio capture (Chromium desktop by default). */
+  displayAudioCapable?: boolean;
+  isDarkMode?: boolean;
 
   // mediasfu functions
   streamSuccessScreen: StreamSuccessScreenType;
@@ -71,6 +90,12 @@ export async function startShareScreen({ parameters }: StartShareScreenOptions):
     onWeb,
     targetWidth = 1280,
     targetHeight = 720,
+    supportsScreenAudio,
+    screenAudioEnabled,
+    screenAudioMode = "ask",
+    screenAudioPrompt,
+    displayAudioCapable,
+    isDarkMode,
 
     streamSuccessScreen,
   } = parameters;
@@ -86,16 +111,27 @@ export async function startShareScreen({ parameters }: StartShareScreenOptions):
     }
 
     if (mediaDevices && mediaDevices.getDisplayMedia) {
+      // Screen audio needs a server that accepts it and a browser that can capture it (Chromium desktop).
+      let withAudio =
+        shouldShareScreenAudio({ supportsScreenAudio, screenAudioEnabled, screenAudioMode }) &&
+        (displayAudioCapable ?? canCaptureDisplayAudio());
+      if (withAudio && screenAudioMode === "ask") {
+        const choice = await (screenAudioPrompt ? screenAudioPrompt() : promptScreenAudioChoice({ isDarkMode }));
+        if (choice === null) {
+          updateShared(false);
+          return;
+        }
+        withAudio = choice === "audio";
+      }
       shared = true;
       await mediaDevices
-        .getDisplayMedia({
-          video: {
-            width: targetWidth,
-            height: targetHeight,
-            frameRate: 30,
-          },
-          audio: false,
-        })
+        .getDisplayMedia(
+          buildDisplayMediaOptions({
+            targetWidth,
+            targetHeight,
+            withAudio,
+          })
+        )
         .then(async (stream: MediaStream) => {
           await streamSuccessScreen({ stream, parameters });
         })

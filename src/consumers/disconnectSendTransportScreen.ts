@@ -1,5 +1,6 @@
 import { Producer } from "mediasoup-client/lib/types";
 import { Socket } from "socket.io-client";
+import { disconnectSendTransportScreenAudio } from "./connectSendTransportScreenAudio";
 
 export interface DisconnectSendTransportScreenParameters {
     screenProducer: Producer | null;
@@ -93,6 +94,13 @@ export const disconnectSendTransportScreen = async ({ parameters }: DisconnectSe
 
     let { getUpdatedAllParams } = parameters;
     parameters = getUpdatedAllParams()
+
+    try {
+        // Screen audio stops with the screen share (the server closes its side on closeScreenProducer).
+        await disconnectSendTransportScreenAudio({ parameters: parameters as any });
+    } catch {
+        // nothing to close
+    }
 
     try {
         // Destructure parameters

@@ -4,6 +4,7 @@ import {
   JoinMediaSFURoomOptions
 } from '../../@types/types';
 import { resolveMediaSFURoomApi } from './resolveMediaSFURoomApi';
+import { readRejoinCredential, rememberRejoinCredential } from './rejoinCredentialStore';
 
 export type CreateJoinRoomType = (options: {
   payload: CreateMediaSFURoomOptions | JoinMediaSFURoomOptions;
@@ -131,6 +132,12 @@ export const joinRoomOnMediaSFU: CreateJoinRoomType = async ({
 
     const finalLink = resolveMediaSFURoomApi(localLink, 'joinRoom', roomsEndpoint);
 
+    // Rejoin after a reload: prove this tab is the same participant with the credential it last received.
+    const joinPayload = payload as JoinMediaSFURoomOptions & { rejoinSecret?: string };
+    const isJoin = (payload as { action?: string })?.action === "join";
+    const stored = isJoin ? readRejoinCredential(joinPayload.meetingID, joinPayload.userName) : null;
+    const body = stored && !joinPayload.rejoinSecret ? { ...joinPayload, rejoinSecret: stored.secret } : payload;
+
     const response = await fetch(finalLink,
       {
         method: "POST",
@@ -138,15 +145,42 @@ export const joinRoomOnMediaSFU: CreateJoinRoomType = async ({
           "Content-Type": "application/json",
           Authorization: `Bearer ${apiUserName}:${apiKey}`,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
       }
     );
 
     if (!response.ok) {
+      // The server still refuses the name (an older server, or the proof was not accepted): the stored credential
+      // stays valid for the same participant, so reuse it. A revoked one (kick, ban) is refused when connecting.
+      if (stored) {
+        const refusal = await response.json().catch(() => null) as { error?: string } | null;
+        if (/already taken/i.test(String(refusal?.error || ""))) {
+          return {
+            data: {
+              message: "Room joined successfully",
+              roomName: stored.roomName,
+              publicURL: stored.publicURL || stored.link || "",
+              link: stored.link || "",
+              secret: stored.secret,
+              success: true,
+            },
+            success: true,
+          };
+        }
+      }
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
 
     const data = await response.json();
+    if (data?.secret && (isJoin || data?.roomName)) {
+      rememberRejoinCredential({
+        roomName: data.roomName || joinPayload.meetingID,
+        userName: data.userName || (payload as { userName?: string }).userName || "",
+        secret: data.secret,
+        link: data.link,
+        publicURL: data.publicURL,
+      });
+    }
     return { data, success: true };
   } catch (error) {
     const errorMessage = (

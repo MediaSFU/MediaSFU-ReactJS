@@ -438,7 +438,9 @@ export async function produceDisplay({
       stream.getTracks().forEach((track) => track.stop());
       return { ...result, stream: null };
     }
-    if (withAudio && hasLiveTrack(stream, 'audio')) {
+    // On servers that support screen audio, streamSuccessScreen already published the stream's audio as
+    // screen audio (never as the microphone). Older servers keep the previous behaviour.
+    if (withAudio && hasLiveTrack(stream, 'audio') && (getCurrentParams({ parameters }) as { supportsScreenAudio?: boolean } | null)?.supportsScreenAudio !== true) {
       await produceMedia({ parameters, stream, kind: 'audio' });
     }
     return { ...result, stream };

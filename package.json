@@ -1,6 +1,6 @@
 {
   "name": "mediasfu-reactjs",
-  "version": "4.3.8",
+  "version": "4.4.2",
   "private": false,
   "publishConfig": {
     "access": "public",
@@ -174,10 +174,11 @@
     "check:embedded-container": "node scripts/check-embedded-container-contract.mjs",
     "check:public-sync": "node scripts/check-public-sync.mjs",
     "check:custom-ui-docs": "node scripts/check-custom-ui-docs.mjs",
+    "test:screen-share-package": "node tests/screenSharePackage.test.cjs && node --experimental-vm-modules tests/screenSharePackage.test.cjs --format=esm",
     "lint": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --ignore-pattern \"src/stories/generated/**\" --ignore-pattern \"src/stories/generated-support/**\"",
     "lint:fix": "eslint \"src/**/*.{js,jsx,ts,tsx}\" --ignore-pattern \"src/stories/generated/**\" --ignore-pattern \"src/stories/generated-support/**\" --fix",
     "build-docs": "typedoc",
-    "prepack": "npm run buildnpm"
+    "prepack": "npm run buildnpm && npm run test:screen-share-package"
   },
   "eslintConfig": {
     "extends": [

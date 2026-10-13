@@ -135,6 +135,10 @@ async function joinRoom
         try {
           clearTimeout(timeout);
           if (!data || data.success === false) {
+            // A newer connection of this participant holds the room (another tab or device).
+            if ((data as { sessionReplaced?: boolean } | undefined)?.sessionReplaced) {
+              throw new Error("You joined from another tab or device.");
+            }
             throw new Error(data?.reason || "Room server rejected the join request.");
           }
           // Check if rtpCapabilities is null

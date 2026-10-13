@@ -117,9 +117,11 @@ platforms; a multi-SDK repository does not imply identical features on every SDK
 | Recording your own room layout | [Custom UI Recording](https://github.com/MediaSFU/mediasfu-custom-ui-recording) | App-defined recording scenes and recording controls |
 | A small SDK integration baseline | [QuickStart Apps](https://github.com/MediaSFU/MediaSFU-QuickStart-Apps) | Framework-specific setup and room examples |
 
-For a classroom, [try the Interactive Classroom showcase](https://mediasfu.com/showcases/interactive-classroom)
-and follow the [virtual-background](HEADLESS_GUIDE.md#virtual-backgrounds-headless-and-hybrid)
-and [breakout-room](HEADLESS_GUIDE.md#breakout-rooms-in-a-custom-classroom) recipes.
+For a classroom, [try the Interactive Classroom showcase](https://mediasfu.com/showcases/interactive-classroom).
+The canonical docs cover [React virtual backgrounds](https://mediasfu.com/docs/usage/virtual-backgrounds/),
+[Save-before-Start breakouts](https://mediasfu.com/docs/usage/breakout-rooms/),
+[server-side room audio denoising](https://mediasfu.com/docs/usage/server-audio-denoising/),
+and [remote audio playback and recovery](https://mediasfu.com/docs/usage/media-lifecycle/).
 Keep your authentication, room authorization, and reusable credentials on your
 backend when adapting any starter.
 
@@ -248,6 +250,10 @@ Yes. The room runtime includes meeting, webinar, broadcast, and chat experiences
 | "You cannot turn off your camera while recording video…" | Turning the camera off would interrupt the recording. | Pause or stop the recording first. |
 | A message ending in "Access denied by host." | The host has restricted that action for participants. | Ask the host to change the participant's permissions. |
 | "Screen share is not allowed when whiteboard is active" | Screen sharing and the whiteboard cannot run at the same time. | Close the whiteboard, then start screen sharing. |
+| "The room did not accept these credentials…" | The media server refused the room credentials (`connection-rejected`, reason `invalid-credentials`). A second join with the same name issues a new secret, so an older one stops working. | Join again through your backend to get fresh credentials. The SDK does not retry this automatically. |
+| "…has no meeting minutes left" | The room's account has no meeting minutes available (`meeting-minutes-unavailable`). | Top up the account in the MediaSFU dashboard. |
+| "Could not reach the media server…" or "You appear to be offline…" | The connection never opened: no network, DNS, firewall or proxy. | Check the device's connection and that WebSocket traffic to `*.mediasfu.com` is allowed. The error's `phase`, `elapsedMs` and `online` fields (see `MediaSocketConnectError`) tell these cases apart. |
+| Screen sharing has no sound | The browser can't capture display audio (Firefox, Safari, mobile), "Screen only" was chosen, or the browser's own "Share audio" box was unticked. | Use a Chromium desktop browser, choose **Screen + audio**, and share a tab with its audio option ticked. |
 
 ## Integration Paths
 
@@ -927,6 +933,44 @@ import { ModernPermissionsModal } from 'mediasfu-reactjs';
 // - Screen sharing
 // - Chat access
 ```
+
+### Screen-share audio
+
+When someone shares a tab or screen in a Chromium desktop browser (Chrome, Edge, Opera, Brave), MediaSFU asks
+**Share audio too?** with **Screen + audio** and **Screen only**. The audio is published as its own track: everyone
+hears it, listeners see a "*name* · Screen audio" card they can mute for themselves, and the sharer is never shown as
+speaking because of it. It pauses and stops with the screen share, and recordings include it. Firefox, Safari and
+mobile browsers share video only, and older media servers keep video-only screen sharing.
+
+No setup is needed. To change the behaviour, use the room's `sourceParameters`:
+
+```tsx
+sourceParameters.updateScreenAudioMode('always'); // 'ask' (default) | 'always' | 'never'
+sourceParameters.updateScreenAudioEnabled(false);  // never request screen audio
+
+import { toggleScreenAudio, setScreenAudioVolume } from 'mediasfu-reactjs';
+toggleScreenAudio({ parameters: sourceParameters }); // sharer: mute/unmute screen audio, keep sharing
+setScreenAudioVolume(0.5);                           // listener: screen-audio volume, 0..1
+```
+
+### Connection errors
+
+`connectSocket` rejects with a `MediaSocketConnectError` that says where the connection stopped (`phase`:
+`before-open`, `after-open`, `rejected` or `timeout`), how long it took (`elapsedMs`), the browser's `online` state and,
+when the media server refused it, the `reason` and `stage`. The prebuilt join pages already show a clear message;
+in your own UI use `describeMediaSocketError(error)`, and don't retry when `error.retryable` is `false`.
+
+### Rejoining after a reload, and a second tab
+
+A reload or a brief network drop rejoins as the same participant: same name, same role, and the host stays host. The
+SDK remembers the room credential for each tab and proves it when the user joins again. If the same person opens the
+room in another tab or device, the newest connection takes over and the older one shows "You joined from another tab or
+device." with a **Use this one** button. To show your own UI, listen for the `mediasfu:session-replaced` window event
+and call `preventDefault()`; its `detail` carries `message` and `useThisOne()`.
+
+If your backend registers participants itself (`POST /v1/rooms` with `action: "join"`), keep the `secret` returned for
+each room and user, and send it back as `rejoinSecret` when that user joins again. A refusal with
+`code: "name-in-use-live"` means the person is still connected elsewhere and no matching credential was sent.
 
 ### Real-time Translation 🌍
 

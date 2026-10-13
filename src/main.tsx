@@ -80,6 +80,7 @@ export * from './methods/whiteboardMethods/launchConfigureWhiteboard';
 
 // Socket and Media Functions
 export * from './sockets/SocketManager';
+export * from './sockets/mediaSocketErrors';
 export * from './ProducerClient/producerClientEmits/joinRoomClient';
 export * from './producers/producerEmits/joinLocalRoom';
 export * from './ProducerClient/producerClientEmits/updateRoomParametersClient';
@@ -113,6 +114,11 @@ export * from './consumers/consumerResume';
 export * from './consumers/connectSendTransportAudio';
 export * from './consumers/connectSendTransportVideo';
 export * from './consumers/connectSendTransportScreen';
+export * from './consumers/connectSendTransportScreenAudio';
+export * from './consumers/screenAudio';
+export * from './consumers/consumerBackupPreference';
+export * from './components/miscComponents/ScreenAudioPrompt';
+export { default as ScreenAudioPrompt } from './components/miscComponents/ScreenAudioPrompt';
 export * from './consumers/processConsumerTransports';
 export * from './consumers/resumePauseStreams';
 export * from './consumers/readjust';
@@ -192,6 +198,8 @@ export * from './components/displayComponents/VideoCard';
 export * from './components/displayComponents/CardVideoDisplay';
 export * from './components/displayComponents/MiniCardAudio';
 export * from './methods/utils/MiniAudioPlayer/MiniAudioPlayer';
+export * from './methods/utils/ScreenAudioPlayer/ScreenAudioPlayer';
+export { default as ScreenAudioPlayer } from './methods/utils/ScreenAudioPlayer/ScreenAudioPlayer';
 export * from './methods/utils/SoundPlayer';
 
 // new utils
@@ -364,6 +372,8 @@ import { producerMediaClosed } from './producers/socketReceiveMethods/producerMe
 import { controlMediaHost } from './producers/socketReceiveMethods/controlMediaHost';
 import { meetingEnded } from './producers/socketReceiveMethods/meetingEnded';
 import { disconnectUserSelf } from './producers/socketReceiveMethods/disconnectUserSelf';
+import { sessionReplaced } from './producers/socketReceiveMethods/sessionReplaced';
+import { rememberRejoinCredential, readRejoinCredential, forgetRejoinCredential } from './methods/utils/rejoinCredentialStore';
 import { receiveMessage } from './producers/socketReceiveMethods/receiveMessage';
 import { meetingTimeRemaining } from './producers/socketReceiveMethods/meetingTimeRemaining';
 import { meetingStillThere } from './producers/socketReceiveMethods/meetingStillThere';
@@ -447,5 +457,7 @@ export {
 
     PollModal, BackgroundModal, BreakoutRoomsModal, ConfigureWhiteboardModal, Whiteboard, Screenboard, ScreenboardModal,
 
-    joinRoomOnMediaSFU, createRoomOnMediaSFU, checkLimitsAndMakeRequest, createResponseJoinRoom
+    joinRoomOnMediaSFU, createRoomOnMediaSFU, checkLimitsAndMakeRequest, createResponseJoinRoom,
+
+    sessionReplaced, rememberRejoinCredential, readRejoinCredential, forgetRejoinCredential
 };

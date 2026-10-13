@@ -1,6 +1,7 @@
 
 import { ConnectIpsType, ConnectIpsParameters, AltDomains, ConsumeSocket } from "../../@types/types";
 import { RtpCapabilities } from 'mediasoup-client/lib/types';
+import { rememberConsumerBackups } from "../../consumers/consumerBackupPreference";
 
 export interface GetDomainsParameters extends ConnectIpsParameters {
 
@@ -85,6 +86,8 @@ export const getDomains = async ({
   } = parameters;
 
   const ipsToConnect: string[] = [];
+  // Busy node -> backup map: new streams are preferred from the backup (consumer-backup-v1).
+  rememberConsumerBackups(alt_domains);
 
   try {
     // Get the latest consume_sockets

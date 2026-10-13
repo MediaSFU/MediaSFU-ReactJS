@@ -149,6 +149,7 @@ import { stoppedRecording } from "../../producers/socketReceiveMethods/stoppedRe
 import { allMembers } from "../../producers/socketReceiveMethods/allMembers";
 import { allMembersRest } from "../../producers/socketReceiveMethods/allMembersRest";
 import { disconnect } from "../../producers/socketReceiveMethods/disconnect";
+import { sessionReplaced, SessionReplacedData } from "../../producers/socketReceiveMethods/sessionReplaced";
 import {
   PermissionConfig,
 } from "../../producers/socketReceiveMethods/permissionReceiveMethods";
@@ -722,6 +723,10 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
 
   const screenProducer = useRef<Producer | null>(null); // Screen producer as Producer or null
   const localScreenProducer = useRef<Producer | null>(null); // Local screen producer as Producer or null
+  const screenAudioProducer = useRef<Producer | null>(null); // Audio shared with the screen share, or null
+  const supportsScreenAudio = useRef<boolean>(false); // The media server accepts screen-share audio
+  const screenAudioEnabled = useRef<boolean>(true); // Ask the browser for the screen's audio when sharing
+  const screenAudioMode = useRef<'ask' | 'always' | 'never'>('ask'); // Offer "Screen + audio" before sharing
   const gotAllVids = useRef<boolean>(false); // True if all videos have been received
   const paginationHeightWidth = useRef<number>(40); // Pagination height/width as number
   const paginationDirection = useRef<"horizontal" | "vertical">("horizontal"); // Pagination direction as string
@@ -1514,6 +1519,22 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
 
   const updateLocalScreenProducer = (value: Producer | null) => {
     localScreenProducer.current = value;
+  };
+
+  const updateScreenAudioProducer = (value: Producer | null) => {
+    screenAudioProducer.current = value;
+  };
+
+  const updateSupportsScreenAudio = (value: boolean) => {
+    supportsScreenAudio.current = value;
+  };
+
+  const updateScreenAudioEnabled = (value: boolean) => {
+    screenAudioEnabled.current = value;
+  };
+
+  const updateScreenAudioMode = (value: 'ask' | 'always' | 'never') => {
+    screenAudioMode.current = value;
   };
 
   const updateGotAllVids = (value: boolean) => {
@@ -2686,6 +2707,10 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
       defer_receive: defer_receive.current,
       allAudioStreams: allAudioStreams.current,
       screenProducer: screenProducer.current,
+      screenAudioProducer: screenAudioProducer.current,
+      supportsScreenAudio: supportsScreenAudio.current,
+      screenAudioEnabled: screenAudioEnabled.current,
+      screenAudioMode: screenAudioMode.current,
       remoteScreenStream: remoteScreenStream.current,
       gotAllVids: gotAllVids.current,
       paginationHeightWidth: paginationHeightWidth.current,
@@ -3071,6 +3096,10 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
       updateRemoteScreenStream,
       updateScreenProducer,
       updateLocalScreenProducer,
+      updateScreenAudioProducer,
+      updateSupportsScreenAudio,
+      updateScreenAudioEnabled,
+      updateScreenAudioMode,
       updateGotAllVids,
       updatePaginationHeightWidth,
       updatePaginationDirection,
@@ -4071,6 +4100,11 @@ const MediasfuBroadcast: React.FC<MediasfuBroadcastOptions> = ({
 
     if (socketDefault.id) {
       if (!skipSockets) {
+        // A newer connection of this participant took over (another tab or device): say so, never rejoin on our own.
+        socketDefault.on("session-replaced", async (data: SessionReplacedData) => {
+          await sessionReplaced({ data, showAlert });
+        });
+
         socketDefault.on("disconnect", async () => {
           await disconnect({
             showAlert,

@@ -1,3 +1,5 @@
+/* eslint-env node */
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* ESM companion build for Vite/Rollup consumers. The existing webpack.config.js
  * remains the UMD/CJS build used by require() and the browser global. */
 const base = require('./webpack.config.js');

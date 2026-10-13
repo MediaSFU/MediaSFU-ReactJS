@@ -1,4 +1,5 @@
 import { Transport, CloseAndResizeParameters, CloseAndResizeType } from '../../@types/types';
+import { forgetScreenAudioProducer } from '../screenAudio';
 
 export interface ProducerClosedParameters extends CloseAndResizeParameters {
   consumerTransports: Transport[];
@@ -62,6 +63,8 @@ export const producerClosed = async ({
   parameters,
 }: ProducerClosedOptions): Promise<void> => {
   let { consumerTransports, closeAndResize, screenId, updateConsumerTransports } = parameters;
+
+  forgetScreenAudioProducer(remoteProducerId);
 
   // Check if this is a translation producer being closed - just clean up tracking
   // NOTE: We do NOT resume original audio here. Resumption should only happen via

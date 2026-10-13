@@ -128,6 +128,8 @@ export interface UpdateRoomParametersClientParameters {
   updateRecordingPreferredOrientation: (orientation: string) => void;
   updateRecordingSupportForOtherOrientation: (support: boolean) => void;
   updateRecordingMultiFormatsSupport: (support: boolean) => void;
+  /** Records whether the media server accepts screen-share audio (join response `supportsScreenAudio`). */
+  updateSupportsScreenAudio?: (supported: boolean) => void;
   updateRecordingVideoOptions: (options: string) => void;
   updateRecordingAudioOptions: (options: string) => void;
 }
@@ -309,6 +311,7 @@ export const updateRoomParametersClient = ({ parameters, simulcastOff = paramete
       updateRecordingPreferredOrientation,
       updateRecordingSupportForOtherOrientation,
       updateRecordingMultiFormatsSupport,
+      updateSupportsScreenAudio,
       updateRecordingVideoOptions,
       updateRecordingAudioOptions,
       updateMainHeightWidth,
@@ -348,6 +351,7 @@ export const updateRoomParametersClient = ({ parameters, simulcastOff = paramete
     updateRecordingPreferredOrientation(data.recordingParams.recordingPreferredOrientation);
     updateRecordingSupportForOtherOrientation(data.recordingParams.recordingSupportForOtherOrientation);
     updateRecordingMultiFormatsSupport(data.recordingParams.recordingMultiFormatsSupport);
+    updateSupportsScreenAudio?.(data.supportsScreenAudio === true);
 
     // Update other meeting room settings
     updateItemPageLimit(data.meetingRoomParams.itemPageLimit);

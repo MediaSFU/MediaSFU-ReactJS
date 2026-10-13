@@ -121,7 +121,7 @@ export interface ModernBackgroundModalOptions {
   saveButtonLabel?: string;
   /** Person-aware background blur strength in pixels. Defaults to 16. */
   blurPixels?: number;
-  /** Best-effort hidden-tab processing for blur and images; defaults to true. */
+  /** Try to keep image or blur processing moving in hidden tabs at up to five frames per second. Browser throttling still applies. */
   keepProcessingWhenHidden?: boolean;
   renderHeader?: (options: { defaultHeader: React.ReactNode; onClose: () => void }) => React.ReactNode;
   renderButtons?: (options: {
@@ -1553,9 +1553,11 @@ const ModernBackgroundModal: React.FC<ModernBackgroundModalOptions> = ({
               return loopVersion === previewLoopVersionRef.current &&
                 !pauseSegmentation && cameraTrack?.readyState === "live";
             },
-            processFrame: () => videoElement.videoWidth > 0 && videoElement.videoHeight > 0
-              ? segmentation.send({ image: videoElement })
-              : undefined,
+            processFrame: async () => {
+              if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                await segmentation.send({ image: videoElement });
+              }
+            },
           });
         };
 

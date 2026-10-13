@@ -2,6 +2,40 @@
 // Socket manager for media socket.
 import { MeetingRoomParams, RecordingParams } from '../@types/types';
 import io, { Socket } from 'socket.io-client'; // Importing socket type
+import {
+  MediaSocketConnectError,
+  MediaSocketConnectPhase,
+  MediaConnectionRejectionReason,
+  currentOnlineState,
+  normalizeRejectionReason,
+} from './mediaSocketErrors';
+
+/**
+ * After the handshake, Socket.IO reconnects this socket on its own whenever the transport drops. A media node that
+ * refuses such a reconnect for good (the room ended, the credentials were replaced by a newer join, no meeting
+ * minutes) would be retried for as long as the page stays open, so a permanent refusal closes the socket instead.
+ * Transient refusals (`api-check-failed`) keep today's behaviour.
+ */
+export function stopReconnectingWhenRefused(socket: Socket): void {
+  const onRejected = (payload?: { reason?: string; stage?: string }) => {
+    const refusal = new MediaSocketConnectError({
+      phase: 'rejected',
+      reason: normalizeRejectionReason(payload?.reason),
+      stage: typeof payload?.stage === 'string' ? payload.stage : undefined,
+      elapsedMs: 0,
+    });
+    if (refusal.retryable) return;
+    socket.off('connection-rejected', onRejected);
+    console.warn(`MediaSFU media socket: reconnect refused (${refusal.reason}); not retrying.`);
+    try {
+      // With no active socket left on its manager, Socket.IO stops reconnecting.
+      socket.disconnect();
+    } catch {
+      // Already closed.
+    }
+  };
+  socket.on('connection-rejected', onRejected);
+}
 
 /**
  * Validates the provided API key or token.
@@ -62,6 +96,10 @@ export type ConnectLocalSocketType = (options: ConnectLocalSocketOptions) => Pro
  * @param {string} options.link - The socket link.
  *
  * @returns {Promise<Socket>} A promise that resolves to the connected socket.
+ * @throws {MediaSocketConnectError} When the connection fails. `phase` says where (`before-open`, `after-open`,
+ *   `rejected`, `timeout`), `reason`/`stage` carry the server's `connection-rejected` verdict, `elapsedMs` and `online`
+ *   help tell a device/network problem from a refusal, and `retryable` is false for rejections that cannot succeed
+ *   with the same credentials. `describeMediaSocketError(error)` turns it into a user-facing sentence.
  *
  * @example
  * ```typescript
@@ -140,12 +178,27 @@ async function connectSocket(
     // orphan that the room lifecycle never received.
     let settled = false;
     let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+    const startedAt = Date.now();
+    let transportOpened = false;
+    let rejection: { reason: MediaConnectionRejectionReason; stage?: string } | null = null;
     const cleanupHandshake = () => {
       if (timeoutHandle) clearTimeout(timeoutHandle);
       socket.off('connection-success', handleConnectionSuccess);
       socket.off('connect_error', handleConnectError);
       socket.off('disconnect', handleDisconnectBeforeReady);
+      socket.off('connect', handleTransportOpen);
+      socket.off('connection-rejected', handleConnectionRejected);
     };
+    const failure = (phase: MediaSocketConnectPhase, transportError?: string) =>
+      new MediaSocketConnectError({
+        phase: rejection ? 'rejected' : phase,
+        reason: rejection?.reason,
+        stage: rejection?.stage,
+        elapsedMs: Date.now() - startedAt,
+        online: currentOnlineState(),
+        transportError,
+        link,
+      });
     const settle = (action: () => void) => {
       if (settled) return;
       settled = true;
@@ -166,13 +219,37 @@ async function connectSocket(
       }
 
       console.log(`Connected to ${conn} socket with ID: ${socketId}`);
-      settle(() => resolve(socket));
+      settle(() => {
+        stopReconnectingWhenRefused(socket);
+        resolve(socket);
+      });
     };
 
     const handleConnectError = (error: Error) => {
       settle(() => {
         socket.disconnect();
-        reject(new Error('Error connecting to media socket: ' + error.message));
+        reject(failure(transportOpened ? 'after-open' : 'before-open', error?.message));
+      });
+    };
+
+    const handleTransportOpen = () => {
+      transportOpened = true;
+    };
+
+    // Media admission v2: the node says why before it closes the handshake. Socket.IO's own reconnection never
+    // retries a server-side close, and settling here stops this attempt from being retried as a network error.
+    const handleConnectionRejected = (payload?: { reason?: string; stage?: string }) => {
+      rejection = {
+        reason: normalizeRejectionReason(payload?.reason),
+        stage: typeof payload?.stage === 'string' ? payload.stage : undefined,
+      };
+      settle(() => {
+        try {
+          socket.disconnect();
+        } catch {
+          // Already closing.
+        }
+        reject(failure('rejected'));
       });
     };
 
@@ -181,18 +258,14 @@ async function connectSocket(
     // bad handshake. Without this the promise stayed pending forever, so the
     // caller's loading modal never came down and no error was ever surfaced.
     const handleDisconnectBeforeReady = (reason: string) => {
-      settle(() =>
-        reject(
-          new Error(
-            'Media socket closed before the room was ready (' + reason + ').'
-          )
-        )
-      );
+      settle(() => reject(failure('after-open', reason)));
     };
 
     socket.on('connection-success', handleConnectionSuccess);
     socket.on('connect_error', handleConnectError);
     socket.on('disconnect', handleDisconnectBeforeReady);
+    socket.on('connect', handleTransportOpen);
+    socket.on('connection-rejected', handleConnectionRejected);
 
     // Last resort, for the case where the socket neither connects, errors nor
     // disconnects. Nothing above guarantees a settle on its own.
@@ -203,7 +276,7 @@ async function connectSocket(
         } catch {
           // Nothing useful to do here.
         }
-        reject(new Error('Timed out connecting to media socket.'));
+        reject(failure('timeout'));
       });
     }, CONNECT_TIMEOUT_MS);
   });
@@ -245,6 +318,11 @@ async function connectLocalSocket({ link }: ConnectLocalSocketOptions): Promise<
     socket = io(`${link}/media`, {
       transports: ['websocket'],
     });
+    const startedAt = Date.now();
+    let transportOpened = false;
+    socket.on('connect', () => {
+      transportOpened = true;
+    });
 
 
     // Handle socket connection events
@@ -253,7 +331,15 @@ async function connectLocalSocket({ link }: ConnectLocalSocketOptions): Promise<
     });
 
     socket.on('connect_error', (error: Error) => {
-      reject(new Error('Error connecting to media socket: ' + error.message));
+      reject(
+        new MediaSocketConnectError({
+          phase: transportOpened ? 'after-open' : 'before-open',
+          elapsedMs: Date.now() - startedAt,
+          online: currentOnlineState(),
+          transportError: error?.message,
+          link,
+        })
+      );
     });
   });
 }

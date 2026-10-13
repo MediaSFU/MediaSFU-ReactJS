@@ -1,4 +1,5 @@
 import { ShowAlert } from "../../@types/types";
+import { wasSessionReplaced } from "./sessionReplaced";
 
 export interface DisconnectOptions {
   showAlert?: ShowAlert;
@@ -31,6 +32,10 @@ export type DisconnectType = (options: DisconnectOptions) => Promise<void>;
  */
 
 export const disconnect = async ({ showAlert, redirectURL, onWeb }: DisconnectOptions): Promise<void> => {
+  // The server closed this connection because another tab or device took over: sessionReplaced already explained it,
+  // and redirecting or alerting here would hide the "Use this one" choice.
+  if (wasSessionReplaced()) return;
+
 
   // Redirect to the specified URL on the web
   if (onWeb && redirectURL) {

@@ -1,5 +1,6 @@
 import { CreateJoinRoomError, CreateJoinRoomResponse, CreateJoinRoomType, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions } from '../../@types/types';
 import { resolveMediaSFURoomApi } from './resolveMediaSFURoomApi';
+import { rememberRejoinCredential } from './rejoinCredentialStore';
 
 /**
  * Asynchronously creates a room on MediaSFU.
@@ -141,7 +142,18 @@ export const createRoomOnMediaSFU: CreateJoinRoomType = async ({
     
     // Clear pending status on success
     localStorage.removeItem(pendingKey);
-    
+
+    // The host's own credential, so a reload of this tab rejoins as the same host.
+    if (data?.secret && data?.roomName) {
+      rememberRejoinCredential({
+        roomName: data.roomName,
+        userName: (data as { userName?: string }).userName || (payload as { userName?: string }).userName || "",
+        secret: data.secret,
+        link: data.link,
+        publicURL: data.publicURL,
+      });
+    }
+
     return { data, success: true };
   } catch (error) {
     // Clear pending status on error

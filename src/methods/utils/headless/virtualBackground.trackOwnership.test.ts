@@ -33,7 +33,7 @@ class FakeStream {
   addTrack(track: FakeTrack) { this.tracks.push(track); }
 }
 
-beforeAll(() => {
+beforeEach(() => {
   (global as any).MediaStream = FakeStream;
   Object.defineProperty(window, 'requestAnimationFrame', { configurable: true, value: () => 1 });
   Object.defineProperty(window, 'cancelAnimationFrame', { configurable: true, value: () => {} });
@@ -45,10 +45,11 @@ beforeAll(() => {
     captureStream: () => new FakeStream([new FakeTrack('processed')]),
   });
   const video = () => ({ autoplay: false, muted: false, playsInline: false, readyState: 4, srcObject: null, play: () => Promise.resolve() });
-  Object.defineProperty(global, 'document', { configurable: true, value: { createElement: (tag: string) => tag === 'video' ? video() : canvas() } });
+  // Keep the real document's visibility listeners used by the frame loop.
+  jest.spyOn(document, 'createElement').mockImplementation(((tag: string) => tag === 'video' ? video() : canvas()) as any);
 });
 
-afterAll(() => jest.restoreAllMocks());
+afterEach(() => jest.restoreAllMocks());
 
 test('keeps a live segmentation input and raw restoration track when producer replacement stops the old track', async () => {
   const raw = new FakeTrack('raw');
@@ -69,7 +70,7 @@ test('keeps a live segmentation input and raw restoration track when producer re
   };
 
   const applied = await applyVirtualBackground({ parameters, image: null });
-  expect(applied.ok).toBe(true);
+  expect(applied).toMatchObject({ ok: true });
   expect(raw.readyState).toBe('ended');
   expect(camera.getVideoTracks()[0].readyState).toBe('live');
   expect(camera.getVideoTracks()[0]).not.toBe(raw);
@@ -94,7 +95,7 @@ test('applies background blur through the same processed-track lifecycle', async
   };
 
   const applied = await applyBackgroundBlur({ parameters, publish: false });
-  expect(applied.ok).toBe(true);
+  expect(applied).toMatchObject({ ok: true });
   expect(applied.stream?.getVideoTracks()[0]?.id).toBe('processed');
   expect(parameters.keepBackground).toBe(true);
   await clearVirtualBackground({ parameters });

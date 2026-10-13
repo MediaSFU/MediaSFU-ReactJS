@@ -1,6 +1,7 @@
 import { PreJoinPageParameters } from "../../@types/types";
 import { Socket } from "socket.io-client";
 import Cookies from "universal-cookie";
+import { describeMediaSocketError, isMediaSocketConnectError } from "../../sockets/mediaSocketErrors";
 
 
 const cookies = new Cookies();
@@ -93,14 +94,21 @@ export const checkLimitsAndMakeRequest = async ({
           duration: 3000,
         });
       }
-    } catch {
+    } catch (error) {
+      // Say why (rejected credentials, no minutes, offline, unreachable) instead of a generic failure. Only a refusal
+      // or an unknown failure counts toward the attempt limit; a device/network problem is not a credential guess.
+      if (isMediaSocketConnectError(error)) console.warn("MediaSFU media socket:", error.message);
       parameters.showAlert?.({
-        message: "Unable to connect. Check your credentials and try again.",
+        message: describeMediaSocketError(error),
         type: "danger",
-        duration: 3000,
+        duration: isMediaSocketConnectError(error) ? 6000 : 3000,
       });
-      unsuccessfulAttempts += 1;
-      cookies.set("unsuccessfulAttempts", unsuccessfulAttempts.toString());
+      const networkOnly =
+        isMediaSocketConnectError(error) && error.phase !== "rejected" && (error.online === false || error.phase === "before-open");
+      if (!networkOnly) {
+        unsuccessfulAttempts += 1;
+        cookies.set("unsuccessfulAttempts", unsuccessfulAttempts.toString());
+      }
       parameters.updateIsLoadingModalVisible(false);
     }
   };

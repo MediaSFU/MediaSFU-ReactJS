@@ -1,4 +1,5 @@
 import { Transport, Producer, ProducerOptions } from "mediasoup-client/lib/types";
+import { produceOnce } from "./sendTransportGuard";
 
 export interface ConnectSendTransportAudioParameters {
   audioProducer: Producer | null;
@@ -39,7 +40,7 @@ const connectLocalSendTransportAudio = async ({
     } = parameters;
 
     if (localProducerTransport) {
-      localAudioProducer = await localProducerTransport.produce(audioParams);
+      localAudioProducer = (await produceOnce(localProducerTransport, "audio", () => localProducerTransport!.produce(audioParams))).producer;
 
       updateLocalAudioProducer?.(localAudioProducer);
       updateLocalProducerTransport?.(localProducerTransport);
@@ -127,10 +128,12 @@ export const connectSendTransportAudio: ConnectSendTransportAudioType = async ({
 
     // Attempt to connect the primary send transport
     if (targetOption === "all" || targetOption === "remote") {
-      audioProducer = await producerTransport!.produce(audioParams);
+      // A concurrent call for the same transport shares the producer instead of creating a second one.
+      const produced = await produceOnce(producerTransport!, "audio", () => producerTransport!.produce(audioParams));
+      audioProducer = produced.producer;
 
-      // Update the audio level
-      updateMicLevel(audioProducer, parameters.updateAudioLevel);
+      // Update the audio level (once per producer)
+      if (!produced.joined) updateMicLevel(audioProducer, parameters.updateAudioLevel);
 
       // Update state with the new producer and transport
       updateAudioProducer(audioProducer);

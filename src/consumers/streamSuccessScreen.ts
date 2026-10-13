@@ -1,6 +1,7 @@
  
 
 import { Socket } from "socket.io-client";
+import { connectSendTransportScreenAudio } from "./connectSendTransportScreenAudio";
 import {
   SleepType, CreateSendTransportType, ConnectSendTransportScreenType, DisconnectSendTransportScreenType, StopShareScreenType, ReorderStreamsType, PrepopulateUserMediaType, RePortType,
   ShowAlert, CreateSendTransportParameters, ConnectSendTransportScreenParameters, DisconnectSendTransportScreenParameters, StopShareScreenParameters, ReorderStreamsParameters, PrepopulateUserMediaParameters,
@@ -179,6 +180,16 @@ export const streamSuccessScreen = async ({
 
     // Alert the socket that you are sharing the screen
     socket.emit("startScreenShare");
+
+    // Share the screen's audio too, when the browser captured it and the server supports it.
+    try {
+      await connectSendTransportScreenAudio({
+        stream: localStreamScreen,
+        parameters: getUpdatedAllParams() as any,
+      });
+    } catch (error) {
+      console.log("Screen audio not shared:", error);
+    }
   } catch (error: any) {
     showAlert?.({
       message: error.message,

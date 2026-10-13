@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { SignalNewConsumerTransportParameters, SignalNewConsumerTransportType } from '../@types/types';
+import { markScreenAudioProducer } from './screenAudio';
 
 /**
  * Translation metadata for translation producers
@@ -18,6 +19,8 @@ interface TranslationMeta {
 interface ProducerInfo {
   id: string;
   translationMeta?: TranslationMeta | null;
+  /** "screen-audio" for audio shared with a screen share. */
+  mediaTag?: string;
 }
 
 export interface GetPipedProducersAltParameters extends Omit<SignalNewConsumerTransportParameters, 'getUpdatedAllParams'> {
@@ -175,6 +178,7 @@ export const getPipedProducersAlt = async ({
               // New format - object with id and translationMeta
               producerId = producer.id;
               translationMeta = producer.translationMeta || null;
+              markScreenAudioProducer(producerId, producer.mediaTag);
             }
             
             // Handle translation producers specially - use startConsumingTranslation for proper tracking

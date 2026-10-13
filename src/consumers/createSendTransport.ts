@@ -1,5 +1,6 @@
 import { Device, Transport, DtlsParameters } from "mediasoup-client/lib/types";
 import { attachTransportRecovery, clearFailedSendState } from './transportRecovery';
+import { isOpen, pendingSendTransportCreation, trackSendTransportCreation } from './sendTransportGuard';
 import { Socket } from "socket.io-client";
 import {
   ConnectSendTransportParameters,
@@ -189,7 +190,7 @@ const createLocalSendTransport = async ({
  *   .catch((error) => console.error('Error creating send transport:', error));
  */
 
-export const createSendTransport: CreateSendTransportType = async ({
+const createSendTransportNow = async ({
   option,
   parameters,
 }: CreateSendTransportOptions): Promise<void> => {
@@ -315,6 +316,55 @@ export const createSendTransport: CreateSendTransportType = async ({
       }
     ));
 
+  } catch (error) {
+    console.log("Error creating send transport:", error);
+  }
+};
+
+const producerFor = (params: any, option: CreateSendTransportOptions["option"]): boolean => {
+  if (option === "audio") return isOpen(params.audioProducer);
+  if (option === "video") return isOpen(params.videoProducer);
+  if (option === "screen") return isOpen(params.screenProducer);
+  return isOpen(params.audioProducer) && isOpen(params.videoProducer);
+};
+
+/**
+ * Creates the send transport for this socket, or reuses the one that exists or is being created.
+ *
+ * The server keeps a single producer transport per socket, so a second creation while one is in flight (microphone
+ * and camera started together, a rejoin during a toggle) would replace the first on the server and silence the
+ * client's uplink. Later callers wait for the creation in flight and then produce their own media on that transport.
+ */
+export const createSendTransport: CreateSendTransportType = async ({
+  option,
+  parameters,
+}: CreateSendTransportOptions): Promise<void> => {
+  try {
+    const current = parameters.getUpdatedAllParams();
+    const socket = current.socket;
+    const pending = pendingSendTransportCreation(socket);
+
+    // Checked and claimed synchronously, so two callers in the same tick cannot both create.
+    if (!pending && !(current.transportCreated && isOpen(current.producerTransport))) {
+      await trackSendTransportCreation(socket, () => createSendTransportNow({ option, parameters }));
+      return;
+    }
+
+    if (pending) await pending.catch(() => undefined);
+    const latest = parameters.getUpdatedAllParams();
+    if (!isOpen(latest.producerTransport)) {
+      // The creation this caller waited for failed or the transport has closed: start again (still one at a time).
+      await createSendTransport({ option, parameters });
+      return;
+    }
+    if (producerFor(latest, option)) return; // that media is already being sent
+
+    const connectSendTransport = latest.connectSendTransport ?? parameters.connectSendTransport;
+    await connectSendTransport({
+      targetOption: "all",
+      option,
+      parameters: { ...latest, producerTransport: latest.producerTransport },
+    });
   } catch (error) {
     console.log("Error creating send transport:", error);
   }

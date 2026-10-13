@@ -4,6 +4,7 @@ import Cookies from "universal-cookie";
 import { CSSProperties } from "react";
 import { Socket } from "socket.io-client";
 import { ConnectSocketType, ConnectLocalSocketType } from "../../sockets/SocketManager";
+import { describeMediaSocketError } from "../../sockets/mediaSocketErrors";
 import { ShowAlert, CreateMediaSFURoomOptions, JoinMediaSFURoomOptions, JoinRoomOnMediaSFUType, CreateRoomOnMediaSFUType } from "../../@types/types";
 
 const cookies = new Cookies();
@@ -366,9 +367,9 @@ const WelcomePage: React.FC<WelcomePageOptions> = ({ parameters }) => {
           });
         }
       }
-    } catch {
+    } catch (error) {
       showAlert?.({
-        message: "Unable to connect. Check your credentials and try again.",
+        message: describeMediaSocketError(error),
         type: "danger",
         duration: 3000,
       });

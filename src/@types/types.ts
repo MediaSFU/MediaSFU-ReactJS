@@ -226,6 +226,7 @@ export * from '../methods/utils/producer/hParams';
 export * from '../methods/utils/producer/screenParams';
 export * from '../methods/utils/producer/vParams';
 export * from '../methods/utils/joinRoomOnMediaSFU';
+export * from '../methods/utils/rejoinCredentialStore';
 export * from '../methods/utils/meetingTimer/startMeetingProgressTimer';
 export * from '../methods/utils/MiniAudioPlayer/MiniAudioPlayer';
 export * from '../methods/utils/formatNumber';
@@ -347,6 +348,7 @@ export * from '../producers/socketReceiveMethods/allWaitingRoomMembers';
 export * from '../producers/socketReceiveMethods/banParticipant';
 export * from '../producers/socketReceiveMethods/controlMediaHost';
 export * from '../producers/socketReceiveMethods/disconnect';
+export * from '../producers/socketReceiveMethods/sessionReplaced';
 export * from '../producers/socketReceiveMethods/disconnectUserSelf';
 export * from '../producers/socketReceiveMethods/getDomains';
 export * from '../producers/socketReceiveMethods/hostRequestResponse';
@@ -425,6 +427,8 @@ export interface Participant {
     audioID: string;
     videoID: string;
     ScreenID?: string;
+    /** Producer id of the audio shared with this participant's screen share ("" or absent when none). */
+    ScreenAudioID?: string;
     ScreenOn?: boolean;
     islevel?: string;
     isAdmin?: boolean;
@@ -808,6 +812,7 @@ export interface ResponseJoinRoom {
   noAdmin?: boolean; // Indicates whether the room has no host in it.
   supportFlexRoom?: boolean; // Indicates whether the room supports flex mode (2x capacity, 25% can produce).
   supportMaxRoom?: boolean; // Indicates whether the room supports max mode (4x capacity, 5% can produce).
+  supportsScreenAudio?: boolean; // The media server accepts audio shared with a screen share ("screen-audio" producers).
 }
 
 export interface AllMembersData {

@@ -1,4 +1,5 @@
 import { Device, Producer, ProducerOptions, Transport } from "mediasoup-client/lib/types";
+import { produceOnce } from "./sendTransportGuard";
 
 export interface ConnectSendTransportVideoParameters {
   videoProducer: Producer | null;
@@ -39,7 +40,7 @@ const connectLocalSendTransportVideo = async ({
 
     // Produce local video data if transport exists
     if (localProducerTransport) {
-      localVideoProducer = await localProducerTransport.produce(videoParams);
+      localVideoProducer = (await produceOnce(localProducerTransport, "video", () => localProducerTransport!.produce(videoParams))).producer;
 
       // Update local producer and transport
       updateLocalVideoProducer?.(localVideoProducer);
@@ -121,7 +122,8 @@ export const connectSendTransportVideo: ConnectSendTransportVideoType = async ({
 
     // Produce video data using the primary transport
     if (targetOption === "all" || targetOption === "remote"){
-      videoProducer = await producerTransport!.produce(videoParams);
+      // A concurrent call for the same transport shares the producer instead of creating a second one.
+      videoProducer = (await produceOnce(producerTransport!, "video", () => producerTransport!.produce(videoParams))).producer;
 
       // Update main window state based on the video connection level
       if (islevel === "2") {

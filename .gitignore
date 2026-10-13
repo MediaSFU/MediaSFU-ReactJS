@@ -29,7 +29,6 @@ yarn-error.log*
 src/main1.js
 publish.js
 rollup.config.js
-webpack.config.js
 rename_js_to_ts.sh
 specific_js_ts.sh
 dist/

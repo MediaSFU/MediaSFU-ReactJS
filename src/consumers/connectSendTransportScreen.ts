@@ -1,4 +1,5 @@
 import { Transport, Producer, Device, ProducerOptions } from "mediasoup-client/lib/types";
+import { produceOnce } from "./sendTransportGuard";
 
 export interface ConnectSendTransportScreenParameters {
   screenProducer: Producer | null;
@@ -47,11 +48,11 @@ const connectLocalSendTransportScreen = async ({
 
     // Produce local screen share data
     if (localProducerTransport) {
-      localScreenProducer = await localProducerTransport.produce({
+      localScreenProducer = (await produceOnce(localProducerTransport, "screen", () => localProducerTransport!.produce({
         track: stream.getVideoTracks()[0],
         codec,
         appData: { mediaTag: "screen-video" },
-      });
+      }))).producer;
 
       // Update the local producer and transport objects
       updateLocalScreenProducer?.(localScreenProducer);
@@ -141,12 +142,13 @@ export const connectSendTransportScreen: ConnectSendTransportScreenType = async 
 
     // Produce screen share data using the producer transport
     if (targetOption === "remote" || targetOption === "all") {
-      screenProducer = await producerTransport!.produce({
+      // A concurrent call for the same transport shares the producer instead of creating a second one.
+      screenProducer = (await produceOnce(producerTransport!, "screen", () => producerTransport!.produce({
         track: stream.getVideoTracks()[0],
         ...params,
         codec,
         appData: { mediaTag: "screen-video" },
-      });
+      }))).producer;
 
       // Update the screen producer and producer transport objects
       updateScreenProducer(screenProducer);

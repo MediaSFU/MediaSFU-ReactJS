@@ -3,6 +3,9 @@ import { connectSocket } from "../sockets/SocketManager";
 import { newPipeProducer } from "./socketReceiveMethods/newPipeProducer";
 import { producerClosed } from "./socketReceiveMethods/producerClosed";
 import { joinConsumeRoom } from "./socketReceiveMethods/joinConsumeRoom";
+import { markScreenAudioProducer } from "./screenAudio";
+import { consumerBackupPreferDelay } from "./consumerBackupPreference";
+import { isMediaSocketConnectError } from "../sockets/mediaSocketErrors";
 import { Device } from 'mediasoup-client/lib/types';
 import {
   ReorderStreamsParameters, ReorderStreamsType, NewPipeProducerParameters, NewPipeProducerType, ProducerClosedType,
@@ -48,6 +51,28 @@ const pendingConsumeConnections = new WeakMap<
 
 const normalizeConsumeEndpoint = (ip: string): string =>
   ip.trim().toLowerCase().replace(/\.$/, "");
+
+/**
+ * Consume endpoints that refused these credentials (`connection-rejected` with a permanent reason). Domain updates call
+ * connectIps again and again; without this every update would retry the same refusal. Keyed by the caller's socket
+ * collection so another room (new credentials) starts clean.
+ */
+export const CONSUME_REJECTION_COOLDOWN_MS = 60000;
+const rejectedConsumeEndpoints = new WeakMap<object, Map<string, number>>();
+
+const consumeEndpointRecentlyRejected = (owner: object, endpoint: string): boolean => {
+  const at = rejectedConsumeEndpoints.get(owner)?.get(endpoint);
+  return at !== undefined && Date.now() - at < CONSUME_REJECTION_COOLDOWN_MS;
+};
+
+const rememberConsumeEndpointRejection = (owner: object, endpoint: string): void => {
+  let byEndpoint = rejectedConsumeEndpoints.get(owner);
+  if (!byEndpoint) {
+    byEndpoint = new Map<string, number>();
+    rejectedConsumeEndpoints.set(owner, byEndpoint);
+  }
+  byEndpoint.set(endpoint, Date.now());
+};
 
 const hasConsumeEndpoint = (
   consumeSockets: ConsumeSocket[],
@@ -179,7 +204,9 @@ export const connectIps = async ({
       return [consume_sockets, roomRecvIPs];
     }
 
+    const rejectionOwner: object = parameters?.socket || consume_sockets;
     for (const ip of remIP) {
+      if (consumeEndpointRecentlyRejected(rejectionOwner, normalizeConsumeEndpoint(ip))) continue;
       const releaseReservation = await reserveConsumeEndpoint(
         consume_sockets,
         ip,
@@ -215,10 +242,20 @@ export const connectIps = async ({
           }
 
           // Handle new pipe producer event
-          const consumeProducer = async ({ producerId, islevel, isTranslation, translationMeta }: { producerId: string; islevel: string; isTranslation?: boolean; translationMeta?: { speakerId: string; speakerName: string; language: string; originalProducerId?: string; isSpeakerControlled?: boolean } }) => {
+          const consumeProducer = async ({ producerId, islevel, isTranslation, translationMeta, mediaTag }: { producerId: string; islevel: string; isTranslation?: boolean; translationMeta?: { speakerId: string; speakerName: string; language: string; originalProducerId?: string; isSpeakerControlled?: boolean }; mediaTag?: string }) => {
+            // Screen-share audio is tagged by the server; remember it before the consumer resumes.
+            markScreenAudioProducer(producerId, mediaTag);
             if (!consumeRoomReady) {
               pendingProducers.push({ producerId, islevel, isTranslation, translationMeta });
               return;
+            }
+            // A busy node with a connected backup: give the backup's announcement a moment to win (same producer id).
+            const preferDelay = isTranslation ? 0 : consumerBackupPreferDelay(
+              ip,
+              (parameters.getUpdatedAllParams?.() as any)?.consume_sockets as any
+            );
+            if (preferDelay > 0) {
+              await new Promise((resolve) => setTimeout(resolve, preferDelay));
             }
             if (newProducerMethod) {
               await newProducerMethod({
@@ -290,8 +327,12 @@ export const connectIps = async ({
           });
         }
       } catch (error) {
-        // Handle the error
-        console.log("connectIps error", error);
+        if (isMediaSocketConnectError(error) && !error.retryable) {
+          rememberConsumeEndpointRejection(rejectionOwner, normalizeConsumeEndpoint(ip));
+          console.warn(`connectIps: ${ip} refused this room (${error.reason}); not retrying for ${CONSUME_REJECTION_COOLDOWN_MS / 1000} s.`, error.message);
+        } else {
+          console.log("connectIps error", error);
+        }
       } finally {
         if (!connected && remote_sock) {
           remote_sock.removeAllListeners?.();
